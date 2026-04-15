@@ -1,9 +1,77 @@
 import XCTest
+import ArgumentParser
+@testable import vec
 
 final class CLITests: XCTestCase {
 
-    func testPlaceholder() {
-        // CLI tests will be added as commands are implemented
-        XCTAssertTrue(true)
+    // MARK: - Vec Subcommand Registration
+
+    func testVecHasExpectedSubcommands() {
+        let subcommands = Vec.configuration.subcommands
+        let names = subcommands.map { $0.configuration.commandName ?? "" }
+
+        XCTAssertTrue(names.contains("init"), "Missing 'init' subcommand")
+        XCTAssertTrue(names.contains("update-index"), "Missing 'update-index' subcommand")
+        XCTAssertTrue(names.contains("search"), "Missing 'search' subcommand")
+        XCTAssertTrue(names.contains("insert"), "Missing 'insert' subcommand")
+        XCTAssertTrue(names.contains("remove"), "Missing 'remove' subcommand")
+    }
+
+    // MARK: - InitCommand
+
+    func testInitCommandParsesWithNoArguments() throws {
+        let cmd = try InitCommand.parseAsRoot([]) as! InitCommand
+        XCTAssertFalse(cmd.force)
+    }
+
+    func testInitCommandParsesWithForceFlag() throws {
+        let cmd = try InitCommand.parseAsRoot(["--force"]) as! InitCommand
+        XCTAssertTrue(cmd.force)
+    }
+
+    // MARK: - SearchCommand
+
+    func testSearchCommandFailsWithoutQuery() {
+        XCTAssertThrowsError(try SearchCommand.parseAsRoot([]))
+    }
+
+    func testSearchCommandParsesQueryWithDefaults() throws {
+        let cmd = try SearchCommand.parseAsRoot(["hello world"]) as! SearchCommand
+        XCTAssertEqual(cmd.query, "hello world")
+        XCTAssertEqual(cmd.limit, 10)
+        XCTAssertFalse(cmd.includePreview)
+    }
+
+    func testSearchCommandParsesAllFlags() throws {
+        let cmd = try SearchCommand.parseAsRoot([
+            "some query",
+            "--limit", "5",
+            "--include-preview"
+        ]) as! SearchCommand
+        XCTAssertEqual(cmd.query, "some query")
+        XCTAssertEqual(cmd.limit, 5)
+        XCTAssertTrue(cmd.includePreview)
+    }
+
+    // MARK: - InsertCommand
+
+    func testInsertCommandFailsWithoutPath() {
+        XCTAssertThrowsError(try InsertCommand.parseAsRoot([]))
+    }
+
+    func testInsertCommandParsesPath() throws {
+        let cmd = try InsertCommand.parseAsRoot(["src/main.swift"]) as! InsertCommand
+        XCTAssertEqual(cmd.path, "src/main.swift")
+    }
+
+    // MARK: - RemoveCommand
+
+    func testRemoveCommandFailsWithoutPath() {
+        XCTAssertThrowsError(try RemoveCommand.parseAsRoot([]))
+    }
+
+    func testRemoveCommandParsesPath() throws {
+        let cmd = try RemoveCommand.parseAsRoot(["docs/readme.md"]) as! RemoveCommand
+        XCTAssertEqual(cmd.path, "docs/readme.md")
     }
 }
