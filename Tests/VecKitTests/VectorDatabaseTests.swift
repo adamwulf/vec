@@ -29,11 +29,12 @@ final class VectorDatabaseTests: XCTestCase {
     // MARK: - Helpers
 
     /// Embed a string using the real EmbeddingService. Fails the test if embedding returns nil.
-    private func embed(_ text: String, file: StaticString = #file, line: UInt = #line) -> [Float] {
-        guard let vector = embeddingService.embed(text) else {
-            XCTFail("EmbeddingService returned nil for: \(text)", file: file, line: line)
-            return [Float](repeating: 0, count: 512)
-        }
+    private func embed(_ text: String, file: StaticString = #file, line: UInt = #line) throws -> [Float] {
+        let vector = try XCTUnwrap(
+            embeddingService.embed(text),
+            "EmbeddingService returned nil for: \(text)",
+            file: file, line: line
+        )
         return vector
     }
 
@@ -95,7 +96,7 @@ final class VectorDatabaseTests: XCTestCase {
 
     func testInsertReturnsValidRowID() throws {
         let db = try makeInitializedDB()
-        let embedding = embed("The quick brown fox jumps over the lazy dog")
+        let embedding = try embed("The quick brown fox jumps over the lazy dog")
 
         let rowID = try db.insert(
             filePath: "test.swift",
@@ -115,7 +116,7 @@ final class VectorDatabaseTests: XCTestCase {
 
     func testInsertWithNilOptionalFields() throws {
         let db = try makeInitializedDB()
-        let embedding = embed("Some test content for nil fields")
+        let embedding = try embed("Some test content for nil fields")
 
         let rowID = try db.insert(
             filePath: "document.pdf",
@@ -144,7 +145,7 @@ final class VectorDatabaseTests: XCTestCase {
         ]
 
         for (i, text) in texts.enumerated() {
-            let emb = embed(text)
+            let emb = try embed(text)
             try db.insert(
                 filePath: "file\(i).txt",
                 lineStart: nil,
@@ -157,7 +158,7 @@ final class VectorDatabaseTests: XCTestCase {
             )
         }
 
-        let queryEmbedding = embed("Swift programming language")
+        let queryEmbedding = try embed("Swift programming language")
         let results = try db.search(embedding: queryEmbedding, limit: 4)
 
         XCTAssertEqual(results.count, 4)
@@ -179,8 +180,8 @@ final class VectorDatabaseTests: XCTestCase {
         let similarText = "Swift is a programming language for iOS and macOS development"
         let dissimilarText = "The recipe calls for two cups of flour and one egg"
 
-        let similarEmb = embed(similarText)
-        let dissimilarEmb = embed(dissimilarText)
+        let similarEmb = try embed(similarText)
+        let dissimilarEmb = try embed(dissimilarText)
 
         try db.insert(
             filePath: "similar.swift",
@@ -204,7 +205,7 @@ final class VectorDatabaseTests: XCTestCase {
             embedding: dissimilarEmb
         )
 
-        let queryEmb = embed("Swift programming for Apple platforms")
+        let queryEmb = try embed("Swift programming for Apple platforms")
         let results = try db.search(embedding: queryEmb, limit: 2)
 
         XCTAssertEqual(results.count, 2)
@@ -217,7 +218,7 @@ final class VectorDatabaseTests: XCTestCase {
 
     func testSearchOnEmptyDBReturnsEmptyArray() throws {
         let db = try makeInitializedDB()
-        let queryEmb = embed("test query")
+        let queryEmb = try embed("test query")
         let results = try db.search(embedding: queryEmb, limit: 10)
 
         XCTAssertTrue(results.isEmpty)
@@ -238,7 +239,7 @@ final class VectorDatabaseTests: XCTestCase {
         ]
 
         for (i, text) in sentences.enumerated() {
-            let emb = embed(text)
+            let emb = try embed(text)
             try db.insert(
                 filePath: "file\(i).txt",
                 lineStart: nil,
@@ -251,7 +252,7 @@ final class VectorDatabaseTests: XCTestCase {
             )
         }
 
-        let queryEmb = embed("algorithm design")
+        let queryEmb = try embed("algorithm design")
 
         let results2 = try db.search(embedding: queryEmb, limit: 2)
         XCTAssertEqual(results2.count, 2)
@@ -268,7 +269,7 @@ final class VectorDatabaseTests: XCTestCase {
     func testSearchResultFieldsMapCorrectly() throws {
         let db = try makeInitializedDB()
         let text = "Function to calculate fibonacci numbers"
-        let emb = embed(text)
+        let emb = try embed(text)
 
         try db.insert(
             filePath: "src/math/fibonacci.swift",
@@ -297,7 +298,7 @@ final class VectorDatabaseTests: XCTestCase {
     func testSearchResultFieldsWithPDFPage() throws {
         let db = try makeInitializedDB()
         let text = "Introduction to machine learning concepts"
-        let emb = embed(text)
+        let emb = try embed(text)
 
         try db.insert(
             filePath: "docs/ml-guide.pdf",
@@ -330,9 +331,9 @@ final class VectorDatabaseTests: XCTestCase {
         let earlyDate = Date(timeIntervalSince1970: 1000000)
         let lateDate = Date(timeIntervalSince1970: 2000000)
 
-        let emb1 = embed("First chunk of the readme file")
-        let emb2 = embed("Second chunk of the readme file")
-        let emb3 = embed("Main swift source file content")
+        let emb1 = try embed("First chunk of the readme file")
+        let emb2 = try embed("Second chunk of the readme file")
+        let emb3 = try embed("Main swift source file content")
 
         // Two entries for the same file with different dates
         try db.insert(
@@ -392,8 +393,8 @@ final class VectorDatabaseTests: XCTestCase {
     func testRemoveEntriesRemovesAndReturnsCorrectCount() throws {
         let db = try makeInitializedDB()
 
-        let emb1 = embed("First chunk for removal test")
-        let emb2 = embed("Second chunk for removal test")
+        let emb1 = try embed("First chunk for removal test")
+        let emb2 = try embed("Second chunk for removal test")
 
         try db.insert(
             filePath: "toremove.swift",
@@ -438,8 +439,8 @@ final class VectorDatabaseTests: XCTestCase {
     func testMultipleFilesInsertTwoRemoveOneOtherRemains() throws {
         let db = try makeInitializedDB()
 
-        let emb1 = embed("Content of file alpha for multi-file test")
-        let emb2 = embed("Content of file beta for multi-file test")
+        let emb1 = try embed("Content of file alpha for multi-file test")
+        let emb2 = try embed("Content of file beta for multi-file test")
 
         try db.insert(
             filePath: "alpha.swift",
