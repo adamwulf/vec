@@ -286,7 +286,7 @@ public enum VecError: Error, LocalizedError {
         case .cannotReadFile(let path):
             return "Cannot read file: \(path)"
         case .databaseNotInitialized:
-            return "Vector database not initialized. Run 'vec init' first."
+            return "Vector database not initialized. Run 'vec init <db-name>' first."
         case .databaseAlreadyExists:
             return "Vector database already exists. Use --force to reinitialize."
         case .pathOutsideProject(let path):

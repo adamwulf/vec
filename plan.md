@@ -8,11 +8,12 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| `vec init` | Done | Creates `.vec/index.db`, scans + indexes all files. `--force` and `--allow-hidden` flags. Skip summary for unreadable/failed files. |
-| `vec update-index` | Done | Adds new, re-indexes modified, removes deleted files. `--allow-hidden` flag. Skip summary. Deduplicated insert logic via `indexFile()` helper. |
-| `vec search <query>` | Done | Vector similarity search. `--limit`, `-l`, and `--include-preview` flags. Score clamped to [0,1]. |
-| `vec insert <path>` | Done | Adds/replaces a single file. Path validation with prefix collision fix. Warning when chunks fail to embed. |
-| `vec remove <path>` | Done | Removes entries for a single file. Path validation with prefix collision fix. |
+| `vec init <db-name>` | Done | Creates `~/.vec/<db-name>/`, writes config.json, scans + indexes cwd. `--force` and `--allow-hidden` flags. |
+| `vec list` | Done | Lists all databases in `~/.vec/` with name, source directory, file count. Missing directory warnings. |
+| `vec update-index <db-name>` | Done | Re-scans source directory from config.json. `--allow-hidden` flag. Deduplicated insert logic via `indexFile()` helper. |
+| `vec search <db-name> <query>` | Done | Vector similarity search. `--limit`, `-l`, `--include-preview`, `--format json`. Default subcommand. |
+| `vec insert <db-name> <path>` | Done | Adds/replaces a single file. Path validation against source directory. |
+| `vec remove <db-name> <path>` | Done | Removes entries for a single file. Path validation against source directory. |
 | `VectorDatabase` | Done | SQLite + sqlite-vector wrapper. Insert, search, remove, allIndexedFiles. |
 | `EmbeddingService` | Done | Uses `NLEmbedding.sentenceEmbedding(for: .english)`, 512 dimensions. |
 | `FileScanner` | Done | Directory walking, .gitignore support via `git check-ignore`, hidden file filtering (dot-prefix), skips .git/node_modules/.build/etc, binary detection. Pipe-safe Process I/O. |
@@ -91,100 +92,35 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 
 ---
 
-## Priority 4: Centralized database storage (`~/.vec/`)
+## Priority 4: Centralized database storage (`~/.vec/`) — DONE
 
-**Goal:** Move from per-directory `.vec/` databases to a centralized `~/.vec/<db-name>/` model. This lets any directory on the system create, list, and search named vector databases without requiring a local `.vec/` folder.
+All databases now live under `~/.vec/<db-name>/` instead of per-directory `.vec/` folders. Each database directory contains `index.db` and `config.json` (source directory path, creation date).
 
-### Current architecture (what changes)
-
-- **VectorDatabase** takes a `directory: URL` and computes `dbPath` as `directory/.vec/index.db`
-- **InitCommand** creates `.vec/` in the current working directory, scans that directory
-- **UpdateIndexCommand**, **SearchCommand**, **InsertCommand**, **RemoveCommand** all derive the database location from the current working directory's `.vec/` subfolder
-- **FileScanner** `skipDirectories` includes `.vec`
-
-### New architecture
-
-All databases live under `~/.vec/<db-name>/`. Each database directory contains:
-- `index.db` — the SQLite + sqlite-vector database
-- `config.json` — metadata: the source directory path that was indexed, creation date, etc.
-
-#### New CLI interface
+### CLI interface
 
 | Command | Description |
 |---------|-------------|
-| `vec init <db-name>` | Create a new database named `<db-name>`, indexing the current directory. Stores source directory path in `config.json`. Fails if `<db-name>` already exists (unless `--force`). |
-| `vec list` | List all databases in `~/.vec/`, showing name, source directory, and file count. |
-| `vec search <db-name> <query>` | Search the named database. Supports `--limit`, `--include-preview`, `--format json`. |
-| `vec update-index <db-name>` | Re-scan the source directory recorded in the database's `config.json` and update the index. |
-| `vec insert <db-name> <path>` | Add/replace a specific file in the named database. Path resolved relative to the database's source directory. |
-| `vec remove <db-name> <path>` | Remove a file from the named database. |
+| `vec init <db-name>` | Create a new database, indexing the current directory. `--force`, `--allow-hidden`. |
+| `vec list` | List all databases with name, source directory, and file count. |
+| `vec search <db-name> <query>` | Search a database. `--limit`, `--include-preview`, `--format json`. |
+| `vec <db-name> <query>` | Shorthand for `vec search` (default subcommand). |
+| `vec update-index <db-name>` | Re-scan source directory and update the index. `--allow-hidden`. |
+| `vec insert <db-name> <path>` | Add/replace a file in the index. |
+| `vec remove <db-name> <path>` | Remove a file from the index. |
 
-#### Shorthand
+### What was done
 
-`vec <db-name> "search string"` as a convenience alias for `vec search <db-name> "search string"`.
-
-### Implementation tasks
-
-#### 4a. VectorDatabase refactor
-- **Change `init` to accept a `databaseDirectory: URL`** (the `~/.vec/<db-name>/` path) and a `sourceDirectory: URL` (the directory being indexed)
-- `dbPath` becomes `databaseDirectory/index.db`
-- `initialize()` creates the `databaseDirectory`, not a `.vec/` subfolder
-- `open()` looks for `databaseDirectory/index.db`
-- Add a `config.json` read/write: stores `{ "sourceDirectory": "/abs/path", "createdAt": "ISO8601" }`
-
-#### 4b. New `DatabaseLocator` utility
-- Computes `~/.vec/` base path
-- `databaseDirectory(for name: String) -> URL` returns `~/.vec/<name>/`
-- `allDatabases() -> [(name: String, config: DatabaseConfig)]` lists all subdirs of `~/.vec/` that contain a valid `config.json`
-- Validates database names (alphanumeric, hyphens, underscores; no slashes or spaces)
-
-#### 4c. Update `InitCommand`
-- Takes `<db-name>` as a required argument
-- Creates `~/.vec/<db-name>/` via `DatabaseLocator`
-- Writes `config.json` with `sourceDirectory` = current working directory
-- Scans current directory (unchanged scan logic)
-- Stores embeddings in the centralized database
-
-#### 4d. New `ListCommand`
-- `vec list` — iterates all databases via `DatabaseLocator.allDatabases()`
-- Displays: name, source directory, indexed file count (from `allIndexedFiles().count`)
-- For databases whose source directory no longer exists, show a warning marker
-
-#### 4e. Update `SearchCommand`
-- Takes `<db-name>` as first argument, `<query>` as second
-- Resolves database via `DatabaseLocator.databaseDirectory(for:)`
-- All other logic (embedding, display, `--format json`) unchanged
-
-#### 4f. Update `UpdateIndexCommand`
-- Takes `<db-name>` as a required argument
-- Reads `config.json` to determine the source directory
-- Scans that source directory (not cwd)
-- Otherwise same logic for add/update/remove files
-
-#### 4g. Update `InsertCommand` and `RemoveCommand`
-- Take `<db-name>` as first argument
-- Resolve `<path>` relative to the database's source directory (from `config.json`)
-- Otherwise same logic
-
-#### 4h. Update `FileScanner`
-- Remove `.vec` from `skipDirectories` (no longer relevant — the database isn't in the source tree)
-
-#### 4i. Update `Vec.swift` (root command)
-- Add `ListCommand` to subcommands
-- Consider adding a default command or custom parsing to support the `vec <db-name> "query"` shorthand
-
-#### 4j. Update tests
-- `VectorDatabaseTests` — update to use a temp `~/.vec/test-db/` style directory
-- `CLITests` — update argument parsing tests for new `<db-name>` argument on all commands
-- `IntegrationTests` — update to use centralized database paths
-- New tests for `DatabaseLocator`: valid/invalid names, listing, missing config
-- New tests for `ListCommand`
-- Test that `config.json` is written and read correctly
-
-#### 4k. Update `VecError`
-- Add `databaseNotFound(String)` for when `<db-name>` doesn't exist in `~/.vec/`
-- Add `invalidDatabaseName(String)` for names that fail validation
-- Update `databaseNotInitialized` message to reference `vec init <db-name>`
+- **4a.** VectorDatabase refactored: `init(databaseDirectory:sourceDirectory:)`, deprecated init removed
+- **4b.** DatabaseLocator + DatabaseConfig: path resolution, name validation, config read/write, allDatabases()
+- **4c.** InitCommand: takes `<db-name>`, writes config.json, creates `~/.vec/<db-name>/`
+- **4d.** ListCommand: table output with name/source/count, missing directory warnings
+- **4e.** SearchCommand: takes `<db-name> <query>`, resolves via DatabaseLocator
+- **4f.** UpdateIndexCommand: takes `<db-name>`, scans source from config.json
+- **4g.** InsertCommand + RemoveCommand: take `<db-name>`, resolve paths against sourceDirectory
+- **4h.** FileScanner: removed `.vec` from skipDirectories
+- **4i.** Vec.swift: SearchCommand as defaultSubcommand for `vec <db-name> "query"` shorthand
+- **4j.** Tests: 106 tests passing (24 CLI, 14 DatabaseLocator, 17 VectorDatabase, 6 Integration, + others)
+- **4k.** VecError: added `invalidDatabaseName`, `databaseNotFound`, updated messages
 
 ---
 
