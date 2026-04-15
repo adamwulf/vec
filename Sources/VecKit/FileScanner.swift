@@ -66,7 +66,10 @@ public class FileScanner {
                 continue
             }
 
-            // Skip hidden files/directories by name (dot-prefixed) unless allowed
+            // Skip hidden files/directories by name (dot-prefixed) unless allowed.
+            // This complements .skipsHiddenFiles above: the enumerator option uses
+            // the Finder hidden attribute (NSURLIsHiddenKey), while this check catches
+            // dot-prefixed items that may not have that attribute set.
             if !includeHiddenFiles && fileName.hasPrefix(".") {
                 enumerator.skipDescendants()
                 continue
@@ -132,10 +135,9 @@ public class FileScanner {
 
         let stdinPipe = Pipe()
         let stdoutPipe = Pipe()
-        let stderrPipe = Pipe()
         process.standardInput = stdinPipe
         process.standardOutput = stdoutPipe
-        process.standardError = stderrPipe
+        process.standardError = FileHandle.nullDevice
 
         do {
             try process.run()
@@ -144,11 +146,21 @@ public class FileScanner {
             return files
         }
 
-        // Write all relative paths to stdin
-        let inputString = files.map(\.relativePath).joined(separator: "\n")
-        stdinPipe.fileHandleForWriting.write(Data(inputString.utf8))
-        stdinPipe.fileHandleForWriting.closeFile()
+        // Write stdin on a background thread to avoid blocking if the pipe buffer
+        // fills (>64KB of paths). The process may need to flush stdout before it can
+        // consume more stdin, so writing and reading must happen concurrently.
+        let inputData = Data(files.map(\.relativePath).joined(separator: "\n").utf8)
+        let stdinHandle = stdinPipe.fileHandleForWriting
+        let writeQueue = DispatchQueue(label: "vec.gitignore.stdin")
+        writeQueue.async {
+            stdinHandle.write(inputData)
+            stdinHandle.closeFile()
+        }
 
+        // Read stdout before waitUntilExit() to prevent deadlock: if git's output
+        // exceeds the pipe buffer (~64KB), the process blocks on write and
+        // waitUntilExit() would never return.
+        let outputData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
 
         // Exit code 1 means no paths were ignored, which is fine.
@@ -157,7 +169,6 @@ public class FileScanner {
             return files
         }
 
-        let outputData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
         let output = String(data: outputData, encoding: .utf8) ?? ""
 
         let ignoredPaths = Set(
