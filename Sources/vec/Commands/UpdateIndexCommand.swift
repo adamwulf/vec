@@ -33,7 +33,12 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         label: String,
         removeExisting: Bool = false
     ) throws -> IndexResult {
-        let chunks = try extractor.extract(from: file)
+        let chunks: [TextChunk]
+        do {
+            chunks = try extractor.extract(from: file)
+        } catch {
+            return .skippedUnreadable
+        }
         if chunks.isEmpty {
             return .skippedUnreadable
         }

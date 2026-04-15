@@ -4,18 +4,20 @@ A command-line tool for creating and querying local vector databases, powered by
 
 ## Overview
 
-`vec` indexes the text content of files in a directory into a local vector database stored in `.vec/` at the project root. It uses Apple's on-device `NLEmbedding` (from the NaturalLanguage framework) to generate sentence embeddings — no API keys or network access required.
+`vec` indexes the text content of files in a directory into a named vector database stored under `~/.vec/<db-name>/`. It uses Apple's on-device `NLEmbedding` (from the NaturalLanguage framework) to generate sentence embeddings — no API keys or network access required.
 
 Once indexed, you can perform semantic search across your files to find relevant content by meaning, not just keywords.
 
 ## Features
 
 - **On-device embeddings** — Uses Apple's `NLEmbedding.sentenceEmbedding(for:)` for fast, private, offline vector generation
-- **Chunked indexing** — Markdown files are split into ~50-line overlapping chunks for fine-grained search results
+- **Chunked indexing** — Markdown files are split into 50-line overlapping chunks (10-line overlap) for fine-grained search results
 - **Whole-document embeddings** — Each file also gets a full-document embedding for broader matches
 - **PDF support** — Extracts text per page from PDFs and indexes each page separately
 - **Change detection** — Tracks file modification dates to efficiently update only changed files
 - **SQLite-backed** — Uses sqlite-vector for high-performance vector similarity search
+- **`.gitignore` support** — Automatically respects `.gitignore` patterns
+- **`.vecignore` support** — Additional ignore patterns via a `.vecignore` file at the project root
 
 ## Installation
 
@@ -40,23 +42,38 @@ cp .build/release/vec /usr/local/bin/
 
 ```bash
 cd /path/to/your/project
-vec init
+vec init my-project
 ```
 
-This creates a `.vec/` directory containing the SQLite vector database and indexes all supported files in the current directory.
+This creates a `~/.vec/my-project/` directory containing `config.json` and the SQLite vector database, then indexes all supported files in the current directory.
+
+Options:
+- `--force` — Overwrite an existing database with the same name
+- `--allow-hidden` — Include hidden files and folders (dot-prefixed names)
+
+### List all databases
+
+```bash
+vec list
+```
+
+Shows all databases with their name, source directory, and indexed file count. Warns if a source directory no longer exists.
 
 ### Update the index
 
 ```bash
-vec update-index
+vec update-index my-project
 ```
 
-Re-scans the directory for new, modified, or deleted files and updates the index accordingly.
+Re-scans the source directory for new, modified, or deleted files and updates the index accordingly.
+
+Options:
+- `--allow-hidden` — Include hidden files and folders
 
 ### Search
 
 ```bash
-vec search "how does authentication work"
+vec search my-project "how does authentication work"
 ```
 
 Returns matching files ranked by semantic similarity, with line ranges when available:
@@ -67,18 +84,31 @@ docs/authentication.md:1-45     (0.87)
 README.md:120-165               (0.81)
 ```
 
+Options:
+- `--limit`, `-l` — Maximum number of results (default: 10)
+- `--include-preview` — Show a content preview for each result
+- `--format json` — Output results as JSON
+
+#### Default subcommand shorthand
+
+`search` is the default subcommand, so you can omit it:
+
+```bash
+vec my-project "how does authentication work"
+```
+
 ### Add a specific file
 
 ```bash
-vec insert path/to/file.md
+vec insert my-project path/to/file.md
 ```
 
-Indexes a specific file. The path must be within the project directory.
+Indexes a specific file. The path must be within the database's source directory.
 
 ### Remove a file from the index
 
 ```bash
-vec remove path/to/file.md
+vec remove my-project path/to/file.md
 ```
 
 Removes all embeddings for a file from the index.
@@ -87,7 +117,7 @@ Removes all embeddings for a file from the index.
 
 | Type | Indexing Strategy |
 |------|-------------------|
-| Markdown (`.md`) | ~50-line overlapping chunks + whole document |
+| Markdown (`.md`) | 50-line overlapping chunks + whole document |
 | Swift (`.swift`) | Whole file |
 | Plain text (`.txt`) | Whole file |
 | PDF (`.pdf`) | Per-page text extraction |
@@ -106,7 +136,11 @@ Removes all embeddings for a file from the index.
 
 ## Database Location
 
-The vector database is stored in `.vec/index.db` within the project directory. Add `.vec/` to your `.gitignore`.
+Each named database is stored under `~/.vec/<db-name>/`, containing:
+- `config.json` — Source directory path and creation date
+- `index.db` — The SQLite vector database
+
+Database names may contain letters, numbers, hyphens, and underscores.
 
 ## Requirements
 

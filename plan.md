@@ -2,7 +2,7 @@
 
 ## Current State
 
-The `vec` CLI tool and its `VecKit` library are production-ready for all Priority 1, 2, and 3 items. All five commands are implemented, the project builds cleanly, and tests pass across 10 test suites. The embedding service uses Apple's on-device `NLEmbedding`. The `sqlite-vector` package is integrated via SPM binary target with runtime extension loading.
+The `vec` CLI tool and its `VecKit` library are production-ready for all Priority 1, 2, and 3 items. All six commands are implemented, the project builds cleanly, and tests pass across 10 test suites. The embedding service uses Apple's on-device `NLEmbedding`. The `sqlite-vector` package is integrated via SPM binary target with runtime extension loading.
 
 ### What's Implemented
 
