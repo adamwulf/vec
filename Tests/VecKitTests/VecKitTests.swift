@@ -166,6 +166,87 @@ final class TextExtractorTests: XCTestCase {
         let chunks = try extractor.extract(from: file)
         XCTAssertEqual(chunks.count, 0)
     }
+
+    func testMarkdownWithOnlyHeadingsProducesChunks() throws {
+        // A markdown file with headings and no body text should still produce chunks
+        let content = """
+        # Introduction
+        ## Background
+        ### Details
+        ## Summary
+        """
+        let file = createFile(name: "headings_only.md", content: content)
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        // Should produce at least a whole-document chunk
+        let wholeChunks = chunks.filter { $0.type == .whole }
+        XCTAssertEqual(wholeChunks.count, 1)
+        XCTAssertFalse(wholeChunks[0].text.isEmpty)
+    }
+
+    func testMarkdownWhereEveryLineIsAHeading() throws {
+        // Generate 80 lines where every line is a heading — exceeds default chunkSize of 50
+        var lines: [String] = []
+        for i in 1...80 {
+            lines.append("# Heading \(i)")
+        }
+        let content = lines.joined(separator: "\n")
+        let file = createFile(name: "all_headings.md", content: content)
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        // Should have a whole-document chunk
+        let wholeChunks = chunks.filter { $0.type == .whole }
+        XCTAssertEqual(wholeChunks.count, 1)
+
+        // Should produce line chunks since it exceeds chunkSize
+        let lineChunks = chunks.filter { $0.type == .chunk }
+        XCTAssertGreaterThan(lineChunks.count, 0)
+
+        // All chunks should have valid line ranges
+        for chunk in lineChunks {
+            XCTAssertNotNil(chunk.lineStart)
+            XCTAssertNotNil(chunk.lineEnd)
+            XCTAssertGreaterThanOrEqual(chunk.lineEnd!, chunk.lineStart!)
+        }
+    }
+
+    func testVeryLongSingleLineProducesOnlyWholeChunk() throws {
+        // A single very long line with no newlines — should produce only a whole-doc chunk
+        let longLine = String(repeating: "This is a very long sentence without any newlines. ", count: 200)
+        let file = createFile(name: "long_line.md", content: longLine)
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        // Should have exactly one whole-document chunk
+        let wholeChunks = chunks.filter { $0.type == .whole }
+        XCTAssertEqual(wholeChunks.count, 1)
+
+        // Should have no line chunks — single line is under chunkSize (1 line < 50)
+        let lineChunks = chunks.filter { $0.type == .chunk }
+        XCTAssertEqual(lineChunks.count, 0)
+    }
+
+    func testBinaryFileReturnsEmptyArray() throws {
+        // Create a binary file with null bytes — extract() should return empty
+        let url = tempDir.appendingPathComponent("binary.bin")
+        var data = Data("some content".utf8)
+        data.append(contentsOf: [0x00, 0x00, 0xFF, 0xFE])
+        data.append(Data("more binary".utf8))
+        try! data.write(to: url)
+        let modDate = try! url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate!
+        let file = FileInfo(
+            relativePath: "binary.bin",
+            url: url,
+            modificationDate: modDate,
+            fileExtension: "bin"
+        )
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+        // Binary file cannot be read as UTF-8, so extract() should return empty
+        XCTAssertEqual(chunks.count, 0)
+    }
 }
 
 // MARK: - FileScanner Tests
@@ -383,6 +464,46 @@ final class FileScannerTests: XCTestCase {
         XCTAssertTrue(relativePaths.contains("main.swift"))
         XCTAssertTrue(relativePaths.contains("debug.log"),
                        "debug.log should be included when gitignore is disabled, got: \(relativePaths)")
+    }
+
+    func testScanFindsFilesWithSpacesInNames() throws {
+        createTextFile(at: "my file.txt", content: "content with spaces")
+        createTextFile(at: "sub dir/another file.md", content: "# Nested")
+        createTextFile(at: "normal.swift", content: "import Foundation")
+
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("my file.txt"),
+                       "Expected 'my file.txt', got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("sub dir/another file.md"),
+                       "Expected 'sub dir/another file.md', got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("normal.swift"))
+    }
+
+    func testScanFindsFilesWithUnicodeInNames() throws {
+        createTextFile(at: "café.txt", content: "coffee notes")
+        createTextFile(at: "日本語.md", content: "# Japanese")
+        createTextFile(at: "émojis 🎉.txt", content: "celebration")
+
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("café.txt"),
+                       "Expected 'café.txt', got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("日本語.md"),
+                       "Expected '日本語.md', got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("émojis 🎉.txt"),
+                       "Expected 'émojis 🎉.txt', got: \(relativePaths)")
+    }
+
+    func testScanEmptyDirectoryReturnsEmptyArray() throws {
+        // tempDir is already empty — scan should return empty without errors
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        XCTAssertEqual(files.count, 0)
     }
 }
 
