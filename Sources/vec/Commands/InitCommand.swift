@@ -65,10 +65,11 @@ struct InitCommand: AsyncParsableCommand {
             }
             if embedFailures == chunks.count {
                 skippedEmbedFailures += 1
+                print("  Skipped: \(file.relativePath) (failed to embed)")
             } else {
                 indexed += 1
+                print("  [\(indexed)/\(files.count - skippedUnreadable)] \(file.relativePath)")
             }
-            print("  [\(indexed + skippedEmbedFailures)/\(files.count - skippedUnreadable)] \(file.relativePath)")
         }
 
         let skipped = skippedUnreadable + skippedEmbedFailures

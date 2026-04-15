@@ -61,10 +61,11 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                     }
                     if embedFailures == chunks.count {
                         skippedEmbedFailures += 1
+                        print("  Skipped: \(file.relativePath) (failed to embed)")
                     } else {
                         updated += 1
+                        print("  Updated: \(file.relativePath)")
                     }
-                    print("  Updated: \(file.relativePath)")
                 }
                 // Otherwise unchanged — skip
             } else {
@@ -93,10 +94,11 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                 }
                 if embedFailures == chunks.count {
                     skippedEmbedFailures += 1
+                    print("  Skipped: \(file.relativePath) (failed to embed)")
                 } else {
                     added += 1
+                    print("  Added: \(file.relativePath)")
                 }
-                print("  Added: \(file.relativePath)")
             }
         }
 
