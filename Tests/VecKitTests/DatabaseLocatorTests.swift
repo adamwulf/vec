@@ -84,6 +84,7 @@ final class DatabaseLocatorTests: XCTestCase {
         XCTAssertThrowsError(try DatabaseLocator.validateName("update-index"))
         XCTAssertThrowsError(try DatabaseLocator.validateName("help"))
         XCTAssertThrowsError(try DatabaseLocator.validateName("version"))
+        XCTAssertThrowsError(try DatabaseLocator.validateName("info"))
     }
 
     // MARK: - databaseDirectory
