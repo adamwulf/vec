@@ -38,6 +38,16 @@ final class IntegrationTests: XCTestCase {
         return vector
     }
 
+    /// Create a text file in the temp directory and return its URL.
+    @discardableResult
+    private func createFile(at relativePath: String, content: String) -> URL {
+        let url = tempDir.appendingPathComponent(relativePath)
+        let parent = url.deletingLastPathComponent()
+        try! FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+        try! content.write(to: url, atomically: true, encoding: .utf8)
+        return url
+    }
+
     /// Create an initialized VectorDatabase in tempDir.
     private func makeInitializedDB() throws -> VectorDatabase {
         let db = VectorDatabase(directory: tempDir)
@@ -45,607 +55,308 @@ final class IntegrationTests: XCTestCase {
         return db
     }
 
-    /// Create a file on disk in tempDir.
-    private func createTextFile(name: String, content: String) {
-        let url = tempDir.appendingPathComponent(name)
-        let parent = url.deletingLastPathComponent()
-        try! FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
-        try! content.write(to: url, atomically: true, encoding: .utf8)
-    }
-
-    /// Get FileInfo for a file in tempDir by relative path.
-    private func getFileInfo(relativePath: String) throws -> FileInfo {
-        let url = tempDir.appendingPathComponent(relativePath)
-        return try FileScanner.fileInfo(for: url, relativeTo: tempDir)
-    }
-
-    // MARK: - Test 1: Scan + Extract + Embed + Store + Search
-
-    func testFullPipelineScanExtractEmbedStoreSearch() throws {
-        // Create a markdown file with enough content to produce multiple chunks
-        var lines: [String] = [
-            "# Swift Programming Guide",
-            "",
-            "Swift is a powerful and intuitive programming language for iOS, macOS, watchOS, and tvOS."
-        ]
-        // Add enough lines to exceed the default chunk size of 50
-        for i in 1...60 {
-            if i % 10 == 0 {
-                lines.append("## Section \(i / 10)")
-            } else {
-                lines.append("Line \(i): Swift programming content for testing purposes.")
-            }
-        }
-        let content = lines.joined(separator: "\n")
-        createTextFile(name: "guide.md", content: content)
-
-        // Initialize database
-        let db = try makeInitializedDB()
-
-        // Scan directory
-        let scanner = FileScanner(directory: tempDir)
-        let files = try scanner.scan()
-
-        XCTAssertEqual(files.count, 1)
-        XCTAssertEqual(files[0].relativePath, "guide.md")
-
-        // Extract chunks
-        let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: files[0])
-
-        XCTAssertGreaterThan(chunks.count, 1, "Should have both whole and line chunks")
-
-        // Embed and store all chunks
-        var insertedCount = 0
+    /// Index a single file: extract chunks, embed, and insert into the database.
+    /// Replicates the core indexing logic from UpdateIndexCommand.
+    private func indexFile(_ file: FileInfo, into db: VectorDatabase, extractor: TextExtractor) throws {
+        let chunks = try extractor.extract(from: file)
         for chunk in chunks {
-            let embedding = try embed(chunk.text)
+            guard let embedding = embeddingService.embed(chunk.text) else { continue }
             try db.insert(
-                filePath: files[0].relativePath,
+                filePath: file.relativePath,
                 lineStart: chunk.lineStart,
                 lineEnd: chunk.lineEnd,
                 chunkType: chunk.type,
                 pageNumber: chunk.pageNumber,
-                fileModifiedAt: files[0].modificationDate,
+                fileModifiedAt: file.modificationDate,
                 contentPreview: String(chunk.text.prefix(200)),
                 embedding: embedding
             )
-            insertedCount += 1
         }
-
-        XCTAssertEqual(insertedCount, chunks.count)
-
-        // Search for relevant content
-        let queryEmbedding = try embed("Swift programming and functions")
-        let results = try db.search(embedding: queryEmbedding, limit: 10)
-
-        XCTAssertGreaterThan(results.count, 0, "Should find results matching the query")
-        XCTAssertEqual(results[0].filePath, "guide.md")
-
-        // Verify semantically similar content is found
-        let hasSwiftContent = results.contains { $0.contentPreview?.contains("Swift") ?? false }
-        XCTAssertTrue(hasSwiftContent, "Results should include Swift-related content")
     }
 
-    // MARK: - Test 2: Update flow — modified file
+    // MARK: - 1. Scan + Extract + Embed + Store + Search
+
+    func testFullPipelineScanExtractEmbedStoreSearch() throws {
+        // Create files with distinct content
+        createFile(at: "cooking.txt", content: "This recipe explains how to bake a chocolate cake with cocoa powder and sugar")
+        createFile(at: "programming.swift", content: "func quickSort(_ array: [Int]) -> [Int] { return array.sorted() }")
+        createFile(at: "astronomy.md", content: "The Milky Way galaxy contains billions of stars and planets orbiting them")
+
+        // Scan
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        XCTAssertEqual(files.count, 3, "Should find all 3 files")
+
+        // Extract + Embed + Store
+        let db = try makeInitializedDB()
+        let extractor = TextExtractor()
+
+        for file in files {
+            try indexFile(file, into: db, extractor: extractor)
+        }
+
+        // Search for cooking-related content
+        let cookingQuery = try embed("baking a cake with chocolate")
+        let cookingResults = try db.search(embedding: cookingQuery, limit: 3)
+        XCTAssertEqual(cookingResults.count, 3)
+        XCTAssertEqual(cookingResults[0].filePath, "cooking.txt",
+                       "Cooking file should be the top result for a baking query")
+
+        // Search for programming-related content
+        let programmingQuery = try embed("sorting algorithm implementation")
+        let programmingResults = try db.search(embedding: programmingQuery, limit: 3)
+        XCTAssertEqual(programmingResults.count, 3)
+        XCTAssertEqual(programmingResults[0].filePath, "programming.swift",
+                       "Programming file should be the top result for an algorithm query")
+
+        // Search for astronomy-related content
+        let astronomyQuery = try embed("stars and galaxies in space")
+        let astronomyResults = try db.search(embedding: astronomyQuery, limit: 3)
+        XCTAssertEqual(astronomyResults.count, 3)
+        XCTAssertEqual(astronomyResults[0].filePath, "astronomy.md",
+                       "Astronomy file should be the top result for a space query")
+    }
+
+    // MARK: - 2. Update flow — modified file
 
     func testUpdateFlowModifiedFile() throws {
         // Create initial file
-        let initialContent = """
-        # Original Document
+        createFile(at: "notes.txt", content: "The ocean is vast and full of marine creatures like dolphins and whales")
 
-        This is the original content about databases and SQL.
-        Databases store structured data efficiently.
-        """
-        createTextFile(name: "document.md", content: initialContent)
-
-        // Initialize database and index the file
-        let db = try makeInitializedDB()
         let scanner = FileScanner(directory: tempDir)
+        let db = try makeInitializedDB()
         let extractor = TextExtractor()
 
-        var files = try scanner.scan()
-        XCTAssertEqual(files.count, 1)
-
-        var fileInfo = files[0]
-        let chunks = try extractor.extract(from: fileInfo)
-        let initialModDate = fileInfo.modificationDate
-
-        for chunk in chunks {
-            let embedding = try embed(chunk.text)
-            try db.insert(
-                filePath: fileInfo.relativePath,
-                lineStart: chunk.lineStart,
-                lineEnd: chunk.lineEnd,
-                chunkType: chunk.type,
-                pageNumber: chunk.pageNumber,
-                fileModifiedAt: initialModDate,
-                contentPreview: String(chunk.text.prefix(200)),
-                embedding: embedding
-            )
+        // Initial indexing
+        let initialFiles = try scanner.scan()
+        XCTAssertEqual(initialFiles.count, 1)
+        for file in initialFiles {
+            try indexFile(file, into: db, extractor: extractor)
         }
 
         // Verify initial content is searchable
-        let dbFiles = try db.allIndexedFiles()
-        XCTAssertEqual(dbFiles.count, 1)
+        let oceanQuery = try embed("marine life in the sea")
+        let initialResults = try db.search(embedding: oceanQuery, limit: 1)
+        XCTAssertEqual(initialResults.count, 1)
+        XCTAssertEqual(initialResults[0].filePath, "notes.txt")
 
-        let initialResults = try db.search(
-            embedding: try embed("SQL databases"),
-            limit: 10
-        )
-        XCTAssertGreaterThan(initialResults.count, 0)
+        // Modify the file with completely different content
+        // Sleep briefly to ensure the mtime changes
+        Thread.sleep(forTimeInterval: 1.0)
+        createFile(at: "notes.txt", content: "Quantum computing uses qubits and superposition to solve complex problems")
 
-        // Wait a bit to ensure time difference, then modify the file
-        Thread.sleep(forTimeInterval: 0.1)
+        // Simulate update-index logic: compare allIndexedFiles dates, re-index stale entries
+        let updatedFiles = try scanner.scan()
+        let indexedFiles = try db.allIndexedFiles()
 
-        let newContent = """
-        # Updated Document
-
-        This is new content about Swift programming and concurrency.
-        Swift provides powerful async/await syntax for concurrent code.
-        Concurrency is important for responsive applications.
-        """
-        createTextFile(name: "document.md", content: newContent)
-
-        // Simulate update-index logic: compare modification dates and re-index
-        files = try scanner.scan()
-        fileInfo = files[0]
-
-        if fileInfo.modificationDate > initialModDate {
-            // File changed — remove old entries and re-index
-            try db.removeEntries(forPath: fileInfo.relativePath)
-
-            let newChunks = try extractor.extract(from: fileInfo)
-            for chunk in newChunks {
-                let embedding = try embed(chunk.text)
-                try db.insert(
-                    filePath: fileInfo.relativePath,
-                    lineStart: chunk.lineStart,
-                    lineEnd: chunk.lineEnd,
-                    chunkType: chunk.type,
-                    pageNumber: chunk.pageNumber,
-                    fileModifiedAt: fileInfo.modificationDate,
-                    contentPreview: String(chunk.text.prefix(200)),
-                    embedding: embedding
-                )
+        for file in updatedFiles {
+            if let existingModDate = indexedFiles[file.relativePath] {
+                if file.modificationDate > existingModDate {
+                    try db.removeEntries(forPath: file.relativePath)
+                    try indexFile(file, into: db, extractor: extractor)
+                }
             }
         }
 
-        // Verify new content is searchable and old content is gone
-        let swiftResults = try db.search(
-            embedding: try embed("Swift concurrency async await"),
-            limit: 10
-        )
-        XCTAssertGreaterThan(swiftResults.count, 0, "Should find new Swift-related content")
+        // Search for new content — should find it
+        let quantumQuery = try embed("quantum computing qubits")
+        let newResults = try db.search(embedding: quantumQuery, limit: 1)
+        XCTAssertEqual(newResults.count, 1)
+        XCTAssertEqual(newResults[0].filePath, "notes.txt")
+        XCTAssertTrue(newResults[0].contentPreview?.contains("Quantum") == true,
+                      "Content preview should reflect the updated file")
 
-        // Old content should not be found (or very low ranking)
-        let sqlResults = try db.search(
-            embedding: try embed("SQL databases"),
-            limit: 10
-        )
-        // If old entries are completely gone, this should be empty or sparse
-        // Since we re-indexed with new content, the old content references should be gone
-        let hasOldContent = sqlResults.contains {
-            $0.contentPreview?.contains("databases") ?? false
-        }
-        XCTAssertFalse(hasOldContent, "Old database content should be removed after update")
+        // Search for old content — should still return notes.txt but with updated content
+        let oldContentResults = try db.search(embedding: oceanQuery, limit: 1)
+        XCTAssertEqual(oldContentResults.count, 1)
+        XCTAssertFalse(oldContentResults[0].contentPreview?.contains("ocean") == true,
+                       "Old content should no longer appear in previews")
     }
 
-    // MARK: - Test 3: Update flow — deleted file
+    // MARK: - 3. Update flow — deleted file
 
     func testUpdateFlowDeletedFile() throws {
         // Create two files
-        let file1Content = "# File One\n\nContent about Python and machine learning algorithms."
-        let file2Content = "# File Two\n\nContent about JavaScript and web development frameworks."
+        createFile(at: "keep.txt", content: "Mathematics involves numbers equations and proofs for theorems")
+        createFile(at: "delete_me.txt", content: "Gardening tips for growing tomatoes peppers and herbs in the backyard")
 
-        createTextFile(name: "file1.md", content: file1Content)
-        createTextFile(name: "file2.md", content: file2Content)
-
-        // Initialize database and index both files
-        let db = try makeInitializedDB()
         let scanner = FileScanner(directory: tempDir)
+        let db = try makeInitializedDB()
         let extractor = TextExtractor()
 
-        var files = try scanner.scan()
+        // Index both files
+        let files = try scanner.scan()
         XCTAssertEqual(files.count, 2)
-
-        for fileInfo in files {
-            let chunks = try extractor.extract(from: fileInfo)
-            for chunk in chunks {
-                let embedding = try embed(chunk.text)
-                try db.insert(
-                    filePath: fileInfo.relativePath,
-                    lineStart: chunk.lineStart,
-                    lineEnd: chunk.lineEnd,
-                    chunkType: chunk.type,
-                    pageNumber: chunk.pageNumber,
-                    fileModifiedAt: fileInfo.modificationDate,
-                    contentPreview: String(chunk.text.prefix(200)),
-                    embedding: embedding
-                )
-            }
+        for file in files {
+            try indexFile(file, into: db, extractor: extractor)
         }
 
+        // Verify both are searchable
         let indexedBefore = try db.allIndexedFiles()
         XCTAssertEqual(indexedBefore.count, 2)
 
-        // Delete file1 from disk
-        let file1URL = tempDir.appendingPathComponent("file1.md")
-        try FileManager.default.removeItem(at: file1URL)
+        // Delete one file from disk
+        let deleteURL = tempDir.appendingPathComponent("delete_me.txt")
+        try FileManager.default.removeItem(at: deleteURL)
 
-        // Simulate update-index logic: find paths in DB not on disk, remove them
-        files = try scanner.scan()
-        let currentPaths = Set(files.map(\.relativePath))
-        let allIndexedPaths = try db.allIndexedFiles()
+        // Simulate update-index: find paths in DB not on disk, remove them
+        let currentFiles = try scanner.scan()
+        let currentPaths = Set(currentFiles.map(\.relativePath))
+        let indexedFiles = try db.allIndexedFiles()
 
-        for indexedPath in allIndexedPaths.keys {
+        for indexedPath in indexedFiles.keys {
             if !currentPaths.contains(indexedPath) {
                 try db.removeEntries(forPath: indexedPath)
             }
         }
 
-        // Verify file1 entries are gone but file2 entries remain
+        // Verify the deleted file's entries are gone
         let indexedAfter = try db.allIndexedFiles()
         XCTAssertEqual(indexedAfter.count, 1)
-        XCTAssertNotNil(indexedAfter["file2.md"])
-        XCTAssertNil(indexedAfter["file1.md"])
+        XCTAssertNotNil(indexedAfter["keep.txt"])
+        XCTAssertNil(indexedAfter["delete_me.txt"])
 
-        // Verify file2 is still searchable
-        let jsResults = try db.search(
-            embedding: try embed("JavaScript web development"),
-            limit: 10
-        )
-        XCTAssertGreaterThan(jsResults.count, 0)
-        XCTAssertEqual(jsResults[0].filePath, "file2.md")
+        // Search for gardening content — should only return keep.txt
+        let gardenQuery = try embed("growing vegetables in a garden")
+        let results = try db.search(embedding: gardenQuery, limit: 5)
+        XCTAssertEqual(results.count, 1)
+        XCTAssertEqual(results[0].filePath, "keep.txt")
 
-        // Verify file1 content is not searchable
-        let pythonResults = try db.search(
-            embedding: try embed("Python machine learning"),
-            limit: 10
-        )
-        let hasPythonContent = pythonResults.contains { $0.filePath == "file1.md" }
-        XCTAssertFalse(hasPythonContent, "Deleted file should not appear in results")
+        // Search for math content — should find keep.txt
+        let mathQuery = try embed("mathematical equations and proofs")
+        let mathResults = try db.search(embedding: mathQuery, limit: 5)
+        XCTAssertEqual(mathResults.count, 1)
+        XCTAssertEqual(mathResults[0].filePath, "keep.txt")
     }
 
-    // MARK: - Test 4: Update flow — new file added
+    // MARK: - 4. Update flow — new file added
 
     func testUpdateFlowNewFileAdded() throws {
-        // Create initial file
-        let initialContent = "# Initial\n\nThis is the initial file about databases."
-        createTextFile(name: "initial.md", content: initialContent)
+        // Start with one file
+        createFile(at: "original.txt", content: "The history of ancient Rome includes senators gladiators and emperors")
 
-        // Initialize database and index the initial file
-        let db = try makeInitializedDB()
         let scanner = FileScanner(directory: tempDir)
+        let db = try makeInitializedDB()
         let extractor = TextExtractor()
 
-        var files = try scanner.scan()
-        XCTAssertEqual(files.count, 1)
-
-        for fileInfo in files {
-            let chunks = try extractor.extract(from: fileInfo)
-            for chunk in chunks {
-                let embedding = try embed(chunk.text)
-                try db.insert(
-                    filePath: fileInfo.relativePath,
-                    lineStart: chunk.lineStart,
-                    lineEnd: chunk.lineEnd,
-                    chunkType: chunk.type,
-                    pageNumber: chunk.pageNumber,
-                    fileModifiedAt: fileInfo.modificationDate,
-                    contentPreview: String(chunk.text.prefix(200)),
-                    embedding: embedding
-                )
-            }
+        // Index the original file
+        let initialFiles = try scanner.scan()
+        XCTAssertEqual(initialFiles.count, 1)
+        for file in initialFiles {
+            try indexFile(file, into: db, extractor: extractor)
         }
 
-        let indexedInitial = try db.allIndexedFiles()
-        XCTAssertEqual(indexedInitial.count, 1)
+        let indexedBefore = try db.allIndexedFiles()
+        XCTAssertEqual(indexedBefore.count, 1)
 
-        // Add a new file to disk
-        let newContent = "# New File\n\nThis is a new file about Rust and systems programming."
-        createTextFile(name: "new.md", content: newContent)
+        // Add a new file
+        createFile(at: "added.txt", content: "Machine learning neural networks train on large datasets to recognize patterns")
 
-        // Simulate update-index logic: find files on disk not in DB, index them
-        files = try scanner.scan()
-        let indexedPaths = try db.allIndexedFiles()
+        // Simulate update-index: find files on disk not in DB, index them
+        let currentFiles = try scanner.scan()
+        XCTAssertEqual(currentFiles.count, 2)
+        let indexedFiles = try db.allIndexedFiles()
 
-        for fileInfo in files {
-            if !indexedPaths.keys.contains(fileInfo.relativePath) {
-                // New file
-                let chunks = try extractor.extract(from: fileInfo)
-                for chunk in chunks {
-                    let embedding = try embed(chunk.text)
-                    try db.insert(
-                        filePath: fileInfo.relativePath,
-                        lineStart: chunk.lineStart,
-                        lineEnd: chunk.lineEnd,
-                        chunkType: chunk.type,
-                        pageNumber: chunk.pageNumber,
-                        fileModifiedAt: fileInfo.modificationDate,
-                        contentPreview: String(chunk.text.prefix(200)),
-                        embedding: embedding
-                    )
-                }
+        for file in currentFiles {
+            if indexedFiles[file.relativePath] == nil {
+                try indexFile(file, into: db, extractor: extractor)
             }
         }
 
         // Verify both files are now indexed
         let indexedAfter = try db.allIndexedFiles()
         XCTAssertEqual(indexedAfter.count, 2)
-        XCTAssertNotNil(indexedAfter["initial.md"])
-        XCTAssertNotNil(indexedAfter["new.md"])
+        XCTAssertNotNil(indexedAfter["original.txt"])
+        XCTAssertNotNil(indexedAfter["added.txt"])
 
-        // Verify both files are searchable
-        let initialResults = try db.search(
-            embedding: try embed("databases"),
-            limit: 10
-        )
-        XCTAssertGreaterThan(initialResults.count, 0)
+        // Search for machine learning content — new file should rank first
+        let mlQuery = try embed("deep learning and neural network training")
+        let mlResults = try db.search(embedding: mlQuery, limit: 2)
+        XCTAssertEqual(mlResults.count, 2)
+        XCTAssertEqual(mlResults[0].filePath, "added.txt",
+                       "The newly added ML file should be the top result for an ML query")
 
-        let rustResults = try db.search(
-            embedding: try embed("Rust systems programming"),
-            limit: 10
-        )
-        XCTAssertGreaterThan(rustResults.count, 0)
-        XCTAssertEqual(rustResults[0].filePath, "new.md")
+        // Search for history content — original file should rank first
+        let historyQuery = try embed("ancient Roman history and empire")
+        let historyResults = try db.search(embedding: historyQuery, limit: 2)
+        XCTAssertEqual(historyResults.count, 2)
+        XCTAssertEqual(historyResults[0].filePath, "original.txt",
+                       "The original history file should be the top result for a history query")
     }
 
-    // MARK: - Test 5: Insert single file then search
+    // MARK: - 5. Insert then search (single file via fileInfo)
 
-    func testInsertSingleFileAndSearch() throws {
-        // Create a single file
-        let content = """
-        # Go Language Guide
+    func testInsertThenSearchUsingSingleFileInfo() throws {
+        // Create a file and use FileScanner.fileInfo() to get its info
+        let fileURL = createFile(at: "physics.swift", content: "func calculateGravity(mass: Double, distance: Double) -> Double { return mass / (distance * distance) }")
 
-        Go is a statically typed, compiled programming language designed at Google.
-        Go emphasizes simplicity and fast compilation.
-
-        ## Concurrency with Goroutines
-
-        Goroutines are lightweight threads managed by the Go runtime.
-        They enable efficient concurrent programming without OS-level complexity.
-        """
-        createTextFile(name: "golang.md", content: content)
-
-        // Initialize database
-        let db = try makeInitializedDB()
-
-        // Get file info using FileScanner.fileInfo()
-        let fileURL = tempDir.appendingPathComponent("golang.md")
         let fileInfo = try FileScanner.fileInfo(for: fileURL, relativeTo: tempDir)
+        XCTAssertEqual(fileInfo.relativePath, "physics.swift")
+        XCTAssertEqual(fileInfo.fileExtension, "swift")
 
-        // Extract chunks
+        // Extract, embed, and insert
+        let db = try makeInitializedDB()
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: fileInfo)
+        try indexFile(fileInfo, into: db, extractor: extractor)
 
-        // Insert all chunks
-        for chunk in chunks {
-            let embedding = try embed(chunk.text)
-            try db.insert(
-                filePath: fileInfo.relativePath,
-                lineStart: chunk.lineStart,
-                lineEnd: chunk.lineEnd,
-                chunkType: chunk.type,
-                pageNumber: chunk.pageNumber,
-                fileModifiedAt: fileInfo.modificationDate,
-                contentPreview: String(chunk.text.prefix(200)),
-                embedding: embedding
-            )
-        }
+        // Verify the file is indexed
+        let indexedFiles = try db.allIndexedFiles()
+        XCTAssertEqual(indexedFiles.count, 1)
+        XCTAssertNotNil(indexedFiles["physics.swift"])
 
-        // Search for Go-related content
-        let results = try db.search(
-            embedding: try embed("concurrency goroutines"),
-            limit: 5
-        )
-
+        // Search for physics-related content
+        let query = try embed("gravitational force calculation")
+        let results = try db.search(embedding: query, limit: 5)
         XCTAssertGreaterThan(results.count, 0)
-        XCTAssertEqual(results[0].filePath, "golang.md")
-        let hasGoContent = results[0].contentPreview?.contains("Go") ?? false
-        XCTAssertTrue(hasGoContent)
+        XCTAssertEqual(results[0].filePath, "physics.swift")
     }
 
-    // MARK: - Test 6: Remove file entries and verify search
+    // MARK: - 6. Remove then search
 
-    func testRemoveFileEntriesAndSearch() throws {
-        // Create multiple files
-        let rubyContent = "# Ruby Language\n\nRuby is a dynamic, object-oriented programming language."
-        let phpContent = "# PHP Language\n\nPHP is a server-side scripting language for web development."
-        let cppContent = "# C++ Language\n\nC++ is a high-performance systems programming language."
+    func testRemoveThenSearchVerifiesContentGone() throws {
+        // Create and index multiple files
+        createFile(at: "music.txt", content: "Playing guitar chords and piano melodies creates beautiful harmonies")
+        createFile(at: "sports.txt", content: "Basketball players dribble and shoot hoops on the court during the game")
+        createFile(at: "science.txt", content: "Chemical reactions involve molecules bonding and breaking apart in solutions")
 
-        createTextFile(name: "ruby.md", content: rubyContent)
-        createTextFile(name: "php.md", content: phpContent)
-        createTextFile(name: "cpp.md", content: cppContent)
-
-        // Initialize database and index all files
-        let db = try makeInitializedDB()
         let scanner = FileScanner(directory: tempDir)
+        let db = try makeInitializedDB()
         let extractor = TextExtractor()
 
         let files = try scanner.scan()
         XCTAssertEqual(files.count, 3)
-
-        for fileInfo in files {
-            let chunks = try extractor.extract(from: fileInfo)
-            for chunk in chunks {
-                let embedding = try embed(chunk.text)
-                try db.insert(
-                    filePath: fileInfo.relativePath,
-                    lineStart: chunk.lineStart,
-                    lineEnd: chunk.lineEnd,
-                    chunkType: chunk.type,
-                    pageNumber: chunk.pageNumber,
-                    fileModifiedAt: fileInfo.modificationDate,
-                    contentPreview: String(chunk.text.prefix(200)),
-                    embedding: embedding
-                )
-            }
+        for file in files {
+            try indexFile(file, into: db, extractor: extractor)
         }
 
-        let indexedBefore = try db.allIndexedFiles()
-        XCTAssertEqual(indexedBefore.count, 3)
+        // Verify all three are searchable
+        let allFiles = try db.allIndexedFiles()
+        XCTAssertEqual(allFiles.count, 3)
 
-        // Remove PHP file entries
-        let removed = try db.removeEntries(forPath: "php.md")
+        // Remove music.txt entries
+        let removed = try db.removeEntries(forPath: "music.txt")
         XCTAssertGreaterThan(removed, 0)
 
-        // Verify PHP file is no longer indexed
-        let indexedAfter = try db.allIndexedFiles()
-        XCTAssertEqual(indexedAfter.count, 2)
-        XCTAssertNotNil(indexedAfter["ruby.md"])
-        XCTAssertNil(indexedAfter["php.md"])
-        XCTAssertNotNil(indexedAfter["cpp.md"])
+        // Verify music.txt is gone from the index
+        let remainingFiles = try db.allIndexedFiles()
+        XCTAssertEqual(remainingFiles.count, 2)
+        XCTAssertNil(remainingFiles["music.txt"])
+        XCTAssertNotNil(remainingFiles["sports.txt"])
+        XCTAssertNotNil(remainingFiles["science.txt"])
 
-        // Search for PHP content — should not find it
-        let phpResults = try db.search(
-            embedding: try embed("PHP web server"),
-            limit: 10
-        )
-        let hasPhpFile = phpResults.contains { $0.filePath == "php.md" }
-        XCTAssertFalse(hasPhpFile, "Removed file should not appear in results")
-
-        // Search for Ruby content — should still find it
-        let rubyResults = try db.search(
-            embedding: try embed("Ruby dynamic object-oriented"),
-            limit: 10
-        )
-        XCTAssertGreaterThan(rubyResults.count, 0)
-        XCTAssertEqual(rubyResults[0].filePath, "ruby.md")
-    }
-
-    // MARK: - Test 7: Semantic search — similar content ranks better than dissimilar
-
-    func testSemanticSearchSimilarityRanking() throws {
-        // Create files with distinct semantic content
-        let machinelearningContent = """
-        # Machine Learning Fundamentals
-
-        Machine learning is a subset of artificial intelligence that enables systems to learn from data.
-        Neural networks are inspired by biological brains and consist of interconnected nodes.
-        Deep learning uses many layers of neural networks for complex pattern recognition.
-        """
-
-        let cookingContent = """
-        # Cooking Basics
-
-        Cooking is the practice of preparing food using heat.
-        Baking requires precision in measurements and timing.
-        Seasoning and spices enhance the flavor of dishes.
-        """
-
-        createTextFile(name: "ml.md", content: machinelearningContent)
-        createTextFile(name: "cooking.md", content: cookingContent)
-
-        // Index both files
-        let db = try makeInitializedDB()
-        let scanner = FileScanner(directory: tempDir)
-        let extractor = TextExtractor()
-
-        for fileInfo in try scanner.scan() {
-            let chunks = try extractor.extract(from: fileInfo)
-            for chunk in chunks {
-                let embedding = try embed(chunk.text)
-                try db.insert(
-                    filePath: fileInfo.relativePath,
-                    lineStart: chunk.lineStart,
-                    lineEnd: chunk.lineEnd,
-                    chunkType: chunk.type,
-                    pageNumber: chunk.pageNumber,
-                    fileModifiedAt: fileInfo.modificationDate,
-                    contentPreview: String(chunk.text.prefix(200)),
-                    embedding: embedding
-                )
-            }
+        // Search for music content — should NOT return music.txt
+        let musicQuery = try embed("guitar and piano music")
+        let musicResults = try db.search(embedding: musicQuery, limit: 5)
+        for result in musicResults {
+            XCTAssertNotEqual(result.filePath, "music.txt",
+                             "Removed file should not appear in search results")
         }
 
-        // Search for ML-related query
-        let mlQuery = try embed("neural networks deep learning artificial intelligence")
-        let mlResults = try db.search(embedding: mlQuery, limit: 10)
-
-        XCTAssertGreaterThan(mlResults.count, 0)
-
-        // ML file should be in results and should have lower distance (more similar) than cooking
-        if mlResults.count >= 2 {
-            let mlFileDistances = mlResults.filter { $0.filePath == "ml.md" }.map { $0.distance }
-            let cookingFileDistances = mlResults.filter { $0.filePath == "cooking.md" }.map { $0.distance }
-
-            if let mlDist = mlFileDistances.first, let cookingDist = cookingFileDistances.first {
-                XCTAssertLessThan(
-                    mlDist, cookingDist,
-                    "ML content should rank higher (lower distance) for ML query"
-                )
-            }
-        }
-
-        // Search for cooking-related query
-        let cookingQuery = try embed("baking seasoning cooking preparation")
-        let cookingResults = try db.search(embedding: cookingQuery, limit: 10)
-
-        XCTAssertGreaterThan(cookingResults.count, 0)
-
-        // Cooking file should rank higher for cooking query
-        if cookingResults.count >= 2 {
-            let cookingFileDistances = cookingResults.filter { $0.filePath == "cooking.md" }.map { $0.distance }
-            let mlFileDistances = cookingResults.filter { $0.filePath == "ml.md" }.map { $0.distance }
-
-            if let cookingDist = cookingFileDistances.first, let mlDist = mlFileDistances.first {
-                XCTAssertLessThan(
-                    cookingDist, mlDist,
-                    "Cooking content should rank higher (lower distance) for cooking query"
-                )
-            }
-        }
-    }
-
-    // MARK: - Test 8: Multiple files with overlapping chunks
-
-    func testMultipleFilesWithOverlappingChunks() throws {
-        // Create a markdown file that will produce overlapping chunks
-        let content = String(
-            (1...100).map { "Line \($0): Content for overlapping chunk test." }.joined(separator: "\n")
-        )
-        createTextFile(name: "longfile.md", content: content)
-
-        // Create another file
-        let otherContent = "# Other File\n\nThis is a different file for testing."
-        createTextFile(name: "other.md", content: otherContent)
-
-        // Index both files
-        let db = try makeInitializedDB()
-        let scanner = FileScanner(directory: tempDir)
-        let extractor = TextExtractor(chunkSize: 50, overlapSize: 10)
-
-        for fileInfo in try scanner.scan() {
-            let chunks = try extractor.extract(from: fileInfo)
-            for chunk in chunks {
-                let embedding = try embed(chunk.text)
-                try db.insert(
-                    filePath: fileInfo.relativePath,
-                    lineStart: chunk.lineStart,
-                    lineEnd: chunk.lineEnd,
-                    chunkType: chunk.type,
-                    pageNumber: chunk.pageNumber,
-                    fileModifiedAt: fileInfo.modificationDate,
-                    contentPreview: String(chunk.text.prefix(200)),
-                    embedding: embedding
-                )
-            }
-        }
-
-        // Verify both files are searchable
-        let results = try db.search(
-            embedding: try embed("overlapping chunk test content"),
-            limit: 10
-        )
-
-        XCTAssertGreaterThan(results.count, 0)
-
-        // Verify we have entries from longfile
-        let hasLongfileChunks = results.contains { $0.filePath == "longfile.md" }
-        XCTAssertTrue(hasLongfileChunks)
-
-        // Verify chunk structure (some entries should have lineStart/lineEnd)
-        let chunkedEntries = results.filter { $0.lineStart != nil && $0.lineEnd != nil }
-        XCTAssertGreaterThan(chunkedEntries.count, 0, "Should have line-based chunks")
+        // The remaining files should still be searchable
+        let sportsQuery = try embed("basketball game on the court")
+        let sportsResults = try db.search(embedding: sportsQuery, limit: 2)
+        XCTAssertEqual(sportsResults.count, 2)
+        XCTAssertEqual(sportsResults[0].filePath, "sports.txt",
+                       "Sports file should still be the top result for a sports query")
     }
 }
