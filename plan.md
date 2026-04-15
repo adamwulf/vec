@@ -2,7 +2,7 @@
 
 ## Current State
 
-The `vec` CLI tool and its `VecKit` library are production-ready for all Priority 1 and Priority 2 items. All five commands are implemented, the project builds cleanly, and 72 tests pass across 10 test suites. The embedding service uses Apple's on-device `NLEmbedding`. The `sqlite-vector` package is integrated via SPM binary target with runtime extension loading.
+The `vec` CLI tool and its `VecKit` library are production-ready for all Priority 1, 2, and 3 items. All five commands are implemented, the project builds cleanly, and tests pass across 10 test suites. The embedding service uses Apple's on-device `NLEmbedding`. The `sqlite-vector` package is integrated via SPM binary target with runtime extension loading.
 
 ### What's Implemented
 
@@ -20,7 +20,7 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 | `PathUtilities` | Done | Safe relative path computation using NSString.standardizingPath. |
 | `CSQLiteVec` | Done | System library shim for sqlite3 C API access. |
 
-### What's Tested (72 tests passing)
+### What's Tested
 
 | Test Suite | Count | Coverage |
 |-----------|-------|----------|
@@ -38,7 +38,7 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 
 ## Completed Items
 
-### Priority 1: Must-fix before production use
+### Priority 1: Must-fix before production use — DONE
 
 #### 1a. `.gitignore` support — DONE
 - `FileScanner` now filters via `git check-ignore --stdin` with graceful fallback for non-git dirs
@@ -58,7 +58,7 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 - Progress output correctly distinguishes "Skipped" vs "Updated"/"Added"
 - InsertCommand warns when chunks extracted but none could be embedded
 
-### Priority 2: Should-fix (quality / correctness)
+### Priority 2: Should-fix (quality / correctness) — DONE
 
 #### 2a. Duplicated insert logic — DONE
 - Extracted `indexFile()` helper with `IndexResult` enum in UpdateIndexCommand
@@ -70,8 +70,6 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 #### 2c. Similarity score display — DONE
 - Clamped with `max(0, 1.0 - distance)` to prevent negative values
 
----
-
 ### Priority 3: Nice-to-have — DONE
 
 #### 3a. Edge case tests — DONE
@@ -79,7 +77,7 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 - Markdown edge cases (only headings, every line a heading, very long single line) — tested
 - Empty directory scan — tested
 - Binary file detection in TextExtractor — tested
-- 7 new tests added, 86 total passing
+- 7 new tests added
 
 #### 3b. Missing features — DONE (selected items)
 - `--format json` for `search` command — implemented with `OutputFormat` enum and `printJSONResults()`
@@ -93,14 +91,109 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 
 ---
 
-## What's Left
+## Priority 4: Centralized database storage (`~/.vec/`)
 
-Nothing is blocking production use. All Priority 1, 2, and 3 items are complete.
+**Goal:** Move from per-directory `.vec/` databases to a centralized `~/.vec/<db-name>/` model. This lets any directory on the system create, list, and search named vector databases without requiring a local `.vec/` folder.
 
-### Deferred (out of scope)
+### Current architecture (what changes)
+
+- **VectorDatabase** takes a `directory: URL` and computes `dbPath` as `directory/.vec/index.db`
+- **InitCommand** creates `.vec/` in the current working directory, scans that directory
+- **UpdateIndexCommand**, **SearchCommand**, **InsertCommand**, **RemoveCommand** all derive the database location from the current working directory's `.vec/` subfolder
+- **FileScanner** `skipDirectories` includes `.vec`
+
+### New architecture
+
+All databases live under `~/.vec/<db-name>/`. Each database directory contains:
+- `index.db` — the SQLite + sqlite-vector database
+- `config.json` — metadata: the source directory path that was indexed, creation date, etc.
+
+#### New CLI interface
+
+| Command | Description |
+|---------|-------------|
+| `vec init <db-name>` | Create a new database named `<db-name>`, indexing the current directory. Stores source directory path in `config.json`. Fails if `<db-name>` already exists (unless `--force`). |
+| `vec list` | List all databases in `~/.vec/`, showing name, source directory, and file count. |
+| `vec search <db-name> <query>` | Search the named database. Supports `--limit`, `--include-preview`, `--format json`. |
+| `vec update-index <db-name>` | Re-scan the source directory recorded in the database's `config.json` and update the index. |
+| `vec insert <db-name> <path>` | Add/replace a specific file in the named database. Path resolved relative to the database's source directory. |
+| `vec remove <db-name> <path>` | Remove a file from the named database. |
+
+#### Shorthand
+
+`vec <db-name> "search string"` as a convenience alias for `vec search <db-name> "search string"`.
+
+### Implementation tasks
+
+#### 4a. VectorDatabase refactor
+- **Change `init` to accept a `databaseDirectory: URL`** (the `~/.vec/<db-name>/` path) and a `sourceDirectory: URL` (the directory being indexed)
+- `dbPath` becomes `databaseDirectory/index.db`
+- `initialize()` creates the `databaseDirectory`, not a `.vec/` subfolder
+- `open()` looks for `databaseDirectory/index.db`
+- Add a `config.json` read/write: stores `{ "sourceDirectory": "/abs/path", "createdAt": "ISO8601" }`
+
+#### 4b. New `DatabaseLocator` utility
+- Computes `~/.vec/` base path
+- `databaseDirectory(for name: String) -> URL` returns `~/.vec/<name>/`
+- `allDatabases() -> [(name: String, config: DatabaseConfig)]` lists all subdirs of `~/.vec/` that contain a valid `config.json`
+- Validates database names (alphanumeric, hyphens, underscores; no slashes or spaces)
+
+#### 4c. Update `InitCommand`
+- Takes `<db-name>` as a required argument
+- Creates `~/.vec/<db-name>/` via `DatabaseLocator`
+- Writes `config.json` with `sourceDirectory` = current working directory
+- Scans current directory (unchanged scan logic)
+- Stores embeddings in the centralized database
+
+#### 4d. New `ListCommand`
+- `vec list` — iterates all databases via `DatabaseLocator.allDatabases()`
+- Displays: name, source directory, indexed file count (from `allIndexedFiles().count`)
+- For databases whose source directory no longer exists, show a warning marker
+
+#### 4e. Update `SearchCommand`
+- Takes `<db-name>` as first argument, `<query>` as second
+- Resolves database via `DatabaseLocator.databaseDirectory(for:)`
+- All other logic (embedding, display, `--format json`) unchanged
+
+#### 4f. Update `UpdateIndexCommand`
+- Takes `<db-name>` as a required argument
+- Reads `config.json` to determine the source directory
+- Scans that source directory (not cwd)
+- Otherwise same logic for add/update/remove files
+
+#### 4g. Update `InsertCommand` and `RemoveCommand`
+- Take `<db-name>` as first argument
+- Resolve `<path>` relative to the database's source directory (from `config.json`)
+- Otherwise same logic
+
+#### 4h. Update `FileScanner`
+- Remove `.vec` from `skipDirectories` (no longer relevant — the database isn't in the source tree)
+
+#### 4i. Update `Vec.swift` (root command)
+- Add `ListCommand` to subcommands
+- Consider adding a default command or custom parsing to support the `vec <db-name> "query"` shorthand
+
+#### 4j. Update tests
+- `VectorDatabaseTests` — update to use a temp `~/.vec/test-db/` style directory
+- `CLITests` — update argument parsing tests for new `<db-name>` argument on all commands
+- `IntegrationTests` — update to use centralized database paths
+- New tests for `DatabaseLocator`: valid/invalid names, listing, missing config
+- New tests for `ListCommand`
+- Test that `config.json` is written and read correctly
+
+#### 4k. Update `VecError`
+- Add `databaseNotFound(String)` for when `<db-name>` doesn't exist in `~/.vec/`
+- Add `invalidDatabaseName(String)` for names that fail validation
+- Update `databaseNotInitialized` message to reference `vec init <db-name>`
+
+---
+
+## Deferred (out of scope)
+
 - PDF extraction tests (requires PDF fixture files)
 - Non-English text embedding behavior tests
 - Symlink behavior tests
 - Result grouping — show best match per file instead of all chunks
 - `--verbose` / `--quiet` flags on all commands
 - `vector_quantize()` after updates for better search performance
+- Database migration from old `.vec/` format to new `~/.vec/<name>/` format
