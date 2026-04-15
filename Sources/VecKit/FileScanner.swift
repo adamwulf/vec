@@ -75,7 +75,7 @@ public class FileScanner {
                 continue
             }
 
-            let resourceValues = try url.resourceValues(forKeys: [.isRegularFileKey, .contentModificationDateKey])
+            guard let resourceValues = try? url.resourceValues(forKeys: [.isRegularFileKey, .contentModificationDateKey]) else { continue }
 
             guard resourceValues.isRegularFile == true else { continue }
             guard let modDate = resourceValues.contentModificationDate else { continue }
@@ -85,7 +85,7 @@ public class FileScanner {
             // Check if it's a supported file type
             guard Self.textExtensions.contains(ext) || ext == Self.pdfExtension else {
                 // Try to detect text files without known extensions
-                if ext.isEmpty || isLikelyTextFile(url) {
+                if isLikelyTextFile(url) {
                     let info = fileInfo(url: url, modDate: modDate, ext: ext)
                     results.append(info)
                 }

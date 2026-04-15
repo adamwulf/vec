@@ -273,9 +273,16 @@ public class VectorDatabase {
 
         let vectorInit = "SELECT vector_init('chunks', 'embedding', 'dimension=\(dimension),type=FLOAT32,distance=cosine');"
 
-        try execute(createTable)
-        try execute(createIndex)
-        try execute(vectorInit)
+        try execute("BEGIN TRANSACTION")
+        do {
+            try execute(createTable)
+            try execute(createIndex)
+            try execute(vectorInit)
+            try execute("COMMIT")
+        } catch {
+            try? execute("ROLLBACK")
+            throw error
+        }
     }
 
     private func execute(_ sql: String) throws {
