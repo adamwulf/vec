@@ -435,6 +435,12 @@ final class PathUtilitiesTests: XCTestCase {
         let result = PathUtilities.relativePath(of: "/a/b/c/d/e/f.txt", in: "/a/b")
         XCTAssertEqual(result, "c/d/e/f.txt")
     }
+
+    func testDirectoryNamePrefixCollision() {
+        // /foo/bar should NOT match /foo/barbell — the "/" append prevents this
+        let result = PathUtilities.relativePath(of: "/foo/barbell/file.txt", in: "/foo/bar")
+        XCTAssertEqual(result, "file.txt") // fallback to lastPathComponent, not "bell/file.txt"
+    }
 }
 
 // MARK: - ChunkingStrategy Edge Cases

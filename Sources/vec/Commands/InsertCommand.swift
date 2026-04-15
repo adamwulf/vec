@@ -16,8 +16,8 @@ struct InsertCommand: AsyncParsableCommand {
         let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let filePath = URL(fileURLWithPath: path, relativeTo: directory).standardized
 
-        // Validate path is within the project directory
-        guard filePath.path.hasPrefix(directory.path) else {
+        // Validate path is within the project directory (append "/" to prevent prefix collisions)
+        guard filePath.path.hasPrefix(directory.path + "/") || filePath.path == directory.path else {
             print("Error: Path must be within the project directory.")
             throw ExitCode.failure
         }
