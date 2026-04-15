@@ -53,6 +53,19 @@ final class CLITests: XCTestCase {
         XCTAssertTrue(cmd.includePreview)
     }
 
+    func testSearchCommandParsesShortLimitFlag() throws {
+        let cmd = try SearchCommand.parseAsRoot(["test query", "-l", "3"]) as! SearchCommand
+        XCTAssertEqual(cmd.query, "test query")
+        XCTAssertEqual(cmd.limit, 3)
+    }
+
+    // MARK: - UpdateIndexCommand
+
+    func testUpdateIndexCommandParsesWithNoArguments() throws {
+        let cmd = try UpdateIndexCommand.parseAsRoot([]) as! UpdateIndexCommand
+        XCTAssertNotNil(cmd)
+    }
+
     // MARK: - InsertCommand
 
     func testInsertCommandFailsWithoutPath() {
