@@ -1,244 +1,154 @@
-# vec — Implementation Plan
+# vec — Status & Plan
 
-## Architecture
+## Current State
 
-Following the same pattern as the `hunch` CLI tool:
+The `vec` CLI tool and its `VecKit` library are structurally complete. All five commands are implemented, the project builds cleanly, and 20 tests pass. The embedding service uses Apple's on-device `NLEmbedding` (not a stub). The `sqlite-vector` package is integrated via SPM binary target with runtime extension loading.
 
-```
-vec/
-├── Package.swift
-├── README.md
-├── plan.md
-├── Sources/
-│   ├── vec/                          # Executable target
-│   │   ├── Vec.swift                 # @main entry point, CommandConfiguration
-│   │   └── Commands/
-│   │       ├── InitCommand.swift     # vec init
-│   │       ├── UpdateIndexCommand.swift  # vec update-index
-│   │       ├── SearchCommand.swift   # vec search "query"
-│   │       ├── InsertCommand.swift   # vec insert <path>
-│   │       └── RemoveCommand.swift   # vec remove <path>
-│   └── VecKit/                       # Library target
-│       ├── VectorDatabase.swift      # SQLite + sqlite-vector wrapper
-│       ├── EmbeddingService.swift    # NLEmbedding wrapper
-│       ├── FileScanner.swift         # Directory walking, file type detection
-│       ├── TextExtractor.swift       # Text extraction (plain text, markdown, PDF)
-│       ├── ChunkingStrategy.swift    # Markdown chunking logic
-│       └── Models/
-│           ├── IndexEntry.swift      # File path, line range, mod date, embedding
-│           └── SearchResult.swift    # Ranked result with distance
-└── Tests/
-    ├── VecKitTests/
-    └── CLITests/
-```
+### What's Implemented
 
-## Dependencies
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `vec init` | Done | Creates `.vec/index.db`, scans + indexes all files. `--force` flag works. |
+| `vec update-index` | Done | Adds new, re-indexes modified, removes deleted files. |
+| `vec search <query>` | Done | Vector similarity search. `--limit` and `--include-preview` flags. |
+| `vec insert <path>` | Done | Adds/replaces a single file. Path validation included. |
+| `vec remove <path>` | Done | Removes entries for a single file. |
+| `VectorDatabase` | Done | SQLite + sqlite-vector wrapper. Insert, search, remove, allIndexedFiles. |
+| `EmbeddingService` | Done | Uses `NLEmbedding.sentenceEmbedding(for: .english)`, 512 dimensions. |
+| `FileScanner` | Done | Directory walking, skips .git/node_modules/.build/etc, binary detection. |
+| `TextExtractor` | Done | Plain text (whole-doc), markdown (overlapping chunks), PDF (per-page). |
+| `CSQLiteVec` | Done | System library shim for sqlite3 C API access. |
 
-| Dependency | Purpose |
-|-----------|---------|
-| [swift-argument-parser](https://github.com/apple/swift-argument-parser) | CLI argument parsing and subcommand routing |
-| [sqlite-vector](https://github.com/sqliteai/sqlite-vector) | Vector similarity search in SQLite |
-| NaturalLanguage (system framework) | `NLEmbedding` for on-device sentence embeddings |
-| PDFKit (system framework) | PDF text extraction |
+### What's Tested (20 tests passing)
 
-### sqlite-vector Integration
+| Test Suite | Count | Coverage |
+|-----------|-------|----------|
+| `VecKitTests` | 3 | `ChunkType` raw values, `TextChunk` construction |
+| `EmbeddingServiceTests` | 4 | Real embeddings, empty/whitespace input, dimension check |
+| `TextExtractorTests` | 5 | Large/small markdown, txt files, empty/whitespace files |
+| `FileScannerTests` | 4 | .git skipping, binary detection, node_modules, relative paths |
+| `ChunkingStrategyTests` | 3 | Overlap behavior, heading boundaries, custom chunk/overlap sizes |
+| `CLITests` | 1 | **Placeholder only** (`XCTAssertTrue(true)`) |
 
-sqlite-vector distributes an Apple xcframework (`vector-apple-xcframework-*.zip`) from their GitHub releases. We have a few options for integration:
+---
 
-1. **Vendored xcframework** — Download the xcframework and include it in the repo. Simple but adds binary to git.
-2. **Binary target in Package.swift** — Use SPM's `.binaryTarget(url:checksum:)` to fetch the xcframework from GitHub releases at build time.
-3. **System SQLite extension** — Build sqlite-vector from source and load it as a dynamic extension via `sqlite3_load_extension()`.
+## What's Missing
 
-**Recommended: Option 2** (binary target) for clean SPM integration, falling back to Option 3 if needed.
+### 1. VectorDatabase Tests (Critical Gap)
 
-For the SQLite database itself, we can use the system SQLite via the `CSQLite` system library target or a Swift SQLite wrapper.
+The most complex and important component has **zero test coverage**. Needs tests for:
 
-## Package.swift Structure
+- [ ] `initialize()` — creates `.vec/` dir, opens DB, loads extension, creates schema
+- [ ] `open()` — opens existing DB, throws `databaseNotInitialized` when missing
+- [ ] `insert()` — inserts a chunk with all fields, returns valid row ID
+- [ ] `insert()` with nil optional fields (lineStart, lineEnd, pageNumber)
+- [ ] `search()` — returns results ordered by distance
+- [ ] `search()` — returns empty array on empty database
+- [ ] `search()` — respects the `limit` parameter
+- [ ] `search()` — result fields map correctly (filePath, lineStart, lineEnd, chunkType, etc.)
+- [ ] `allIndexedFiles()` — returns correct paths and modification dates
+- [ ] `allIndexedFiles()` — returns empty dict on empty database
+- [ ] `removeEntries(forPath:)` — removes entries and returns count
+- [ ] `removeEntries(forPath:)` — returns 0 for non-existent path
+- [ ] `deinit` — closes the database cleanly (no leaks)
+- [ ] Extension loading — verifies sqlite-vector extension loads and `vector_init` works
+- [ ] Schema creation is idempotent (`IF NOT EXISTS`)
 
-```swift
-// swift-tools-version: 5.9
-import PackageDescription
+### 2. CLI Command Tests (Placeholder)
 
-let package = Package(
-    name: "vec",
-    platforms: [.macOS(.v13)],
-    products: [
-        .library(name: "VecKit", targets: ["VecKit"]),
-        .executable(name: "vec", targets: ["vec"])
-    ],
-    dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
-        // sqlite-vector Swift package or binary target TBD
-    ],
-    targets: [
-        .target(
-            name: "VecKit",
-            dependencies: [
-                // sqlite-vector dependency
-            ]
-        ),
-        .executableTarget(
-            name: "vec",
-            dependencies: [
-                "VecKit",
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
-            ]
-        ),
-        .testTarget(name: "VecKitTests", dependencies: ["VecKit"]),
-        .testTarget(name: "CLITests", dependencies: [
-            "vec",
-            .product(name: "ArgumentParser", package: "swift-argument-parser")
-        ])
-    ]
-)
-```
+`CLITests` is entirely a placeholder. Needs tests for:
 
-## Command Details
+- [ ] `InitCommand` — creates `.vec/index.db` in target directory
+- [ ] `InitCommand --force` — reinitializes existing database
+- [ ] `InitCommand` — errors when `.vec/` already exists without `--force`
+- [ ] `SearchCommand` — validates query argument is required
+- [ ] `SearchCommand --limit` — parses limit option correctly
+- [ ] `InsertCommand` — validates path argument is required
+- [ ] `InsertCommand` — rejects paths outside project directory
+- [ ] `RemoveCommand` — validates path argument is required
+- [ ] `RemoveCommand` — rejects paths outside project directory
 
-### `vec init`
+### 3. Integration Tests (None Exist)
 
-1. Check if `.vec/` already exists — warn and exit if so (unless `--force`)
-2. Create `.vec/` directory
-3. Create SQLite database at `.vec/index.db`
-4. Initialize sqlite-vector extension
-5. Create the embeddings table:
-   ```sql
-   CREATE TABLE IF NOT EXISTS chunks (
-       id INTEGER PRIMARY KEY AUTOINCREMENT,
-       file_path TEXT NOT NULL,
-       line_start INTEGER,        -- NULL for whole-document embeddings
-       line_end INTEGER,          -- NULL for whole-document embeddings
-       chunk_type TEXT NOT NULL,   -- 'whole', 'chunk', 'pdf_page'
-       page_number INTEGER,       -- For PDF pages
-       file_modified_at REAL NOT NULL,  -- Unix timestamp
-       content_preview TEXT,      -- First ~200 chars for display
-       embedding BLOB NOT NULL
-   );
-   CREATE INDEX idx_chunks_file_path ON chunks(file_path);
+No end-to-end tests exercise the full pipeline:
 
-   SELECT vector_init('chunks', 'embedding', 'dimension=512,type=FLOAT32,distance=cosine');
-   ```
-6. Scan all files in the directory (respecting `.gitignore` if present)
-7. For each supported file, generate embeddings and insert
+- [ ] Full pipeline: scan files -> extract text -> embed -> store -> search -> get relevant results
+- [ ] Update-index: init, modify a file, run update, verify re-indexed
+- [ ] Update-index: init, delete a file, run update, verify removed
+- [ ] Update-index: init, add a new file, run update, verify added
+- [ ] Insert then search: insert a file, search for its content, verify it appears
+- [ ] Remove then search: index a file, remove it, search, verify it's gone
 
-### `vec update-index`
+### 4. Edge Case Tests Missing
 
-1. Open existing database (error if not initialized)
-2. Scan all files in the directory
-3. For each file:
-   - If not in index → insert embeddings
-   - If in index but modification date changed → delete old entries, insert new
-   - If in index and unchanged → skip
-4. For indexed files no longer on disk → delete entries
-5. Re-run `vector_quantize()` after updates
+#### FileScanner
+- [ ] Scan an empty directory — returns empty array
+- [ ] Files with no extension but text content — detected correctly
+- [ ] Symlinks — are they followed or skipped?
+- [ ] Very deeply nested directories
+- [ ] Files with special characters in names (spaces, unicode)
+- [ ] `.vecignore` support (not yet implemented, see below)
 
-### `vec search "query"`
+#### TextExtractor
+- [ ] PDF extraction — no PDF tests exist at all
+- [ ] PDF with empty pages
+- [ ] PDF with only images (no extractable text)
+- [ ] Markdown file with only headings, no body text
+- [ ] Markdown file where every line is a heading
+- [ ] Very long single line (no newlines)
+- [ ] File that fails UTF-8 decoding gracefully
 
-1. Open existing database (error if not initialized)
-2. Generate embedding for the query string using `NLEmbedding`
-3. Run vector similarity search:
-   ```sql
-   SELECT c.file_path, c.line_start, c.line_end, c.chunk_type, c.content_preview, v.distance
-   FROM chunks AS c
-   JOIN vector_full_scan('chunks', 'embedding', ?, 20) AS v
-   ON c.id = v.rowid
-   ORDER BY v.distance ASC;
-   ```
-4. Group results by file, show best match per file with line range
-5. Output format: `file_path:line_start-line_end  (similarity_score)`
+#### EmbeddingService
+- [ ] Very long input text — does `NLEmbedding` truncate or fail?
+- [ ] Non-English text — returns nil or a vector?
+- [ ] Embeddings for similar text are closer than for dissimilar text (sanity check)
+- [ ] Thread safety — concurrent calls to `embed()`
 
-Options:
-- `--limit N` — Maximum number of results (default: 10)
-- `--format` — Output format: `text` (default), `json`
-- `--include-preview` — Show content preview snippet
+#### VectorDatabase
+- [ ] Inserting duplicate file paths (same path, different chunks is normal; same path+lineStart is an overwrite?)
+- [ ] Very large number of entries (performance)
+- [ ] Special characters in file paths and content previews
+- [ ] Concurrent read/write access
+- [ ] Database file permissions
 
-### `vec insert <path>`
+### 5. Missing Functionality
 
-1. Validate path is within the project directory
-2. Open existing database
-3. Remove any existing entries for this file
-4. Generate embeddings and insert
-5. Re-quantize if using quantized search
+#### Not yet implemented (mentioned in original plan)
+- [ ] `.gitignore` support — `FileScanner` does NOT respect `.gitignore`. It only skips hardcoded directory names (`.git`, `node_modules`, etc.) and hidden files. A repo with custom gitignore patterns (e.g., `build/`, `*.generated.swift`) will index files it shouldn't.
+- [ ] `.vecignore` support — custom ignore file for vec-specific exclusions
+- [ ] `--format json` for `search` command — original plan mentions it, not implemented
+- [ ] `vector_quantize()` after updates — original plan mentions re-quantizing after insert/remove/update, not implemented
+- [ ] Result grouping — original plan says "group results by file, show best match per file." Current implementation shows all results ungrouped.
 
-### `vec remove <path>`
+#### Robustness gaps
+- [ ] `InsertCommand` path computation — uses `String(filePath.path.dropFirst(directory.path.count + 1))` which will crash if the file is at the root (off-by-one on the `+ 1` for the `/` separator). Same pattern in `RemoveCommand`.
+- [ ] `UpdateIndexCommand` has duplicated insert logic — the "new file" and "updated file" branches are identical copy-pasted code. Should be extracted to a shared method.
+- [ ] `VectorDatabase.loadVectorExtension()` tries `@rpath/vector.framework/vector` as a literal string path — this won't resolve at the SQLite level. It's dead code.
+- [ ] `SearchCommand` displays similarity as `1.0 - distance` but cosine distance from sqlite-vector may not be in [0, 1] range — needs verification.
+- [ ] No `--verbose` or `--quiet` flags on any command for controlling output verbosity.
+- [ ] No progress indication on `update-index` (the init command has progress, update-index only prints per-file).
 
-1. Validate path is within the project directory
-2. Open existing database
-3. Delete all entries for this file path
-4. Re-quantize if using quantized search
+#### Error handling gaps
+- [ ] `TextExtractor.extract()` silently returns `[]` if the file can't be read as UTF-8 — no warning to the user that a file was skipped.
+- [ ] `EmbeddingService.embed()` returns nil for un-embeddable text — callers silently skip with `guard let ... else { continue }`, no warning.
+- [ ] `VectorDatabase.open()` doesn't verify the schema is intact or that the vector extension loads correctly — a corrupted DB will fail on first query, not on open.
 
-## Embedding Strategy
+### 6. Architecture Notes from Original Plan (Resolved)
 
-### NLEmbedding Details
+These open questions from the original plan have been answered by the implementation:
 
-- Framework: `NaturalLanguage`
-- Method: `NLEmbedding.sentenceEmbedding(for: .english, revision: 1)`
-- Dimension: 512 (Float32)
-- Fully on-device, no network required
-- Language: Start with `.english`, could support auto-detection later
+- **sqlite-vector distribution**: Resolved. Using SPM package dependency + runtime `sqlite3_load_extension()` with multiple candidate paths.
+- **NLEmbedding dimensions**: Confirmed 512 at runtime via `embedding.dimension`.
+- **ChunkingStrategy as separate file**: Not created. Chunking lives inside `TextExtractor`, which is fine for the current complexity.
 
-### Chunking (Markdown)
+---
 
-For markdown files, split into overlapping chunks:
-- **Chunk size**: ~50 lines
-- **Overlap**: 10 lines (so chunk 1 = lines 1-50, chunk 2 = lines 41-90, etc.)
-- **Respect boundaries**: Try to split at heading boundaries (`#`, `##`, etc.) when near the target chunk size
-- Each chunk gets its own embedding
-- The whole document also gets a single embedding
+## Suggested Priority Order
 
-### PDF Extraction
-
-- Use `PDFKit` (`PDFDocument`, `PDFPage`)
-- Extract text per page via `page.string`
-- Each page gets its own embedding with `page_number` stored
-- Store concatenated text as whole-document embedding too (if not too long)
-
-### Text Detection
-
-- Use UTI/file extension to determine if a file is text
-- Known text extensions: `.md`, `.txt`, `.swift`, `.py`, `.js`, `.ts`, `.json`, `.yaml`, `.yml`, `.toml`, `.xml`, `.html`, `.css`, `.sh`, `.bash`, `.zsh`, `.rb`, `.go`, `.rs`, `.c`, `.h`, `.cpp`, `.hpp`, `.java`, `.kt`, `.scala`, `.r`, `.sql`, `.dockerfile`, `.makefile`, `.cmake`, `.env`, `.ini`, `.cfg`, `.conf`, `.log`
-- PDF handled specially via PDFKit
-- All other files: attempt to read as UTF-8, skip if it fails
-
-## Implementation Phases
-
-### Phase 1: Foundation
-- [ ] Package.swift with all targets and dependencies
-- [ ] VecKit: `VectorDatabase` — SQLite wrapper with sqlite-vector extension loading
-- [ ] VecKit: `EmbeddingService` — NLEmbedding wrapper
-- [ ] CLI: `Vec.swift` entry point with command configuration
-
-### Phase 2: Core Commands
-- [ ] VecKit: `FileScanner` — directory walking with gitignore support
-- [ ] VecKit: `TextExtractor` — plain text and markdown extraction
-- [ ] VecKit: `ChunkingStrategy` — markdown chunking
-- [ ] CLI: `InitCommand` — create database, index all files
-- [ ] CLI: `SearchCommand` — query and display results
-
-### Phase 3: Management Commands
-- [ ] CLI: `UpdateIndexCommand` — incremental re-indexing
-- [ ] CLI: `InsertCommand` — add single file
-- [ ] CLI: `RemoveCommand` — remove single file
-
-### Phase 4: PDF + Polish
-- [ ] VecKit: PDF text extraction via PDFKit
-- [ ] Progress output during indexing
-- [ ] Respect `.gitignore` and `.vecignore`
-- [ ] Error handling and user-friendly messages
-
-### Phase 5: Tests
-- [ ] VecKitTests: embedding service, chunking, file scanning
-- [ ] CLITests: command parsing, path validation
-
-## Open Questions
-
-1. **sqlite-vector distribution**: Should we vendor the xcframework, use a binary SPM target, or build from source? Need to test which approach works best for a CLI tool (not an app bundle).
-   - For a CLI tool, the xcframework approach may not work since there's no app bundle. We may need to compile sqlite-vector from source as a C target or use `sqlite3_load_extension()` with a dylib.
-
-2. **NLEmbedding dimensions**: Need to verify the exact dimension of `.sentenceEmbedding(for: .english)` at runtime. Documentation suggests 512 but this should be confirmed.
-
-3. **Large files**: Should we cap file size for embedding? NLEmbedding may truncate very long inputs. Need to determine the practical limit.
-
-4. **Concurrency**: Should indexing be parallelized? `NLEmbedding` is thread-safe but we need to be careful with SQLite writes.
-
-5. **`.vecignore`**: Should we support a custom ignore file in addition to `.gitignore`?
+1. **VectorDatabase tests** — highest risk, most complex component, zero coverage
+2. **Integration tests** — prove the full pipeline works end-to-end
+3. **CLI tests** — replace the placeholder with real command parsing/validation tests
+4. **Edge case tests** — PDF extraction, special characters, long input, etc.
+5. **`.gitignore` support** — functional gap that will cause real user problems
+6. **Robustness fixes** — dedup update-index logic, fix path computation, dead code cleanup
+7. **Missing features** — `--format json`, result grouping, `--verbose`/`--quiet`
