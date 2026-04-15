@@ -14,6 +14,9 @@ struct SearchCommand: AsyncParsableCommand {
         case json
     }
 
+    @Argument(help: "Name of the database to search (stored in ~/.vec/<db-name>/)")
+    var dbName: String
+
     @Argument(help: "The search query text")
     var query: String
 
@@ -27,9 +30,18 @@ struct SearchCommand: AsyncParsableCommand {
     var format: OutputFormat = .text
 
     func run() async throws {
-        let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        try DatabaseLocator.validateName(dbName)
 
-        let database = VectorDatabase(directory: directory)
+        let dbDir = DatabaseLocator.databaseDirectory(for: dbName)
+
+        guard FileManager.default.fileExists(atPath: dbDir.path) else {
+            throw VecError.databaseNotFound(dbName)
+        }
+
+        let config = try DatabaseLocator.readConfig(from: dbDir)
+        let sourceDir = URL(fileURLWithPath: config.sourceDirectory)
+
+        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try database.open()
 
         let embedder = EmbeddingService()
