@@ -1,5 +1,6 @@
 import Foundation
 import CSQLiteVec
+import vector
 
 /// Wraps SQLite + sqlite-vector for storing and querying vector embeddings.
 public class VectorDatabase {
@@ -195,26 +196,34 @@ public class VectorDatabase {
         // Enable extension loading
         sqlite3_enable_load_extension(db, 1)
 
-        // Try to load the sqlite-vector extension from known paths
-        let possiblePaths = [
-            // Bundled with the tool
-            Bundle.main.bundlePath + "/vector",
+        // Build a list of candidate paths for the sqlite-vector extension dylib.
+        // The `vector` Swift package provides vector.path, but that assumes a .app bundle.
+        // For a CLI tool built with SPM, the framework is placed alongside the executable.
+        let executableDir = URL(fileURLWithPath: ProcessInfo.processInfo.arguments[0])
+            .deletingLastPathComponent().path
+
+        var possiblePaths = [
+            // Framework alongside the executable (SPM places it here)
+            executableDir + "/vector.framework/vector",
+            // The vector package's suggested path (works for .app bundles)
+            vector.path,
             // Homebrew or system-installed
             "/usr/local/lib/vector",
             "/opt/homebrew/lib/vector",
-            // Relative to executable
-            ProcessInfo.processInfo.arguments[0]
-                .components(separatedBy: "/").dropLast().joined(separator: "/") + "/vector",
-            // In .vec directory
-            directory.appendingPathComponent(".vec").appendingPathComponent("vector").path
+            // Bundled with the tool
+            Bundle.main.bundlePath + "/vector",
         ]
+
+        // Also check rpath-resolved framework locations
+        let rpathFramework = "@rpath/vector.framework/vector"
+        possiblePaths.append(rpathFramework)
 
         var loaded = false
         var lastError: String?
 
         for path in possiblePaths {
             var errMsg: UnsafeMutablePointer<CChar>?
-            let result = sqlite3_load_extension(db, path, nil, &errMsg)
+            let result = sqlite3_load_extension(db, path, "sqlite3_vector_init", &errMsg)
             if result == SQLITE_OK {
                 loaded = true
                 break
@@ -229,7 +238,8 @@ public class VectorDatabase {
             let hint = lastError ?? "Extension not found"
             throw VecError.sqliteError(
                 "Failed to load sqlite-vector extension. \(hint)\n" +
-                "Install the vector extension dylib to one of: /usr/local/lib/vector, /opt/homebrew/lib/vector, or .vec/vector"
+                "Searched paths:\n" +
+                possiblePaths.map { "  - \($0)" }.joined(separator: "\n")
             )
         }
     }
