@@ -32,7 +32,7 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 | `FileScannerTests` | 17 | .git skipping, binary detection (with and without extension), node_modules, relative paths, hidden skip/include, .git still skipped when hidden enabled, gitignore filtering, non-git fallback, disable gitignore, .vecignore patterns, spaces/unicode in names, empty directory |
 | `PathUtilitiesTests` | 10 | Normal paths, trailing slashes, .., outside directory, same path, root dir, deep nesting, prefix collision |
 | `ChunkingStrategyTests` | 3 | Overlap behavior, heading boundaries, custom chunk/overlap sizes |
-| `VectorDatabaseTests` | 16 | Initialize, open, insert, search (ordering, similarity, limit, fields), allIndexedFiles, removeEntries, multi-file scenarios, corrupted DB detection |
+| `VectorDatabaseTests` | 17 | Initialize, open, insert, search (ordering, similarity, limit, fields, PDF page), allIndexedFiles, removeEntries, multi-file scenarios, corrupted DB detection |
 | `DatabaseLocatorTests` | 18 | Name validation (alphanumeric, hyphens/underscores, empty, spaces, slashes, special chars, path traversal, reserved names), directory paths, config read/write roundtrip, missing/malformed config, allDatabases listing |
 | `IntegrationTests` | 6 | Full scan+embed+store+search pipeline, update-index flows (modified/deleted/added files), insert-then-search, remove-then-search |
 | `CLITests` | 26 | Subcommand registration (including info), argument parsing for all 7 commands, default values, flag parsing, short flags, --allow-hidden, default subcommand routing |
@@ -99,7 +99,7 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 
 All databases now live under `~/.vec/<db-name>/` instead of per-directory `.vec/` folders. Each database directory contains `index.db` and `config.json` (source directory path, creation date).
 
-### CLI interface
+### CLI interface (superseded by Priority 5 below)
 
 | Command | Description |
 |---------|-------------|
@@ -133,17 +133,18 @@ All databases now live under `~/.vec/<db-name>/` instead of per-directory `.vec/
 
 ---
 
-## Priority 5: Optional `--repo` flag and cwd-based database resolution
+## Priority 5: Optional `--db` flag and cwd-based database resolution
 
 Currently, every command except `init` and `list` requires a positional `<db-name>` argument. This priority makes that argument optional by adding cwd-based database resolution.
 
 ### Design
 
-- All commands except `init` and `list` get an optional `-r`/`--repo <name>` flag (using `@Option`, not `@Argument`)
-- When `-r` is omitted, resolve the database by matching cwd against all known databases' `sourceDirectory` in `config.json`
-- When `-r` is provided, use it directly (same as current `DatabaseLocator.resolve()` behavior)
+- All commands except `init` and `list` get an optional `-d`/`--db <name>` flag (using `@Option`, not `@Argument`)
+- When `-d` is omitted, resolve the database by matching cwd against all known databases' `sourceDirectory` in `config.json`
+- When `-d` is provided, use it directly (same as current `DatabaseLocator.resolve()` behavior)
 - `init` keeps its positional `dbName` argument (you're naming a new DB)
 - `list` has no database argument (lists all)
+- The default subcommand (`vec <query>`) works with cwd-based resolution — no db-name needed from cwd
 
 ### CLI interface (updated)
 
@@ -151,22 +152,22 @@ Currently, every command except `init` and `list` requires a positional `<db-nam
 |---------|-------------|
 | `vec init <db-name>` | Create empty database for cwd. `--force` to reinitialize. |
 | `vec list` | List all databases. |
-| `vec update-index [-r <name>]` | Scan and index files. `--allow-hidden`. |
-| `vec search [-r <name>] <query>` | Search. `--limit`, `--include-preview`, `--format json`. |
-| `vec <query>` | Shorthand for `vec search` (default subcommand). |
-| `vec insert [-r <name>] <path>` | Add/replace a file. |
-| `vec remove [-r <name>] <path>` | Remove a file. |
-| `vec info [-r <name>]` | Show database metadata. |
+| `vec update-index [-d <name>]` | Scan and index files. `--allow-hidden`. |
+| `vec search [-d <name>] <query>` | Search. `--limit`, `--include-preview`, `--format json`. |
+| `vec <query>` | Shorthand for `vec search` (default subcommand, resolves db from cwd). |
+| `vec insert [-d <name>] <path>` | Add/replace a file. |
+| `vec remove [-d <name>] <path>` | Remove a file. |
+| `vec info [-d <name>]` | Show database metadata. |
 
 ### Implementation plan
 
 - **5a.** Add `DatabaseLocator.resolveFromCurrentDirectory()` that scans `~/.vec/*/config.json` for a matching `sourceDirectory`
 - **5b.** Add new `VecError` cases:
-  - `.noDatabaseForDirectory` — clear message: "No database found for current directory. Use `-r <name>` or run `vec init <name>` here first."
+  - `.noDatabaseForDirectory` — clear message: "No database found for current directory. Use `-d <name>` or run `vec init <name>` here first."
   - `.multipleDatabasesForDirectory` — lists conflicting database names
-- **5c.** Change `UpdateIndexCommand`, `SearchCommand`, `InsertCommand`, `RemoveCommand`, `InfoCommand` to use `@Option(name: .shortAndLong) var repo: String?` instead of `@Argument var dbName: String`
-- **5d.** In each command's `run()`, resolve via: `repo != nil ? DatabaseLocator.resolve(repo!) : DatabaseLocator.resolveFromCurrentDirectory()`
-- **5e.** Update `CLITests` for new argument patterns (commands no longer require positional db-name, accept `-r` flag)
+- **5c.** Change `UpdateIndexCommand`, `SearchCommand`, `InsertCommand`, `RemoveCommand`, `InfoCommand` to use `@Option(name: .shortAndLong) var db: String?` instead of `@Argument var dbName: String`
+- **5d.** In each command's `run()`, resolve via: `db != nil ? DatabaseLocator.resolve(db!) : DatabaseLocator.resolveFromCurrentDirectory()`
+- **5e.** Update `CLITests` for new argument patterns (commands no longer require positional db-name, accept `-d` flag)
 - **5f.** Run `swift test` to verify all tests pass
 
 ---
