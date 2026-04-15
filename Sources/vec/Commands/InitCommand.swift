@@ -6,8 +6,11 @@ struct InitCommand: AsyncParsableCommand {
 
     static var configuration = CommandConfiguration(
         commandName: "init",
-        abstract: "Initialize a vector database in the current directory"
+        abstract: "Initialize a vector database for the current directory"
     )
+
+    @Argument(help: "Name for the database (stored in ~/.vec/<db-name>/)")
+    var dbName: String
 
     @Flag(name: .long, help: "Overwrite existing database if present")
     var force: Bool = false
@@ -16,20 +19,29 @@ struct InitCommand: AsyncParsableCommand {
     var allowHidden: Bool = false
 
     func run() async throws {
-        let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-        let vecDir = directory.appendingPathComponent(".vec")
+        try DatabaseLocator.validateName(dbName)
 
-        if FileManager.default.fileExists(atPath: vecDir.path) && !force {
-            print("Error: .vec/ already exists. Use --force to reinitialize.")
-            throw ExitCode.failure
+        let dbDir = DatabaseLocator.databaseDirectory(for: dbName)
+        let sourceDir = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+
+        if FileManager.default.fileExists(atPath: dbDir.path) {
+            if !force {
+                print("Error: Database '\(dbName)' already exists at \(dbDir.path). Use --force to reinitialize.")
+                throw ExitCode.failure
+            }
+            try FileManager.default.removeItem(at: dbDir)
         }
 
-        print("Initializing vector database in \(directory.path)...")
+        print("Initializing vector database '\(dbName)' at \(dbDir.path)...")
 
-        let database = VectorDatabase(directory: directory)
+        // Create directory and write config.json first, so a crash during indexing
+        // still leaves a valid (empty) database that can be re-initialized.
+        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try database.initialize()
+        let config = DatabaseConfig(sourceDirectory: sourceDir.path, createdAt: Date())
+        try DatabaseLocator.writeConfig(config, to: dbDir)
 
-        let scanner = FileScanner(directory: directory, includeHiddenFiles: allowHidden)
+        let scanner = FileScanner(directory: sourceDir, includeHiddenFiles: allowHidden)
         let files = try scanner.scan()
 
         print("Found \(files.count) files to index.")
@@ -81,9 +93,9 @@ struct InitCommand: AsyncParsableCommand {
             if skippedEmbedFailures > 0 {
                 details.append("\(skippedEmbedFailures) failed to embed")
             }
-            print("Indexed \(indexed) files (\(skipped) skipped: \(details.joined(separator: ", "))). Database ready at .vec/index.db")
+            print("Indexed \(indexed) files (\(skipped) skipped: \(details.joined(separator: ", "))). Database ready at \(dbDir.path)/index.db")
         } else {
-            print("Indexed \(indexed) files. Database ready at .vec/index.db")
+            print("Indexed \(indexed) files. Database ready at \(dbDir.path)/index.db")
         }
     }
 }

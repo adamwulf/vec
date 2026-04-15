@@ -4,6 +4,8 @@ import XCTest
 final class IntegrationTests: XCTestCase {
 
     private var tempDir: URL!
+    private var dbDir: URL!
+    private var sourceDir: URL!
     private var embeddingService: EmbeddingService!
 
     override func setUp() {
@@ -16,6 +18,10 @@ final class IntegrationTests: XCTestCase {
         tempDir = realpath(raw.path, &buf) != nil
             ? URL(fileURLWithPath: String(cString: buf), isDirectory: true)
             : raw
+        // sourceDir is where files are created; dbDir is separate database storage
+        sourceDir = tempDir.appendingPathComponent("source")
+        try! FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
+        dbDir = tempDir.appendingPathComponent("db")
         embeddingService = EmbeddingService()
     }
 
@@ -38,19 +44,19 @@ final class IntegrationTests: XCTestCase {
         return vector
     }
 
-    /// Create a text file in the temp directory and return its URL.
+    /// Create a text file in the source directory and return its URL.
     @discardableResult
     private func createFile(at relativePath: String, content: String) -> URL {
-        let url = tempDir.appendingPathComponent(relativePath)
+        let url = sourceDir.appendingPathComponent(relativePath)
         let parent = url.deletingLastPathComponent()
         try! FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
         try! content.write(to: url, atomically: true, encoding: .utf8)
         return url
     }
 
-    /// Create an initialized VectorDatabase in tempDir.
+    /// Create an initialized VectorDatabase using dbDir and sourceDir.
     private func makeInitializedDB() throws -> VectorDatabase {
-        let db = VectorDatabase(directory: tempDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try db.initialize()
         return db
     }
@@ -83,7 +89,7 @@ final class IntegrationTests: XCTestCase {
         createFile(at: "astronomy.md", content: "The Milky Way galaxy contains billions of stars and planets orbiting them")
 
         // Scan
-        let scanner = FileScanner(directory: tempDir)
+        let scanner = FileScanner(directory: sourceDir)
         let files = try scanner.scan()
         XCTAssertEqual(files.count, 3, "Should find all 3 files")
 
@@ -123,7 +129,7 @@ final class IntegrationTests: XCTestCase {
         // Create initial file
         createFile(at: "notes.txt", content: "The ocean is vast and full of marine creatures like dolphins and whales")
 
-        let scanner = FileScanner(directory: tempDir)
+        let scanner = FileScanner(directory: sourceDir)
         let db = try makeInitializedDB()
         let extractor = TextExtractor()
 
@@ -180,7 +186,7 @@ final class IntegrationTests: XCTestCase {
         createFile(at: "keep.txt", content: "Mathematics involves numbers equations and proofs for theorems")
         createFile(at: "delete_me.txt", content: "Gardening tips for growing tomatoes peppers and herbs in the backyard")
 
-        let scanner = FileScanner(directory: tempDir)
+        let scanner = FileScanner(directory: sourceDir)
         let db = try makeInitializedDB()
         let extractor = TextExtractor()
 
@@ -196,7 +202,7 @@ final class IntegrationTests: XCTestCase {
         XCTAssertEqual(indexedBefore.count, 2)
 
         // Delete one file from disk
-        let deleteURL = tempDir.appendingPathComponent("delete_me.txt")
+        let deleteURL = sourceDir.appendingPathComponent("delete_me.txt")
         try FileManager.default.removeItem(at: deleteURL)
 
         // Simulate update-index: find paths in DB not on disk, remove them
@@ -235,7 +241,7 @@ final class IntegrationTests: XCTestCase {
         // Start with one file
         createFile(at: "original.txt", content: "The history of ancient Rome includes senators gladiators and emperors")
 
-        let scanner = FileScanner(directory: tempDir)
+        let scanner = FileScanner(directory: sourceDir)
         let db = try makeInitializedDB()
         let extractor = TextExtractor()
 
@@ -290,7 +296,7 @@ final class IntegrationTests: XCTestCase {
         // Create a file and use FileScanner.fileInfo() to get its info
         let fileURL = createFile(at: "physics.swift", content: "func calculateGravity(mass: Double, distance: Double) -> Double { return mass / (distance * distance) }")
 
-        let fileInfo = try FileScanner.fileInfo(for: fileURL, relativeTo: tempDir)
+        let fileInfo = try FileScanner.fileInfo(for: fileURL, relativeTo: sourceDir)
         XCTAssertEqual(fileInfo.relativePath, "physics.swift")
         XCTAssertEqual(fileInfo.fileExtension, "swift")
 
@@ -319,7 +325,7 @@ final class IntegrationTests: XCTestCase {
         createFile(at: "sports.txt", content: "Basketball players dribble and shoot hoops on the court during the game")
         createFile(at: "science.txt", content: "Chemical reactions involve molecules bonding and breaking apart in solutions")
 
-        let scanner = FileScanner(directory: tempDir)
+        let scanner = FileScanner(directory: sourceDir)
         let db = try makeInitializedDB()
         let extractor = TextExtractor()
 

@@ -14,7 +14,9 @@ struct Vec: AsyncParsableCommand {
             UpdateIndexCommand.self,
             SearchCommand.self,
             InsertCommand.self,
-            RemoveCommand.self
-        ]
+            RemoveCommand.self,
+            ListCommand.self
+        ],
+        defaultSubcommand: SearchCommand.self
     )
 }

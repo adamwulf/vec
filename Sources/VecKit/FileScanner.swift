@@ -26,7 +26,7 @@ public class FileScanner {
 
     /// Directories to always skip.
     private static let skipDirectories: Set<String> = [
-        ".git", ".vec", ".build", ".swiftpm",
+        ".git", ".build", ".swiftpm",
         "node_modules", "__pycache__", ".venv", "venv",
         ".DS_Store", "Pods", "DerivedData"
     ]
@@ -272,10 +272,11 @@ public enum VecError: Error, LocalizedError {
     case cannotScanDirectory(String)
     case cannotReadFile(String)
     case databaseNotInitialized
-    case databaseAlreadyExists
-    case pathOutsideProject(String)
     case sqliteError(String)
     case databaseCorrupted(String)
+    case invalidDatabaseName(String)
+    case databaseNotFound(String)
+    case sourceDirectoryMissing(String)
 
     public var errorDescription: String? {
         switch self {
@@ -284,15 +285,17 @@ public enum VecError: Error, LocalizedError {
         case .cannotReadFile(let path):
             return "Cannot read file: \(path)"
         case .databaseNotInitialized:
-            return "Vector database not initialized. Run 'vec init' first."
-        case .databaseAlreadyExists:
-            return "Vector database already exists. Use --force to reinitialize."
-        case .pathOutsideProject(let path):
-            return "Path is outside the project directory: \(path)"
+            return "Vector database not initialized. Run 'vec init <db-name>' first."
         case .sqliteError(let message):
             return "SQLite error: \(message)"
         case .databaseCorrupted(let detail):
             return "Database schema is corrupted: \(detail)"
+        case .invalidDatabaseName(let name):
+            return "Invalid database name '\(name)'. Names may only contain letters, numbers, hyphens, and underscores, and must not conflict with command names."
+        case .databaseNotFound(let name):
+            return "Database '\(name)' not found. Run 'vec init \(name)' to create it."
+        case .sourceDirectoryMissing(let path):
+            return "Source directory '\(path)' no longer exists. The indexed directory may have been moved or deleted."
         }
     }
 }
