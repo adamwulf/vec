@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "sqlite-vector",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sqliteai/sqlite-vector",
+      "state" : {
+        "revision" : "4095ecaa611e6f8fa39294216186cb412082aef8",
+        "version" : "0.9.95"
+      }
+    },
+    {
       "identity" : "swift-argument-parser",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-argument-parser",

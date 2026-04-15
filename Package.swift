@@ -11,7 +11,8 @@ let package = Package(
         .executable(name: "vec", targets: ["vec"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0")
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
+        .package(url: "https://github.com/sqliteai/sqlite-vector", from: "0.9.95")
     ],
     targets: [
         .systemLibrary(
@@ -23,7 +24,10 @@ let package = Package(
         ),
         .target(
             name: "VecKit",
-            dependencies: ["CSQLiteVec"]
+            dependencies: [
+                "CSQLiteVec",
+                .product(name: "vector", package: "sqlite-vector")
+            ]
         ),
         .executableTarget(
             name: "vec",
