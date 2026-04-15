@@ -12,6 +12,48 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Flag(name: .long, help: "Include hidden files and folders")
     var allowHidden: Bool = false
 
+    private enum IndexResult {
+        case indexed
+        case skippedUnreadable
+        case skippedEmbedFailure
+    }
+
+    private func indexFile(
+        _ file: FileInfo,
+        using extractor: TextExtractor,
+        embedder: EmbeddingService,
+        database: VectorDatabase,
+        label: String
+    ) throws -> IndexResult {
+        let chunks = try extractor.extract(from: file)
+        if chunks.isEmpty {
+            return .skippedUnreadable
+        }
+        var embedFailures = 0
+        for chunk in chunks {
+            guard let embedding = embedder.embed(chunk.text) else {
+                embedFailures += 1
+                continue
+            }
+            try database.insert(
+                filePath: file.relativePath,
+                lineStart: chunk.lineStart,
+                lineEnd: chunk.lineEnd,
+                chunkType: chunk.type,
+                pageNumber: chunk.pageNumber,
+                fileModifiedAt: file.modificationDate,
+                contentPreview: String(chunk.text.prefix(200)),
+                embedding: embedding
+            )
+        }
+        if embedFailures == chunks.count {
+            print("  Skipped: \(file.relativePath) (failed to embed)")
+            return .skippedEmbedFailure
+        }
+        print("  \(label): \(file.relativePath)")
+        return .indexed
+    }
+
     func run() async throws {
         let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
 
@@ -37,67 +79,19 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                 if file.modificationDate > existingModDate {
                     // File changed — re-index
                     try database.removeEntries(forPath: file.relativePath)
-                    let chunks = try extractor.extract(from: file)
-                    if chunks.isEmpty {
-                        skippedUnreadable += 1
-                        continue
-                    }
-                    var embedFailures = 0
-                    for chunk in chunks {
-                        guard let embedding = embedder.embed(chunk.text) else {
-                            embedFailures += 1
-                            continue
-                        }
-                        try database.insert(
-                            filePath: file.relativePath,
-                            lineStart: chunk.lineStart,
-                            lineEnd: chunk.lineEnd,
-                            chunkType: chunk.type,
-                            pageNumber: chunk.pageNumber,
-                            fileModifiedAt: file.modificationDate,
-                            contentPreview: String(chunk.text.prefix(200)),
-                            embedding: embedding
-                        )
-                    }
-                    if embedFailures == chunks.count {
-                        skippedEmbedFailures += 1
-                        print("  Skipped: \(file.relativePath) (failed to embed)")
-                    } else {
-                        updated += 1
-                        print("  Updated: \(file.relativePath)")
+                    switch try indexFile(file, using: extractor, embedder: embedder, database: database, label: "Updated") {
+                    case .indexed: updated += 1
+                    case .skippedUnreadable: skippedUnreadable += 1
+                    case .skippedEmbedFailure: skippedEmbedFailures += 1
                     }
                 }
                 // Otherwise unchanged — skip
             } else {
                 // New file
-                let chunks = try extractor.extract(from: file)
-                if chunks.isEmpty {
-                    skippedUnreadable += 1
-                    continue
-                }
-                var embedFailures = 0
-                for chunk in chunks {
-                    guard let embedding = embedder.embed(chunk.text) else {
-                        embedFailures += 1
-                        continue
-                    }
-                    try database.insert(
-                        filePath: file.relativePath,
-                        lineStart: chunk.lineStart,
-                        lineEnd: chunk.lineEnd,
-                        chunkType: chunk.type,
-                        pageNumber: chunk.pageNumber,
-                        fileModifiedAt: file.modificationDate,
-                        contentPreview: String(chunk.text.prefix(200)),
-                        embedding: embedding
-                    )
-                }
-                if embedFailures == chunks.count {
-                    skippedEmbedFailures += 1
-                    print("  Skipped: \(file.relativePath) (failed to embed)")
-                } else {
-                    added += 1
-                    print("  Added: \(file.relativePath)")
+                switch try indexFile(file, using: extractor, embedder: embedder, database: database, label: "Added") {
+                case .indexed: added += 1
+                case .skippedUnreadable: skippedUnreadable += 1
+                case .skippedEmbedFailure: skippedEmbedFailures += 1
                 }
             }
         }
