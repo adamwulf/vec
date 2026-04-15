@@ -2,7 +2,7 @@
 
 ## Current State
 
-The `vec` CLI tool and its `VecKit` library are production-ready for all Priority 1, 2, 3, and 4 items. All seven commands are implemented, the project builds cleanly, and tests pass across 10 test suites (116 tests). The embedding service uses Apple's on-device `NLEmbedding`. The `sqlite-vector` package is integrated via SPM binary target with runtime extension loading.
+The `vec` CLI tool and its `VecKit` library are production-ready for all Priority 1, 2, 3, 4, and 5 items. All seven commands are implemented, the project builds cleanly, and tests pass across 10 test suites (121 tests). The embedding service uses Apple's on-device `NLEmbedding`. The `sqlite-vector` package is integrated via SPM binary target with runtime extension loading.
 
 ### What's Implemented
 
@@ -33,9 +33,9 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 | `PathUtilitiesTests` | 10 | Normal paths, trailing slashes, .., outside directory, same path, root dir, deep nesting, prefix collision |
 | `ChunkingStrategyTests` | 3 | Overlap behavior, heading boundaries, custom chunk/overlap sizes |
 | `VectorDatabaseTests` | 17 | Initialize, open, insert, search (ordering, similarity, limit, fields, PDF page), allIndexedFiles, removeEntries, multi-file scenarios, corrupted DB detection |
-| `DatabaseLocatorTests` | 18 | Name validation (alphanumeric, hyphens/underscores, empty, spaces, slashes, special chars, path traversal, reserved names), directory paths, config read/write roundtrip, missing/malformed config, allDatabases listing |
+| `DatabaseLocatorTests` | 21 | Name validation (alphanumeric, hyphens/underscores, empty, spaces, slashes, special chars, path traversal, reserved names), directory paths, config read/write roundtrip, missing/malformed config, allDatabases listing, resolveFromCurrentDirectory (single match, no match, multiple matches) |
 | `IntegrationTests` | 6 | Full scan+embed+store+search pipeline, update-index flows (modified/deleted/added files), insert-then-search, remove-then-search |
-| `CLITests` | 26 | Subcommand registration (including info), argument parsing for all 7 commands, default values, flag parsing, short flags, --allow-hidden, default subcommand routing |
+| `CLITests` | 28 | Subcommand registration (including info), argument parsing for all 7 commands, default values, flag parsing, short flags, --allow-hidden, default subcommand routing, --db/-d flag parsing for all commands |
 
 ---
 
