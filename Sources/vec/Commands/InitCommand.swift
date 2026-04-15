@@ -1,0 +1,59 @@
+import Foundation
+import ArgumentParser
+import VecKit
+
+struct InitCommand: AsyncParsableCommand {
+
+    static var configuration = CommandConfiguration(
+        commandName: "init",
+        abstract: "Initialize a vector database in the current directory"
+    )
+
+    @Flag(name: .long, help: "Overwrite existing database if present")
+    var force: Bool = false
+
+    func run() async throws {
+        let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let vecDir = directory.appendingPathComponent(".vec")
+
+        if FileManager.default.fileExists(atPath: vecDir.path) && !force {
+            print("Error: .vec/ already exists. Use --force to reinitialize.")
+            throw ExitCode.failure
+        }
+
+        print("Initializing vector database in \(directory.path)...")
+
+        let database = VectorDatabase(directory: directory)
+        try database.initialize()
+
+        let scanner = FileScanner(directory: directory)
+        let files = try scanner.scan()
+
+        print("Found \(files.count) files to index.")
+
+        let embedder = EmbeddingService()
+        let extractor = TextExtractor()
+
+        var indexed = 0
+        for file in files {
+            let chunks = try extractor.extract(from: file)
+            for chunk in chunks {
+                guard let embedding = embedder.embed(chunk.text) else { continue }
+                try database.insert(
+                    filePath: file.relativePath,
+                    lineStart: chunk.lineStart,
+                    lineEnd: chunk.lineEnd,
+                    chunkType: chunk.type,
+                    pageNumber: chunk.pageNumber,
+                    fileModifiedAt: file.modificationDate,
+                    contentPreview: String(chunk.text.prefix(200)),
+                    embedding: embedding
+                )
+            }
+            indexed += 1
+            print("  [\(indexed)/\(files.count)] \(file.relativePath)")
+        }
+
+        print("Indexed \(indexed) files. Database ready at .vec/index.db")
+    }
+}
