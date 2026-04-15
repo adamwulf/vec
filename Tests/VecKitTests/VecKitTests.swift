@@ -1,4 +1,5 @@
 import XCTest
+import NaturalLanguage
 @testable import VecKit
 
 final class VecKitTests: XCTestCase {
@@ -53,6 +54,25 @@ final class EmbeddingServiceTests: XCTestCase {
     func testDimensionIs512() {
         let service = EmbeddingService()
         XCTAssertEqual(service.dimension, 512)
+    }
+
+    func testDetectLanguageReturnsEnglishForEnglishText() {
+        let service = EmbeddingService()
+        let lang = service.detectLanguage("The quick brown fox jumps over the lazy dog")
+        XCTAssertEqual(lang, .english)
+    }
+
+    func testDetectLanguageReturnsNonEnglishForForeignText() {
+        let service = EmbeddingService()
+        let lang = service.detectLanguage("これは日本語のテキストです。自然言語処理のテストです。")
+        XCTAssertNotNil(lang)
+        XCTAssertNotEqual(lang, .english)
+    }
+
+    func testDetectLanguageReturnsNilForEmptyText() {
+        let service = EmbeddingService()
+        XCTAssertNil(service.detectLanguage(""))
+        XCTAssertNil(service.detectLanguage("   "))
     }
 }
 

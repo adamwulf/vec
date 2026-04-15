@@ -27,4 +27,12 @@ public class EmbeddingService {
 
         return vector.map { Float($0) }
     }
+
+    /// Detect the dominant language of the given text.
+    /// Returns nil if the language cannot be determined.
+    public func detectLanguage(_ text: String) -> NLLanguage? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        return NLLanguageRecognizer.dominantLanguage(for: trimmed)
+    }
 }
