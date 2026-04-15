@@ -16,6 +16,7 @@ final class CLITests: XCTestCase {
         XCTAssertTrue(names.contains("insert"), "Missing 'insert' subcommand")
         XCTAssertTrue(names.contains("remove"), "Missing 'remove' subcommand")
         XCTAssertTrue(names.contains("list"), "Missing 'list' subcommand")
+        XCTAssertTrue(names.contains("info"), "Missing 'info' subcommand")
     }
 
     // MARK: - InitCommand
@@ -143,6 +144,17 @@ final class CLITests: XCTestCase {
 
     func testListCommandParsesWithNoArguments() throws {
         _ = try ListCommand.parseAsRoot([]) as! ListCommand
+    }
+
+    // MARK: - InfoCommand
+
+    func testInfoCommandParsesDbName() throws {
+        let cmd = try InfoCommand.parseAsRoot(["my-db"]) as! InfoCommand
+        XCTAssertEqual(cmd.dbName, "my-db")
+    }
+
+    func testInfoCommandFailsWithoutDbName() {
+        XCTAssertThrowsError(try InfoCommand.parseAsRoot([]))
     }
 
     // MARK: - Default Subcommand
