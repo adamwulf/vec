@@ -9,6 +9,9 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         abstract: "Update the vector index with new or modified files"
     )
 
+    @Argument(help: "Name of the database to update (stored in ~/.vec/<db-name>/)")
+    var dbName: String
+
     @Flag(name: .long, help: "Include hidden files and folders")
     var allowHidden: Bool = false
 
@@ -71,12 +74,21 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     }
 
     func run() async throws {
-        let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        try DatabaseLocator.validateName(dbName)
 
-        let database = VectorDatabase(directory: directory)
+        let dbDir = DatabaseLocator.databaseDirectory(for: dbName)
+
+        guard FileManager.default.fileExists(atPath: dbDir.path) else {
+            throw VecError.databaseNotFound(dbName)
+        }
+
+        let config = try DatabaseLocator.readConfig(from: dbDir)
+        let sourceDir = URL(fileURLWithPath: config.sourceDirectory)
+
+        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try database.open()
 
-        let scanner = FileScanner(directory: directory, includeHiddenFiles: allowHidden)
+        let scanner = FileScanner(directory: sourceDir, includeHiddenFiles: allowHidden)
         let files = try scanner.scan()
         let indexedFiles = try database.allIndexedFiles()
 
