@@ -84,6 +84,7 @@ final class DatabaseLocatorTests: XCTestCase {
         XCTAssertThrowsError(try DatabaseLocator.validateName("update-index"))
         XCTAssertThrowsError(try DatabaseLocator.validateName("help"))
         XCTAssertThrowsError(try DatabaseLocator.validateName("version"))
+        XCTAssertThrowsError(try DatabaseLocator.validateName("info"))
     }
 
     // MARK: - databaseDirectory
@@ -221,5 +222,96 @@ final class DatabaseLocatorTests: XCTestCase {
         // ~/.vec/ exists. This is a sanity check, not an exhaustive test.
         let databases = try DatabaseLocator.allDatabases()
         XCTAssertGreaterThanOrEqual(databases.count, 0)
+    }
+
+    // MARK: - resolveFromCurrentDirectory
+
+    /// Helper: create a uniquely-named database in ~/.vec/ whose config points at `sourceDir`.
+    /// Returns the database name so the caller can clean up.
+    private func createTestDatabase(sourceDirectory: String) throws -> String {
+        let name = "vectest-\(UUID().uuidString)"
+        let dbDir = DatabaseLocator.databaseDirectory(for: name)
+        try FileManager.default.createDirectory(at: dbDir, withIntermediateDirectories: true)
+        let config = DatabaseConfig(sourceDirectory: sourceDirectory, createdAt: Date())
+        try DatabaseLocator.writeConfig(config, to: dbDir)
+        return name
+    }
+
+    /// Helper: remove a test database from ~/.vec/.
+    private func removeTestDatabase(_ name: String) {
+        let dbDir = DatabaseLocator.databaseDirectory(for: name)
+        try? FileManager.default.removeItem(at: dbDir)
+    }
+
+    func testResolveFromCurrentDirectorySingleMatch() throws {
+        // Create a real temp directory to use as source
+        let sourceDir = tempDir.appendingPathComponent("source-project")
+        try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
+
+        // Resolve symlinks so the path matches what standardizingPath produces
+        let resolvedSource = sourceDir.resolvingSymlinksInPath()
+
+        let dbName = try createTestDatabase(sourceDirectory: resolvedSource.path)
+        defer { removeTestDatabase(dbName) }
+
+        // Change cwd to the source directory
+        let originalCwd = FileManager.default.currentDirectoryPath
+        FileManager.default.changeCurrentDirectoryPath(resolvedSource.path)
+        defer { FileManager.default.changeCurrentDirectoryPath(originalCwd) }
+
+        let (dbDir, config, resultSourceDir) = try DatabaseLocator.resolveFromCurrentDirectory()
+
+        XCTAssertEqual(dbDir.lastPathComponent, dbName)
+        XCTAssertEqual(config.sourceDirectory, resolvedSource.path)
+        XCTAssertEqual(resultSourceDir.path, resolvedSource.path)
+    }
+
+    func testResolveFromCurrentDirectoryNoMatchThrows() throws {
+        // Use a directory that no database will point to
+        let noMatchDir = tempDir.appendingPathComponent("no-match-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: noMatchDir, withIntermediateDirectories: true)
+
+        let resolvedDir = noMatchDir.resolvingSymlinksInPath()
+
+        let originalCwd = FileManager.default.currentDirectoryPath
+        FileManager.default.changeCurrentDirectoryPath(resolvedDir.path)
+        defer { FileManager.default.changeCurrentDirectoryPath(originalCwd) }
+
+        XCTAssertThrowsError(try DatabaseLocator.resolveFromCurrentDirectory()) { error in
+            guard let vecError = error as? VecError,
+                  case .noDatabaseForDirectory = vecError else {
+                XCTFail("Expected VecError.noDatabaseForDirectory, got \(error)")
+                return
+            }
+        }
+    }
+
+    func testResolveFromCurrentDirectoryMultipleMatchesThrows() throws {
+        // Create a source directory that two databases will point to
+        let sourceDir = tempDir.appendingPathComponent("multi-match")
+        try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
+
+        let resolvedSource = sourceDir.resolvingSymlinksInPath()
+
+        let dbName1 = try createTestDatabase(sourceDirectory: resolvedSource.path)
+        let dbName2 = try createTestDatabase(sourceDirectory: resolvedSource.path)
+        defer {
+            removeTestDatabase(dbName1)
+            removeTestDatabase(dbName2)
+        }
+
+        let originalCwd = FileManager.default.currentDirectoryPath
+        FileManager.default.changeCurrentDirectoryPath(resolvedSource.path)
+        defer { FileManager.default.changeCurrentDirectoryPath(originalCwd) }
+
+        XCTAssertThrowsError(try DatabaseLocator.resolveFromCurrentDirectory()) { error in
+            guard let vecError = error as? VecError,
+                  case .multipleDatabasesForDirectory(_, let names) = vecError else {
+                XCTFail("Expected VecError.multipleDatabasesForDirectory, got \(error)")
+                return
+            }
+            XCTAssertTrue(names.contains(dbName1), "Should mention first database name")
+            XCTAssertTrue(names.contains(dbName2), "Should mention second database name")
+        }
     }
 }

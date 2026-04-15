@@ -14,8 +14,8 @@ struct SearchCommand: AsyncParsableCommand {
         case json
     }
 
-    @Argument(help: "Name of the database to search (stored in ~/.vec/<db-name>/)")
-    var dbName: String
+    @Option(name: .shortAndLong, help: "Name of the database (stored in ~/.vec/<name>/). Omit to resolve from current directory.")
+    var db: String?
 
     @Argument(help: "The search query text")
     var query: String
@@ -35,7 +35,9 @@ struct SearchCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        let (dbDir, _, sourceDir) = try DatabaseLocator.resolve(dbName)
+        let (dbDir, _, sourceDir) = try db != nil
+            ? DatabaseLocator.resolve(db!)
+            : DatabaseLocator.resolveFromCurrentDirectory()
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try database.open()
@@ -46,59 +48,115 @@ struct SearchCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        let results = try database.search(embedding: queryEmbedding, limit: limit)
+        // Fetch extra chunks so we can group by file and still return enough files
+        let fetchLimit = limit * 3
+        let results = try database.search(embedding: queryEmbedding, limit: fetchLimit)
+        let grouped = coalesceResults(results)
 
         switch format {
         case .text:
-            printTextResults(results)
+            printTextResults(grouped)
         case .json:
-            printJSONResults(results)
+            printJSONResults(grouped)
         }
     }
 
-    private func printTextResults(_ results: [SearchResult]) {
-        if results.isEmpty {
+    // MARK: - Result Coalescing
+
+    private struct FileGroup {
+        let filePath: String
+        let bestScore: Double
+        let matches: [SearchResult]
+    }
+
+    private func coalesceResults(_ results: [SearchResult]) -> [FileGroup] {
+        // Group results by file path, preserving insertion order via array of keys
+        var groupsByPath: [String: [SearchResult]] = [:]
+        var orderedPaths: [String] = []
+        for result in results {
+            if groupsByPath[result.filePath] == nil {
+                orderedPaths.append(result.filePath)
+            }
+            groupsByPath[result.filePath, default: []].append(result)
+        }
+
+        // Build file groups, each sorted by score descending
+        var groups: [FileGroup] = orderedPaths.compactMap { path in
+            guard let matches = groupsByPath[path] else { return nil }
+            let sorted = matches.sorted { (1.0 - $0.distance) > (1.0 - $1.distance) }
+            let bestScore = max(0, 1.0 - sorted[0].distance)
+            return FileGroup(filePath: path, bestScore: bestScore, matches: sorted)
+        }
+
+        // Sort groups by best score descending
+        groups.sort { $0.bestScore > $1.bestScore }
+
+        // Apply file-level limit
+        return Array(groups.prefix(limit))
+    }
+
+    // MARK: - Text Output
+
+    private func printTextResults(_ groups: [FileGroup]) {
+        if groups.isEmpty {
             print("No results found.")
             return
         }
 
-        for result in results {
-            let score = String(format: "%.2f", max(0, 1.0 - result.distance))
-            var location = result.filePath
-            if let start = result.lineStart, let end = result.lineEnd {
-                location += ":\(start)-\(end)"
-            } else if let page = result.pageNumber {
-                location += " (page \(page))"
-            }
-            print("\(location)  (\(score))")
+        for group in groups {
+            let score = String(format: "%.2f", group.bestScore)
+            print("\(group.filePath)  (\(score))")
 
-            if includePreview, let preview = result.contentPreview {
-                let truncated = preview.prefix(120).replacingOccurrences(of: "\n", with: " ")
-                print("  \(truncated)")
+            for match in group.matches {
+                let matchScore = String(format: "%.2f", max(0, 1.0 - match.distance))
+                if let start = match.lineStart, let end = match.lineEnd {
+                    print("  Lines \(start)-\(end)  (\(matchScore))")
+                } else if let page = match.pageNumber {
+                    print("  Page \(page)  (\(matchScore))")
+                } else {
+                    print("  (whole file)  (\(matchScore))")
+                }
+
+                if includePreview, let preview = match.contentPreview {
+                    let truncated = preview.prefix(120).replacingOccurrences(of: "\n", with: " ")
+                    print("    \(truncated)")
+                }
             }
         }
     }
 
-    private func printJSONResults(_ results: [SearchResult]) {
+    // MARK: - JSON Output
+
+    private func printJSONResults(_ groups: [FileGroup]) {
         var jsonArray: [[String: Any]] = []
 
-        for result in results {
-            var obj: [String: Any] = [
-                "file": result.filePath,
-                "score": max(0, 1.0 - result.distance)
+        for group in groups {
+            var matchesArray: [[String: Any]] = []
+            for match in group.matches {
+                var matchObj: [String: Any] = [
+                    "score": max(0, 1.0 - match.distance),
+                    "chunk_type": match.chunkType.rawValue
+                ]
+                if let start = match.lineStart {
+                    matchObj["line_start"] = start
+                }
+                if let end = match.lineEnd {
+                    matchObj["line_end"] = end
+                }
+                if let page = match.pageNumber {
+                    matchObj["page_number"] = page
+                }
+                if includePreview, let preview = match.contentPreview {
+                    matchObj["preview"] = preview
+                }
+                matchesArray.append(matchObj)
+            }
+
+            let obj: [String: Any] = [
+                "file": group.filePath,
+                "score": group.bestScore,
+                "matches": matchesArray
             ]
-            if let start = result.lineStart {
-                obj["line_start"] = start
-            }
-            if let end = result.lineEnd {
-                obj["line_end"] = end
-            }
-            if let page = result.pageNumber {
-                obj["page_number"] = page
-            }
-            if includePreview, let preview = result.contentPreview {
-                obj["preview"] = preview
-            }
             jsonArray.append(obj)
         }
 

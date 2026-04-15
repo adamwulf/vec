@@ -9,14 +9,16 @@ struct InsertCommand: AsyncParsableCommand {
         abstract: "Add or update a specific file in the vector index"
     )
 
-    @Argument(help: "Name of the database (stored in ~/.vec/<db-name>/)")
-    var dbName: String
+    @Option(name: .shortAndLong, help: "Name of the database (stored in ~/.vec/<name>/). Omit to resolve from current directory.")
+    var db: String?
 
     @Argument(help: "Path to the file to index")
     var path: String
 
     func run() async throws {
-        let (dbDir, _, sourceDir) = try DatabaseLocator.resolve(dbName)
+        let (dbDir, _, sourceDir) = try db != nil
+            ? DatabaseLocator.resolve(db!)
+            : DatabaseLocator.resolveFromCurrentDirectory()
 
         // Resolve path relative to cwd, then validate it falls within sourceDir
         let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
@@ -46,8 +48,10 @@ struct InsertCommand: AsyncParsableCommand {
         let fileInfo = try FileScanner.fileInfo(for: filePath, relativeTo: sourceDir)
         let chunks = try extractor.extract(from: fileInfo)
 
+        var warnedNonEnglish = false
         var count = 0
         for chunk in chunks {
+            embedder.warnIfNonEnglish(text: chunk.text, filePath: relativePath, warned: &warnedNonEnglish)
             guard let embedding = embedder.embed(chunk.text) else { continue }
             try database.insert(
                 filePath: relativePath,

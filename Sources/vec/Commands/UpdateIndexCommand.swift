@@ -9,8 +9,8 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         abstract: "Update the vector index with new or modified files"
     )
 
-    @Argument(help: "Name of the database to update (stored in ~/.vec/<db-name>/)")
-    var dbName: String
+    @Option(name: .shortAndLong, help: "Name of the database (stored in ~/.vec/<name>/). Omit to resolve from current directory.")
+    var db: String?
 
     @Flag(name: .long, help: "Include hidden files and folders")
     var allowHidden: Bool = false
@@ -45,8 +45,10 @@ struct UpdateIndexCommand: AsyncParsableCommand {
 
         // Generate all embeddings before modifying the database, so a failure
         // here preserves the existing index entries for this file.
+        var warnedNonEnglish = false
         var embedded: [(TextChunk, [Float])] = []
         for chunk in chunks {
+            embedder.warnIfNonEnglish(text: chunk.text, filePath: file.relativePath, warned: &warnedNonEnglish)
             if let embedding = embedder.embed(chunk.text) {
                 embedded.append((chunk, embedding))
             }
@@ -79,7 +81,9 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     }
 
     func run() async throws {
-        let (dbDir, _, sourceDir) = try DatabaseLocator.resolve(dbName)
+        let (dbDir, _, sourceDir) = try db != nil
+            ? DatabaseLocator.resolve(db!)
+            : DatabaseLocator.resolveFromCurrentDirectory()
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try database.open()

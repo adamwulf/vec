@@ -194,6 +194,25 @@ public class VectorDatabase {
         return Int(sqlite3_changes(db))
     }
 
+    // MARK: - Counts
+
+    /// Returns the total number of chunk rows in the database.
+    public func totalChunkCount() throws -> Int {
+        let sql = "SELECT COUNT(*) FROM chunks"
+
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            throw sqlError("Failed to count chunks")
+        }
+        defer { sqlite3_finalize(stmt) }
+
+        guard sqlite3_step(stmt) == SQLITE_ROW else {
+            throw sqlError("Failed to retrieve chunk count")
+        }
+
+        return Int(sqlite3_column_int64(stmt, 0))
+    }
+
     // MARK: - Private
 
     private func openDatabase() throws {
@@ -273,9 +292,16 @@ public class VectorDatabase {
 
         let vectorInit = "SELECT vector_init('chunks', 'embedding', 'dimension=\(dimension),type=FLOAT32,distance=cosine');"
 
-        try execute(createTable)
-        try execute(createIndex)
-        try execute(vectorInit)
+        try execute("BEGIN TRANSACTION")
+        do {
+            try execute(createTable)
+            try execute(createIndex)
+            try execute(vectorInit)
+            try execute("COMMIT")
+        } catch {
+            try? execute("ROLLBACK")
+            throw error
+        }
     }
 
     private func execute(_ sql: String) throws {

@@ -15,10 +15,18 @@ public class FileScanner {
         "rb", "go", "rs", "c", "h", "cpp", "hpp", "m", "mm",
         "java", "kt", "scala", "r",
         "sql", "graphql",
-        "dockerfile", "makefile", "cmake",
         "env", "ini", "cfg", "conf", "config",
         "log", "csv", "tsv",
-        "tex", "rst", "adoc", "org"
+        "tex", "rst", "adoc", "org",
+        "cmake"
+    ]
+
+    /// Well-known text filenames that have no file extension.
+    private static let knownTextFilenames: Set<String> = [
+        "Makefile", "Dockerfile", "LICENSE", "Gemfile",
+        "Procfile", "Vagrantfile", "Rakefile", "Brewfile", "Podfile",
+        "Fastfile", "Dangerfile", "Berksfile", "Guardfile",
+        "CHANGELOG", "CONTRIBUTING", "AUTHORS", "CODEOWNERS"
     ]
 
     /// File extensions that get special handling.
@@ -75,7 +83,7 @@ public class FileScanner {
                 continue
             }
 
-            let resourceValues = try url.resourceValues(forKeys: [.isRegularFileKey, .contentModificationDateKey])
+            guard let resourceValues = try? url.resourceValues(forKeys: [.isRegularFileKey, .contentModificationDateKey]) else { continue }
 
             guard resourceValues.isRegularFile == true else { continue }
             guard let modDate = resourceValues.contentModificationDate else { continue }
@@ -83,9 +91,10 @@ public class FileScanner {
             let ext = url.pathExtension.lowercased()
 
             // Check if it's a supported file type
-            guard Self.textExtensions.contains(ext) || ext == Self.pdfExtension else {
+            guard Self.textExtensions.contains(ext) || ext == Self.pdfExtension
+                    || Self.knownTextFilenames.contains(fileName) else {
                 // Try to detect text files without known extensions
-                if ext.isEmpty || isLikelyTextFile(url) {
+                if isLikelyTextFile(url) {
                     let info = fileInfo(url: url, modDate: modDate, ext: ext)
                     results.append(info)
                 }
@@ -277,6 +286,8 @@ public enum VecError: Error, LocalizedError {
     case invalidDatabaseName(String)
     case databaseNotFound(String)
     case sourceDirectoryMissing(String)
+    case noDatabaseForDirectory(String)
+    case multipleDatabasesForDirectory(String, [String])
 
     public var errorDescription: String? {
         switch self {
@@ -296,6 +307,10 @@ public enum VecError: Error, LocalizedError {
             return "Database '\(name)' not found. Run 'vec init \(name)' to create it."
         case .sourceDirectoryMissing(let path):
             return "Source directory '\(path)' no longer exists. The indexed directory may have been moved or deleted."
+        case .noDatabaseForDirectory(let path):
+            return "No database found for directory '\(path)'. Use -d <name> or run 'vec init <name>' here first."
+        case .multipleDatabasesForDirectory(let path, let names):
+            return "Multiple databases found for directory '\(path)': \(names.joined(separator: ", ")). Use -d <name> to specify which one."
         }
     }
 }

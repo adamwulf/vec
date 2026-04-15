@@ -1,4 +1,5 @@
 import XCTest
+import NaturalLanguage
 @testable import VecKit
 
 final class VecKitTests: XCTestCase {
@@ -53,6 +54,25 @@ final class EmbeddingServiceTests: XCTestCase {
     func testDimensionIs512() {
         let service = EmbeddingService()
         XCTAssertEqual(service.dimension, 512)
+    }
+
+    func testDetectLanguageReturnsEnglishForEnglishText() {
+        let service = EmbeddingService()
+        let lang = service.detectLanguage("The quick brown fox jumps over the lazy dog")
+        XCTAssertEqual(lang, .english)
+    }
+
+    func testDetectLanguageReturnsNonEnglishForForeignText() {
+        let service = EmbeddingService()
+        let lang = service.detectLanguage("これは日本語のテキストです。自然言語処理のテストです。")
+        XCTAssertNotNil(lang)
+        XCTAssertNotEqual(lang, .english)
+    }
+
+    func testDetectLanguageReturnsNilForEmptyText() {
+        let service = EmbeddingService()
+        XCTAssertNil(service.detectLanguage(""))
+        XCTAssertNil(service.detectLanguage("   "))
     }
 }
 
@@ -327,6 +347,24 @@ final class FileScannerTests: XCTestCase {
         // The binary file has an unknown extension and contains null bytes,
         // so isLikelyTextFile should return false and it should be skipped
         XCTAssertFalse(relativePaths.contains("image.xyz"))
+    }
+
+    func testScanSkipsBinaryFilesWithNoExtension() throws {
+        createTextFile(at: "Makefile", content: "all:\n\techo hello")
+
+        // Create a binary file with no extension
+        var binaryData = Data("ELF binary".utf8)
+        binaryData.append(contentsOf: [0x00, 0x00, 0x7F, 0x45, 0x4C, 0x46])
+        createFile(at: "mybinary", content: binaryData)
+
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("Makefile"),
+                       "Text file with no extension should be included, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains("mybinary"),
+                        "Binary file with no extension should be excluded")
     }
 
     func testFileInfoForRelativeTo() throws {
