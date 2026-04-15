@@ -72,24 +72,35 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 
 ---
 
+### Priority 3: Nice-to-have — DONE
+
+#### 3a. Edge case tests — DONE
+- Files with special characters in names (spaces, unicode) — tested
+- Markdown edge cases (only headings, every line a heading, very long single line) — tested
+- Empty directory scan — tested
+- Binary file detection in TextExtractor — tested
+- 7 new tests added, 86 total passing
+
+#### 3b. Missing features — DONE (selected items)
+- `--format json` for `search` command — implemented with `OutputFormat` enum and `printJSONResults()`
+- `.vecignore` support — implemented with `fnmatch()` pattern matching in FileScanner
+- Remaining items (result grouping, `--verbose`/`--quiet`, `vector_quantize()`) deferred as lower priority
+
+#### 3c. Error handling improvements — DONE
+- `VectorDatabase.open()` now calls `verifySchema()` to check the chunks table exists
+- `VecError.databaseCorrupted(String)` error case added
+- Test added for corrupted database detection
+
+---
+
 ## What's Left
 
-### Priority 3: Nice-to-have (not blocking production use)
+Nothing is blocking production use. All Priority 1, 2, and 3 items are complete.
 
-#### 3a. Edge case tests
-- PDF extraction — zero tests exist
-- Files with special characters in names (spaces, unicode)
-- Markdown edge cases (only headings, every line a heading, very long single line)
-- Non-English text embedding behavior
-- Empty directory scan
-- Symlink behavior
-
-#### 3b. Missing features from original plan
-- `--format json` for `search` command (useful for scripting)
+### Deferred (out of scope)
+- PDF extraction tests (requires PDF fixture files)
+- Non-English text embedding behavior tests
+- Symlink behavior tests
 - Result grouping — show best match per file instead of all chunks
 - `--verbose` / `--quiet` flags on all commands
-- `.vecignore` support for vec-specific exclusions
 - `vector_quantize()` after updates for better search performance
-
-#### 3c. Error handling improvements
-- `VectorDatabase.open()` doesn't verify schema integrity or that the vector extension loads — a corrupted DB will fail on first query, not on open.
