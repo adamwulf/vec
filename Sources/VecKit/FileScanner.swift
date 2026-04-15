@@ -272,8 +272,6 @@ public enum VecError: Error, LocalizedError {
     case cannotScanDirectory(String)
     case cannotReadFile(String)
     case databaseNotInitialized
-    case databaseAlreadyExists
-    case pathOutsideProject(String)
     case sqliteError(String)
     case databaseCorrupted(String)
     case invalidDatabaseName(String)
@@ -288,10 +286,6 @@ public enum VecError: Error, LocalizedError {
             return "Cannot read file: \(path)"
         case .databaseNotInitialized:
             return "Vector database not initialized. Run 'vec init <db-name>' first."
-        case .databaseAlreadyExists:
-            return "Vector database already exists. Use --force to reinitialize."
-        case .pathOutsideProject(let path):
-            return "Path is outside the project directory: \(path)"
         case .sqliteError(let message):
             return "SQLite error: \(message)"
         case .databaseCorrupted(let detail):
