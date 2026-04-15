@@ -10,11 +10,11 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 |-----------|--------|-------|
 | `vec init <db-name>` | Done | Creates `~/.vec/<db-name>/`, writes config.json, creates DB schema. `--force` flag. Users run `vec update-index` separately to populate. |
 | `vec list` | Done | Lists all databases in `~/.vec/` with name, source directory, file count. Missing directory warnings. |
-| `vec update-index <db-name>` | Done | Re-scans source directory from config.json. `--allow-hidden` flag. Deduplicated insert logic via `indexFile()` helper. |
-| `vec search <db-name> <query>` | Done | Vector similarity search with result coalescing by file. `--limit` controls file count (not chunk count). `--include-preview`, `--format json`. Default subcommand. Whole-doc chunks show `(whole file)`. JSON output includes `chunk_type`. |
-| `vec insert <db-name> <path>` | Done | Adds/replaces a single file. Path validation against source directory. |
-| `vec remove <db-name> <path>` | Done | Removes entries for a single file. Path validation against source directory. |
-| `vec info <db-name>` | Done | Shows database metadata: name, source directory, created date, file count, chunk count, DB file size. |
+| `vec update-index [-d <name>]` | Done | Re-scans source directory from config.json. `--allow-hidden` flag. Deduplicated insert logic via `indexFile()` helper. |
+| `vec search [-d <name>] <query>` | Done | Vector similarity search with result coalescing by file. `--limit` controls file count (not chunk count). `--include-preview`, `--format json`. Default subcommand. Whole-doc chunks show `(whole file)`. JSON output includes `chunk_type`. |
+| `vec insert [-d <name>] <path>` | Done | Adds/replaces a single file. Path validation against source directory. |
+| `vec remove [-d <name>] <path>` | Done | Removes entries for a single file. Path validation against source directory. |
+| `vec info [-d <name>]` | Done | Shows database metadata: name, source directory, created date, file count, chunk count, DB file size. |
 | `VectorDatabase` | Done | SQLite + sqlite-vector wrapper. Insert, search, remove, allIndexedFiles, totalChunkCount. Schema creation wrapped in transaction for crash safety. |
 | `EmbeddingService` | Done | Uses `NLEmbedding.sentenceEmbedding(for: .english)`, 512 dimensions. Includes `detectLanguage()` and `warnIfNonEnglish()` methods — non-English content is still embedded but warns to stderr once per file. |
 | `FileScanner` | Done | Directory walking, .gitignore support via `git check-ignore`, hidden file filtering (dot-prefix), skips .git/node_modules/.build/etc, binary detection. Pipe-safe Process I/O. `knownTextFilenames` set for extensionless files (Makefile, Dockerfile, etc.). Resilient resource value reads (`try?`). |
@@ -124,7 +124,7 @@ All databases now live under `~/.vec/<db-name>/` instead of per-directory `.vec/
 - **4h.** FileScanner: removed `.vec` from skipDirectories
 - **4i.** Vec.swift: SearchCommand as defaultSubcommand for `vec <db-name> "query"` shorthand
 - **4j.** InfoCommand: takes `<db-name>`, shows name, source directory, created date, file count, chunk count, DB file size
-- **4k.** Tests: 116 tests passing (26 CLI, 18 DatabaseLocator, 16 VectorDatabase, 6 Integration, + others)
+- **4k.** Tests: 116 tests passing (26 CLI, 18 DatabaseLocator, 17 VectorDatabase, 6 Integration, + others)
 - **4l.** VecError: added `invalidDatabaseName`, `databaseNotFound`, `sourceDirectoryMissing`, updated messages
 - **4m.** `info` added to reserved command names in DatabaseLocator
 - **4n.** VectorDatabase schema creation wrapped in transaction (BEGIN/COMMIT with ROLLBACK on failure)
@@ -133,7 +133,7 @@ All databases now live under `~/.vec/<db-name>/` instead of per-directory `.vec/
 
 ---
 
-## Priority 5: Optional `--db` flag and cwd-based database resolution
+## Priority 5: Optional `--db` flag and cwd-based database resolution — DONE
 
 Currently, every command except `init` and `list` requires a positional `<db-name>` argument. This priority makes that argument optional by adding cwd-based database resolution.
 
