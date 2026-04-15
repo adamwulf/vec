@@ -9,13 +9,16 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         abstract: "Update the vector index with new or modified files"
     )
 
+    @Flag(name: .long, help: "Include hidden files and folders")
+    var allowHidden: Bool = false
+
     func run() async throws {
         let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
 
         let database = VectorDatabase(directory: directory)
         try database.open()
 
-        let scanner = FileScanner(directory: directory)
+        let scanner = FileScanner(directory: directory, includeHiddenFiles: allowHidden)
         let files = try scanner.scan()
         let indexedFiles = try database.allIndexedFiles()
 

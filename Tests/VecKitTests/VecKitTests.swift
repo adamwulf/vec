@@ -271,6 +271,119 @@ final class FileScannerTests: XCTestCase {
         XCTAssertTrue(relativePaths.contains("app.js"), "Expected app.js, got: \(relativePaths)")
         XCTAssertFalse(relativePaths.contains(where: { $0.hasPrefix("node_modules") }))
     }
+
+    func testScanSkipsHiddenFilesByDefault() throws {
+        createTextFile(at: "visible.swift", content: "import Foundation")
+        createTextFile(at: ".hidden_config", content: "secret=123")
+        createTextFile(at: ".hidden_dir/file.txt", content: "inside hidden dir")
+
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("visible.swift"))
+        XCTAssertFalse(relativePaths.contains(".hidden_config"))
+        XCTAssertFalse(relativePaths.contains(where: { $0.hasPrefix(".hidden_dir") }))
+    }
+
+    func testScanIncludesHiddenFilesWhenEnabled() throws {
+        createTextFile(at: "visible.swift", content: "import Foundation")
+        createTextFile(at: ".hidden_config", content: "secret=123")
+        createTextFile(at: ".hidden_dir/file.txt", content: "inside hidden dir")
+
+        let scanner = FileScanner(directory: tempDir, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("visible.swift"))
+        XCTAssertTrue(relativePaths.contains(".hidden_config"), "Expected .hidden_config, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains(where: { $0.hasPrefix(".hidden_dir") }),
+                       "Expected files in .hidden_dir, got: \(relativePaths)")
+    }
+
+    func testScanStillSkipsGitDirWhenHiddenEnabled() throws {
+        createTextFile(at: "main.swift", content: "print(\"hello\")")
+        createTextFile(at: ".git/config", content: "[core]\n\tbare = false")
+        createTextFile(at: ".hidden_file.txt", content: "hidden but allowed")
+
+        let scanner = FileScanner(directory: tempDir, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"))
+        XCTAssertTrue(relativePaths.contains(".hidden_file.txt"), "Expected .hidden_file.txt, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains(where: { $0.hasPrefix(".git") }),
+                        ".git directory should still be skipped")
+    }
+
+    func testScanRespectsGitignore() throws {
+        // Initialize a git repo in the temp dir
+        let gitInit = Process()
+        gitInit.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+        gitInit.arguments = ["init"]
+        gitInit.currentDirectoryURL = tempDir
+        try gitInit.run()
+        gitInit.waitUntilExit()
+        guard gitInit.terminationStatus == 0 else {
+            XCTFail("git init failed")
+            return
+        }
+
+        // Create a .gitignore
+        createTextFile(at: ".gitignore", content: "build/\n*.log\n")
+
+        // Create files — some should be ignored
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "build/output.swift", content: "generated code")
+        createTextFile(at: "debug.log", content: "log output")
+        createTextFile(at: "readme.md", content: "# Hello")
+
+        let scanner = FileScanner(directory: tempDir, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains(where: { $0.hasPrefix("build/") }),
+                        "build/ should be gitignored")
+        XCTAssertFalse(relativePaths.contains("debug.log"),
+                        "*.log should be gitignored")
+    }
+
+    func testScanWorksWithoutGitRepo() throws {
+        // No git init — this is just a regular directory
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "notes.txt", content: "some notes")
+
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("notes.txt"), "Expected notes.txt, got: \(relativePaths)")
+    }
+
+    func testScanCanDisableGitignoreFiltering() throws {
+        // Initialize a git repo
+        let gitInit = Process()
+        gitInit.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+        gitInit.arguments = ["init"]
+        gitInit.currentDirectoryURL = tempDir
+        try gitInit.run()
+        gitInit.waitUntilExit()
+
+        createTextFile(at: ".gitignore", content: "*.log\n")
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "debug.log", content: "log output")
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"))
+        XCTAssertTrue(relativePaths.contains("debug.log"),
+                       "debug.log should be included when gitignore is disabled, got: \(relativePaths)")
+    }
 }
 
 // MARK: - ChunkingStrategy Edge Cases

@@ -29,6 +29,16 @@ final class CLITests: XCTestCase {
         XCTAssertTrue(cmd.force)
     }
 
+    func testInitCommandParsesAllowHiddenFlag() throws {
+        let cmd = try InitCommand.parseAsRoot(["--allow-hidden"]) as! InitCommand
+        XCTAssertTrue(cmd.allowHidden)
+    }
+
+    func testInitCommandAllowHiddenDefaultsFalse() throws {
+        let cmd = try InitCommand.parseAsRoot([]) as! InitCommand
+        XCTAssertFalse(cmd.allowHidden)
+    }
+
     // MARK: - SearchCommand
 
     func testSearchCommandFailsWithoutQuery() {
@@ -63,7 +73,12 @@ final class CLITests: XCTestCase {
 
     func testUpdateIndexCommandParsesWithNoArguments() throws {
         let cmd = try UpdateIndexCommand.parseAsRoot([]) as! UpdateIndexCommand
-        XCTAssertNotNil(cmd)
+        XCTAssertFalse(cmd.allowHidden)
+    }
+
+    func testUpdateIndexCommandParsesAllowHiddenFlag() throws {
+        let cmd = try UpdateIndexCommand.parseAsRoot(["--allow-hidden"]) as! UpdateIndexCommand
+        XCTAssertTrue(cmd.allowHidden)
     }
 
     // MARK: - InsertCommand

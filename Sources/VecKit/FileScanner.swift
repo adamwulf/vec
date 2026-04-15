@@ -4,6 +4,8 @@ import Foundation
 public class FileScanner {
 
     private let directory: URL
+    private let respectsGitignore: Bool
+    private let includeHiddenFiles: Bool
 
     /// Known text file extensions that should be indexed.
     private static let textExtensions: Set<String> = [
@@ -29,8 +31,10 @@ public class FileScanner {
         ".DS_Store", "Pods", "DerivedData"
     ]
 
-    public init(directory: URL) {
+    public init(directory: URL, respectsGitignore: Bool = true, includeHiddenFiles: Bool = false) {
         self.directory = directory
+        self.respectsGitignore = respectsGitignore
+        self.includeHiddenFiles = includeHiddenFiles
     }
 
     /// Scan the directory and return all indexable files.
@@ -38,10 +42,15 @@ public class FileScanner {
         var results: [FileInfo] = []
         let fm = FileManager.default
 
+        var options: FileManager.DirectoryEnumerationOptions = []
+        if !includeHiddenFiles {
+            options.insert(.skipsHiddenFiles)
+        }
+
         let enumerator = fm.enumerator(
             at: directory,
             includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey, .isDirectoryKey],
-            options: [.skipsHiddenFiles]
+            options: options
         )
 
         guard let enumerator = enumerator else {
@@ -53,6 +62,12 @@ public class FileScanner {
 
             // Skip known directories
             if Self.skipDirectories.contains(fileName) {
+                enumerator.skipDescendants()
+                continue
+            }
+
+            // Skip hidden files/directories by name (dot-prefixed) unless allowed
+            if !includeHiddenFiles && fileName.hasPrefix(".") {
                 enumerator.skipDescendants()
                 continue
             }
@@ -78,6 +93,11 @@ public class FileScanner {
             results.append(info)
         }
 
+        // Filter out gitignored files
+        if respectsGitignore {
+            results = filterGitignored(results)
+        }
+
         return results.sorted { $0.relativePath < $1.relativePath }
     }
 
@@ -99,6 +119,53 @@ public class FileScanner {
     }
 
     // MARK: - Private
+
+    /// Filter out files that are ignored by git using `git check-ignore`.
+    /// If the directory is not a git repo or git is unavailable, returns the input unchanged.
+    private func filterGitignored(_ files: [FileInfo]) -> [FileInfo] {
+        guard !files.isEmpty else { return files }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+        process.arguments = ["check-ignore", "--stdin"]
+        process.currentDirectoryURL = directory
+
+        let stdinPipe = Pipe()
+        let stdoutPipe = Pipe()
+        let stderrPipe = Pipe()
+        process.standardInput = stdinPipe
+        process.standardOutput = stdoutPipe
+        process.standardError = stderrPipe
+
+        do {
+            try process.run()
+        } catch {
+            // git not available — skip filtering
+            return files
+        }
+
+        // Write all relative paths to stdin
+        let inputString = files.map(\.relativePath).joined(separator: "\n")
+        stdinPipe.fileHandleForWriting.write(Data(inputString.utf8))
+        stdinPipe.fileHandleForWriting.closeFile()
+
+        process.waitUntilExit()
+
+        // Exit code 1 means no paths were ignored, which is fine.
+        // Exit code 128 means not a git repo — return unfiltered.
+        if process.terminationStatus == 128 {
+            return files
+        }
+
+        let outputData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: outputData, encoding: .utf8) ?? ""
+
+        let ignoredPaths = Set(
+            output.split(separator: "\n").map { String($0) }
+        )
+
+        return files.filter { !ignoredPaths.contains($0.relativePath) }
+    }
 
     private func fileInfo(url: URL, modDate: Date, ext: String) -> FileInfo {
         let relativePath = String(url.path.dropFirst(directory.path.count + 1))

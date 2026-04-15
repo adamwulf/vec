@@ -12,6 +12,9 @@ struct InitCommand: AsyncParsableCommand {
     @Flag(name: .long, help: "Overwrite existing database if present")
     var force: Bool = false
 
+    @Flag(name: .long, help: "Include hidden files and folders")
+    var allowHidden: Bool = false
+
     func run() async throws {
         let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let vecDir = directory.appendingPathComponent(".vec")
@@ -26,7 +29,7 @@ struct InitCommand: AsyncParsableCommand {
         let database = VectorDatabase(directory: directory)
         try database.initialize()
 
-        let scanner = FileScanner(directory: directory)
+        let scanner = FileScanner(directory: directory, includeHiddenFiles: allowHidden)
         let files = try scanner.scan()
 
         print("Found \(files.count) files to index.")
