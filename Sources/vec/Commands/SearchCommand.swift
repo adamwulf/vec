@@ -38,7 +38,7 @@ struct SearchCommand: AsyncParsableCommand {
         }
 
         for result in results {
-            let score = String(format: "%.2f", 1.0 - result.distance)
+            let score = String(format: "%.2f", max(0, 1.0 - result.distance))
             var location = result.filePath
             if let start = result.lineStart, let end = result.lineEnd {
                 location += ":\(start)-\(end)"

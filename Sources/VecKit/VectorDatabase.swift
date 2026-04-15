@@ -214,9 +214,9 @@ public class VectorDatabase {
             Bundle.main.bundlePath + "/vector",
         ]
 
-        // Also check rpath-resolved framework locations
-        let rpathFramework = "@rpath/vector.framework/vector"
-        possiblePaths.append(rpathFramework)
+        // @rpath resolution lets the dynamic linker find the framework
+        // when running in test bundles or other contexts with rpath set
+        possiblePaths.append("@rpath/vector.framework/vector")
 
         var loaded = false
         var lastError: String?
