@@ -5,6 +5,8 @@ import CSQLiteVec
 final class VectorDatabaseTests: XCTestCase {
 
     private var tempDir: URL!
+    private var dbDir: URL!
+    private var sourceDir: URL!
     private var embeddingService: EmbeddingService!
 
     override func setUp() {
@@ -17,6 +19,9 @@ final class VectorDatabaseTests: XCTestCase {
         tempDir = realpath(raw.path, &buf) != nil
             ? URL(fileURLWithPath: String(cString: buf), isDirectory: true)
             : raw
+        dbDir = tempDir.appendingPathComponent("db")
+        sourceDir = tempDir.appendingPathComponent("source")
+        try! FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
         embeddingService = EmbeddingService()
     }
 
@@ -39,32 +44,31 @@ final class VectorDatabaseTests: XCTestCase {
         return vector
     }
 
-    /// Create an initialized VectorDatabase in tempDir.
+    /// Create an initialized VectorDatabase using dbDir and sourceDir.
     private func makeInitializedDB() throws -> VectorDatabase {
-        let db = VectorDatabase(directory: tempDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try db.initialize()
         return db
     }
 
     // MARK: - 1. initialize() creates .vec/ dir and index.db
 
-    func testInitializeCreatesVecDirAndDatabase() throws {
-        let db = VectorDatabase(directory: tempDir)
+    func testInitializeCreatesDatabaseDirAndDatabase() throws {
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try db.initialize()
 
-        let vecDir = tempDir.appendingPathComponent(".vec")
-        let dbFile = vecDir.appendingPathComponent("index.db")
+        let dbFile = dbDir.appendingPathComponent("index.db")
 
         var isDir: ObjCBool = false
-        XCTAssertTrue(FileManager.default.fileExists(atPath: vecDir.path, isDirectory: &isDir))
-        XCTAssertTrue(isDir.boolValue, ".vec should be a directory")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: dbDir.path, isDirectory: &isDir))
+        XCTAssertTrue(isDir.boolValue, "databaseDirectory should be a directory")
         XCTAssertTrue(FileManager.default.fileExists(atPath: dbFile.path), "index.db should exist")
     }
 
     // MARK: - 2. open() on non-existent DB throws databaseNotInitialized
 
     func testOpenOnNonExistentDBThrowsDatabaseNotInitialized() {
-        let db = VectorDatabase(directory: tempDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
 
         XCTAssertThrowsError(try db.open()) { error in
             guard let vecError = error as? VecError else {
@@ -84,12 +88,12 @@ final class VectorDatabaseTests: XCTestCase {
     func testOpenOnInitializedDBSucceeds() throws {
         // Initialize first, then drop the reference so deinit closes the connection
         do {
-            let db = VectorDatabase(directory: tempDir)
+            let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
             try db.initialize()
         }
 
         // Now open with a fresh instance
-        let db = VectorDatabase(directory: tempDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         XCTAssertNoThrow(try db.open())
     }
 
@@ -486,13 +490,12 @@ final class VectorDatabaseTests: XCTestCase {
     func testOpenOnCorruptedDBThrowsDatabaseCorrupted() throws {
         // Initialize a valid database
         do {
-            let db = VectorDatabase(directory: tempDir)
+            let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
             try db.initialize()
         }
 
         // Corrupt it by dropping the chunks table via raw SQL
-        let dbPath = tempDir.appendingPathComponent(".vec")
-            .appendingPathComponent("index.db").path
+        let dbPath = dbDir.appendingPathComponent("index.db").path
         var rawDB: OpaquePointer?
         guard sqlite3_open(dbPath, &rawDB) == SQLITE_OK else {
             XCTFail("Failed to open raw database")
@@ -512,7 +515,7 @@ final class VectorDatabaseTests: XCTestCase {
         rawDB = nil
 
         // Now open() should detect the missing table
-        let db = VectorDatabase(directory: tempDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         XCTAssertThrowsError(try db.open()) { error in
             guard let vecError = error as? VecError else {
                 XCTFail("Expected VecError, got \(error)")
