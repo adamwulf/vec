@@ -101,6 +101,9 @@ public class FileScanner {
             results = filterGitignored(results)
         }
 
+        // Filter out .vecignore patterns
+        results = filterVecignored(results)
+
         return results.sorted { $0.relativePath < $1.relativePath }
     }
 
@@ -174,6 +177,70 @@ public class FileScanner {
         )
 
         return files.filter { !ignoredPaths.contains($0.relativePath) }
+    }
+
+    /// Filter out files matching patterns in a `.vecignore` file at the project root.
+    /// Pattern syntax: one pattern per line, `#` for comments, blank lines ignored.
+    /// Supports exact filename (`file.txt`), directory (`build/`), wildcard (`*.log`),
+    /// and root-relative (`/specific-file.txt`) patterns.
+    private func filterVecignored(_ files: [FileInfo]) -> [FileInfo] {
+        guard !files.isEmpty else { return files }
+
+        let vecignoreURL = directory.appendingPathComponent(".vecignore")
+        guard let content = try? String(contentsOf: vecignoreURL, encoding: .utf8) else {
+            return files
+        }
+
+        let patterns = content
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && !$0.hasPrefix("#") }
+
+        guard !patterns.isEmpty else { return files }
+
+        return files.filter { file in
+            !patterns.contains { pattern in
+                matchesVecignorePattern(pattern, path: file.relativePath)
+            }
+        }
+    }
+
+    /// Check if a relative path matches a single .vecignore pattern.
+    private func matchesVecignorePattern(_ pattern: String, path: String) -> Bool {
+        var pat = pattern
+
+        // Root-relative pattern: leading `/` means match from root only
+        let isRootRelative = pat.hasPrefix("/")
+        if isRootRelative {
+            pat = String(pat.dropFirst())
+        }
+
+        // Directory pattern: trailing `/` means match directory prefix
+        let isDirectoryPattern = pat.hasSuffix("/")
+        if isDirectoryPattern {
+            // Match if the path starts with the directory prefix
+            return path.hasPrefix(pat) || path.hasPrefix(String(pat.dropLast()) + "/")
+        }
+
+        if isRootRelative {
+            // Root-relative: only match the full path
+            return fnmatch(pat, path, 0) == 0
+        }
+
+        // Non-root pattern: match against the full relative path,
+        // and also against just the filename (basename)
+        if fnmatch(pat, path, 0) == 0 {
+            return true
+        }
+
+        // Also try matching against each path component's suffix
+        // e.g., pattern "*.log" should match "subdir/debug.log"
+        let components = path.split(separator: "/")
+        if let basename = components.last {
+            return fnmatch(pat, String(basename), 0) == 0
+        }
+
+        return false
     }
 
     private func fileInfo(url: URL, modDate: Date, ext: String) -> FileInfo {

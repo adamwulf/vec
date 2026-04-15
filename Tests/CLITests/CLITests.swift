@@ -69,6 +69,21 @@ final class CLITests: XCTestCase {
         XCTAssertEqual(cmd.limit, 3)
     }
 
+    func testSearchCommandDefaultFormatIsText() throws {
+        let cmd = try SearchCommand.parseAsRoot(["hello"]) as! SearchCommand
+        XCTAssertEqual(cmd.format, .text)
+    }
+
+    func testSearchCommandParsesFormatJson() throws {
+        let cmd = try SearchCommand.parseAsRoot(["hello", "--format", "json"]) as! SearchCommand
+        XCTAssertEqual(cmd.format, .json)
+    }
+
+    func testSearchCommandParsesFormatText() throws {
+        let cmd = try SearchCommand.parseAsRoot(["hello", "--format", "text"]) as! SearchCommand
+        XCTAssertEqual(cmd.format, .text)
+    }
+
     // MARK: - UpdateIndexCommand
 
     func testUpdateIndexCommandParsesWithNoArguments() throws {

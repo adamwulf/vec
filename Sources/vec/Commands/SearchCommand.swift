@@ -9,6 +9,11 @@ struct SearchCommand: AsyncParsableCommand {
         abstract: "Search the vector database for semantically similar content"
     )
 
+    enum OutputFormat: String, ExpressibleByArgument, CaseIterable {
+        case text
+        case json
+    }
+
     @Argument(help: "The search query text")
     var query: String
 
@@ -17,6 +22,9 @@ struct SearchCommand: AsyncParsableCommand {
 
     @Flag(name: .long, help: "Include a content preview in results")
     var includePreview: Bool = false
+
+    @Option(name: .long, help: "Output format: text or json")
+    var format: OutputFormat = .text
 
     func run() async throws {
         let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
@@ -32,6 +40,15 @@ struct SearchCommand: AsyncParsableCommand {
 
         let results = try database.search(embedding: queryEmbedding, limit: limit)
 
+        switch format {
+        case .text:
+            printTextResults(results)
+        case .json:
+            printJSONResults(results)
+        }
+    }
+
+    private func printTextResults(_ results: [SearchResult]) {
         if results.isEmpty {
             print("No results found.")
             return
@@ -51,6 +68,37 @@ struct SearchCommand: AsyncParsableCommand {
                 let truncated = preview.prefix(120).replacingOccurrences(of: "\n", with: " ")
                 print("  \(truncated)")
             }
+        }
+    }
+
+    private func printJSONResults(_ results: [SearchResult]) {
+        var jsonArray: [[String: Any]] = []
+
+        for result in results {
+            var obj: [String: Any] = [
+                "file": result.filePath,
+                "score": max(0, 1.0 - result.distance)
+            ]
+            if let start = result.lineStart {
+                obj["line_start"] = start
+            }
+            if let end = result.lineEnd {
+                obj["line_end"] = end
+            }
+            if let page = result.pageNumber {
+                obj["page_number"] = page
+            }
+            if includePreview, let preview = result.contentPreview {
+                obj["preview"] = preview
+            }
+            jsonArray.append(obj)
+        }
+
+        if let data = try? JSONSerialization.data(withJSONObject: jsonArray, options: [.prettyPrinted, .sortedKeys]),
+           let jsonString = String(data: data, encoding: .utf8) {
+            print(jsonString)
+        } else {
+            print("[]")
         }
     }
 }

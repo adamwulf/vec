@@ -444,6 +444,59 @@ final class FileScannerTests: XCTestCase {
         XCTAssertTrue(relativePaths.contains("notes.txt"), "Expected notes.txt, got: \(relativePaths)")
     }
 
+    // MARK: - .vecignore Tests
+
+    func testVecignoreWildcardExcludesMatchingFiles() throws {
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "debug.log", content: "log output")
+        createTextFile(at: "subdir/other.log", content: "nested log")
+        createTextFile(at: "readme.md", content: "# Hello")
+        createTextFile(at: ".vecignore", content: "*.log\n")
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains("debug.log"),
+                        "*.log should be vecignored")
+        XCTAssertFalse(relativePaths.contains("subdir/other.log"),
+                        "*.log should also match nested files")
+    }
+
+    func testVecignoreDirectoryPatternExcludesContents() throws {
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "generated/output.swift", content: "generated code")
+        createTextFile(at: "generated/nested/deep.swift", content: "deep generated")
+        createTextFile(at: "readme.md", content: "# Hello")
+        createTextFile(at: ".vecignore", content: "generated/\n")
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains(where: { $0.hasPrefix("generated/") }),
+                        "generated/ directory should be vecignored")
+    }
+
+    func testNoVecignoreFileWorksNormally() throws {
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "debug.log", content: "log output")
+        createTextFile(at: "readme.md", content: "# Hello")
+        // No .vecignore file
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("debug.log"), "Expected debug.log without .vecignore, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+    }
+
     func testScanCanDisableGitignoreFiltering() throws {
         // Initialize a git repo
         let gitInit = Process()
