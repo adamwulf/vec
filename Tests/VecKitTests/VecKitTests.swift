@@ -329,6 +329,24 @@ final class FileScannerTests: XCTestCase {
         XCTAssertFalse(relativePaths.contains("image.xyz"))
     }
 
+    func testScanSkipsBinaryFilesWithNoExtension() throws {
+        createTextFile(at: "Makefile", content: "all:\n\techo hello")
+
+        // Create a binary file with no extension
+        var binaryData = Data("ELF binary".utf8)
+        binaryData.append(contentsOf: [0x00, 0x00, 0x7F, 0x45, 0x4C, 0x46])
+        createFile(at: "mybinary", content: binaryData)
+
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("Makefile"),
+                       "Text file with no extension should be included, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains("mybinary"),
+                        "Binary file with no extension should be excluded")
+    }
+
     func testFileInfoForRelativeTo() throws {
         createTextFile(at: "subdir/test.swift", content: "import Foundation")
 

@@ -15,10 +15,17 @@ public class FileScanner {
         "rb", "go", "rs", "c", "h", "cpp", "hpp", "m", "mm",
         "java", "kt", "scala", "r",
         "sql", "graphql",
-        "dockerfile", "makefile", "cmake",
         "env", "ini", "cfg", "conf", "config",
         "log", "csv", "tsv",
         "tex", "rst", "adoc", "org"
+    ]
+
+    /// Well-known text filenames that have no file extension.
+    private static let knownTextFilenames: Set<String> = [
+        "Makefile", "Dockerfile", "LICENSE", "Gemfile",
+        "Procfile", "Vagrantfile", "Rakefile", "Brewfile", "Podfile",
+        "Fastfile", "Dangerfile", "Berksfile", "Guardfile",
+        "CHANGELOG", "CONTRIBUTING", "AUTHORS", "CODEOWNERS"
     ]
 
     /// File extensions that get special handling.
@@ -83,7 +90,8 @@ public class FileScanner {
             let ext = url.pathExtension.lowercased()
 
             // Check if it's a supported file type
-            guard Self.textExtensions.contains(ext) || ext == Self.pdfExtension else {
+            guard Self.textExtensions.contains(ext) || ext == Self.pdfExtension
+                    || Self.knownTextFilenames.contains(fileName) else {
                 // Try to detect text files without known extensions
                 if isLikelyTextFile(url) {
                     let info = fileInfo(url: url, modDate: modDate, ext: ext)
