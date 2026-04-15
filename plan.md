@@ -124,7 +124,7 @@ All databases now live under `~/.vec/<db-name>/` instead of per-directory `.vec/
 - **4h.** FileScanner: removed `.vec` from skipDirectories
 - **4i.** Vec.swift: SearchCommand as defaultSubcommand for `vec <db-name> "query"` shorthand
 - **4j.** InfoCommand: takes `<db-name>`, shows name, source directory, created date, file count, chunk count, DB file size
-- **4k.** Tests: 116 tests passing (26 CLI, 18 DatabaseLocator, 17 VectorDatabase, 6 Integration, + others)
+- **4k.** Tests: 121 tests passing (28 CLI, 21 DatabaseLocator, 17 VectorDatabase, 6 Integration, + others)
 - **4l.** VecError: added `invalidDatabaseName`, `databaseNotFound`, `sourceDirectoryMissing`, updated messages
 - **4m.** `info` added to reserved command names in DatabaseLocator
 - **4n.** VectorDatabase schema creation wrapped in transaction (BEGIN/COMMIT with ROLLBACK on failure)
