@@ -50,16 +50,17 @@ EOF
 
 The `VectorDatabase` class tries to load the extension from multiple locations:
 
-1. `Bundle.main.bundlePath + "/vector"` - Bundled with the CLI binary
-2. `/usr/local/lib/vector` - Standard system location
-3. `/opt/homebrew/lib/vector` - Homebrew installation
-4. Relative to executable directory
-5. `./.vec/vector` - Project-local copy
+1. `<executable-dir>/vector.framework/vector` - Framework alongside the CLI binary (SPM build)
+2. `vector.path` - The sqlite-vector Swift package's suggested path
+3. `/usr/local/lib/vector` - Standard system location
+4. `/opt/homebrew/lib/vector` - Homebrew installation
+5. `Bundle.main.bundlePath + "/vector"` - Bundled with the tool
+6. `@rpath/vector.framework/vector` - Dynamic linker resolution (test runners)
 
-Once any of these paths are used to place the dylib, `vec init` will successfully:
+Once any of these paths are used to place the dylib, `vec init <db-name>` will successfully:
 
 1. Load the sqlite-vector extension
-2. Create the `.vec/index.db` database
+2. Create the `~/.vec/<db-name>/index.db` database
 3. Initialize the vector search schema
 4. Begin indexing files
 
@@ -147,7 +148,7 @@ See the [sqlite-vec compilation guide](https://alexgarcia.xyz/sqlite-vec/compili
 ## Next Steps
 
 1. **Install the dylib** using one of the options above
-2. **Test**: `swift build && .build/debug/vec init` in a temp directory
-3. **Verify**: Check that `.vec/index.db` was created
+2. **Test**: `swift build && .build/debug/vec init my-test-db` in a temp directory
+3. **Verify**: Check that `~/.vec/my-test-db/index.db` was created
 4. **Index**: The command will begin scanning and indexing files
 

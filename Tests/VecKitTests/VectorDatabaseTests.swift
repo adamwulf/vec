@@ -51,7 +51,7 @@ final class VectorDatabaseTests: XCTestCase {
         return db
     }
 
-    // MARK: - 1. initialize() creates .vec/ dir and index.db
+    // MARK: - 1. initialize() creates database dir and index.db
 
     func testInitializeCreatesDatabaseDirAndDatabase() throws {
         let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)

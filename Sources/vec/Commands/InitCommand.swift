@@ -53,7 +53,13 @@ struct InitCommand: AsyncParsableCommand {
         var skippedUnreadable = 0
         var skippedEmbedFailures = 0
         for file in files {
-            let chunks = try extractor.extract(from: file)
+            let chunks: [TextChunk]
+            do {
+                chunks = try extractor.extract(from: file)
+            } catch {
+                skippedUnreadable += 1
+                continue
+            }
             if chunks.isEmpty {
                 skippedUnreadable += 1
                 continue

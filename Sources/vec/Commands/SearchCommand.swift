@@ -30,6 +30,11 @@ struct SearchCommand: AsyncParsableCommand {
     var format: OutputFormat = .text
 
     func run() async throws {
+        guard limit > 0 else {
+            print("Error: --limit must be a positive integer.")
+            throw ExitCode.failure
+        }
+
         let (dbDir, _, sourceDir) = try DatabaseLocator.resolve(dbName)
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)

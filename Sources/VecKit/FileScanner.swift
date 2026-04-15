@@ -28,7 +28,7 @@ public class FileScanner {
     private static let skipDirectories: Set<String> = [
         ".git", ".build", ".swiftpm",
         "node_modules", "__pycache__", ".venv", "venv",
-        ".DS_Store", "Pods", "DerivedData"
+        "Pods", "DerivedData"
     ]
 
     public init(directory: URL, respectsGitignore: Bool = true, includeHiddenFiles: Bool = false) {

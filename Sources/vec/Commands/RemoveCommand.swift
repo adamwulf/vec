@@ -23,7 +23,7 @@ struct RemoveCommand: AsyncParsableCommand {
         let filePath = URL(fileURLWithPath: path, relativeTo: cwd).standardized
 
         // Validate path is within the source directory (append "/" to prevent prefix collisions)
-        guard filePath.path.hasPrefix(sourceDir.path + "/") || filePath.path == sourceDir.path else {
+        guard filePath.path.hasPrefix(sourceDir.path + "/") else {
             print("Error: Path must be within the source directory (\(sourceDir.path)).")
             throw ExitCode.failure
         }
