@@ -1,6 +1,5 @@
 import Foundation
 import ArgumentParser
-import NaturalLanguage
 import VecKit
 
 struct InsertCommand: AsyncParsableCommand {
@@ -50,10 +49,7 @@ struct InsertCommand: AsyncParsableCommand {
         var warnedNonEnglish = false
         var count = 0
         for chunk in chunks {
-            if !warnedNonEnglish, let lang = embedder.detectLanguage(chunk.text), lang != .english, lang != .undetermined {
-                FileHandle.standardError.write(Data("Warning: non-English content detected in \(relativePath) (detected: \(lang.rawValue)), embedding quality may be reduced\n".utf8))
-                warnedNonEnglish = true
-            }
+            embedder.warnIfNonEnglish(text: chunk.text, filePath: relativePath, warned: &warnedNonEnglish)
             guard let embedding = embedder.embed(chunk.text) else { continue }
             try database.insert(
                 filePath: relativePath,

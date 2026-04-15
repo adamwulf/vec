@@ -17,7 +17,8 @@ public class FileScanner {
         "sql", "graphql",
         "env", "ini", "cfg", "conf", "config",
         "log", "csv", "tsv",
-        "tex", "rst", "adoc", "org"
+        "tex", "rst", "adoc", "org",
+        "cmake"
     ]
 
     /// Well-known text filenames that have no file extension.

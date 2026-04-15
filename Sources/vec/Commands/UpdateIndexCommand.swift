@@ -1,6 +1,5 @@
 import Foundation
 import ArgumentParser
-import NaturalLanguage
 import VecKit
 
 struct UpdateIndexCommand: AsyncParsableCommand {
@@ -49,10 +48,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         var warnedNonEnglish = false
         var embedded: [(TextChunk, [Float])] = []
         for chunk in chunks {
-            if !warnedNonEnglish, let lang = embedder.detectLanguage(chunk.text), lang != .english, lang != .undetermined {
-                FileHandle.standardError.write(Data("Warning: non-English content detected in \(file.relativePath) (detected: \(lang.rawValue)), embedding quality may be reduced\n".utf8))
-                warnedNonEnglish = true
-            }
+            embedder.warnIfNonEnglish(text: chunk.text, filePath: file.relativePath, warned: &warnedNonEnglish)
             if let embedding = embedder.embed(chunk.text) {
                 embedded.append((chunk, embedding))
             }
