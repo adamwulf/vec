@@ -270,6 +270,7 @@ public enum VecError: Error, LocalizedError {
     case databaseAlreadyExists
     case pathOutsideProject(String)
     case sqliteError(String)
+    case databaseCorrupted(String)
 
     public var errorDescription: String? {
         switch self {
@@ -285,6 +286,8 @@ public enum VecError: Error, LocalizedError {
             return "Path is outside the project directory: \(path)"
         case .sqliteError(let message):
             return "SQLite error: \(message)"
+        case .databaseCorrupted(let detail):
+            return "Database schema is corrupted: \(detail)"
         }
     }
 }

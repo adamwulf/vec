@@ -1,4 +1,5 @@
 import XCTest
+import CSQLiteVec
 @testable import VecKit
 
 final class VectorDatabaseTests: XCTestCase {
@@ -479,4 +480,51 @@ final class VectorDatabaseTests: XCTestCase {
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results[0].filePath, "beta.swift")
     }
+
+    // MARK: - 16. open() on corrupted DB (missing chunks table) throws databaseCorrupted
+
+    func testOpenOnCorruptedDBThrowsDatabaseCorrupted() throws {
+        // Initialize a valid database
+        do {
+            let db = VectorDatabase(directory: tempDir)
+            try db.initialize()
+        }
+
+        // Corrupt it by dropping the chunks table via raw SQL
+        let dbPath = tempDir.appendingPathComponent(".vec")
+            .appendingPathComponent("index.db").path
+        var rawDB: OpaquePointer?
+        guard sqlite3_open(dbPath, &rawDB) == SQLITE_OK else {
+            XCTFail("Failed to open raw database")
+            return
+        }
+        defer { sqlite3_close(rawDB) }
+
+        var errMsg: UnsafeMutablePointer<CChar>?
+        let rc = sqlite3_exec(rawDB, "DROP TABLE IF EXISTS chunks", nil, nil, &errMsg)
+        if rc != SQLITE_OK {
+            let msg = errMsg.map { String(cString: $0) } ?? "unknown"
+            sqlite3_free(errMsg)
+            XCTFail("Failed to drop chunks table: \(msg)")
+            return
+        }
+        sqlite3_close(rawDB)
+        rawDB = nil
+
+        // Now open() should detect the missing table
+        let db = VectorDatabase(directory: tempDir)
+        XCTAssertThrowsError(try db.open()) { error in
+            guard let vecError = error as? VecError else {
+                XCTFail("Expected VecError, got \(error)")
+                return
+            }
+            if case .databaseCorrupted(let detail) = vecError {
+                XCTAssertTrue(detail.contains("chunks"),
+                              "Error should mention missing 'chunks' table, got: \(detail)")
+            } else {
+                XCTFail("Expected .databaseCorrupted, got \(vecError)")
+            }
+        }
+    }
+
 }

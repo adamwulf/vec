@@ -41,6 +41,7 @@ public class VectorDatabase {
         }
         try openDatabase()
         try loadVectorExtension()
+        try verifySchema()
     }
 
     deinit {
@@ -279,6 +280,23 @@ public class VectorDatabase {
                 message = "Unknown error"
             }
             throw VecError.sqliteError(message)
+        }
+    }
+
+    private func verifySchema() throws {
+        let sql = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'chunks'"
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            throw sqlError("Failed to verify schema")
+        }
+        defer { sqlite3_finalize(stmt) }
+
+        guard sqlite3_step(stmt) == SQLITE_ROW else {
+            throw sqlError("Failed to query sqlite_master")
+        }
+
+        if sqlite3_column_int(stmt, 0) == 0 {
+            throw VecError.databaseCorrupted("Missing required table: chunks")
         }
     }
 
