@@ -31,7 +31,7 @@ struct InsertCommand: AsyncParsableCommand {
         try database.open()
 
         // Remove existing entries for this file
-        let relativePath = String(filePath.path.dropFirst(directory.path.count + 1))
+        let relativePath = PathUtilities.relativePath(of: filePath.path, in: directory.path)
         try database.removeEntries(forPath: relativePath)
 
         let extractor = TextExtractor()

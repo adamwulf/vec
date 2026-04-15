@@ -25,7 +25,7 @@ struct RemoveCommand: AsyncParsableCommand {
         let database = VectorDatabase(directory: directory)
         try database.open()
 
-        let relativePath = String(filePath.path.dropFirst(directory.path.count + 1))
+        let relativePath = PathUtilities.relativePath(of: filePath.path, in: directory.path)
         let removed = try database.removeEntries(forPath: relativePath)
 
         if removed > 0 {

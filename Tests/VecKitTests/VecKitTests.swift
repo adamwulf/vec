@@ -386,6 +386,57 @@ final class FileScannerTests: XCTestCase {
     }
 }
 
+// MARK: - PathUtilities Tests
+
+final class PathUtilitiesTests: XCTestCase {
+
+    func testNormalRelativePath() {
+        let result = PathUtilities.relativePath(of: "/foo/bar/baz/file.txt", in: "/foo/bar")
+        XCTAssertEqual(result, "baz/file.txt")
+    }
+
+    func testTrailingSlashOnDirectory() {
+        let result = PathUtilities.relativePath(of: "/foo/bar/baz.txt", in: "/foo/bar/")
+        XCTAssertEqual(result, "baz.txt")
+    }
+
+    func testFileDirectlyInDirectory() {
+        let result = PathUtilities.relativePath(of: "/foo/bar/file.txt", in: "/foo/bar")
+        XCTAssertEqual(result, "file.txt")
+    }
+
+    func testBothHaveTrailingSlashes() {
+        let result = PathUtilities.relativePath(of: "/foo/bar/sub/file.txt", in: "/foo/bar/")
+        XCTAssertEqual(result, "sub/file.txt")
+    }
+
+    func testDirectoryWithDotDot() {
+        // /foo/bar/../bar standardizes to /foo/bar
+        let result = PathUtilities.relativePath(of: "/foo/bar/baz/file.txt", in: "/foo/bar/../bar")
+        XCTAssertEqual(result, "baz/file.txt")
+    }
+
+    func testFileOutsideDirectory() {
+        let result = PathUtilities.relativePath(of: "/other/path/file.txt", in: "/foo/bar")
+        XCTAssertEqual(result, "file.txt")
+    }
+
+    func testSamePathReturnsEmpty() {
+        let result = PathUtilities.relativePath(of: "/foo/bar", in: "/foo/bar")
+        XCTAssertEqual(result, "")
+    }
+
+    func testRootDirectory() {
+        let result = PathUtilities.relativePath(of: "/file.txt", in: "/")
+        XCTAssertEqual(result, "file.txt")
+    }
+
+    func testDeeplyNestedPath() {
+        let result = PathUtilities.relativePath(of: "/a/b/c/d/e/f.txt", in: "/a/b")
+        XCTAssertEqual(result, "c/d/e/f.txt")
+    }
+}
+
 // MARK: - ChunkingStrategy Edge Cases
 
 final class ChunkingStrategyTests: XCTestCase {

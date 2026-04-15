@@ -110,9 +110,7 @@ public class FileScanner {
         guard let modDate = resourceValues.contentModificationDate else {
             throw VecError.cannotReadFile(url.path)
         }
-        let relativePath = url.path.hasPrefix(directory.path)
-            ? String(url.path.dropFirst(directory.path.count + 1))
-            : url.lastPathComponent
+        let relativePath = PathUtilities.relativePath(of: url.path, in: directory.path)
         return FileInfo(
             relativePath: relativePath,
             url: url,
@@ -179,7 +177,7 @@ public class FileScanner {
     }
 
     private func fileInfo(url: URL, modDate: Date, ext: String) -> FileInfo {
-        let relativePath = String(url.path.dropFirst(directory.path.count + 1))
+        let relativePath = PathUtilities.relativePath(of: url.path, in: directory.path)
         return FileInfo(
             relativePath: relativePath,
             url: url,
