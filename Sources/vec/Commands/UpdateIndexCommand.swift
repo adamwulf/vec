@@ -18,23 +18,43 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         case skippedEmbedFailure
     }
 
+    /// Extract text and generate embeddings for a file, then insert into the database.
+    /// When `removeExisting` is true (re-indexing a modified file), old entries are only
+    /// removed after new embeddings are successfully generated, preventing data loss if
+    /// extraction or embedding fails.
     private func indexFile(
         _ file: FileInfo,
         using extractor: TextExtractor,
         embedder: EmbeddingService,
         database: VectorDatabase,
-        label: String
+        label: String,
+        removeExisting: Bool = false
     ) throws -> IndexResult {
         let chunks = try extractor.extract(from: file)
         if chunks.isEmpty {
             return .skippedUnreadable
         }
-        var embedFailures = 0
+
+        // Generate all embeddings before modifying the database, so a failure
+        // here preserves the existing index entries for this file.
+        var embedded: [(TextChunk, [Float])] = []
         for chunk in chunks {
-            guard let embedding = embedder.embed(chunk.text) else {
-                embedFailures += 1
-                continue
+            if let embedding = embedder.embed(chunk.text) {
+                embedded.append((chunk, embedding))
             }
+        }
+
+        if embedded.isEmpty {
+            print("  Skipped: \(file.relativePath) (failed to embed)")
+            return .skippedEmbedFailure
+        }
+
+        // Only now that we have new embeddings, remove the old entries
+        if removeExisting {
+            try database.removeEntries(forPath: file.relativePath)
+        }
+
+        for (chunk, embedding) in embedded {
             try database.insert(
                 filePath: file.relativePath,
                 lineStart: chunk.lineStart,
@@ -45,10 +65,6 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                 contentPreview: String(chunk.text.prefix(200)),
                 embedding: embedding
             )
-        }
-        if embedFailures == chunks.count {
-            print("  Skipped: \(file.relativePath) (failed to embed)")
-            return .skippedEmbedFailure
         }
         print("  \(label): \(file.relativePath)")
         return .indexed
@@ -77,9 +93,9 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         for file in files {
             if let existingModDate = indexedFiles[file.relativePath] {
                 if file.modificationDate > existingModDate {
-                    // File changed — re-index
-                    try database.removeEntries(forPath: file.relativePath)
-                    switch try indexFile(file, using: extractor, embedder: embedder, database: database, label: "Updated") {
+                    // File changed — re-index. removeExisting defers deletion until
+                    // new embeddings succeed, preventing data loss on failure.
+                    switch try indexFile(file, using: extractor, embedder: embedder, database: database, label: "Updated", removeExisting: true) {
                     case .indexed: updated += 1
                     case .skippedUnreadable: skippedUnreadable += 1
                     case .skippedEmbedFailure: skippedEmbedFailures += 1

@@ -68,7 +68,7 @@ struct InitCommand: AsyncParsableCommand {
                 print("  Skipped: \(file.relativePath) (failed to embed)")
             } else {
                 indexed += 1
-                print("  [\(indexed)/\(files.count - skippedUnreadable)] \(file.relativePath)")
+                print("  [\(indexed)/\(files.count - skippedUnreadable - skippedEmbedFailures)] \(file.relativePath)")
             }
         }
 

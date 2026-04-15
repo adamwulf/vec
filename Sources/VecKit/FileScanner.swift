@@ -218,8 +218,13 @@ public class FileScanner {
         // Directory pattern: trailing `/` means match directory prefix
         let isDirectoryPattern = pat.hasSuffix("/")
         if isDirectoryPattern {
-            // Match if the path starts with the directory prefix
-            return path.hasPrefix(pat) || path.hasPrefix(String(pat.dropLast()) + "/")
+            if isRootRelative {
+                // Root-relative directory: only match at the start of the path
+                // e.g., `/build/` matches `build/output.txt` but NOT `src/build/output.txt`
+                return path.hasPrefix(pat)
+            }
+            // Non-root directory: match anywhere in the path
+            return path.hasPrefix(pat) || path.contains("/\(pat)")
         }
 
         if isRootRelative {
