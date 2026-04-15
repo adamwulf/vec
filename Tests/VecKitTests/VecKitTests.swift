@@ -166,6 +166,87 @@ final class TextExtractorTests: XCTestCase {
         let chunks = try extractor.extract(from: file)
         XCTAssertEqual(chunks.count, 0)
     }
+
+    func testMarkdownWithOnlyHeadingsProducesChunks() throws {
+        // A markdown file with headings and no body text should still produce chunks
+        let content = """
+        # Introduction
+        ## Background
+        ### Details
+        ## Summary
+        """
+        let file = createFile(name: "headings_only.md", content: content)
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        // Should produce at least a whole-document chunk
+        let wholeChunks = chunks.filter { $0.type == .whole }
+        XCTAssertEqual(wholeChunks.count, 1)
+        XCTAssertFalse(wholeChunks[0].text.isEmpty)
+    }
+
+    func testMarkdownWhereEveryLineIsAHeading() throws {
+        // Generate 80 lines where every line is a heading — exceeds default chunkSize of 50
+        var lines: [String] = []
+        for i in 1...80 {
+            lines.append("# Heading \(i)")
+        }
+        let content = lines.joined(separator: "\n")
+        let file = createFile(name: "all_headings.md", content: content)
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        // Should have a whole-document chunk
+        let wholeChunks = chunks.filter { $0.type == .whole }
+        XCTAssertEqual(wholeChunks.count, 1)
+
+        // Should produce line chunks since it exceeds chunkSize
+        let lineChunks = chunks.filter { $0.type == .chunk }
+        XCTAssertGreaterThan(lineChunks.count, 0)
+
+        // All chunks should have valid line ranges
+        for chunk in lineChunks {
+            XCTAssertNotNil(chunk.lineStart)
+            XCTAssertNotNil(chunk.lineEnd)
+            XCTAssertGreaterThanOrEqual(chunk.lineEnd!, chunk.lineStart!)
+        }
+    }
+
+    func testVeryLongSingleLineProducesOnlyWholeChunk() throws {
+        // A single very long line with no newlines — should produce only a whole-doc chunk
+        let longLine = String(repeating: "This is a very long sentence without any newlines. ", count: 200)
+        let file = createFile(name: "long_line.md", content: longLine)
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        // Should have exactly one whole-document chunk
+        let wholeChunks = chunks.filter { $0.type == .whole }
+        XCTAssertEqual(wholeChunks.count, 1)
+
+        // Should have no line chunks — single line is under chunkSize (1 line < 50)
+        let lineChunks = chunks.filter { $0.type == .chunk }
+        XCTAssertEqual(lineChunks.count, 0)
+    }
+
+    func testBinaryFileReturnsEmptyArray() throws {
+        // Create a binary file with null bytes — extract() should return empty
+        let url = tempDir.appendingPathComponent("binary.bin")
+        var data = Data("some content".utf8)
+        data.append(contentsOf: [0x00, 0x00, 0xFF, 0xFE])
+        data.append(Data("more binary".utf8))
+        try! data.write(to: url)
+        let modDate = try! url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate!
+        let file = FileInfo(
+            relativePath: "binary.bin",
+            url: url,
+            modificationDate: modDate,
+            fileExtension: "bin"
+        )
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+        // Binary file cannot be read as UTF-8, so extract() should return empty
+        XCTAssertEqual(chunks.count, 0)
+    }
 }
 
 // MARK: - FileScanner Tests
@@ -270,6 +351,269 @@ final class FileScannerTests: XCTestCase {
 
         XCTAssertTrue(relativePaths.contains("app.js"), "Expected app.js, got: \(relativePaths)")
         XCTAssertFalse(relativePaths.contains(where: { $0.hasPrefix("node_modules") }))
+    }
+
+    func testScanSkipsHiddenFilesByDefault() throws {
+        createTextFile(at: "visible.swift", content: "import Foundation")
+        createTextFile(at: ".hidden_config", content: "secret=123")
+        createTextFile(at: ".hidden_dir/file.txt", content: "inside hidden dir")
+
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("visible.swift"))
+        XCTAssertFalse(relativePaths.contains(".hidden_config"))
+        XCTAssertFalse(relativePaths.contains(where: { $0.hasPrefix(".hidden_dir") }))
+    }
+
+    func testScanIncludesHiddenFilesWhenEnabled() throws {
+        createTextFile(at: "visible.swift", content: "import Foundation")
+        createTextFile(at: ".hidden_config", content: "secret=123")
+        createTextFile(at: ".hidden_dir/file.txt", content: "inside hidden dir")
+
+        let scanner = FileScanner(directory: tempDir, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("visible.swift"))
+        XCTAssertTrue(relativePaths.contains(".hidden_config"), "Expected .hidden_config, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains(where: { $0.hasPrefix(".hidden_dir") }),
+                       "Expected files in .hidden_dir, got: \(relativePaths)")
+    }
+
+    func testScanStillSkipsGitDirWhenHiddenEnabled() throws {
+        createTextFile(at: "main.swift", content: "print(\"hello\")")
+        createTextFile(at: ".git/config", content: "[core]\n\tbare = false")
+        createTextFile(at: ".hidden_file.txt", content: "hidden but allowed")
+
+        let scanner = FileScanner(directory: tempDir, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"))
+        XCTAssertTrue(relativePaths.contains(".hidden_file.txt"), "Expected .hidden_file.txt, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains(where: { $0.hasPrefix(".git") }),
+                        ".git directory should still be skipped")
+    }
+
+    func testScanRespectsGitignore() throws {
+        // Initialize a git repo in the temp dir
+        let gitInit = Process()
+        gitInit.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+        gitInit.arguments = ["init"]
+        gitInit.currentDirectoryURL = tempDir
+        try gitInit.run()
+        gitInit.waitUntilExit()
+        guard gitInit.terminationStatus == 0 else {
+            XCTFail("git init failed")
+            return
+        }
+
+        // Create a .gitignore
+        createTextFile(at: ".gitignore", content: "build/\n*.log\n")
+
+        // Create files — some should be ignored
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "build/output.swift", content: "generated code")
+        createTextFile(at: "debug.log", content: "log output")
+        createTextFile(at: "readme.md", content: "# Hello")
+
+        let scanner = FileScanner(directory: tempDir, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains(where: { $0.hasPrefix("build/") }),
+                        "build/ should be gitignored")
+        XCTAssertFalse(relativePaths.contains("debug.log"),
+                        "*.log should be gitignored")
+    }
+
+    func testScanWorksWithoutGitRepo() throws {
+        // No git init — this is just a regular directory
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "notes.txt", content: "some notes")
+
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("notes.txt"), "Expected notes.txt, got: \(relativePaths)")
+    }
+
+    // MARK: - .vecignore Tests
+
+    func testVecignoreWildcardExcludesMatchingFiles() throws {
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "debug.log", content: "log output")
+        createTextFile(at: "subdir/other.log", content: "nested log")
+        createTextFile(at: "readme.md", content: "# Hello")
+        createTextFile(at: ".vecignore", content: "*.log\n")
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains("debug.log"),
+                        "*.log should be vecignored")
+        XCTAssertFalse(relativePaths.contains("subdir/other.log"),
+                        "*.log should also match nested files")
+    }
+
+    func testVecignoreDirectoryPatternExcludesContents() throws {
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "generated/output.swift", content: "generated code")
+        createTextFile(at: "generated/nested/deep.swift", content: "deep generated")
+        createTextFile(at: "readme.md", content: "# Hello")
+        createTextFile(at: ".vecignore", content: "generated/\n")
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains(where: { $0.hasPrefix("generated/") }),
+                        "generated/ directory should be vecignored")
+    }
+
+    func testNoVecignoreFileWorksNormally() throws {
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "debug.log", content: "log output")
+        createTextFile(at: "readme.md", content: "# Hello")
+        // No .vecignore file
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("debug.log"), "Expected debug.log without .vecignore, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+    }
+
+    func testScanCanDisableGitignoreFiltering() throws {
+        // Initialize a git repo
+        let gitInit = Process()
+        gitInit.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+        gitInit.arguments = ["init"]
+        gitInit.currentDirectoryURL = tempDir
+        try gitInit.run()
+        gitInit.waitUntilExit()
+
+        createTextFile(at: ".gitignore", content: "*.log\n")
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "debug.log", content: "log output")
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"))
+        XCTAssertTrue(relativePaths.contains("debug.log"),
+                       "debug.log should be included when gitignore is disabled, got: \(relativePaths)")
+    }
+
+    func testScanFindsFilesWithSpacesInNames() throws {
+        createTextFile(at: "my file.txt", content: "content with spaces")
+        createTextFile(at: "sub dir/another file.md", content: "# Nested")
+        createTextFile(at: "normal.swift", content: "import Foundation")
+
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("my file.txt"),
+                       "Expected 'my file.txt', got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("sub dir/another file.md"),
+                       "Expected 'sub dir/another file.md', got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("normal.swift"))
+    }
+
+    func testScanFindsFilesWithUnicodeInNames() throws {
+        createTextFile(at: "café.txt", content: "coffee notes")
+        createTextFile(at: "日本語.md", content: "# Japanese")
+        createTextFile(at: "émojis 🎉.txt", content: "celebration")
+
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("café.txt"),
+                       "Expected 'café.txt', got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("日本語.md"),
+                       "Expected '日本語.md', got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("émojis 🎉.txt"),
+                       "Expected 'émojis 🎉.txt', got: \(relativePaths)")
+    }
+
+    func testScanEmptyDirectoryReturnsEmptyArray() throws {
+        // tempDir is already empty — scan should return empty without errors
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        XCTAssertEqual(files.count, 0)
+    }
+}
+
+// MARK: - PathUtilities Tests
+
+final class PathUtilitiesTests: XCTestCase {
+
+    func testNormalRelativePath() {
+        let result = PathUtilities.relativePath(of: "/foo/bar/baz/file.txt", in: "/foo/bar")
+        XCTAssertEqual(result, "baz/file.txt")
+    }
+
+    func testTrailingSlashOnDirectory() {
+        let result = PathUtilities.relativePath(of: "/foo/bar/baz.txt", in: "/foo/bar/")
+        XCTAssertEqual(result, "baz.txt")
+    }
+
+    func testFileDirectlyInDirectory() {
+        let result = PathUtilities.relativePath(of: "/foo/bar/file.txt", in: "/foo/bar")
+        XCTAssertEqual(result, "file.txt")
+    }
+
+    func testBothHaveTrailingSlashes() {
+        let result = PathUtilities.relativePath(of: "/foo/bar/sub/file.txt", in: "/foo/bar/")
+        XCTAssertEqual(result, "sub/file.txt")
+    }
+
+    func testDirectoryWithDotDot() {
+        // /foo/bar/../bar standardizes to /foo/bar
+        let result = PathUtilities.relativePath(of: "/foo/bar/baz/file.txt", in: "/foo/bar/../bar")
+        XCTAssertEqual(result, "baz/file.txt")
+    }
+
+    func testFileOutsideDirectory() {
+        let result = PathUtilities.relativePath(of: "/other/path/file.txt", in: "/foo/bar")
+        XCTAssertEqual(result, "file.txt")
+    }
+
+    func testSamePathReturnsEmpty() {
+        let result = PathUtilities.relativePath(of: "/foo/bar", in: "/foo/bar")
+        XCTAssertEqual(result, "")
+    }
+
+    func testRootDirectory() {
+        let result = PathUtilities.relativePath(of: "/file.txt", in: "/")
+        XCTAssertEqual(result, "file.txt")
+    }
+
+    func testDeeplyNestedPath() {
+        let result = PathUtilities.relativePath(of: "/a/b/c/d/e/f.txt", in: "/a/b")
+        XCTAssertEqual(result, "c/d/e/f.txt")
+    }
+
+    func testDirectoryNamePrefixCollision() {
+        // /foo/bar should NOT match /foo/barbell — the "/" append prevents this
+        let result = PathUtilities.relativePath(of: "/foo/barbell/file.txt", in: "/foo/bar")
+        XCTAssertEqual(result, "file.txt") // fallback to lastPathComponent, not "bell/file.txt"
     }
 }
 

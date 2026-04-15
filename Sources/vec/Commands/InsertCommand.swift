@@ -16,8 +16,8 @@ struct InsertCommand: AsyncParsableCommand {
         let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let filePath = URL(fileURLWithPath: path, relativeTo: directory).standardized
 
-        // Validate path is within the project directory
-        guard filePath.path.hasPrefix(directory.path) else {
+        // Validate path is within the project directory (append "/" to prevent prefix collisions)
+        guard filePath.path.hasPrefix(directory.path + "/") || filePath.path == directory.path else {
             print("Error: Path must be within the project directory.")
             throw ExitCode.failure
         }
@@ -31,7 +31,7 @@ struct InsertCommand: AsyncParsableCommand {
         try database.open()
 
         // Remove existing entries for this file
-        let relativePath = String(filePath.path.dropFirst(directory.path.count + 1))
+        let relativePath = PathUtilities.relativePath(of: filePath.path, in: directory.path)
         try database.removeEntries(forPath: relativePath)
 
         let extractor = TextExtractor()
@@ -56,6 +56,9 @@ struct InsertCommand: AsyncParsableCommand {
             count += 1
         }
 
+        if count == 0 && !chunks.isEmpty {
+            print("Warning: \(chunks.count) chunks extracted but none could be embedded from \(relativePath)")
+        }
         print("Indexed \(count) chunks from \(relativePath)")
     }
 }

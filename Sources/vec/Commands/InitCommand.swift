@@ -12,6 +12,9 @@ struct InitCommand: AsyncParsableCommand {
     @Flag(name: .long, help: "Overwrite existing database if present")
     var force: Bool = false
 
+    @Flag(name: .long, help: "Include hidden files and folders")
+    var allowHidden: Bool = false
+
     func run() async throws {
         let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let vecDir = directory.appendingPathComponent(".vec")
@@ -26,7 +29,7 @@ struct InitCommand: AsyncParsableCommand {
         let database = VectorDatabase(directory: directory)
         try database.initialize()
 
-        let scanner = FileScanner(directory: directory)
+        let scanner = FileScanner(directory: directory, includeHiddenFiles: allowHidden)
         let files = try scanner.scan()
 
         print("Found \(files.count) files to index.")
@@ -35,10 +38,20 @@ struct InitCommand: AsyncParsableCommand {
         let extractor = TextExtractor()
 
         var indexed = 0
+        var skippedUnreadable = 0
+        var skippedEmbedFailures = 0
         for file in files {
             let chunks = try extractor.extract(from: file)
+            if chunks.isEmpty {
+                skippedUnreadable += 1
+                continue
+            }
+            var embedFailures = 0
             for chunk in chunks {
-                guard let embedding = embedder.embed(chunk.text) else { continue }
+                guard let embedding = embedder.embed(chunk.text) else {
+                    embedFailures += 1
+                    continue
+                }
                 try database.insert(
                     filePath: file.relativePath,
                     lineStart: chunk.lineStart,
@@ -50,10 +63,27 @@ struct InitCommand: AsyncParsableCommand {
                     embedding: embedding
                 )
             }
-            indexed += 1
-            print("  [\(indexed)/\(files.count)] \(file.relativePath)")
+            if embedFailures == chunks.count {
+                skippedEmbedFailures += 1
+                print("  Skipped: \(file.relativePath) (failed to embed)")
+            } else {
+                indexed += 1
+                print("  [\(indexed)/\(files.count - skippedUnreadable - skippedEmbedFailures)] \(file.relativePath)")
+            }
         }
 
-        print("Indexed \(indexed) files. Database ready at .vec/index.db")
+        let skipped = skippedUnreadable + skippedEmbedFailures
+        if skipped > 0 {
+            var details: [String] = []
+            if skippedUnreadable > 0 {
+                details.append("\(skippedUnreadable) unreadable")
+            }
+            if skippedEmbedFailures > 0 {
+                details.append("\(skippedEmbedFailures) failed to embed")
+            }
+            print("Indexed \(indexed) files (\(skipped) skipped: \(details.joined(separator: ", "))). Database ready at .vec/index.db")
+        } else {
+            print("Indexed \(indexed) files. Database ready at .vec/index.db")
+        }
     }
 }

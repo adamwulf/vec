@@ -16,8 +16,8 @@ struct RemoveCommand: AsyncParsableCommand {
         let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let filePath = URL(fileURLWithPath: path, relativeTo: directory).standardized
 
-        // Validate path is within the project directory
-        guard filePath.path.hasPrefix(directory.path) else {
+        // Validate path is within the project directory (append "/" to prevent prefix collisions)
+        guard filePath.path.hasPrefix(directory.path + "/") || filePath.path == directory.path else {
             print("Error: Path must be within the project directory.")
             throw ExitCode.failure
         }
@@ -25,7 +25,7 @@ struct RemoveCommand: AsyncParsableCommand {
         let database = VectorDatabase(directory: directory)
         try database.open()
 
-        let relativePath = String(filePath.path.dropFirst(directory.path.count + 1))
+        let relativePath = PathUtilities.relativePath(of: filePath.path, in: directory.path)
         let removed = try database.removeEntries(forPath: relativePath)
 
         if removed > 0 {

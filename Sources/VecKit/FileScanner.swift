@@ -4,6 +4,8 @@ import Foundation
 public class FileScanner {
 
     private let directory: URL
+    private let respectsGitignore: Bool
+    private let includeHiddenFiles: Bool
 
     /// Known text file extensions that should be indexed.
     private static let textExtensions: Set<String> = [
@@ -29,8 +31,10 @@ public class FileScanner {
         ".DS_Store", "Pods", "DerivedData"
     ]
 
-    public init(directory: URL) {
+    public init(directory: URL, respectsGitignore: Bool = true, includeHiddenFiles: Bool = false) {
         self.directory = directory
+        self.respectsGitignore = respectsGitignore
+        self.includeHiddenFiles = includeHiddenFiles
     }
 
     /// Scan the directory and return all indexable files.
@@ -38,10 +42,15 @@ public class FileScanner {
         var results: [FileInfo] = []
         let fm = FileManager.default
 
+        var options: FileManager.DirectoryEnumerationOptions = []
+        if !includeHiddenFiles {
+            options.insert(.skipsHiddenFiles)
+        }
+
         let enumerator = fm.enumerator(
             at: directory,
             includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey, .isDirectoryKey],
-            options: [.skipsHiddenFiles]
+            options: options
         )
 
         guard let enumerator = enumerator else {
@@ -53,6 +62,15 @@ public class FileScanner {
 
             // Skip known directories
             if Self.skipDirectories.contains(fileName) {
+                enumerator.skipDescendants()
+                continue
+            }
+
+            // Skip hidden files/directories by name (dot-prefixed) unless allowed.
+            // This complements .skipsHiddenFiles above: the enumerator option uses
+            // the Finder hidden attribute (NSURLIsHiddenKey), while this check catches
+            // dot-prefixed items that may not have that attribute set.
+            if !includeHiddenFiles && fileName.hasPrefix(".") {
                 enumerator.skipDescendants()
                 continue
             }
@@ -78,6 +96,14 @@ public class FileScanner {
             results.append(info)
         }
 
+        // Filter out gitignored files
+        if respectsGitignore {
+            results = filterGitignored(results)
+        }
+
+        // Filter out .vecignore patterns
+        results = filterVecignored(results)
+
         return results.sorted { $0.relativePath < $1.relativePath }
     }
 
@@ -87,9 +113,7 @@ public class FileScanner {
         guard let modDate = resourceValues.contentModificationDate else {
             throw VecError.cannotReadFile(url.path)
         }
-        let relativePath = url.path.hasPrefix(directory.path)
-            ? String(url.path.dropFirst(directory.path.count + 1))
-            : url.lastPathComponent
+        let relativePath = PathUtilities.relativePath(of: url.path, in: directory.path)
         return FileInfo(
             relativePath: relativePath,
             url: url,
@@ -100,8 +124,132 @@ public class FileScanner {
 
     // MARK: - Private
 
+    /// Filter out files that are ignored by git using `git check-ignore`.
+    /// If the directory is not a git repo or git is unavailable, returns the input unchanged.
+    private func filterGitignored(_ files: [FileInfo]) -> [FileInfo] {
+        guard !files.isEmpty else { return files }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+        process.arguments = ["check-ignore", "--stdin"]
+        process.currentDirectoryURL = directory
+
+        let stdinPipe = Pipe()
+        let stdoutPipe = Pipe()
+        process.standardInput = stdinPipe
+        process.standardOutput = stdoutPipe
+        process.standardError = FileHandle.nullDevice
+
+        do {
+            try process.run()
+        } catch {
+            // git not available — skip filtering
+            return files
+        }
+
+        // Write stdin on a background thread to avoid blocking if the pipe buffer
+        // fills (>64KB of paths). The process may need to flush stdout before it can
+        // consume more stdin, so writing and reading must happen concurrently.
+        let inputData = Data(files.map(\.relativePath).joined(separator: "\n").utf8)
+        let stdinHandle = stdinPipe.fileHandleForWriting
+        let writeQueue = DispatchQueue(label: "vec.gitignore.stdin")
+        writeQueue.async {
+            stdinHandle.write(inputData)
+            stdinHandle.closeFile()
+        }
+
+        // Read stdout before waitUntilExit() to prevent deadlock: if git's output
+        // exceeds the pipe buffer (~64KB), the process blocks on write and
+        // waitUntilExit() would never return.
+        let outputData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+
+        // Exit code 1 means no paths were ignored, which is fine.
+        // Exit code 128 means not a git repo — return unfiltered.
+        if process.terminationStatus == 128 {
+            return files
+        }
+
+        let output = String(data: outputData, encoding: .utf8) ?? ""
+
+        let ignoredPaths = Set(
+            output.split(separator: "\n").map { String($0) }
+        )
+
+        return files.filter { !ignoredPaths.contains($0.relativePath) }
+    }
+
+    /// Filter out files matching patterns in a `.vecignore` file at the project root.
+    /// Pattern syntax: one pattern per line, `#` for comments, blank lines ignored.
+    /// Supports exact filename (`file.txt`), directory (`build/`), wildcard (`*.log`),
+    /// and root-relative (`/specific-file.txt`) patterns.
+    private func filterVecignored(_ files: [FileInfo]) -> [FileInfo] {
+        guard !files.isEmpty else { return files }
+
+        let vecignoreURL = directory.appendingPathComponent(".vecignore")
+        guard let content = try? String(contentsOf: vecignoreURL, encoding: .utf8) else {
+            return files
+        }
+
+        let patterns = content
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && !$0.hasPrefix("#") }
+
+        guard !patterns.isEmpty else { return files }
+
+        return files.filter { file in
+            !patterns.contains { pattern in
+                matchesVecignorePattern(pattern, path: file.relativePath)
+            }
+        }
+    }
+
+    /// Check if a relative path matches a single .vecignore pattern.
+    private func matchesVecignorePattern(_ pattern: String, path: String) -> Bool {
+        var pat = pattern
+
+        // Root-relative pattern: leading `/` means match from root only
+        let isRootRelative = pat.hasPrefix("/")
+        if isRootRelative {
+            pat = String(pat.dropFirst())
+        }
+
+        // Directory pattern: trailing `/` means match directory prefix
+        let isDirectoryPattern = pat.hasSuffix("/")
+        if isDirectoryPattern {
+            if isRootRelative {
+                // Root-relative directory: only match at the start of the path
+                // e.g., `/build/` matches `build/output.txt` but NOT `src/build/output.txt`
+                return path.hasPrefix(pat)
+            }
+            // Non-root directory: match anywhere in the path
+            return path.hasPrefix(pat) || path.contains("/\(pat)")
+        }
+
+        if isRootRelative {
+            // Root-relative: only match the full path
+            return fnmatch(pat, path, 0) == 0
+        }
+
+        // Non-root pattern: match against the full relative path,
+        // and also against just the filename (basename)
+        if fnmatch(pat, path, 0) == 0 {
+            return true
+        }
+
+        // Also try matching against each path component's suffix
+        // e.g., pattern "*.log" should match "subdir/debug.log"
+        let components = path.split(separator: "/")
+        if let basename = components.last {
+            return fnmatch(pat, String(basename), 0) == 0
+        }
+
+        return false
+    }
+
     private func fileInfo(url: URL, modDate: Date, ext: String) -> FileInfo {
-        let relativePath = String(url.path.dropFirst(directory.path.count + 1))
+        let relativePath = PathUtilities.relativePath(of: url.path, in: directory.path)
         return FileInfo(
             relativePath: relativePath,
             url: url,
@@ -127,6 +275,7 @@ public enum VecError: Error, LocalizedError {
     case databaseAlreadyExists
     case pathOutsideProject(String)
     case sqliteError(String)
+    case databaseCorrupted(String)
 
     public var errorDescription: String? {
         switch self {
@@ -142,6 +291,8 @@ public enum VecError: Error, LocalizedError {
             return "Path is outside the project directory: \(path)"
         case .sqliteError(let message):
             return "SQLite error: \(message)"
+        case .databaseCorrupted(let detail):
+            return "Database schema is corrupted: \(detail)"
         }
     }
 }
