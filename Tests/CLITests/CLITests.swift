@@ -155,4 +155,19 @@ final class CLITests: XCTestCase {
     func testListCommandParsesWithNoArguments() throws {
         _ = try ListCommand.parseAsRoot([]) as! ListCommand
     }
+
+    // MARK: - Default Subcommand
+
+    func testDefaultSubcommandRoutesToSearch() throws {
+        // "vec my-db hello" (no explicit "search") should route to SearchCommand
+        let cmd = try Vec.parseAsRoot(["my-db", "hello"]) as! SearchCommand
+        XCTAssertEqual(cmd.dbName, "my-db")
+        XCTAssertEqual(cmd.query, "hello")
+    }
+
+    func testExplicitListSubcommandTakesPrecedenceOverDefaultSearch() throws {
+        // "vec list" should invoke ListCommand, not search a db named "list"
+        let cmd = try Vec.parseAsRoot(["list"])
+        XCTAssertTrue(cmd is ListCommand)
+    }
 }

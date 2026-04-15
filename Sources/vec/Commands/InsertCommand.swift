@@ -16,22 +16,15 @@ struct InsertCommand: AsyncParsableCommand {
     var path: String
 
     func run() async throws {
-        try DatabaseLocator.validateName(dbName)
+        let (dbDir, _, sourceDir) = try DatabaseLocator.resolve(dbName)
 
-        let dbDir = DatabaseLocator.databaseDirectory(for: dbName)
-
-        guard FileManager.default.fileExists(atPath: dbDir.path) else {
-            throw VecError.databaseNotFound(dbName)
-        }
-
-        let config = try DatabaseLocator.readConfig(from: dbDir)
-        let sourceDir = URL(fileURLWithPath: config.sourceDirectory)
-
-        let filePath = URL(fileURLWithPath: path, relativeTo: sourceDir).standardized
+        // Resolve path relative to cwd, then validate it falls within sourceDir
+        let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let filePath = URL(fileURLWithPath: path, relativeTo: cwd).standardized
 
         // Validate path is within the source directory (append "/" to prevent prefix collisions)
         guard filePath.path.hasPrefix(sourceDir.path + "/") || filePath.path == sourceDir.path else {
-            print("Error: Path must be within the source directory.")
+            print("Error: Path must be within the source directory (\(sourceDir.path)).")
             throw ExitCode.failure
         }
 

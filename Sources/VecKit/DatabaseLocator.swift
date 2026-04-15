@@ -30,7 +30,14 @@ public struct DatabaseLocator {
         baseDirectory.appendingPathComponent(name)
     }
 
-    /// Validates that a database name contains only allowed characters.
+    /// Reserved names that cannot be used as database names because they
+    /// conflict with subcommand names.
+    private static let reservedNames: Set<String> = [
+        "init", "list", "search", "update-index", "insert", "remove", "help", "version"
+    ]
+
+    /// Validates that a database name contains only allowed characters
+    /// and does not conflict with subcommand names.
     ///
     /// Allowed: alphanumeric characters, hyphens, and underscores.
     /// Must be non-empty.
@@ -40,6 +47,9 @@ public struct DatabaseLocator {
         }
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
         guard name.unicodeScalars.allSatisfy({ allowed.contains($0) }) else {
+            throw VecError.invalidDatabaseName(name)
+        }
+        if reservedNames.contains(name) {
             throw VecError.invalidDatabaseName(name)
         }
     }
@@ -94,10 +104,42 @@ public struct DatabaseLocator {
     /// Reads a `DatabaseConfig` from the config.json file in the given database directory.
     public static func readConfig(from databaseDirectory: URL) throws -> DatabaseConfig {
         let configURL = databaseDirectory.appendingPathComponent(DatabaseConfig.filename)
-        let data = try Data(contentsOf: configURL)
+        let data: Data
+        do {
+            data = try Data(contentsOf: configURL)
+        } catch {
+            throw VecError.databaseCorrupted("config.json is missing or unreadable: \(error.localizedDescription)")
+        }
 
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(DatabaseConfig.self, from: data)
+        do {
+            return try decoder.decode(DatabaseConfig.self, from: data)
+        } catch {
+            throw VecError.databaseCorrupted("config.json is malformed: \(error.localizedDescription)")
+        }
+    }
+
+    /// Resolves a named database, returning its directory, config, and source directory URL.
+    ///
+    /// Validates the name, checks the database exists, reads config.json,
+    /// and verifies the source directory still exists on disk.
+    public static func resolve(_ name: String) throws -> (dbDir: URL, config: DatabaseConfig, sourceDir: URL) {
+        try validateName(name)
+
+        let dbDir = databaseDirectory(for: name)
+
+        guard FileManager.default.fileExists(atPath: dbDir.path) else {
+            throw VecError.databaseNotFound(name)
+        }
+
+        let config = try readConfig(from: dbDir)
+        let sourceDir = URL(fileURLWithPath: config.sourceDirectory, isDirectory: true)
+
+        guard FileManager.default.fileExists(atPath: sourceDir.path) else {
+            throw VecError.sourceDirectoryMissing(config.sourceDirectory)
+        }
+
+        return (dbDir, config, sourceDir)
     }
 }

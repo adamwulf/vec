@@ -22,7 +22,7 @@ struct InitCommand: AsyncParsableCommand {
         try DatabaseLocator.validateName(dbName)
 
         let dbDir = DatabaseLocator.databaseDirectory(for: dbName)
-        let sourceDir = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let sourceDir = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
 
         if FileManager.default.fileExists(atPath: dbDir.path) {
             if !force {
@@ -34,9 +34,10 @@ struct InitCommand: AsyncParsableCommand {
 
         print("Initializing vector database '\(dbName)' at \(dbDir.path)...")
 
+        // Create directory and write config.json first, so a crash during indexing
+        // still leaves a valid (empty) database that can be re-initialized.
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try database.initialize()
-
         let config = DatabaseConfig(sourceDirectory: sourceDir.path, createdAt: Date())
         try DatabaseLocator.writeConfig(config, to: dbDir)
 

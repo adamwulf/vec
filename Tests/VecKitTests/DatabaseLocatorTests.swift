@@ -70,6 +70,22 @@ final class DatabaseLocatorTests: XCTestCase {
         XCTAssertThrowsError(try DatabaseLocator.validateName("project#1"))
     }
 
+    func testValidateNameRejectsPathTraversalNames() {
+        XCTAssertThrowsError(try DatabaseLocator.validateName("."))
+        XCTAssertThrowsError(try DatabaseLocator.validateName(".."))
+    }
+
+    func testValidateNameRejectsReservedCommandNames() {
+        XCTAssertThrowsError(try DatabaseLocator.validateName("init"))
+        XCTAssertThrowsError(try DatabaseLocator.validateName("list"))
+        XCTAssertThrowsError(try DatabaseLocator.validateName("search"))
+        XCTAssertThrowsError(try DatabaseLocator.validateName("insert"))
+        XCTAssertThrowsError(try DatabaseLocator.validateName("remove"))
+        XCTAssertThrowsError(try DatabaseLocator.validateName("update-index"))
+        XCTAssertThrowsError(try DatabaseLocator.validateName("help"))
+        XCTAssertThrowsError(try DatabaseLocator.validateName("version"))
+    }
+
     // MARK: - databaseDirectory
 
     func testDatabaseDirectoryReturnsCorrectPath() {
@@ -116,7 +132,50 @@ final class DatabaseLocatorTests: XCTestCase {
         let dbDir = tempDir.appendingPathComponent("empty-dir")
         try! FileManager.default.createDirectory(at: dbDir, withIntermediateDirectories: true)
 
-        XCTAssertThrowsError(try DatabaseLocator.readConfig(from: dbDir))
+        XCTAssertThrowsError(try DatabaseLocator.readConfig(from: dbDir)) { error in
+            guard let vecError = error as? VecError,
+                  case .databaseCorrupted(let detail) = vecError else {
+                XCTFail("Expected VecError.databaseCorrupted, got \(error)")
+                return
+            }
+            XCTAssertTrue(detail.contains("missing or unreadable"))
+        }
+    }
+
+    func testReadConfigThrowsOnMalformedJSON() {
+        let dbDir = tempDir.appendingPathComponent("bad-config")
+        try! FileManager.default.createDirectory(at: dbDir, withIntermediateDirectories: true)
+
+        // Write invalid JSON
+        let configPath = dbDir.appendingPathComponent("config.json")
+        try! "{ not valid json }".write(to: configPath, atomically: true, encoding: .utf8)
+
+        XCTAssertThrowsError(try DatabaseLocator.readConfig(from: dbDir)) { error in
+            guard let vecError = error as? VecError,
+                  case .databaseCorrupted(let detail) = vecError else {
+                XCTFail("Expected VecError.databaseCorrupted, got \(error)")
+                return
+            }
+            XCTAssertTrue(detail.contains("malformed"))
+        }
+    }
+
+    func testReadConfigThrowsOnIncompleteConfig() {
+        let dbDir = tempDir.appendingPathComponent("incomplete-config")
+        try! FileManager.default.createDirectory(at: dbDir, withIntermediateDirectories: true)
+
+        // Write valid JSON but missing required fields
+        let configPath = dbDir.appendingPathComponent("config.json")
+        try! "{}".write(to: configPath, atomically: true, encoding: .utf8)
+
+        XCTAssertThrowsError(try DatabaseLocator.readConfig(from: dbDir)) { error in
+            guard let vecError = error as? VecError,
+                  case .databaseCorrupted(let detail) = vecError else {
+                XCTFail("Expected VecError.databaseCorrupted, got \(error)")
+                return
+            }
+            XCTAssertTrue(detail.contains("malformed"))
+        }
     }
 
     // MARK: - allDatabases (using real ~/.vec/ with unique test name)
@@ -157,12 +216,10 @@ final class DatabaseLocatorTests: XCTestCase {
         XCTAssertNil(found, "Should skip directory without config.json")
     }
 
-    func testAllDatabasesReturnsEmptyWhenBaseDoesNotExist() throws {
-        // Verify the method doesn't crash and returns a valid result.
-        // On a dev machine ~/.vec/ likely exists, so we just check it returns
-        // without error and the result is a valid array.
+    func testAllDatabasesDoesNotCrash() throws {
+        // Verify the method returns without crashing regardless of whether
+        // ~/.vec/ exists. This is a sanity check, not an exhaustive test.
         let databases = try DatabaseLocator.allDatabases()
-        // Verify it's iterable (basic sanity check)
         XCTAssertGreaterThanOrEqual(databases.count, 0)
     }
 }

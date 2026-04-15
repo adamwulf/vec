@@ -30,16 +30,7 @@ struct SearchCommand: AsyncParsableCommand {
     var format: OutputFormat = .text
 
     func run() async throws {
-        try DatabaseLocator.validateName(dbName)
-
-        let dbDir = DatabaseLocator.databaseDirectory(for: dbName)
-
-        guard FileManager.default.fileExists(atPath: dbDir.path) else {
-            throw VecError.databaseNotFound(dbName)
-        }
-
-        let config = try DatabaseLocator.readConfig(from: dbDir)
-        let sourceDir = URL(fileURLWithPath: config.sourceDirectory)
+        let (dbDir, _, sourceDir) = try DatabaseLocator.resolve(dbName)
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try database.open()

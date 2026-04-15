@@ -278,6 +278,7 @@ public enum VecError: Error, LocalizedError {
     case databaseCorrupted(String)
     case invalidDatabaseName(String)
     case databaseNotFound(String)
+    case sourceDirectoryMissing(String)
 
     public var errorDescription: String? {
         switch self {
@@ -296,9 +297,11 @@ public enum VecError: Error, LocalizedError {
         case .databaseCorrupted(let detail):
             return "Database schema is corrupted: \(detail)"
         case .invalidDatabaseName(let name):
-            return "Invalid database name '\(name)'. Names may only contain letters, numbers, hyphens, and underscores."
+            return "Invalid database name '\(name)'. Names may only contain letters, numbers, hyphens, and underscores, and must not conflict with command names."
         case .databaseNotFound(let name):
             return "Database '\(name)' not found. Run 'vec init \(name)' to create it."
+        case .sourceDirectoryMissing(let path):
+            return "Source directory '\(path)' no longer exists. The indexed directory may have been moved or deleted."
         }
     }
 }
