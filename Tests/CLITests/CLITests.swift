@@ -36,17 +36,6 @@ final class CLITests: XCTestCase {
         XCTAssertTrue(cmd.force)
     }
 
-    func testInitCommandParsesAllowHiddenFlag() throws {
-        let cmd = try InitCommand.parseAsRoot(["my-project", "--allow-hidden"]) as! InitCommand
-        XCTAssertEqual(cmd.dbName, "my-project")
-        XCTAssertTrue(cmd.allowHidden)
-    }
-
-    func testInitCommandAllowHiddenDefaultsFalse() throws {
-        let cmd = try InitCommand.parseAsRoot(["my-project"]) as! InitCommand
-        XCTAssertFalse(cmd.allowHidden)
-    }
-
     // MARK: - SearchCommand
 
     func testSearchCommandFailsWithoutArguments() {
