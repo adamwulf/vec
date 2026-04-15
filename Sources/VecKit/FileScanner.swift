@@ -26,7 +26,7 @@ public class FileScanner {
 
     /// Directories to always skip.
     private static let skipDirectories: Set<String> = [
-        ".git", ".vec", ".build", ".swiftpm",
+        ".git", ".build", ".swiftpm",
         "node_modules", "__pycache__", ".venv", "venv",
         ".DS_Store", "Pods", "DerivedData"
     ]
