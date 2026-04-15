@@ -28,6 +28,8 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         var added = 0
         var updated = 0
         var removed = 0
+        var skippedUnreadable = 0
+        var skippedEmbedFailures = 0
 
         // Find files to add or update
         for file in files {
@@ -36,8 +38,16 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                     // File changed — re-index
                     try database.removeEntries(forPath: file.relativePath)
                     let chunks = try extractor.extract(from: file)
+                    if chunks.isEmpty {
+                        skippedUnreadable += 1
+                        continue
+                    }
+                    var embedFailures = 0
                     for chunk in chunks {
-                        guard let embedding = embedder.embed(chunk.text) else { continue }
+                        guard let embedding = embedder.embed(chunk.text) else {
+                            embedFailures += 1
+                            continue
+                        }
                         try database.insert(
                             filePath: file.relativePath,
                             lineStart: chunk.lineStart,
@@ -49,15 +59,27 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                             embedding: embedding
                         )
                     }
-                    updated += 1
+                    if embedFailures == chunks.count {
+                        skippedEmbedFailures += 1
+                    } else {
+                        updated += 1
+                    }
                     print("  Updated: \(file.relativePath)")
                 }
                 // Otherwise unchanged — skip
             } else {
                 // New file
                 let chunks = try extractor.extract(from: file)
+                if chunks.isEmpty {
+                    skippedUnreadable += 1
+                    continue
+                }
+                var embedFailures = 0
                 for chunk in chunks {
-                    guard let embedding = embedder.embed(chunk.text) else { continue }
+                    guard let embedding = embedder.embed(chunk.text) else {
+                        embedFailures += 1
+                        continue
+                    }
                     try database.insert(
                         filePath: file.relativePath,
                         lineStart: chunk.lineStart,
@@ -69,7 +91,11 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                         embedding: embedding
                     )
                 }
-                added += 1
+                if embedFailures == chunks.count {
+                    skippedEmbedFailures += 1
+                } else {
+                    added += 1
+                }
                 print("  Added: \(file.relativePath)")
             }
         }
@@ -84,6 +110,18 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             }
         }
 
-        print("Update complete: \(added) added, \(updated) updated, \(removed) removed.")
+        let skipped = skippedUnreadable + skippedEmbedFailures
+        if skipped > 0 {
+            var details: [String] = []
+            if skippedUnreadable > 0 {
+                details.append("\(skippedUnreadable) unreadable")
+            }
+            if skippedEmbedFailures > 0 {
+                details.append("\(skippedEmbedFailures) failed to embed")
+            }
+            print("Update complete: \(added) added, \(updated) updated, \(removed) removed (\(skipped) skipped: \(details.joined(separator: ", "))).")
+        } else {
+            print("Update complete: \(added) added, \(updated) updated, \(removed) removed.")
+        }
     }
 }

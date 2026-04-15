@@ -56,6 +56,9 @@ struct InsertCommand: AsyncParsableCommand {
             count += 1
         }
 
+        if count == 0 && !chunks.isEmpty {
+            print("Warning: \(chunks.count) chunks extracted but none could be embedded from \(relativePath)")
+        }
         print("Indexed \(count) chunks from \(relativePath)")
     }
 }
