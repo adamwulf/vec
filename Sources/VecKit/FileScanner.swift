@@ -276,6 +276,8 @@ public enum VecError: Error, LocalizedError {
     case pathOutsideProject(String)
     case sqliteError(String)
     case databaseCorrupted(String)
+    case invalidDatabaseName(String)
+    case databaseNotFound(String)
 
     public var errorDescription: String? {
         switch self {
@@ -293,6 +295,10 @@ public enum VecError: Error, LocalizedError {
             return "SQLite error: \(message)"
         case .databaseCorrupted(let detail):
             return "Database schema is corrupted: \(detail)"
+        case .invalidDatabaseName(let name):
+            return "Invalid database name '\(name)'. Names may only contain letters, numbers, hyphens, and underscores."
+        case .databaseNotFound(let name):
+            return "Database '\(name)' not found. Run 'vec init \(name)' to create it."
         }
     }
 }
