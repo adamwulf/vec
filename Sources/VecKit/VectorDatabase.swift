@@ -5,29 +5,48 @@ import vector
 /// Wraps SQLite + sqlite-vector for storing and querying vector embeddings.
 public class VectorDatabase {
 
-    private let directory: URL
+    /// The directory containing the database files (e.g. `~/.vec/<db-name>/`).
+    public let databaseDirectory: URL
+
+    /// The source directory being indexed.
+    public let sourceDirectory: URL
+
     private let dbPath: String
     private var db: OpaquePointer?
 
     /// The dimension of vectors stored in this database.
     public let dimension: Int
 
-    public init(directory: URL, dimension: Int = 512) {
-        self.directory = directory
-        self.dbPath = directory
-            .appendingPathComponent(".vec")
+    /// Primary initializer for centralized storage.
+    ///
+    /// - Parameters:
+    ///   - databaseDirectory: The directory containing `index.db` (e.g. `~/.vec/<db-name>/`).
+    ///   - sourceDirectory: The directory being indexed.
+    ///   - dimension: The embedding vector dimension (default 512).
+    public init(databaseDirectory: URL, sourceDirectory: URL, dimension: Int = 512) {
+        self.databaseDirectory = databaseDirectory
+        self.sourceDirectory = sourceDirectory
+        self.dbPath = databaseDirectory
             .appendingPathComponent("index.db")
             .path
         self.dimension = dimension
     }
 
+    /// Legacy initializer for per-directory `.vec/` databases.
+    @available(*, deprecated, message: "Use init(databaseDirectory:sourceDirectory:) instead")
+    public convenience init(directory: URL, dimension: Int = 512) {
+        self.init(
+            databaseDirectory: directory.appendingPathComponent(".vec"),
+            sourceDirectory: directory,
+            dimension: dimension
+        )
+    }
+
     // MARK: - Lifecycle
 
-    /// Initialize a new database, creating the .vec directory and schema.
+    /// Initialize a new database, creating the database directory and schema.
     public func initialize() throws {
-        let vecDir = directory.appendingPathComponent(".vec")
-
-        try FileManager.default.createDirectory(at: vecDir, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: databaseDirectory, withIntermediateDirectories: true)
 
         try openDatabase()
         try loadVectorExtension()
