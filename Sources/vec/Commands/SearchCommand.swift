@@ -111,6 +111,8 @@ struct SearchCommand: AsyncParsableCommand {
                     print("  Lines \(start)-\(end)  (\(matchScore))")
                 } else if let page = match.pageNumber {
                     print("  Page \(page)  (\(matchScore))")
+                } else {
+                    print("  (whole file)  (\(matchScore))")
                 }
 
                 if includePreview, let preview = match.contentPreview {
@@ -130,7 +132,8 @@ struct SearchCommand: AsyncParsableCommand {
             var matchesArray: [[String: Any]] = []
             for match in group.matches {
                 var matchObj: [String: Any] = [
-                    "score": max(0, 1.0 - match.distance)
+                    "score": max(0, 1.0 - match.distance),
+                    "chunk_type": match.chunkType.rawValue
                 ]
                 if let start = match.lineStart {
                     matchObj["line_start"] = start
