@@ -32,16 +32,6 @@ public class VectorDatabase {
         self.dimension = dimension
     }
 
-    /// Legacy initializer for per-directory `.vec/` databases.
-    @available(*, deprecated, message: "Use init(databaseDirectory:sourceDirectory:) instead")
-    public convenience init(directory: URL, dimension: Int = 512) {
-        self.init(
-            databaseDirectory: directory.appendingPathComponent(".vec"),
-            sourceDirectory: directory,
-            dimension: dimension
-        )
-    }
-
     // MARK: - Lifecycle
 
     /// Initialize a new database, creating the database directory and schema.
