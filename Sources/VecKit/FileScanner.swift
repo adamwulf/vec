@@ -286,6 +286,8 @@ public enum VecError: Error, LocalizedError {
     case invalidDatabaseName(String)
     case databaseNotFound(String)
     case sourceDirectoryMissing(String)
+    case noDatabaseForDirectory(String)
+    case multipleDatabasesForDirectory(String, [String])
 
     public var errorDescription: String? {
         switch self {
@@ -305,6 +307,10 @@ public enum VecError: Error, LocalizedError {
             return "Database '\(name)' not found. Run 'vec init \(name)' to create it."
         case .sourceDirectoryMissing(let path):
             return "Source directory '\(path)' no longer exists. The indexed directory may have been moved or deleted."
+        case .noDatabaseForDirectory(let path):
+            return "No database found for directory '\(path)'. Use -d <name> or run 'vec init <name>' here first."
+        case .multipleDatabasesForDirectory(let path, let names):
+            return "Multiple databases found for directory '\(path)': \(names.joined(separator: ", ")). Use -d <name> to specify which one."
         }
     }
 }

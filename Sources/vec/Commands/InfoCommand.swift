@@ -9,11 +9,13 @@ struct InfoCommand: AsyncParsableCommand {
         abstract: "Show metadata about a specific database"
     )
 
-    @Argument(help: "Name of the database to inspect (stored in ~/.vec/<db-name>/)")
-    var dbName: String
+    @Option(name: .shortAndLong, help: "Name of the database (stored in ~/.vec/<name>/). Omit to resolve from current directory.")
+    var db: String?
 
     func run() async throws {
-        let (dbDir, config, sourceDir) = try DatabaseLocator.resolve(dbName)
+        let (dbDir, config, sourceDir) = try db != nil
+            ? DatabaseLocator.resolve(db!)
+            : DatabaseLocator.resolveFromCurrentDirectory()
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try database.open()
@@ -39,7 +41,7 @@ struct InfoCommand: AsyncParsableCommand {
             sizeString = "unknown"
         }
 
-        print("Database:     \(dbName)")
+        print("Database:     \(dbDir.lastPathComponent)")
         print("Source:       \(sourceDir.path)")
         print("Created:      \(createdString)")
         print("Files:        \(fileCount)")

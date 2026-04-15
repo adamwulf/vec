@@ -9,8 +9,8 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         abstract: "Update the vector index with new or modified files"
     )
 
-    @Argument(help: "Name of the database to update (stored in ~/.vec/<db-name>/)")
-    var dbName: String
+    @Option(name: .shortAndLong, help: "Name of the database (stored in ~/.vec/<name>/). Omit to resolve from current directory.")
+    var db: String?
 
     @Flag(name: .long, help: "Include hidden files and folders")
     var allowHidden: Bool = false
@@ -81,7 +81,9 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     }
 
     func run() async throws {
-        let (dbDir, _, sourceDir) = try DatabaseLocator.resolve(dbName)
+        let (dbDir, _, sourceDir) = try db != nil
+            ? DatabaseLocator.resolve(db!)
+            : DatabaseLocator.resolveFromCurrentDirectory()
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try database.open()

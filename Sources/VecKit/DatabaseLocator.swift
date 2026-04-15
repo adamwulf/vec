@@ -142,4 +142,34 @@ public struct DatabaseLocator {
 
         return (dbDir, config, sourceDir)
     }
+
+    /// Resolves a database by matching the current working directory against
+    /// all known databases' `sourceDirectory` in their `config.json`.
+    ///
+    /// Throws `.noDatabaseForDirectory` if no match is found, or
+    /// `.multipleDatabasesForDirectory` if more than one database maps to the same directory.
+    public static func resolveFromCurrentDirectory() throws -> (dbDir: URL, config: DatabaseConfig, sourceDir: URL) {
+        let cwd = FileManager.default.currentDirectoryPath
+        let standardizedCwd = (cwd as NSString).standardizingPath
+
+        let databases = try allDatabases()
+        var matches: [(name: String, config: DatabaseConfig)] = []
+
+        for db in databases {
+            let standardizedSource = (db.config.sourceDirectory as NSString).standardizingPath
+            if standardizedSource == standardizedCwd {
+                matches.append(db)
+            }
+        }
+
+        switch matches.count {
+        case 0:
+            throw VecError.noDatabaseForDirectory(cwd)
+        case 1:
+            let match = matches[0]
+            return try resolve(match.name)
+        default:
+            throw VecError.multipleDatabasesForDirectory(cwd, matches.map(\.name))
+        }
+    }
 }

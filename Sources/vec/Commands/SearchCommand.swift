@@ -14,8 +14,8 @@ struct SearchCommand: AsyncParsableCommand {
         case json
     }
 
-    @Argument(help: "Name of the database to search (stored in ~/.vec/<db-name>/)")
-    var dbName: String
+    @Option(name: .shortAndLong, help: "Name of the database (stored in ~/.vec/<name>/). Omit to resolve from current directory.")
+    var db: String?
 
     @Argument(help: "The search query text")
     var query: String
@@ -35,7 +35,9 @@ struct SearchCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        let (dbDir, _, sourceDir) = try DatabaseLocator.resolve(dbName)
+        let (dbDir, _, sourceDir) = try db != nil
+            ? DatabaseLocator.resolve(db!)
+            : DatabaseLocator.resolveFromCurrentDirectory()
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try database.open()

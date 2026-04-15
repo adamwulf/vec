@@ -9,14 +9,16 @@ struct InsertCommand: AsyncParsableCommand {
         abstract: "Add or update a specific file in the vector index"
     )
 
-    @Argument(help: "Name of the database (stored in ~/.vec/<db-name>/)")
-    var dbName: String
+    @Option(name: .shortAndLong, help: "Name of the database (stored in ~/.vec/<name>/). Omit to resolve from current directory.")
+    var db: String?
 
     @Argument(help: "Path to the file to index")
     var path: String
 
     func run() async throws {
-        let (dbDir, _, sourceDir) = try DatabaseLocator.resolve(dbName)
+        let (dbDir, _, sourceDir) = try db != nil
+            ? DatabaseLocator.resolve(db!)
+            : DatabaseLocator.resolveFromCurrentDirectory()
 
         // Resolve path relative to cwd, then validate it falls within sourceDir
         let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
