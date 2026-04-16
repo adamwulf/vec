@@ -2,8 +2,10 @@ import Foundation
 import NaturalLanguage
 
 /// Generates text embeddings using Apple's on-device NLEmbedding.
-/// Thread-safe: the underlying NLEmbedding is immutable after init
-/// and its `vector(for:)` method is safe to call from multiple threads.
+/// NOT safe for concurrent use on the same instance — concurrent calls
+/// to `vector(for:)` on the same `NLEmbedding` cause segfaults in the
+/// underlying C++ runtime. Create separate instances for concurrent
+/// tasks (each loads an independent ~50 MB model).
 public final class EmbeddingService: @unchecked Sendable {
 
     private let embedding: NLEmbedding?
