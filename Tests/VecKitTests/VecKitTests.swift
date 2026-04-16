@@ -317,6 +317,99 @@ final class TextExtractorTests: XCTestCase {
         // Binary file cannot be read as UTF-8, so extract() should return empty
         XCTAssertEqual(chunks.count, 0)
     }
+
+    // MARK: - PDF Extraction Tests
+
+    private func pdfFixtureURL() -> URL {
+        Bundle.module.url(forResource: "MobyDick", withExtension: "pdf", subdirectory: "Fixtures")!
+    }
+
+    private func pdfFileInfo() -> FileInfo {
+        let url = pdfFixtureURL()
+        let modDate = (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? Date()
+        return FileInfo(relativePath: "MobyDick.pdf", url: url, modificationDate: modDate, fileExtension: "pdf")
+    }
+
+    func testPDFExtractionProducesWholeAndPageChunks() throws {
+        let file = pdfFileInfo()
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        // Should have at least one chunk
+        XCTAssertGreaterThan(chunks.count, 1)
+
+        // First chunk should be the whole-document chunk
+        XCTAssertEqual(chunks[0].type, .whole)
+        XCTAssertNil(chunks[0].pageNumber)
+        XCTAssertFalse(chunks[0].text.isEmpty)
+
+        // Remaining chunks should be pdfPage type
+        let pageChunks = chunks.filter { $0.type == .pdfPage }
+        XCTAssertGreaterThan(pageChunks.count, 0)
+    }
+
+    func testPDFPageChunksHaveCorrectPageNumbers() throws {
+        let file = pdfFileInfo()
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        let pageChunks = chunks.filter { $0.type == .pdfPage }
+
+        // All page chunks should have 1-based page numbers
+        for chunk in pageChunks {
+            XCTAssertNotNil(chunk.pageNumber)
+            XCTAssertGreaterThan(chunk.pageNumber!, 0, "Page numbers should be 1-based")
+        }
+
+        // Page numbers should be sequential (no gaps for pages with text)
+        let pageNumbers = pageChunks.compactMap(\.pageNumber)
+        XCTAssertEqual(pageNumbers, pageNumbers.sorted(), "Page numbers should be in order")
+
+        // First page should be page 1
+        XCTAssertEqual(pageNumbers.first, 1)
+    }
+
+    func testPDFPageChunksHaveNoLineRanges() throws {
+        let file = pdfFileInfo()
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        let pageChunks = chunks.filter { $0.type == .pdfPage }
+
+        // PDF page chunks should not have line ranges
+        for chunk in pageChunks {
+            XCTAssertNil(chunk.lineStart)
+            XCTAssertNil(chunk.lineEnd)
+        }
+    }
+
+    func testPDFWholeChunkContainsTextFromMultiplePages() throws {
+        let file = pdfFileInfo()
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        let wholeChunk = chunks.first { $0.type == .whole }
+        XCTAssertNotNil(wholeChunk)
+
+        // The whole-document chunk should contain text from across the PDF
+        // Moby Dick starts with recognizable content
+        let text = wholeChunk!.text
+        XCTAssertTrue(text.contains("MOBY") || text.contains("Moby") || text.contains("whale") || text.contains("Whale"),
+                       "Whole-document chunk should contain Moby Dick content")
+    }
+
+    func testPDFPageChunksContainNonEmptyText() throws {
+        let file = pdfFileInfo()
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        let pageChunks = chunks.filter { $0.type == .pdfPage }
+
+        for chunk in pageChunks {
+            let trimmed = chunk.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            XCTAssertFalse(trimmed.isEmpty, "Page \(chunk.pageNumber ?? 0) should have non-empty text")
+        }
+    }
 }
 
 // MARK: - FileScanner Tests
