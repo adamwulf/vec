@@ -43,7 +43,7 @@ struct InsertCommand: AsyncParsableCommand {
         // Use the pipeline for single-file indexing — still benefits from
         // parallel chunk embedding for large files.
         let pipeline = IndexingPipeline()
-        let results = try await pipeline.run(
+        let (results, _) = try await pipeline.run(
             workItems: [(file: fileInfo, label: "Updated")],
             extractor: TextExtractor(),
             database: database
