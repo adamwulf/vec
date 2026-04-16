@@ -51,7 +51,7 @@ struct SearchCommand: AsyncParsableCommand {
         // Fetch extra chunks so we can group by file and still return enough files
         let fetchLimit = limit * 3
         let results = try database.search(embedding: queryEmbedding, limit: fetchLimit)
-        let grouped = coalesceResults(results)
+        let grouped = SearchResultCoalescer.coalesce(results, limit: limit)
 
         switch format {
         case .text:
@@ -59,40 +59,6 @@ struct SearchCommand: AsyncParsableCommand {
         case .json:
             printJSONResults(grouped)
         }
-    }
-
-    // MARK: - Result Coalescing
-
-    private struct FileGroup {
-        let filePath: String
-        let bestScore: Double
-        let matches: [SearchResult]
-    }
-
-    private func coalesceResults(_ results: [SearchResult]) -> [FileGroup] {
-        // Group results by file path, preserving insertion order via array of keys
-        var groupsByPath: [String: [SearchResult]] = [:]
-        var orderedPaths: [String] = []
-        for result in results {
-            if groupsByPath[result.filePath] == nil {
-                orderedPaths.append(result.filePath)
-            }
-            groupsByPath[result.filePath, default: []].append(result)
-        }
-
-        // Build file groups, each sorted by score descending
-        var groups: [FileGroup] = orderedPaths.compactMap { path in
-            guard let matches = groupsByPath[path] else { return nil }
-            let sorted = matches.sorted { (1.0 - $0.distance) > (1.0 - $1.distance) }
-            let bestScore = max(0, 1.0 - sorted[0].distance)
-            return FileGroup(filePath: path, bestScore: bestScore, matches: sorted)
-        }
-
-        // Sort groups by best score descending
-        groups.sort { $0.bestScore > $1.bestScore }
-
-        // Apply file-level limit
-        return Array(groups.prefix(limit))
     }
 
     // MARK: - Text Output
