@@ -57,34 +57,20 @@ struct InsertCommand: AsyncParsableCommand {
             let batchEnd = min(batchStart + Self.batchSize, chunks.count)
             let batch = chunks[batchStart..<batchEnd]
 
-            // Embed batch in parallel
-            let records: [ChunkRecord] = await withTaskGroup(of: (Int, TextChunk, [Float]?).self) { group in
-                for (index, chunk) in batch.enumerated() {
-                    group.addTask {
-                        let vector = embedder.embed(chunk.text)
-                        return (index, chunk, vector)
-                    }
-                }
-
-                var results: [(index: Int, chunk: TextChunk, embedding: [Float])] = []
-                for await (index, chunk, vector) in group {
-                    if let vector = vector {
-                        results.append((index, chunk, vector))
-                    }
-                }
-                results.sort { $0.index < $1.index }
-                return results.map { result in
-                    ChunkRecord(
-                        filePath: relativePath,
-                        lineStart: result.chunk.lineStart,
-                        lineEnd: result.chunk.lineEnd,
-                        chunkType: result.chunk.type,
-                        pageNumber: result.chunk.pageNumber,
-                        fileModifiedAt: fileInfo.modificationDate,
-                        contentPreview: String(result.chunk.text.prefix(200)),
-                        embedding: result.embedding
-                    )
-                }
+            // Embed sequentially — NLEmbedding is not safe for concurrent use
+            var records: [ChunkRecord] = []
+            for chunk in batch {
+                guard let vector = embedder.embed(chunk.text) else { continue }
+                records.append(ChunkRecord(
+                    filePath: relativePath,
+                    lineStart: chunk.lineStart,
+                    lineEnd: chunk.lineEnd,
+                    chunkType: chunk.type,
+                    pageNumber: chunk.pageNumber,
+                    fileModifiedAt: fileInfo.modificationDate,
+                    contentPreview: String(chunk.text.prefix(200)),
+                    embedding: vector
+                ))
             }
 
             guard !records.isEmpty else { continue }
