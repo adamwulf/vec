@@ -286,6 +286,73 @@ final class DatabaseLocatorTests: XCTestCase {
         }
     }
 
+    // MARK: - resolve()
+
+    func testResolveWithValidNameReturnsCorrectTuple() throws {
+        // Create a real source directory
+        let sourceDir = tempDir.appendingPathComponent("resolve-source")
+        try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
+        let resolvedSource = sourceDir.resolvingSymlinksInPath()
+
+        let dbName = try createTestDatabase(sourceDirectory: resolvedSource.path)
+        defer { removeTestDatabase(dbName) }
+
+        let (dbDir, config, resultSourceDir) = try DatabaseLocator.resolve(dbName)
+
+        XCTAssertEqual(dbDir.lastPathComponent, dbName)
+        XCTAssertEqual(config.sourceDirectory, resolvedSource.path)
+        XCTAssertEqual(resultSourceDir.path, resolvedSource.path)
+    }
+
+    func testResolveWithNonExistentNameThrowsDatabaseNotFound() throws {
+        let fakeName = "vectest-nonexistent-\(UUID().uuidString)"
+
+        XCTAssertThrowsError(try DatabaseLocator.resolve(fakeName)) { error in
+            guard let vecError = error as? VecError,
+                  case .databaseNotFound(let name) = vecError else {
+                XCTFail("Expected VecError.databaseNotFound, got \(error)")
+                return
+            }
+            XCTAssertEqual(name, fakeName)
+        }
+    }
+
+    func testResolveWithInvalidNameThrowsInvalidDatabaseName() {
+        XCTAssertThrowsError(try DatabaseLocator.resolve("bad name")) { error in
+            guard let vecError = error as? VecError,
+                  case .invalidDatabaseName(let name) = vecError else {
+                XCTFail("Expected VecError.invalidDatabaseName, got \(error)")
+                return
+            }
+            XCTAssertEqual(name, "bad name")
+        }
+    }
+
+    func testResolveThrowsSourceDirectoryMissingWhenDirDeleted() throws {
+        // Create a temp source directory
+        let sourceDir = tempDir.appendingPathComponent("disappearing-source")
+        try FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
+        let resolvedSource = sourceDir.resolvingSymlinksInPath()
+
+        // Create a database pointing to that source directory
+        let dbName = try createTestDatabase(sourceDirectory: resolvedSource.path)
+        defer { removeTestDatabase(dbName) }
+
+        // Delete the source directory before calling resolve()
+        try FileManager.default.removeItem(at: resolvedSource)
+
+        XCTAssertThrowsError(try DatabaseLocator.resolve(dbName)) { error in
+            guard let vecError = error as? VecError,
+                  case .sourceDirectoryMissing(let path) = vecError else {
+                XCTFail("Expected VecError.sourceDirectoryMissing, got \(error)")
+                return
+            }
+            XCTAssertEqual(path, resolvedSource.path)
+        }
+    }
+
+    // MARK: - resolveFromCurrentDirectory
+
     func testResolveFromCurrentDirectoryMultipleMatchesThrows() throws {
         // Create a source directory that two databases will point to
         let sourceDir = tempDir.appendingPathComponent("multi-match")

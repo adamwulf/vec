@@ -646,6 +646,57 @@ final class FileScannerTests: XCTestCase {
         let files = try scanner.scan()
         XCTAssertEqual(files.count, 0)
     }
+
+    func testVecignoreRootRelativePatternMatchesOnlyAtRoot() throws {
+        createTextFile(at: "specific-file.txt", content: "root level file")
+        createTextFile(at: "subdir/specific-file.txt", content: "nested file")
+        createTextFile(at: "readme.md", content: "# Hello")
+        createTextFile(at: ".vecignore", content: "/specific-file.txt\n")
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains("specific-file.txt"),
+                        "/specific-file.txt should exclude root-level match")
+        XCTAssertTrue(relativePaths.contains("subdir/specific-file.txt"),
+                       "Root-relative pattern should NOT match nested file, got: \(relativePaths)")
+    }
+
+    func testVecignoreCommentLinesAreIgnored() throws {
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "debug.log", content: "log output")
+        createTextFile(at: "readme.md", content: "# Hello")
+        // The comment line should be ignored; only *.log is an active pattern
+        createTextFile(at: ".vecignore", content: "# This is a comment\n*.log\n# Another comment\n")
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains("debug.log"),
+                        "*.log should still be vecignored despite comment lines")
+    }
+
+    func testVecignoreBlankLinesAreIgnored() throws {
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "debug.log", content: "log output")
+        createTextFile(at: "readme.md", content: "# Hello")
+        // Blank lines between patterns should be ignored
+        createTextFile(at: ".vecignore", content: "\n\n*.log\n\n\n")
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains("debug.log"),
+                        "*.log should still be vecignored despite blank lines")
+    }
 }
 
 // MARK: - PathUtilities Tests
