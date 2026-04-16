@@ -3,7 +3,7 @@ import NaturalLanguage
 
 /// Result of indexing a single file.
 public enum IndexResult: Sendable {
-    case indexed(filePath: String, wasUpdate: Bool)
+    case indexed(filePath: String, wasUpdate: Bool, chunkCount: Int)
     case skippedUnreadable(filePath: String)
     case skippedEmbedFailure(filePath: String)
 }
@@ -122,7 +122,7 @@ public final class IndexingPipeline: Sendable {
                     try await database.markFileIndexed(path: path, modifiedAt: work.file.modificationDate)
 
                     let wasUpdate = work.label == "Updated"
-                    await resultCollector.record(.indexed(filePath: path, wasUpdate: wasUpdate))
+                    await resultCollector.record(.indexed(filePath: path, wasUpdate: wasUpdate, chunkCount: work.records.count))
 
                     if work.totalChunks > batchSize {
                         progress?("  Done: \(path) (\(work.records.count) chunks)")
@@ -194,6 +194,10 @@ public final class IndexingPipeline: Sendable {
             for (index, batch) in batches.enumerated() {
                 group.addTask {
                     let embedder = await pool.acquire()
+                    // Swift doesn't allow `await` in `defer`, so we use an
+                    // unstructured Task to return the embedder to the pool.
+                    // The release runs shortly after the closure exits —
+                    // safe because every acquire path has a matching release.
                     defer { Task { await pool.release(embedder) } }
 
                     var records: [ChunkRecord] = []

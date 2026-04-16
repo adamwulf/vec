@@ -74,7 +74,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
 
         for result in results {
             switch result {
-            case .indexed(_, let wasUpdate):
+            case .indexed(_, let wasUpdate, _):
                 if wasUpdate {
                     updated += 1
                 } else {

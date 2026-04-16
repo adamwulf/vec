@@ -52,9 +52,8 @@ struct InsertCommand: AsyncParsableCommand {
         let relativePath = fileInfo.relativePath
         if let result = results.first {
             switch result {
-            case .indexed:
-                // Count chunks from the pipeline result
-                print("Indexed \(relativePath)")
+            case .indexed(_, _, let chunkCount):
+                print("Indexed \(chunkCount) chunks from \(relativePath)")
             case .skippedUnreadable:
                 print("Warning: could not read \(relativePath)")
             case .skippedEmbedFailure:
