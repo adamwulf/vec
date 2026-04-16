@@ -22,6 +22,8 @@ public struct SearchResultCoalescer {
     ///   - limit: Maximum number of file groups to return.
     /// - Returns: Coalesced file groups, sorted by best score descending.
     public static func coalesce(_ results: [SearchResult], limit: Int) -> [FileGroup] {
+        guard limit > 0 else { return [] }
+
         // Group results by file path, preserving insertion order via array of keys
         var groupsByPath: [String: [SearchResult]] = [:]
         var orderedPaths: [String] = []

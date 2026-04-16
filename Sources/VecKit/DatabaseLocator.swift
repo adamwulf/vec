@@ -150,14 +150,14 @@ public struct DatabaseLocator {
     /// `.multipleDatabasesForDirectory` if more than one database maps to the same directory.
     public static func resolveFromCurrentDirectory() throws -> (dbDir: URL, config: DatabaseConfig, sourceDir: URL) {
         let cwd = FileManager.default.currentDirectoryPath
-        let standardizedCwd = (cwd as NSString).standardizingPath
+        let resolvedCwd = URL(fileURLWithPath: cwd).resolvingSymlinksInPath().path
 
         let databases = try allDatabases()
         var matches: [(name: String, config: DatabaseConfig)] = []
 
         for db in databases {
-            let standardizedSource = (db.config.sourceDirectory as NSString).standardizingPath
-            if standardizedSource == standardizedCwd {
+            let resolvedSource = URL(fileURLWithPath: db.config.sourceDirectory).resolvingSymlinksInPath().path
+            if resolvedSource == resolvedCwd {
                 matches.append(db)
             }
         }
