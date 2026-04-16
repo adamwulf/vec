@@ -18,15 +18,54 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Flag(name: .shortAndLong, help: "Show detailed progress for each file")
     var verbose: Bool = false
 
+    /// Maximum number of chunks to embed and flush to the database at once.
+    private static let batchSize = 20
+
     private enum IndexResult: Sendable {
         case indexed(wasUpdate: Bool)
         case skippedUnreadable
         case skippedEmbedFailure
     }
 
-    /// Extract text and generate embeddings for a file in parallel, then write to the database
-    /// in a single transactional batch. When `removeExisting` is true (re-indexing a modified
-    /// file), old entries are atomically replaced within the same transaction.
+    /// Embed a batch of chunks in parallel and return ChunkRecords ready for insertion.
+    private func embedBatch(
+        _ batch: ArraySlice<TextChunk>,
+        filePath: String,
+        fileModifiedAt: Date,
+        embedder: EmbeddingService
+    ) async -> [ChunkRecord] {
+        await withTaskGroup(of: (Int, TextChunk, [Float]?).self) { group in
+            for (index, chunk) in batch.enumerated() {
+                group.addTask {
+                    let vector = embedder.embed(chunk.text)
+                    return (index, chunk, vector)
+                }
+            }
+
+            var results: [(index: Int, chunk: TextChunk, embedding: [Float])] = []
+            for await (index, chunk, vector) in group {
+                if let vector = vector {
+                    results.append((index, chunk, vector))
+                }
+            }
+            results.sort { $0.index < $1.index }
+            return results.map { result in
+                ChunkRecord(
+                    filePath: filePath,
+                    lineStart: result.chunk.lineStart,
+                    lineEnd: result.chunk.lineEnd,
+                    chunkType: result.chunk.type,
+                    pageNumber: result.chunk.pageNumber,
+                    fileModifiedAt: fileModifiedAt,
+                    contentPreview: String(result.chunk.text.prefix(200)),
+                    embedding: result.embedding
+                )
+            }
+        }
+    }
+
+    /// Extract text and generate embeddings for a file, flushing to the database in
+    /// batches of `batchSize` to bound memory usage for large files.
     private func indexFile(
         _ file: FileInfo,
         using extractor: TextExtractor,
@@ -52,57 +91,46 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             return .skippedUnreadable
         }
 
-        // Embed all chunks in parallel across available cores
-        let embedded: [(TextChunk, [Float])] = await withTaskGroup(of: (Int, TextChunk, [Float]?).self) { group in
-            for (index, chunk) in chunks.enumerated() {
-                group.addTask {
-                    let vector = embedder.embed(chunk.text)
-                    return (index, chunk, vector)
-                }
+        var totalInserted = 0
+        var needsDelete = removeExisting
+
+        // Process chunks in batches to bound memory
+        for batchStart in stride(from: 0, to: chunks.count, by: Self.batchSize) {
+            let batchEnd = min(batchStart + Self.batchSize, chunks.count)
+            let batch = chunks[batchStart..<batchEnd]
+
+            let records = await embedBatch(
+                batch,
+                filePath: file.relativePath,
+                fileModifiedAt: file.modificationDate,
+                embedder: embedder
+            )
+
+            guard !records.isEmpty else { continue }
+
+            // First batch with removeExisting atomically replaces old entries;
+            // subsequent batches just insert.
+            if needsDelete {
+                try await database.replaceEntries(forPath: file.relativePath, with: records)
+                needsDelete = false
+            } else {
+                try await database.insertBatch(records)
             }
 
-            var results: [(index: Int, chunk: TextChunk, embedding: [Float])] = []
-            for await (index, chunk, vector) in group {
-                if let vector = vector {
-                    results.append((index, chunk, vector))
-                }
-            }
-            // Maintain original chunk order for deterministic insertion
-            results.sort { $0.index < $1.index }
-            return results.map { ($0.chunk, $0.embedding) }
+            totalInserted += records.count
         }
 
-        if embedded.isEmpty {
+        // If we needed to delete but never had any successful embeddings,
+        // don't delete the old data — preserve it.
+        if totalInserted == 0 {
             if verbose {
                 print("  Skipped: \(file.relativePath) (failed to embed \(chunks.count) chunks)")
             }
             return .skippedEmbedFailure
         }
 
-        // Build ChunkRecords for batch insert
-        let records = embedded.map { (chunk, embedding) in
-            ChunkRecord(
-                filePath: file.relativePath,
-                lineStart: chunk.lineStart,
-                lineEnd: chunk.lineEnd,
-                chunkType: chunk.type,
-                pageNumber: chunk.pageNumber,
-                fileModifiedAt: file.modificationDate,
-                contentPreview: String(chunk.text.prefix(200)),
-                embedding: embedding
-            )
-        }
-
-        // Single actor hop: either replace (delete + insert) or batch insert,
-        // all within one SQLite transaction (one fsync).
-        if removeExisting {
-            try await database.replaceEntries(forPath: file.relativePath, with: records)
-        } else {
-            try await database.insertBatch(records)
-        }
-
         if verbose {
-            print("  \(label): \(file.relativePath) (\(embedded.count) chunks)")
+            print("  \(label): \(file.relativePath) (\(totalInserted) chunks)")
         }
         return .indexed(wasUpdate: removeExisting)
     }

@@ -15,6 +15,9 @@ struct InsertCommand: AsyncParsableCommand {
     @Argument(help: "Path to the file to index")
     var path: String
 
+    /// Maximum number of chunks to embed and flush to the database at once.
+    private static let batchSize = 20
+
     func run() async throws {
         let (dbDir, _, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
@@ -46,44 +49,61 @@ struct InsertCommand: AsyncParsableCommand {
         let fileInfo = try FileScanner.fileInfo(for: filePath, relativeTo: sourceDir)
         let chunks = try extractor.extract(from: fileInfo)
 
-        // Embed all chunks in parallel
-        let embedded: [(TextChunk, [Float])] = await withTaskGroup(of: (Int, TextChunk, [Float]?).self) { group in
-            for (index, chunk) in chunks.enumerated() {
-                group.addTask {
-                    let vector = embedder.embed(chunk.text)
-                    return (index, chunk, vector)
+        var totalInserted = 0
+        var needsDelete = true
+
+        // Process chunks in batches to bound memory
+        for batchStart in stride(from: 0, to: chunks.count, by: Self.batchSize) {
+            let batchEnd = min(batchStart + Self.batchSize, chunks.count)
+            let batch = chunks[batchStart..<batchEnd]
+
+            // Embed batch in parallel
+            let records: [ChunkRecord] = await withTaskGroup(of: (Int, TextChunk, [Float]?).self) { group in
+                for (index, chunk) in batch.enumerated() {
+                    group.addTask {
+                        let vector = embedder.embed(chunk.text)
+                        return (index, chunk, vector)
+                    }
+                }
+
+                var results: [(index: Int, chunk: TextChunk, embedding: [Float])] = []
+                for await (index, chunk, vector) in group {
+                    if let vector = vector {
+                        results.append((index, chunk, vector))
+                    }
+                }
+                results.sort { $0.index < $1.index }
+                return results.map { result in
+                    ChunkRecord(
+                        filePath: relativePath,
+                        lineStart: result.chunk.lineStart,
+                        lineEnd: result.chunk.lineEnd,
+                        chunkType: result.chunk.type,
+                        pageNumber: result.chunk.pageNumber,
+                        fileModifiedAt: fileInfo.modificationDate,
+                        contentPreview: String(result.chunk.text.prefix(200)),
+                        embedding: result.embedding
+                    )
                 }
             }
 
-            var results: [(index: Int, chunk: TextChunk, embedding: [Float])] = []
-            for await (index, chunk, vector) in group {
-                if let vector = vector {
-                    results.append((index, chunk, vector))
-                }
+            guard !records.isEmpty else { continue }
+
+            // First batch atomically replaces old entries;
+            // subsequent batches just insert.
+            if needsDelete {
+                try await database.replaceEntries(forPath: relativePath, with: records)
+                needsDelete = false
+            } else {
+                try await database.insertBatch(records)
             }
-            results.sort { $0.index < $1.index }
-            return results.map { ($0.chunk, $0.embedding) }
+
+            totalInserted += records.count
         }
 
-        // Build records and atomically replace in one transaction + one actor hop
-        let records = embedded.map { (chunk, embedding) in
-            ChunkRecord(
-                filePath: relativePath,
-                lineStart: chunk.lineStart,
-                lineEnd: chunk.lineEnd,
-                chunkType: chunk.type,
-                pageNumber: chunk.pageNumber,
-                fileModifiedAt: fileInfo.modificationDate,
-                contentPreview: String(chunk.text.prefix(200)),
-                embedding: embedding
-            )
-        }
-
-        try await database.replaceEntries(forPath: relativePath, with: records)
-
-        if embedded.isEmpty && !chunks.isEmpty {
+        if totalInserted == 0 && !chunks.isEmpty {
             print("Warning: \(chunks.count) chunks extracted but none could be embedded from \(relativePath)")
         }
-        print("Indexed \(embedded.count) chunks from \(relativePath)")
+        print("Indexed \(totalInserted) chunks from \(relativePath)")
     }
 }
