@@ -127,12 +127,23 @@ public enum ProgressEvent: Sendable {
 public typealias ProgressHandler = @Sendable (ProgressEvent) -> Void
 
 /// A batch of embedded records for a complete file, ready for DB insertion.
+///
+/// `totalChunksExtracted` is the number of chunks the extract stage produced
+/// for this file (before any embed attempts). The DB writer uses it to
+/// distinguish:
+///
+/// - `records.isEmpty && totalChunksExtracted == 0` — extract produced no
+///   chunks (unreadable / empty file) → `.skippedUnreadable`.
+/// - `records.isEmpty && totalChunksExtracted > 0` — every chunk failed to
+///   embed → `.skippedEmbedFailure` (with a per-file stats entry recording
+///   `chunkCount: 0`, matching pre-H7 behavior).
 struct SaveWork: Sendable {
     let file: FileInfo
     let label: String
     let records: [ChunkRecord]
     let extractSeconds: Double
     let embedSeconds: Double
+    let totalChunksExtracted: Int
 }
 
 /// A three-stage producer/consumer pipeline that parallelizes file indexing.
@@ -267,20 +278,10 @@ public final class IndexingPipeline: Sendable {
                         chunks = try extractor.extract(from: item.file)
                     } catch {
                         let extractSeconds = Self.elapsed(since: extractStart)
-                        // Unreadable file: tell the accumulator so it can
-                        // fire a synthetic empty save and let the DB
-                        // writer report the skip. Carrying the failure
-                        // through the same channel keeps result accounting
-                        // single-sourced (the DB writer).
-                        let sentinel = EmbedWork(
-                            file: item.file,
-                            label: item.label,
-                            chunk: nil,
-                            ordinal: 0,
-                            totalChunks: 0,
-                            extractSeconds: extractSeconds,
-                            firstChunkAt: nil
-                        )
+                        // Unreadable file: register a zero-total file with
+                        // the accumulator and immediately close it so the
+                        // DB writer reports the skip. Result accounting
+                        // stays single-sourced (the DB writer).
                         await accumulator.markFileTotal(
                             path: item.file.relativePath,
                             file: item.file,
@@ -289,16 +290,10 @@ public final class IndexingPipeline: Sendable {
                             extractSeconds: extractSeconds,
                             firstChunkAt: nil
                         )
-                        // No chunks to embed; signal accumulator directly
-                        // by yielding a zero-record EmbeddedChunk with
-                        // ordinal == -1 sentinel handled by accumulator.
-                        // Simpler: directly call accumulator's "close
-                        // empty file" path, which yields SaveWork.
                         if let work = await accumulator.closeIfComplete(path: item.file.relativePath) {
                             progress?(.saveEnqueued)
                             saveContinuation.yield(work)
                         }
-                        _ = sentinel  // avoid unused warning; sentinel kept for symmetry
                         progress?(.extractDequeued)
                         continue
                     }
@@ -451,11 +446,30 @@ public final class IndexingPipeline: Sendable {
                     let path = work.file.relativePath
 
                     if work.records.isEmpty {
-                        await resultCollector.record(.skippedUnreadable(filePath: path))
-                        await statsCollector.recordSkipped(
-                            path: path,
-                            extractSeconds: work.extractSeconds
-                        )
+                        if work.totalChunksExtracted > 0 {
+                            // Extract produced chunks but every embed
+                            // failed. Pre-H7 reported this as
+                            // .skippedEmbedFailure and still recorded a
+                            // per-file timing with chunkCount: 0 so the
+                            // file appears in fileTimings. Preserve both.
+                            await resultCollector.record(.skippedEmbedFailure(filePath: path))
+                            await statsCollector.recordFile(
+                                path: path,
+                                extractSeconds: work.extractSeconds,
+                                embedSeconds: work.embedSeconds,
+                                dbSeconds: 0,
+                                chunkCount: 0
+                            )
+                        } else {
+                            // Extract produced zero chunks (unreadable /
+                            // no-text / empty). No embed work happened;
+                            // stats only account the extract time.
+                            await resultCollector.record(.skippedUnreadable(filePath: path))
+                            await statsCollector.recordSkipped(
+                                path: path,
+                                extractSeconds: work.extractSeconds
+                            )
+                        }
                         progress?(.fileSkipped)
                         continue
                     }
@@ -617,7 +631,8 @@ actor FileAccumulator {
             label: partial.label,
             records: sortedRecords,
             extractSeconds: partial.extractSeconds,
-            embedSeconds: embedSpan
+            embedSeconds: embedSpan,
+            totalChunksExtracted: partial.total
         )
     }
 }
