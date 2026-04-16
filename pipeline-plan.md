@@ -21,7 +21,7 @@ for each file:
 
 ### Key Constraints
 
-1. **NLEmbedding thread safety**: `NLEmbedding.vector(for:)` is **not safe** to call concurrently on the *same* instance — it causes a segfault in the underlying C++ runtime. However, **separate instances** each own an independent model and can run in parallel safely. This is documented in the `EmbeddingService` header comment and was empirically verified when the codebase previously used parallel file workers. Each instance costs ~50 MB resident memory.
+1. **NLEmbedding thread safety**: The `EmbeddingService.swift` header comment states that `NLEmbedding` is "immutable after init and its `vector(for:)` method is safe to call from multiple threads." However, empirical testing during prior parallel-indexing work found that concurrent calls to `vector(for:)` on the **same** `NLEmbedding` instance cause segfaults in the underlying C++ runtime. The previous parallel implementation (removed in recent merge) used one `EmbeddingService` per concurrent task specifically to avoid this crash. **Action**: The header comment in `EmbeddingService.swift` is incorrect and must be updated during implementation to reflect the actual behavior: separate instances are safe, same-instance concurrent calls are not. Our design uses separate instances.
 
 2. **Crash safety**: The `indexed_files` completion record must only be written after all chunks for a file succeed. The current sequence in `UpdateIndexCommand` is: `unmarkFileIndexed` → `removeEntries` → `insertBatch` (per batch) → `markFileIndexed`. Note: `removeEntries` (the public method) internally calls `unmarkFileIndexed` again, resulting in a harmless double-unmark. Our pipeline will use `replaceEntries` (atomic delete + insert in one transaction) to avoid this.
 
@@ -29,46 +29,49 @@ for each file:
 
 4. **TextExtractor is thread-safe**: All stored properties are immutable after init (`let`). Safe to share across concurrent tasks.
 
-5. **EmbeddingService is `@unchecked Sendable`**: The underlying `NLEmbedding` is immutable after init, so each instance is internally thread-safe. But concurrent calls to `vector(for:)` on the **same** instance crash. Each concurrent embed task needs its own instance.
+5. **EmbeddingService cost**: Each instance calls `NLEmbedding.sentenceEmbedding(for: .english)` on init, loading a ~50 MB model into memory. Creating and destroying instances per-batch would be prohibitively expensive. Instances must be pre-created and reused.
 
 ## Chosen Design
 
-### Two-Stage Pipeline with Global Embed Semaphore
+### Two-Stage Pipeline with Embedder Pool
 
 ```
 [Work Queue (actor)] → [File Workers (N)] → [Save Stream] → [DB Writer (1)]
                              |
                     per-file: chunk extraction (sequential)
-                    per-file: parallel embedding (inner TaskGroup)
                     per-file: language warning (before embedding)
+                    per-file: parallel embedding (inner TaskGroup)
                     per-file: collect all records
                     per-file: yield complete file to save stream
 ```
 
 - **N** = `ProcessInfo.processInfo.activeProcessorCount` (minimum 2) — concurrent files in flight
-- **Global embed semaphore** limits total concurrent `EmbeddingService` instances to N across all file workers. Peak memory: N x 50MB.
+- **Embedder pool** pre-creates N `EmbeddingService` instances at pipeline startup. The pool actor vends instances to embed tasks and accepts them back when done. At most N instances exist for the pipeline's lifetime. Peak memory: N x 50MB.
 
 ### Stage 1: File Workers
 
 N concurrent tasks pull work items from a shared `WorkQueue` actor. For each file:
 
 1. **Extract chunks** via `TextExtractor.extract(from:)` — sequential, I/O-bound
-2. **Language warning** via `EmbeddingService.warnIfNonEnglish` — called once on the first chunk, before entering the TaskGroup. This avoids the `inout Bool` / `@Sendable` closure incompatibility.
+2. **Language warning** via `NLLanguageRecognizer.dominantLanguage(for:)` — called on the first chunk's text, before entering the TaskGroup. This is a static-like call that does not use `NLEmbedding`, so no concurrency concern. If non-English, a warning is emitted to stderr. This avoids the `inout Bool` / `@Sendable` closure incompatibility entirely.
 3. **Parallel embedding** via inner `TaskGroup`:
    - All chunk batches are submitted to the TaskGroup
-   - Each task: `semaphore.acquire()` → create `EmbeddingService` → embed batch → `semaphore.release()` → return `[ChunkRecord]`
-   - The semaphore gates concurrency globally: at most N embed tasks run across all file workers
+   - Each task: `pool.acquire()` → embed batch with the vended `EmbeddingService` → `pool.release(embedder)` → return `[ChunkRecord]`
+   - The pool gates concurrency globally: at most N embed tasks run across all file workers
 4. **Collect results** and yield a single `SaveWork` (complete file) to the save stream
 
 ### Stage 2: DB Writer
 
 A single task consumes `SaveWork` items from an `AsyncStream`. For each file:
 
-1. Call `replaceEntries(forPath:with:)` — atomic delete + insert in one transaction
-2. Call `markFileIndexed(path:modifiedAt:)` — write completion record
-3. Record the `IndexResult`
+1. Call `unmarkFileIndexed(path:)` — remove completion record so crash during write triggers re-index
+2. Call `replaceEntries(forPath:with:)` — atomic delete + insert in one transaction
+3. Call `markFileIndexed(path:modifiedAt:)` — write completion record
+4. Record the `IndexResult`
 
 If a file produced zero successfully-embedded records, record `.skippedEmbedFailure` without touching the DB (preserving any existing data).
+
+**Future improvement**: `unmarkFileIndexed` + `replaceEntries` + `markFileIndexed` could be combined into a single VectorDatabase method that runs all three in one transaction. For now, the three separate actor calls are correct — the actor serializes them, and the crash-safety analysis below accounts for crashes between calls.
 
 ### Work Distribution
 
@@ -92,47 +95,48 @@ Each worker calls `await queue.next()` in a loop. The actor serializes access, g
 
 The save stream (file workers → DB writer) uses a standard `AsyncStream` with a single consumer, which is the intended usage pattern.
 
-### Global Embed Semaphore
+### Embedder Pool
+
+Instead of a bare semaphore that gates creation/destruction of `EmbeddingService` instances, we use a pool that pre-creates N instances at startup and vends them on demand:
 
 ```swift
-actor EmbedSemaphore {
-    private let limit: Int
-    private var available: Int
-    private var waiters: [CheckedContinuation<Void, Never>] = []
+actor EmbedderPool {
+    private var available: [EmbeddingService]
+    private var waiters: [CheckedContinuation<EmbeddingService, Never>] = []
 
-    init(limit: Int) {
-        self.limit = limit
-        self.available = limit
+    init(count: Int) {
+        self.available = (0..<count).map { _ in EmbeddingService() }
     }
 
-    func acquire() async {
-        if available > 0 {
-            available -= 1
-            return
+    func acquire() async -> EmbeddingService {
+        if let embedder = available.popLast() {
+            return embedder
         }
-        await withCheckedContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             waiters.append(continuation)
         }
     }
 
-    func release() {
+    func release(_ embedder: EmbeddingService) {
         if let waiter = waiters.first {
             waiters.removeFirst()
-            waiter.resume()
+            waiter.resume(returning: embedder)
         } else {
-            available += 1
+            available.append(embedder)
         }
     }
 }
 ```
 
-**Cancellation safety**: If a task is cancelled while waiting in `acquire()`, the `CheckedContinuation` will still be resumed (continuations must be resumed exactly once). The cancelled task will proceed briefly, create and immediately discard the embedder, and release the permit. This is safe but wastes a small amount of work. For the typical workload (indexing local files), task cancellation is rare (only process termination), so this tradeoff is acceptable.
+This avoids the ~50MB model load/unload per batch. All N instances are created once at pipeline startup and reused throughout. Each `EmbeddingService` instance is used by only one task at a time (the pool guarantees exclusive access), so there is no concurrent `vector(for:)` call on the same instance.
 
-**Concurrency tradeoff**: With N file workers and N global permits, the effective parallelism depends on the workload:
-- **Many small files**: Each worker holds ~1 permit at a time. N files embed concurrently, each sequentially — equivalent to the simpler "one embedder per worker" design. This is fine because the bottleneck is distributed across many files.
-- **Few large files**: Fewer workers are active, so remaining permits are available for inner parallelism. A single 500-chunk file can use all N permits, embedding N batches concurrently.
+**Cancellation safety**: If a task is cancelled while waiting in `acquire()`, the `CheckedContinuation` will still be resumed (continuations must be resumed exactly once). The cancelled task will receive the embedder, should call `release()` in a `defer`, and the embedder returns to the pool. No leaked instances or deadlocks.
 
-This is the correct adaptive behavior — the semaphore automatically allocates embedding capacity where it's needed.
+**Concurrency tradeoff**: With N file workers and N pooled embedders, the effective parallelism depends on the workload:
+- **Many small files**: Each worker holds ~1 embedder at a time. N files embed concurrently, each sequentially — equivalent to the simpler "one embedder per worker" design. This is fine because the bottleneck is distributed across many files.
+- **Few large files**: Fewer workers are active, so remaining embedders are available for inner parallelism. A single 500-chunk file can use all N embedders, embedding N batches concurrently.
+
+This is the correct adaptive behavior — the pool automatically allocates embedding capacity where it's needed.
 
 ## Types
 
@@ -144,10 +148,10 @@ public enum IndexResult: Sendable {
     case skippedEmbedFailure(filePath: String)
 }
 
-public final class IndexingPipeline: @unchecked Sendable {
+public final class IndexingPipeline: Sendable {
     private let embedBatchSize: Int
     private let workerCount: Int
-    private let semaphore: EmbedSemaphore
+    private let pool: EmbedderPool
 
     public init(embedBatchSize: Int = 20, concurrency: Int = ...)
 
@@ -168,10 +172,10 @@ struct SaveWork: Sendable {
 }
 
 actor WorkQueue<T: Sendable> { ... }
-actor EmbedSemaphore { ... }
+actor EmbedderPool { ... }
 ```
 
-**Sendable correctness**: `IndexingPipeline` is marked `@unchecked Sendable` because all stored properties are `let` (immutable after init). The `progressHandler` is passed as a parameter to `run()` instead of stored as mutable state, avoiding the Sendable violation. Alternatively, we could make it a plain `Sendable` class since all properties are `let` — the `@unchecked` is only needed if we later add mutable state (e.g., metrics).
+**Sendable correctness**: `IndexingPipeline` is `Sendable` because all stored properties are `let` and themselves `Sendable` (`Int` is `Sendable`; `EmbedderPool` is an actor, which is `Sendable`). The `progress` callback is passed as a parameter to `run()` rather than stored as mutable state.
 
 **IndexResult includes file identity**: Each case carries the `filePath` so callers can determine which files were added, updated, skipped, or failed.
 
@@ -179,43 +183,47 @@ actor EmbedSemaphore { ... }
 
 | File | Change |
 |------|--------|
-| `Sources/VecKit/IndexingPipeline.swift` | **New** — `IndexingPipeline`, `IndexResult`, `SaveWork`, `WorkQueue`, `EmbedSemaphore` |
+| `Sources/VecKit/IndexingPipeline.swift` | **New** — `IndexingPipeline`, `IndexResult`, `SaveWork`, `WorkQueue`, `EmbedderPool` |
+| `Sources/VecKit/EmbeddingService.swift` | **Fix header comment** — update thread-safety docs to reflect that concurrent calls on the same instance are unsafe |
 | `Sources/vec/Commands/UpdateIndexCommand.swift` | Replace sequential loop with `IndexingPipeline.run()` |
 | `Sources/vec/Commands/InsertCommand.swift` | Replace sequential embed loop with `IndexingPipeline.run()` for single-file case |
 
 ## Crash Safety
 
-Each file's DB write is atomic via `replaceEntries` (single transaction for delete + insert) followed by `markFileIndexed`. If the process is interrupted:
+Each file's DB write goes through: `unmarkFileIndexed` → `replaceEntries` → `markFileIndexed`. These are three separate actor calls (serialized by the actor). If the process is interrupted:
 
-- **Mid-chunking/embedding**: No DB changes yet for this file. Existing data (if any) is untouched. File will be re-indexed on next run because the completion record is unchanged (for new files) or already removed (for updates — we call `unmarkFileIndexed` before starting embedding).
-- **After replaceEntries, before markFileIndexed**: Chunks are written but completion record is missing. File will be re-indexed on next run, which will replace the chunks again. No data corruption.
+- **Mid-chunking/embedding**: No DB changes yet for this file. For new files, there's no completion record — the file will be indexed on next run. For updated files, the old completion record has the old timestamp — the newer file mod date will trigger re-indexing on next run.
+- **After unmarkFileIndexed, before replaceEntries**: Completion record is removed. Old chunks still exist. On restart, file appears un-indexed (no completion record), so it will be re-indexed. The old chunks get replaced.
+- **After replaceEntries, before markFileIndexed**: New chunks are written but completion record is missing. File will be re-indexed on next run, which will replace the chunks again. No data corruption.
 - **After markFileIndexed**: File is fully indexed. No rework needed.
 
-**Tradeoff vs. current design**: The current sequential design flushes batches to DB incrementally as they're embedded. Our pipeline buffers all chunks for a file in memory before writing. This means a crash mid-embedding loses more in-progress work (all chunks for that file, not just the current batch). However, since the existing crash-safety model already re-indexes the entire file in both cases (the completion record is missing either way), the practical impact is identical — the same file gets re-indexed on restart. The benefit is a simpler, atomic DB write.
+**Tradeoff vs. current design**: The current sequential design flushes batches to DB incrementally as they're embedded. Our pipeline buffers all chunks for a file in memory before writing. This means a crash mid-embedding loses more in-progress work (all chunks for that file vs. just the current batch). However, since the existing crash-safety model already re-indexes the entire file in both cases (the completion record is missing either way), the practical impact is identical — the same file gets re-indexed on restart. The benefit is a simpler, atomic DB write.
 
 ## Memory Budget
 
-- **EmbeddingService instances**: N (semaphore-capped) x ~50MB = N x 50MB
+- **EmbeddingService instances**: N (pool size) x ~50MB = N x 50MB — created once at startup, reused
 - **Chunks in memory**: At most N files' chunks simultaneously. Each file's chunks are released after embedding completes.
 - **Save stream**: At most N `SaveWork` items buffered (one per file worker). Each contains `[ChunkRecord]` for one file.
 - **Example (8-core machine)**: ~400MB for embedders + variable chunk/record data
 
 ## Edge Cases
 
-1. **Single-chunk file**: Inner TaskGroup has one task. Semaphore acquired and released quickly. No overhead vs. sequential.
-2. **Very large file (1000+ chunks)**: 50+ batches. Inner TaskGroup submits all, semaphore gates them N-at-a-time. Other file workers may pause while waiting for permits — this is correct behavior, preventing memory explosion.
-3. **Embed failure (`vector` returns nil)**: Chunk is skipped. If all chunks fail, file result is `.skippedEmbedFailure`. Existing DB data is preserved (no `replaceEntries` call made).
-4. **Non-English content**: `warnIfNonEnglish` is called once per file on the first chunk *before* entering the TaskGroup. This avoids `inout Bool` across `@Sendable` boundaries. At most one warning per file.
+1. **Single-chunk file**: Inner TaskGroup has one task. Embedder acquired from pool and released quickly. No overhead vs. sequential.
+2. **Very large file (1000+ chunks)**: 50+ batches. Inner TaskGroup submits all, pool gates them N-at-a-time. Other file workers may pause while waiting for embedders — this is correct behavior, preventing memory explosion.
+3. **Embed failure (`vector` returns nil)**: Chunk is skipped. If all chunks fail, file result is `.skippedEmbedFailure`. Existing DB data is preserved (no DB calls made for this file).
+4. **Non-English content**: Language is detected via `NLLanguageRecognizer.dominantLanguage(for:)` on the first chunk *before* entering the TaskGroup. This is a static method that does not use `NLEmbedding` and has no concurrency constraints. At most one warning per file.
 5. **Empty work list**: `run()` returns `[]` immediately.
-6. **Task cancellation**: Semaphore continuations are always resumed. Cancelled tasks proceed briefly and release permits. No leaked permits or deadlocks.
+6. **Task cancellation**: Pool continuations are always resumed. Cancelled tasks receive an embedder, release it via `defer`, and the embedder returns to the pool. No leaked instances or deadlocks.
 
 ## Alternatives Considered
 
 1. **Three-stage pipeline** (separate chunker pool → embedder pool → writer): Correctly parallelizes chunking and embedding independently, but introduces complex ordering problems — the DB writer must know when all batches for a file have arrived. Sentinel-based and batch-counting approaches both have race conditions when multiple embedder workers process batches from the same file. Rejected in favor of the simpler two-stage design where each file is fully processed before being sent to the writer.
 
-2. **One embedder per file worker, no inner parallelism**: N workers each own one `EmbeddingService`, embed chunks sequentially. Simple and correct, but doesn't parallelize within a single large file. The semaphore-gated inner TaskGroup achieves the same behavior for many-files workloads and adds inner parallelism for few-files workloads.
+2. **One embedder per file worker, no inner parallelism**: N workers each own one `EmbeddingService`, embed chunks sequentially. Simple and correct, but doesn't parallelize within a single large file. The pool-gated inner TaskGroup achieves the same behavior for many-files workloads and adds inner parallelism for few-files workloads.
 
 3. **AsyncChannel from swift-async-algorithms**: Would provide proper multi-consumer distribution, but adds an external dependency. The actor-based `WorkQueue` achieves the same result with no dependencies.
+
+4. **Semaphore (permits only) instead of pool**: A semaphore gates concurrency but doesn't manage instances. Each embed task would create and destroy an `EmbeddingService` (~50MB model load per batch). With a pool, instances are created once at startup and reused, avoiding the repeated model load/unload overhead.
 
 ## Testing
 
