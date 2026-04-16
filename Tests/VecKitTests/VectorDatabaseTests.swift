@@ -539,7 +539,300 @@ final class VectorDatabaseTests: XCTestCase {
         XCTAssertEqual(count, 3)
     }
 
-    // MARK: - 17. open() on corrupted DB (missing chunks table) throws databaseCorrupted
+    // MARK: - 17. Search accuracy — full ranking order across diverse topics
+
+    func testSearchFullRankingOrderDiverseTopics() throws {
+        let db = try makeInitializedDB()
+
+        // 8 documents spanning very different topics
+        let docs: [(path: String, content: String)] = [
+            ("cooking.txt", "This recipe explains how to bake a chocolate cake with cocoa powder, butter, eggs, and sugar in the oven"),
+            ("astronomy.txt", "The Milky Way galaxy contains hundreds of billions of stars and planets orbiting around them in space"),
+            ("programming.txt", "Swift programming language uses closures, generics, and protocols for building iOS and macOS applications"),
+            ("sports.txt", "Basketball players dribble the ball down the court and shoot hoops during the championship game"),
+            ("music.txt", "Playing guitar chords and piano melodies together creates beautiful jazz harmonies and rhythms"),
+            ("medicine.txt", "Doctors prescribe antibiotics to treat bacterial infections and monitor patients for side effects"),
+            ("history.txt", "The Roman Empire expanded across Europe with legions of soldiers conquering territories for centuries"),
+            ("gardening.txt", "Growing tomatoes and peppers in the backyard garden requires sunlight, water, and rich soil"),
+        ]
+
+        for doc in docs {
+            let emb = try embed(doc.content)
+            try db.insert(
+                filePath: doc.path,
+                lineStart: nil,
+                lineEnd: nil,
+                chunkType: .whole,
+                pageNumber: nil,
+                fileModifiedAt: Date(),
+                contentPreview: doc.content,
+                embedding: emb
+            )
+        }
+
+        // Query: baking — expect cooking #1
+        let bakingEmb = try embed("baking a chocolate dessert in the kitchen")
+        let bakingResults = try db.search(embedding: bakingEmb, limit: 8)
+        XCTAssertEqual(bakingResults[0].filePath, "cooking.txt",
+                       "Cooking doc should rank #1 for a baking query")
+
+        // Query: outer space — expect astronomy #1
+        let spaceEmb = try embed("stars and galaxies in outer space")
+        let spaceResults = try db.search(embedding: spaceEmb, limit: 8)
+        XCTAssertEqual(spaceResults[0].filePath, "astronomy.txt",
+                       "Astronomy doc should rank #1 for a space query")
+
+        // Query: iOS development — expect programming #1
+        let devEmb = try embed("building apps for iOS with Swift")
+        let devResults = try db.search(embedding: devEmb, limit: 8)
+        XCTAssertEqual(devResults[0].filePath, "programming.txt",
+                       "Programming doc should rank #1 for an iOS dev query")
+
+        // Query: basketball — expect sports #1
+        let sportsEmb = try embed("shooting hoops in a basketball game")
+        let sportsResults = try db.search(embedding: sportsEmb, limit: 8)
+        XCTAssertEqual(sportsResults[0].filePath, "sports.txt",
+                       "Sports doc should rank #1 for a basketball query")
+
+        // Query: jazz — expect music #1
+        let jazzEmb = try embed("jazz piano and guitar melodies")
+        let jazzResults = try db.search(embedding: jazzEmb, limit: 8)
+        XCTAssertEqual(jazzResults[0].filePath, "music.txt",
+                       "Music doc should rank #1 for a jazz query")
+
+        // Query: treating infections — expect medicine #1
+        let medEmb = try embed("treating bacterial infections with medicine")
+        let medResults = try db.search(embedding: medEmb, limit: 8)
+        XCTAssertEqual(medResults[0].filePath, "medicine.txt",
+                       "Medicine doc should rank #1 for an infections query")
+
+        // Query: Roman Empire — expect history #1
+        let histEmb = try embed("the ancient Roman Empire and its soldiers")
+        let histResults = try db.search(embedding: histEmb, limit: 8)
+        XCTAssertEqual(histResults[0].filePath, "history.txt",
+                       "History doc should rank #1 for a Roman Empire query")
+
+        // Query: growing vegetables — expect gardening #1
+        let gardenEmb = try embed("growing vegetables in the garden with sunlight")
+        let gardenResults = try db.search(embedding: gardenEmb, limit: 8)
+        XCTAssertEqual(gardenResults[0].filePath, "gardening.txt",
+                       "Gardening doc should rank #1 for a vegetables query")
+    }
+
+    // MARK: - 18. Search accuracy — ranking across related professional domains
+
+    func testSearchRankingAcrossRelatedProfessionalDomains() throws {
+        let db = try makeInitializedDB()
+
+        // Four professional domains that share a "technical" flavor but are distinct
+        let docs: [(path: String, content: String)] = [
+            ("veterinary.txt", "Veterinarians treat sick dogs and cats at animal hospitals by prescribing medicine and performing surgery"),
+            ("dentistry.txt", "Dentists fill cavities, perform root canals, and clean teeth to maintain oral health and prevent gum disease"),
+            ("aviation.txt", "Pilots navigate airplanes through turbulence and communicate with air traffic control towers during flights"),
+            ("cooking.txt", "Baking sourdough bread requires flour, water, salt, and a natural yeast starter culture"),
+        ]
+
+        for doc in docs {
+            let emb = try embed(doc.content)
+            try db.insert(
+                filePath: doc.path,
+                lineStart: nil,
+                lineEnd: nil,
+                chunkType: .whole,
+                pageNumber: nil,
+                fileModifiedAt: Date(),
+                contentPreview: doc.content,
+                embedding: emb
+            )
+        }
+
+        // Query about pet health — veterinary should rank #1
+        let petEmb = try embed("treating sick pets at the animal clinic")
+        let petResults = try db.search(embedding: petEmb, limit: 4)
+        XCTAssertEqual(petResults[0].filePath, "veterinary.txt",
+                       "Veterinary doc should rank #1 for a pet health query")
+
+        // Query about teeth — dentistry should rank #1
+        let teethEmb = try embed("filling cavities and cleaning teeth at the dental office")
+        let teethResults = try db.search(embedding: teethEmb, limit: 4)
+        XCTAssertEqual(teethResults[0].filePath, "dentistry.txt",
+                       "Dentistry doc should rank #1 for a teeth query")
+
+        // Query about flying — aviation should rank #1
+        let flyEmb = try embed("flying airplanes and communicating with control towers")
+        let flyResults = try db.search(embedding: flyEmb, limit: 4)
+        XCTAssertEqual(flyResults[0].filePath, "aviation.txt",
+                       "Aviation doc should rank #1 for a flying query")
+
+        // Query about baking — cooking should rank #1
+        let bakeEmb = try embed("making bread with flour and yeast")
+        let bakeResults = try db.search(embedding: bakeEmb, limit: 4)
+        XCTAssertEqual(bakeResults[0].filePath, "cooking.txt",
+                       "Cooking doc should rank #1 for a baking query")
+    }
+
+    // MARK: - 19. Search accuracy — verify complete ranking order, not just top-1
+
+    func testSearchVerifiesCompleteRankingOrder() throws {
+        let db = try makeInitializedDB()
+
+        // Documents with graduated relevance to "Italian pasta"
+        // italian: directly about pasta → cooking: general kitchen/food → nutrition: food-adjacent → astronomy: unrelated
+        let docs: [(path: String, content: String)] = [
+            ("italian.txt", "Italian pasta recipes include spaghetti carbonara made with eggs, cheese, and pancetta in a creamy sauce"),
+            ("cooking.txt", "Home cooking involves preparing meals in the kitchen using fresh ingredients, pots, and pans on the stove"),
+            ("nutrition.txt", "A balanced diet includes proteins, carbohydrates, vitamins, and minerals for maintaining good health"),
+            ("astronomy.txt", "Telescopes observe distant galaxies, nebulae, and black holes billions of light years from Earth"),
+        ]
+
+        for doc in docs {
+            let emb = try embed(doc.content)
+            try db.insert(
+                filePath: doc.path,
+                lineStart: nil,
+                lineEnd: nil,
+                chunkType: .whole,
+                pageNumber: nil,
+                fileModifiedAt: Date(),
+                contentPreview: doc.content,
+                embedding: emb
+            )
+        }
+
+        let queryEmb = try embed("making Italian pasta with eggs and cheese")
+        let results = try db.search(embedding: queryEmb, limit: 4)
+
+        XCTAssertEqual(results.count, 4)
+
+        // italian.txt should be #1 (directly about pasta recipes)
+        XCTAssertEqual(results[0].filePath, "italian.txt",
+                       "Italian doc should rank #1 — directly about pasta recipes")
+        // cooking.txt should be #2 (general cooking, food-related)
+        XCTAssertEqual(results[1].filePath, "cooking.txt",
+                       "Cooking doc should rank #2 — general food preparation")
+        // nutrition.txt should be #3 (food-adjacent but not cooking)
+        XCTAssertEqual(results[2].filePath, "nutrition.txt",
+                       "Nutrition doc should rank #3 — food-adjacent topic")
+        // astronomy.txt should be #4 (completely unrelated)
+        XCTAssertEqual(results[3].filePath, "astronomy.txt",
+                       "Astronomy doc should rank last — completely unrelated to cooking")
+    }
+
+    // MARK: - 20. Search accuracy — larger corpus (12+ documents)
+
+    func testSearchAccuracyWithLargerCorpus() throws {
+        let db = try makeInitializedDB()
+
+        let docs: [(path: String, content: String)] = [
+            ("biology.txt", "Cells divide through mitosis and meiosis to create new organisms and repair damaged tissue"),
+            ("chemistry.txt", "Chemical bonds form when atoms share or transfer electrons in covalent and ionic reactions"),
+            ("physics.txt", "Gravity is a fundamental force that attracts objects with mass toward each other in the universe"),
+            ("math.txt", "Calculus uses derivatives and integrals to analyze rates of change and areas under curves"),
+            ("literature.txt", "Shakespeare wrote plays and sonnets exploring love, power, jealousy, and the human condition"),
+            ("philosophy.txt", "Socrates used dialectic questioning to examine ethics, knowledge, and the nature of reality"),
+            ("economics.txt", "Supply and demand curves determine market prices and quantities of goods traded in economies"),
+            ("geography.txt", "Tectonic plates shift and collide creating mountains, earthquakes, and volcanic eruptions on Earth"),
+            ("psychology.txt", "Cognitive behavioral therapy helps patients change negative thinking patterns and behaviors"),
+            ("law.txt", "Constitutional law defines the structure of government and protects individual rights and freedoms"),
+            ("architecture.txt", "Gothic cathedrals feature pointed arches, flying buttresses, and stained glass windows"),
+            ("oceanography.txt", "Ocean currents circulate warm and cold water around the globe affecting weather and climate patterns"),
+        ]
+
+        for doc in docs {
+            let emb = try embed(doc.content)
+            try db.insert(
+                filePath: doc.path,
+                lineStart: nil,
+                lineEnd: nil,
+                chunkType: .whole,
+                pageNumber: nil,
+                fileModifiedAt: Date(),
+                contentPreview: doc.content,
+                embedding: emb
+            )
+        }
+
+        // Query about atomic bonding — chemistry should be #1
+        let chemEmb = try embed("atoms bonding in chemical reactions with electrons")
+        let chemResults = try db.search(embedding: chemEmb, limit: 12)
+        XCTAssertEqual(chemResults[0].filePath, "chemistry.txt",
+                       "Chemistry doc should rank #1 for atomic bonding query")
+
+        // Query about Shakespeare — literature should be #1
+        let litEmb = try embed("Shakespeare plays about love and tragedy")
+        let litResults = try db.search(embedding: litEmb, limit: 12)
+        XCTAssertEqual(litResults[0].filePath, "literature.txt",
+                       "Literature doc should rank #1 for Shakespeare query")
+
+        // Query about market economics — economics should be #1
+        let econEmb = try embed("market prices set by supply and demand")
+        let econResults = try db.search(embedding: econEmb, limit: 12)
+        XCTAssertEqual(econResults[0].filePath, "economics.txt",
+                       "Economics doc should rank #1 for market prices query")
+
+        // Query about ocean weather — oceanography should be #1
+        let oceanEmb = try embed("ocean currents affecting global weather and climate")
+        let oceanResults = try db.search(embedding: oceanEmb, limit: 12)
+        XCTAssertEqual(oceanResults[0].filePath, "oceanography.txt",
+                       "Oceanography doc should rank #1 for ocean weather query")
+
+        // Query about therapy — psychology should be #1
+        let psychEmb = try embed("cognitive therapy for changing negative thoughts")
+        let psychResults = try db.search(embedding: psychEmb, limit: 12)
+        XCTAssertEqual(psychResults[0].filePath, "psychology.txt",
+                       "Psychology doc should rank #1 for therapy query")
+
+        // Query about earthquakes — geography should be #1
+        let geoEmb = try embed("earthquakes and volcanic eruptions from tectonic plates")
+        let geoResults = try db.search(embedding: geoEmb, limit: 12)
+        XCTAssertEqual(geoResults[0].filePath, "geography.txt",
+                       "Geography doc should rank #1 for earthquake query")
+    }
+
+    // MARK: - 21. Search accuracy — same query returns consistent ranking
+
+    func testSearchReturnsDeterministicRanking() throws {
+        let db = try makeInitializedDB()
+
+        let docs: [(path: String, content: String)] = [
+            ("space.txt", "Astronauts travel to the International Space Station orbiting Earth to conduct experiments"),
+            ("ocean.txt", "Deep sea divers explore coral reefs and underwater caves in tropical oceans"),
+            ("desert.txt", "The Sahara desert stretches across North Africa with vast sand dunes and extreme heat"),
+        ]
+
+        for doc in docs {
+            let emb = try embed(doc.content)
+            try db.insert(
+                filePath: doc.path,
+                lineStart: nil,
+                lineEnd: nil,
+                chunkType: .whole,
+                pageNumber: nil,
+                fileModifiedAt: Date(),
+                contentPreview: doc.content,
+                embedding: emb
+            )
+        }
+
+        let queryEmb = try embed("exploring underwater coral reefs")
+
+        // Run the same search 5 times and verify identical ordering
+        var firstOrder: [String]?
+        for i in 0..<5 {
+            let results = try db.search(embedding: queryEmb, limit: 3)
+            let order = results.map(\.filePath)
+            if let expected = firstOrder {
+                XCTAssertEqual(order, expected,
+                               "Search run \(i + 1) should return the same ranking as the first run")
+            } else {
+                firstOrder = order
+                XCTAssertEqual(order[0], "ocean.txt",
+                               "Ocean doc should rank #1 for coral reef query")
+            }
+        }
+    }
+
+    // MARK: - 22. open() on corrupted DB (missing chunks table) throws databaseCorrupted
 
     func testOpenOnCorruptedDBThrowsDatabaseCorrupted() throws {
         // Initialize a valid database
