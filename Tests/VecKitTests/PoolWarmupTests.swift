@@ -9,10 +9,9 @@ import Darwin
 /// is measurement, not a pass/fail throughput check.
 ///
 /// NOTE: this test is intentionally slow (4 timed runs + 1 warm-up against
-/// real NLEmbedding). Skipped by default under the normal test run; invoke
-/// it explicitly, e.g.
+/// real NLEmbedding, ~90s). Skipped unless `VEC_PERF_TESTS=1` is set, e.g.
 ///
-///     swift test --filter VecKitTests.PoolWarmupTests/testPoolWarmup_syntheticCorpus
+///     VEC_PERF_TESTS=1 swift test --filter VecKitTests.PoolWarmupTests
 final class PoolWarmupTests: XCTestCase {
 
     private var tempDir: URL!
@@ -145,6 +144,10 @@ final class PoolWarmupTests: XCTestCase {
     }
 
     func testPoolWarmup_syntheticCorpus() async throws {
+        try XCTSkipUnless(
+            ProcessInfo.processInfo.environment["VEC_PERF_TESTS"] != nil,
+            "Perf test — set VEC_PERF_TESTS=1 to run (takes ~90 seconds)"
+        )
         logLine("[pool-warmup] WARNING: this test is slow — 4 timed runs against real NLEmbedding")
 
         let totalLines = try generateCorpus()

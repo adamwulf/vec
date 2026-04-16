@@ -8,10 +8,10 @@ import Darwin
 /// produce data the operator can use to pick a default worker count.
 ///
 /// NOTE: this test is intentionally slow (several configs × 2 runs ×
-/// synthetic corpus with real NLEmbedding). Skipped by default under the
-/// normal test run; invoke it explicitly, e.g.
+/// synthetic corpus with real NLEmbedding, ~4 minutes). Skipped unless
+/// `VEC_PERF_TESTS=1` is set, e.g.
 ///
-///     swift test --filter VecKitTests.ConcurrencySweepTests/testConcurrencySweep_syntheticCorpus
+///     VEC_PERF_TESTS=1 swift test --filter VecKitTests.ConcurrencySweepTests
 final class ConcurrencySweepTests: XCTestCase {
 
     private var tempDir: URL!
@@ -173,6 +173,10 @@ final class ConcurrencySweepTests: XCTestCase {
     }
 
     func testConcurrencySweep_syntheticCorpus() async throws {
+        try XCTSkipUnless(
+            ProcessInfo.processInfo.environment["VEC_PERF_TESTS"] != nil,
+            "Perf test — set VEC_PERF_TESTS=1 to run (takes ~4 minutes)"
+        )
         logLine("[concurrency-sweep] WARNING: this test is slow — several configs × 2 runs × real NLEmbedding")
 
         let (physical, logical) = Self.cpuCounts()

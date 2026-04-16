@@ -6,6 +6,14 @@ import NaturalLanguage
 /// shared `NLEmbedding.sentenceEmbedding(for: .english)` instance is safe to
 /// call concurrently from many Swift tasks. The pool in `EmbedderPool`
 /// assumes it is not — this test exists to re-measure that claim.
+///
+/// NOTE: this test is EXPECTED to crash the process with SIGSEGV on macOS
+/// (it's the regression canary for the NLEmbedding thread-safety bug). Do
+/// not run it under the normal test suite — a crash here aborts every
+/// test that would run after it in the same xctest process. Skipped
+/// unless `VEC_CRASH_TESTS=1` is set, e.g.
+///
+///     VEC_CRASH_TESTS=1 swift test --filter VecKitTests.NLEmbeddingThreadSafetyTests
 final class NLEmbeddingThreadSafetyTests: XCTestCase {
 
     private static let expectedDimension = 512
@@ -13,6 +21,10 @@ final class NLEmbeddingThreadSafetyTests: XCTestCase {
     private static let totalCalls = 10_000
 
     func testSingleSharedInstanceUnderConcurrentLoad() async throws {
+        try XCTSkipUnless(
+            ProcessInfo.processInfo.environment["VEC_CRASH_TESTS"] != nil,
+            "Crash-expected test — set VEC_CRASH_TESTS=1 to run (it will SIGSEGV)"
+        )
         guard let embedding = NLEmbedding.sentenceEmbedding(for: .english) else {
             XCTFail("NLEmbedding.sentenceEmbedding(for: .english) returned nil")
             return
