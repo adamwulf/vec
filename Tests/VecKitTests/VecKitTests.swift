@@ -211,7 +211,7 @@ final class TextExtractorTests: XCTestCase {
     }
 
     func testSmallFileProducesOnlyWholeChunk() throws {
-        // A file with fewer lines than the default chunk size (10) should only have a .whole chunk
+        // A file with fewer lines than the default chunk size (30) should only have a .whole chunk
         let content = "Line 1\nLine 2\nLine 3"
         let file = createFile(name: "small.md", content: content)
         let extractor = TextExtractor()
@@ -273,9 +273,9 @@ final class TextExtractorTests: XCTestCase {
     }
 
     func testMarkdownWhereEveryLineIsAHeading() throws {
-        // Generate 20 lines where every line is a heading — exceeds default chunkSize of 10
+        // Generate 50 lines where every line is a heading — exceeds default chunkSize of 30
         var lines: [String] = []
-        for i in 1...20 {
+        for i in 1...50 {
             lines.append("# Heading \(i)")
         }
         let content = lines.joined(separator: "\n")
@@ -310,7 +310,7 @@ final class TextExtractorTests: XCTestCase {
         let wholeChunks = chunks.filter { $0.type == .whole }
         XCTAssertEqual(wholeChunks.count, 1)
 
-        // Should have no line chunks — single line is under chunkSize (1 line < 50)
+        // Should have no line chunks — single line is under chunkSize (1 line < 30)
         let lineChunks = chunks.filter { $0.type == .chunk }
         XCTAssertEqual(lineChunks.count, 0)
     }

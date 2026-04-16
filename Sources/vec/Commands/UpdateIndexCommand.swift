@@ -57,15 +57,22 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         // here preserves the existing index entries for this file.
         var warnedNonEnglish = false
         var embedded: [(TextChunk, [Float])] = []
-        for chunk in chunks {
+        let totalChunks = chunks.count
+        for (index, chunk) in chunks.enumerated() {
             embedder.warnIfNonEnglish(text: chunk.text, filePath: file.relativePath, warned: &warnedNonEnglish)
             if let embedding = embedder.embed(chunk.text) {
                 embedded.append((chunk, embedding))
+            }
+            if verbose {
+                let pct = Int(Double(index + 1) / Double(totalChunks) * 100)
+                print("  \(label): \(file.relativePath) [\(index + 1)/\(totalChunks) chunks, \(pct)%]", terminator: "\r")
+                fflush(stdout)
             }
         }
 
         if embedded.isEmpty {
             if verbose {
+                // Clear the progress line before printing skip message
                 print("  Skipped: \(file.relativePath) (failed to embed \(chunks.count) chunks)")
             }
             return .skippedEmbedFailure
@@ -89,6 +96,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             )
         }
         if verbose {
+            // Print final line replacing the progress indicator
             print("  \(label): \(file.relativePath) (\(embedded.count) chunks)")
         }
         return .indexed
