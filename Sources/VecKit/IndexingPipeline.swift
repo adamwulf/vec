@@ -69,8 +69,13 @@ public enum ProgressEvent: Sendable {
     case workerIdle
     case fileFinished(chunks: Int)
     case fileSkipped
-    case nonEnglishDetected
+    case nonEnglishDetected(filePath: String, language: String)
     case batchEmbedded(seconds: Double, chunks: Int)
+    /// File handed off from a worker to the DB-writer save stream.
+    /// Paired with `.saveDequeued` from the DB writer so renderers can
+    /// show live save-queue depth as a bottleneck signal.
+    case saveEnqueued
+    case saveDequeued
 }
 
 public typealias ProgressHandler = @Sendable (ProgressEvent) -> Void
@@ -168,6 +173,7 @@ public final class IndexingPipeline: Sendable {
                                         extractSeconds: extractSeconds
                                     )
                                 case .save(let saveWork):
+                                    progress?(.saveEnqueued)
                                     saveContinuation.yield(saveWork)
                                 }
                             }
@@ -181,6 +187,7 @@ public final class IndexingPipeline: Sendable {
             // Stage 2: DB Writer (single serial consumer)
             group.addTask {
                 for await work in saveStream {
+                    progress?(.saveDequeued)
                     let path = work.file.relativePath
 
                     if work.records.isEmpty {
@@ -272,18 +279,15 @@ public final class IndexingPipeline: Sendable {
             return .skipped(.skippedUnreadable(filePath: file.relativePath), extractSeconds: extractSeconds)
         }
 
-        // Language warning — before TaskGroup, no concurrency concern.
-        // The stderr write stays in place for all modes; the event lets
-        // verbose renderers keep a rolling non-English counter.
+        // Language warning — the pipeline emits the event; the caller
+        // decides how to present it (stderr line in non-verbose mode,
+        // rolling counter in verbose mode).
         if let firstText = chunks.first?.text {
             let trimmed = firstText.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty {
                 if let lang = NLLanguageRecognizer.dominantLanguage(for: trimmed),
                    lang != .english, lang != .undetermined {
-                    FileHandle.standardError.write(
-                        Data("Warning: non-English content detected in \(file.relativePath) (detected: \(lang.rawValue)), embedding quality may be reduced\n".utf8)
-                    )
-                    progress?(.nonEnglishDetected)
+                    progress?(.nonEnglishDetected(filePath: file.relativePath, language: lang.rawValue))
                 }
             }
         }

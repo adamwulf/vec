@@ -29,8 +29,12 @@ private final class ProgressRenderer: @unchecked Sendable {
     private var chunksDone = 0
     private var nonEnglishCount = 0
     private var busyWorkers = 0
+    /// Files currently buffered in the save stream, waiting for the DB
+    /// writer. enqueued - dequeued; growing queue means DB is the
+    /// bottleneck, persistent zero means embed/extract is.
+    private var saveQueueDepth = 0
     private var recentBatches: [(time: Date, chunks: Int)] = []
-    private let windowSeconds: TimeInterval = 5.0
+    private let windowSeconds: TimeInterval = 30.0
 
     private var finished = false
     private var everRendered = false
@@ -38,11 +42,17 @@ private final class ProgressRenderer: @unchecked Sendable {
     /// length so busy-counter shrinking doesn't leave stale characters.
     private var lastRenderedLen = 0
     private var firstBatchPrinted = false
+    /// Periodically commit the current rolling line to scrollback so the
+    /// verbose output reads as a sparse time-series instead of a single
+    /// ever-overwritten line.
+    private var lastTrailSnapshot: Date
+    private let trailInterval: TimeInterval = 10.0
 
     init(totalFiles: Int, totalWorkers: Int) {
         self.totalFiles = totalFiles
         self.totalWorkers = totalWorkers
         self.startTime = Date()
+        self.lastTrailSnapshot = Date()
     }
 
     func handle(_ event: ProgressEvent) {
@@ -65,6 +75,13 @@ private final class ProgressRenderer: @unchecked Sendable {
             filesDone += 1
         case .nonEnglishDetected:
             nonEnglishCount += 1
+            // In verbose mode, the rolling line's non-en counter is the
+            // primary signal; the per-file stderr line would just clutter
+            // the TTY, so we swallow it here.
+        case .saveEnqueued:
+            saveQueueDepth += 1
+        case .saveDequeued:
+            if saveQueueDepth > 0 { saveQueueDepth -= 1 }
         case .batchEmbedded(_, let chunks):
             chunksDone += chunks
             let now = Date()
@@ -108,30 +125,56 @@ private final class ProgressRenderer: @unchecked Sendable {
             recentBatches.removeFirst()
         }
 
-        // Sliding-window ch/s. Use the actual span covered by retained
-        // entries (not the full window) so a partial window during startup
-        // reports the real rate, not an underestimate. Fall back to
-        // elapsed-since-start if we have fewer than 2 entries.
-        let chunksPerSec: Double
+        // Sliding-window ch/s over the last `windowSeconds`. Use the actual
+        // span covered by retained entries (not the full window) so a
+        // partial window during startup reports the real rate, not an
+        // underestimate. Fall back to elapsed-since-start if we have fewer
+        // than 2 entries.
+        let windowChunksPerSec: Double
         if recentBatches.count >= 2,
            let first = recentBatches.first,
            let last = recentBatches.last {
             let span = last.time.timeIntervalSince(first.time)
             let chunks = recentBatches.reduce(0) { $0 + $1.chunks }
-            chunksPerSec = span > 0.01 ? Double(chunks) / span : 0
+            windowChunksPerSec = span > 0.01 ? Double(chunks) / span : 0
         } else if let only = recentBatches.first {
             let span = Date().timeIntervalSince(only.time)
-            chunksPerSec = span > 0.01 ? Double(only.chunks) / span : 0
+            windowChunksPerSec = span > 0.01 ? Double(only.chunks) / span : 0
         } else {
-            chunksPerSec = 0
+            windowChunksPerSec = 0
         }
 
-        // Compact format to stay under 80 cols even at 5-digit files /
-        // 6-digit chunks: drop the word "busy" and use "c/s" instead of
-        // "ch/s". Pipe separators keep fields visually distinct without
-        // adding the width of "• ".
-        let elapsed = Date().timeIntervalSince(startTime)
-        let line = "Indexing: \(filesDone)/\(totalFiles) | \(chunksDone) ch | \(nonEnglishCount) non-en | \(busyWorkers)/\(totalWorkers) | \(Self.formatSeconds(elapsed)) | \(String(format: "%.0f", chunksPerSec)) c/s"
+        // Terminal is wide enough (~180 cols) to expose queue health and
+        // both throughput rates without truncation. `workers` is the live
+        // extract+embed pool; `save q` is files embedded but waiting for
+        // the single DB writer. `bn` (bottleneck) is a derived hint so
+        // the user doesn't have to read the counters to guess which
+        // stage is limiting throughput.
+        let now = Date()
+        let elapsed = now.timeIntervalSince(startTime)
+        let lifetimeChunksPerSec = elapsed > 0.01 ? Double(chunksDone) / elapsed : 0
+        let bottleneck: String
+        if saveQueueDepth > busyWorkers && saveQueueDepth > 1 {
+            bottleneck = "db"
+        } else if busyWorkers >= totalWorkers && saveQueueDepth == 0 {
+            bottleneck = "embed"
+        } else if busyWorkers < totalWorkers && saveQueueDepth == 0 {
+            bottleneck = "extract"
+        } else {
+            bottleneck = "ok"
+        }
+        let line = "Indexing: \(filesDone)/\(totalFiles) | \(chunksDone) ch | \(nonEnglishCount) non-en | workers \(busyWorkers)/\(totalWorkers) | save q \(saveQueueDepth) | bn \(bottleneck) | \(Self.formatSeconds(elapsed)) | \(String(format: "%.0f", lifetimeChunksPerSec)) c/s avg, \(String(format: "%.0f", windowChunksPerSec)) 30s"
+
+        // Every `trailInterval`, commit the current rolling line to
+        // scrollback with a newline so the verbose session leaves a
+        // sparse history of snapshots instead of a single overwritten
+        // row. Reset pad tracking so the fresh line draws full-width.
+        var leading = "\r"
+        if everRendered && now.timeIntervalSince(lastTrailSnapshot) >= trailInterval {
+            leading = "\n"
+            lastRenderedLen = 0
+            lastTrailSnapshot = now
+        }
 
         // Pad to previous length: busy counter can shrink, so the monotonic
         // length invariant from the original design no longer holds.
@@ -141,7 +184,7 @@ private final class ProgressRenderer: @unchecked Sendable {
         }
         lastRenderedLen = line.count
         everRendered = true
-        FileHandle.standardOutput.write(Data(("\r" + padded).utf8))
+        FileHandle.standardOutput.write(Data((leading + padded).utf8))
     }
 
     fileprivate static func formatSeconds(_ seconds: Double) -> String {
@@ -204,7 +247,10 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         let workerCount = pipeline.workerCount
 
         // Wire up the rolling progress renderer when verbose and attached to a TTY.
-        // Piped/redirected stdout skips progress — the final summary still prints.
+        // Piped/redirected stdout skips the rolling line, but non-verbose runs
+        // still need a progress handler so non-English warnings can print to
+        // stderr — the final summary and warnings are all the non-verbose user
+        // sees.
         let stdoutIsTTY = isatty(FileHandle.standardOutput.fileDescriptor) != 0
         let renderer: ProgressRenderer?
         let progress: ProgressHandler?
@@ -214,7 +260,13 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             progress = { event in r.handle(event) }
         } else {
             renderer = nil
-            progress = nil
+            progress = { event in
+                if case .nonEnglishDetected(let path, let language) = event {
+                    FileHandle.standardError.write(
+                        Data("Warning: non-English content detected in \(path) (detected: \(language)), embedding quality may be reduced\n".utf8)
+                    )
+                }
+            }
         }
 
         let results: [IndexResult]
