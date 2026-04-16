@@ -71,6 +71,35 @@ pre-create N instances.
   so we don't oversubscribe the NLEmbedding-internal threading.
 - Re-measure c/s avg and first-batch latency on the same corpus.
 
+### Result: DISPROVEN (2026-04-16)
+
+Stress test at `Tests/VecKitTests/NLEmbeddingThreadSafetyTests.swift`
+(added in `915c7d9`): 1 shared `NLEmbedding`, 10 TaskGroup workers,
+10,000 `vector(for:)` calls over ~230 distinct English strings.
+
+- 5/5 runs crashed within the first second.
+  - Runs 1–3: `SIGSEGV` / `EXC_BAD_ACCESS` (`KERN_INVALID_ADDRESS`).
+  - Runs 4–5: `SIGTRAP` / `"BUG IN CLIENT OF LIBMALLOC: memory corruption
+    of free block"`.
+- Crash stack in every report:
+  `NLEmbedding.vector(for:)` → `-[NLEmbedding vectorForString:]` →
+  `CoreNLP::SentenceEmbedding::fillStringVector` →
+  `CoreNLP::AbstractEmbedding::fillWordVectorsWithShape`. Concurrent-write
+  corruption inside Apple's C++ runtime.
+- TSan could not run: macOS 26 platform policy rejects
+  `libclang_rt.tsan_osx_dynamic.dylib` at dyld load. Environment
+  limitation, not a test gap — the 5 hard crashes answer it.
+
+**Conclusion:** the `EmbeddingService.swift:7` comment is still correct
+on macOS 26.3.1. **Do NOT collapse `EmbedderPool` to a single shared
+instance.** The stress test stays in the suite as a regression canary
+— if Apple ever fixes this, the test will start passing and we'll know
+to revisit.
+
+**Follow-up question, now shaped like H2:** the ~500 MB of duplicated
+weights is still a real cost. Sizing the pool to `activeProcessorCount`
+instead of a hardcoded 10 is now part of H2.
+
 ---
 
 ### H2. Worker count should match cores, not exceed them
