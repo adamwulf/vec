@@ -9,16 +9,20 @@ import Glibc
 
 /// Thread-safe renderer for a single-line rolling progress display in verbose mode.
 ///
-/// The `IndexingPipeline` calls `handle(_:)` from multiple concurrent workers
-/// plus the DB-writer task. A lock (not an actor) serializes counter updates
-/// and stdout writes so the synchronous `@Sendable` progress callback doesn't
-/// need to await.
+/// The `IndexingPipeline` calls `handle(_:)` from multiple concurrent stages
+/// (extract, per-chunk embed tasks, the per-file accumulator, and the DB
+/// writer). A lock (not an actor) serializes counter updates and stdout
+/// writes so the synchronous `@Sendable` progress callback doesn't need
+/// to await.
 ///
-/// Busy-worker tracking relies on `.workerBusy`/`.workerIdle` being balanced
-/// pairs from the *same* worker task — decoupled from file-lifecycle events
-/// so the counter stays correct even on the DB-writer's empty-records skip
-/// path, which emits `.fileSkipped` from a task that never emitted
-/// `.workerBusy`.
+/// Post-H7 the renderer surfaces three queue depths instead of one
+/// "workers busy" gauge:
+/// - **extract q**: files extracted but not yet handed to the embed
+///   stream. Always 0 or 1 in practice — extract is single-threaded.
+/// - **embed q**: chunks waiting for pool capacity. Persistent depth
+///   here means embed is the bottleneck (the common case).
+/// - **save q**: files embedded but not yet written. Growth here means
+///   DB is the bottleneck (rare).
 private final class ProgressRenderer: @unchecked Sendable {
     private let lock = NSLock()
     private let totalFiles: Int
@@ -28,7 +32,13 @@ private final class ProgressRenderer: @unchecked Sendable {
     private var filesDone = 0
     private var chunksDone = 0
     private var nonEnglishCount = 0
-    private var busyWorkers = 0
+    /// Files currently in extract (pulled off the input queue, not yet
+    /// handed off). Single-threaded extract → expected to be 0 or 1.
+    private var extractQueueDepth = 0
+    /// Chunks pushed to the embed stream but not yet picked up by an
+    /// embed task. Persistent positive depth means embed is the
+    /// bottleneck (workers are saturated).
+    private var embedQueueDepth = 0
     /// Files currently buffered in the save stream, waiting for the DB
     /// writer. enqueued - dequeued; growing queue means DB is the
     /// bottleneck, persistent zero means embed/extract is.
@@ -61,14 +71,15 @@ private final class ProgressRenderer: @unchecked Sendable {
         guard !finished else { return }
 
         switch event {
-        case .workerBusy:
-            busyWorkers += 1
-        case .workerIdle:
-            // Defensive: clamp to zero so a dropped event never corrupts the
-            // display. Balanced pairs from the same task make this
-            // theoretically unnecessary, but a visible bad counter is worse
-            // than a silent clamp.
-            if busyWorkers > 0 { busyWorkers -= 1 }
+        case .extractEnqueued:
+            extractQueueDepth += 1
+        case .extractDequeued:
+            // Defensive clamp — same rationale as save/embed below.
+            if extractQueueDepth > 0 { extractQueueDepth -= 1 }
+        case .embedEnqueued:
+            embedQueueDepth += 1
+        case .embedDequeued:
+            if embedQueueDepth > 0 { embedQueueDepth -= 1 }
         case .fileFinished:
             filesDone += 1
         case .fileSkipped:
@@ -84,10 +95,10 @@ private final class ProgressRenderer: @unchecked Sendable {
             if saveQueueDepth > 0 { saveQueueDepth -= 1 }
         case .poolWarmed:
             break
-        case .batchEmbedded(_, let chunks):
-            chunksDone += chunks
+        case .chunkEmbedded:
+            chunksDone += 1
             let now = Date()
-            recentBatches.append((time: now, chunks: chunks))
+            recentBatches.append((time: now, chunks: 1))
             // Fire the one-time startup diagnostic as soon as the first
             // batch lands. Terminate the rolling line's partial (if any)
             // with a clean newline so the startup line prints on its own
@@ -147,25 +158,31 @@ private final class ProgressRenderer: @unchecked Sendable {
         }
 
         // Terminal is wide enough (~180 cols) to expose queue health and
-        // both throughput rates without truncation. `workers` is the live
-        // extract+embed pool; `save q` is files embedded but waiting for
-        // the single DB writer. `bn` (bottleneck) is a derived hint so
-        // the user doesn't have to read the counters to guess which
-        // stage is limiting throughput.
+        // both throughput rates without truncation. Three queues now:
+        // `extract q` (files in extract — single-threaded so 0 or 1 is
+        // expected), `embed q` (chunks waiting for pool — large persistent
+        // depth means embed is the bottleneck), `save q` (files embedded
+        // but waiting for the DB writer). `bn` (bottleneck) is a derived
+        // hint so the user doesn't have to read the counters to guess
+        // which stage is limiting throughput.
         let now = Date()
         let elapsed = now.timeIntervalSince(startTime)
         let lifetimeChunksPerSec = elapsed > 0.01 ? Double(chunksDone) / elapsed : 0
+        // Embed bottleneck signal: depth ≥ totalWorkers means every pool
+        // slot has work waiting, so embed is the rate-limit. Save
+        // outranks embed: if files are piling up post-embed, the DB is
+        // the slowest stage.
         let bottleneck: String
-        if saveQueueDepth > busyWorkers && saveQueueDepth > 1 {
+        if saveQueueDepth > totalWorkers {
             bottleneck = "db"
-        } else if busyWorkers >= totalWorkers && saveQueueDepth == 0 {
+        } else if embedQueueDepth >= totalWorkers {
             bottleneck = "embed"
-        } else if busyWorkers < totalWorkers && saveQueueDepth == 0 {
+        } else if extractQueueDepth > 0 && embedQueueDepth == 0 {
             bottleneck = "extract"
         } else {
             bottleneck = "ok"
         }
-        let line = "Indexing: \(filesDone)/\(totalFiles) | \(chunksDone) ch | \(nonEnglishCount) non-en | workers \(busyWorkers)/\(totalWorkers) | save q \(saveQueueDepth) | bn \(bottleneck) | \(Self.formatSeconds(elapsed)) | \(String(format: "%.0f", lifetimeChunksPerSec)) c/s avg, \(String(format: "%.0f", windowChunksPerSec)) 30s"
+        let line = "Indexing: \(filesDone)/\(totalFiles) | \(chunksDone) ch | \(nonEnglishCount) non-en | extract q \(extractQueueDepth) | embed q \(embedQueueDepth)/\(totalWorkers) | save q \(saveQueueDepth) | bn \(bottleneck) | \(Self.formatSeconds(elapsed)) | \(String(format: "%.0f", lifetimeChunksPerSec)) c/s avg, \(String(format: "%.0f", windowChunksPerSec)) 30s"
 
         // Every `trailInterval`, commit the current rolling line to
         // scrollback with a newline so the verbose session leaves a
@@ -373,12 +390,18 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         print("Timing (wall: \(formatSeconds(wallSeconds)), \(workerCount) workers)")
         print("  extract: \(formatSeconds(stats.extractSeconds)) (\(String(format: "%.0f", extractPct))%)  embed: \(formatSeconds(stats.embedSeconds)) (\(String(format: "%.0f", embedPct))%)  db: \(formatSeconds(stats.dbSeconds)) (\(String(format: "%.0f", dbPct))%)")
         print("  throughput: \(String(format: "%.1f", chunksPerSec)) ch/s (\(stats.totalChunksEmbedded) chunks)  \(String(format: "%.1f", filesPerSec)) files/s  pool util: \(String(format: "%.0f", poolUtilization))%")
+        // Post-H7: each embed task handles exactly one chunk, so
+        // `totalBatches == totalChunksEmbedded` and `mean_batch == 1.0`
+        // for any successful run. The line is kept for stat-format
+        // continuity with pre-H7 logs; the per-file `embed` here is
+        // the *embed span* (first chunk extract → last chunk arrive),
+        // not summed-per-chunk wall-clock.
         let meanBatchSize = stats.totalBatches > 0
             ? Double(stats.totalBatchChunks) / Double(stats.totalBatches)
             : 0
-        print("  per-file embed: p50 \(formatSeconds(stats.p50EmbedSeconds)) • p95 \(formatSeconds(stats.p95EmbedSeconds))  batches: \(stats.totalBatches) (mean \(String(format: "%.1f", meanBatchSize)) ch)")
+        print("  per-file embed span: p50 \(formatSeconds(stats.p50EmbedSeconds)) • p95 \(formatSeconds(stats.p95EmbedSeconds))  embed tasks: \(stats.totalBatches) (mean \(String(format: "%.1f", meanBatchSize)) ch)")
         if let first = stats.firstBatchLatencySeconds {
-            print("  first embed batch: \(formatSeconds(first)) after start")
+            print("  first embed: \(formatSeconds(first)) after start")
         }
         if let biggest = stats.largestFile {
             print("  largest file: \(biggest.chunkCount) chunks, \(formatSeconds(biggest.totalSeconds))  \(biggest.path)")

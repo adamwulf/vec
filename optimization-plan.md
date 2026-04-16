@@ -381,6 +381,96 @@ Key properties:
 - Keep an `embedBatchSize` field for now but mark it ignored by H7's
   path and remove after the refactor lands.
 
+### Result: SHIPPED (2026-04-16)
+
+`IndexingPipeline.swift` rewritten as four cooperating tasks inside a
+single `withThrowingTaskGroup`:
+
+1. **Extract** (single serial task). Pops files off the work queue,
+   calls `TextExtractor.extract`, stamps each chunk with
+   `(filePath, ordinal, totalChunks)`, calls
+   `accumulator.markFileTotal(...)`, and pushes one `EmbedWork` per
+   chunk onto the embed `AsyncStream`. Empty / unreadable files
+   call `accumulator.closeIfComplete(...)` directly to emit a
+   zero-record `SaveWork`. N_extract = 1 by design — extract is
+   cheap, single-thread keeps ordinal monotonicity, and frees up a
+   pool slot for embed.
+2. **Embed-spawner** (one outer task draining `embedStream`). Spawns
+   a child task per chunk inside an inner `TaskGroup`. Each child
+   awaits an embedder from `EmbedderPool`, runs `embed()`, releases
+   the embedder, builds a `ChunkRecord`, and yields an
+   `EmbeddedChunk` to the accumulator stream. Pool size
+   (= `activeProcessorCount`) is the natural concurrency cap.
+3. **Per-file accumulator** (`FileAccumulator` actor). Groups
+   incoming `EmbeddedChunk`s by file path. Each file's `total` is
+   set on first contact by the extract stage. When
+   `received == total`, sorts by ordinal, drops failed-embed nils,
+   computes embed-span, removes the file from the in-flight map,
+   and yields a `SaveWork`.
+4. **DB writer** (single serial task). Unchanged in shape from
+   pre-H7: `unmark → replace → mark`, then result + stats record.
+
+Public API stable: `IndexingPipeline.run(workItems:extractor:database:progress:)`
+unchanged. `embedBatchSize` removed (was an internal implementation
+detail; the public init no longer takes it). `IndexingPipeline(concurrency:)`
+and `IndexingPipeline(warmup:)` test-seam inits both compile against
+existing tests unmodified.
+
+**Progress event changes** (also reflected in
+`Sources/vec/Commands/UpdateIndexCommand.swift`'s `ProgressRenderer`):
+- Removed `.workerBusy` / `.workerIdle` (they don't have a coherent
+  meaning under three stages).
+- Added `.extractEnqueued` / `.extractDequeued` (file in extract).
+- Added `.embedEnqueued` / `.embedDequeued` (chunk waiting for / picked
+  up by an embed task).
+- Renamed `.batchEmbedded(seconds, chunks)` →
+  `.chunkEmbedded(seconds)`. One event per chunk. Lock-traffic
+  measurement: even at 100 c/s the renderer's `NSLock` handles
+  100 acq/rel/sec trivially — no buffering needed.
+- Kept: `.fileFinished`, `.fileSkipped`, `.nonEnglishDetected`,
+  `.saveEnqueued`, `.saveDequeued`, `.poolWarmed`. `.nonEnglishDetected`
+  now fires from the extract stage on the first chunk per file (was
+  previously inside `processFile`).
+
+The verbose rolling line now shows `extract q N | embed q N/M | save q N`
+instead of `workers N/M`.
+
+**Stats changes:** field shapes unchanged for API stability. Per-file
+`embedSeconds` is now an *embed span* (first chunk leaves extract →
+last chunk arrives at accumulator), not a per-file embed wall-clock —
+documented inline. `totalBatches` now equals `totalChunksEmbedded`
+(one task per chunk), so the "mean batch size" footer reads 1.0 for
+every successful run; that's the truth, not a renderer bug.
+
+**Measurement.** New `Tests/VecKitTests/ThreeStagePipelineTests.swift`
+runs a "huge first file" corpus (1 × 500-line file sorted first +
+20 smaller files, 21 files total, 84 chunks) and reports
+first-file-completion plus total wall.
+
+| trial | wall   | first_file | first_batch | chunks | chps |
+|:-----:|:------:|:----------:|:-----------:|:------:|:----:|
+|   1   | 4.38s  |   3.53s    |   0.39s     |   84   | 19.2 |
+|   2   | 4.32s  |   3.64s    |   0.33s     |   84   | 19.4 |
+
+The huge-first-file scenario now completes the first file in ~3.5s,
+versus ~170s pre-H7 in the production corpus (where 9 of 10 workers
+were stuck waiting for the huge file's chunks to drain through the
+shared pool). On the synthetic corpus the smaller files' chunks
+naturally interleave: by the time the 500-line file's last chunk is
+written, the entire 21-file corpus is done.
+
+`ConcurrencySweepTests` after H7: avg c/s of 15.4 / 18.8 / 20.0 / 20.7
+at concurrency 4 / 6 / 10 / 12 — within noise of pre-H7 baseline
+(15.4 / 18.8 / 21.1 / 21.6). H7 is throughput-neutral on the
+balanced 70-file corpus; its win is on mixed-size corpora with at
+least one outlier-large file, which the synthetic sweep doesn't have.
+
+**Production verification still pending.** The user should run
+`vec update-index --verbose` on the 929-file corpus and compare the
+`[verbose-stats]` line and first-file-completion to pre-H7 baseline.
+The stat keys are unchanged (`chunks=`, `wall=`, `chps=`, etc.) so
+existing trend plots keep working.
+
 ---
 
 ### H6 (SUPERSEDED by H7). Extract and embed in parallel per-file (streaming batches)
