@@ -385,11 +385,7 @@ public final class IndexingPipeline: Sendable {
                     for await work in embedStream {
                         embedGroup.addTask {
                             progress?(.embedDequeued)
-                            // Empty-file sentinel never goes through here
-                            // (extract closes them out directly). All
-                            // EmbedWork that reaches the embed stream has
-                            // a non-nil chunk.
-                            guard let chunk = work.chunk else { return }
+                            let chunk = work.chunk
 
                             let embedder = await pool.acquire()
                             let chunkStart = DispatchTime.now()
@@ -528,14 +524,13 @@ public final class IndexingPipeline: Sendable {
 
 // MARK: - Stage Payloads
 
-/// One unit of work flowing from extract → embed. `chunk == nil` is reserved
-/// for empty-file sentinels (currently the accumulator handles those
-/// directly so they don't actually traverse the embed stream — kept on the
-/// type for future flexibility).
+/// One unit of work flowing from extract → embed. Every `EmbedWork`
+/// carries a real chunk — empty-file sentinels never traverse the embed
+/// stream (the accumulator closes them out directly in extract).
 struct EmbedWork: Sendable {
     let file: FileInfo
     let label: String
-    let chunk: TextChunk?
+    let chunk: TextChunk
     let ordinal: Int
     let totalChunks: Int
     let extractSeconds: Double
