@@ -21,11 +21,6 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     /// Maximum number of chunks to embed and flush to the database at once.
     private static let batchSize = 20
 
-    /// Maximum number of files to embed in parallel.
-    /// Each concurrent task creates its own `NLEmbedding` instance (~50 MB
-    /// resident), so this caps peak memory while still saturating CPU cores.
-    private static let maxConcurrency = max(ProcessInfo.processInfo.activeProcessorCount, 2)
-
     private enum IndexResult: Sendable {
         case indexed(wasUpdate: Bool)
         case skippedUnreadable
@@ -34,18 +29,12 @@ struct UpdateIndexCommand: AsyncParsableCommand {
 
     /// Extract text and generate embeddings for a file, flushing to the database in
     /// batches of `batchSize` to bound memory usage for large files.
-    ///
-    /// Each call must receive its own `EmbeddingService` instance.
-    /// `NLEmbedding.vector(for:)` is not safe to call concurrently on the
-    /// *same* instance, but separate instances each own an independent C++
-    /// model and can run in parallel without segfaults.
     private func indexFile(
         _ file: FileInfo,
         using extractor: TextExtractor,
         embedder: EmbeddingService,
         database: VectorDatabase,
         label: String,
-        removeExisting: Bool = false,
         verbose: Bool = false
     ) async throws -> IndexResult {
         let chunks: [TextChunk]
@@ -64,8 +53,14 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             return .skippedUnreadable
         }
 
+        // Remove any stale completion record before writing chunks.
+        // If we're interrupted, the missing record ensures re-indexing on restart.
+        try await database.unmarkFileIndexed(path: file.relativePath)
+
+        // Delete any existing chunks (partial or full) for this file
+        try await database.removeEntries(forPath: file.relativePath)
+
         var totalInserted = 0
-        var needsDelete = removeExisting
         var warnedNonEnglish = false
         var chunksEmbedded = 0
         let totalChunks = chunks.count
@@ -99,15 +94,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
 
             guard !records.isEmpty else { continue }
 
-            // First batch with removeExisting atomically replaces old entries;
-            // subsequent batches just insert.
-            if needsDelete {
-                try await database.replaceEntries(forPath: file.relativePath, with: records)
-                needsDelete = false
-            } else {
-                try await database.insertBatch(records)
-            }
-
+            try await database.insertBatch(records)
             totalInserted += records.count
 
             if verbose && totalChunks > Self.batchSize {
@@ -116,8 +103,6 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             }
         }
 
-        // If we needed to delete but never had any successful embeddings,
-        // don't delete the old data — preserve it.
         if totalInserted == 0 {
             if verbose {
                 print("    Skipped: \(file.relativePath) (failed to embed \(totalChunks) chunks)")
@@ -125,10 +110,13 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             return .skippedEmbedFailure
         }
 
+        // All chunks written successfully — mark the file as fully indexed.
+        try await database.markFileIndexed(path: file.relativePath, modifiedAt: file.modificationDate)
+
         if verbose && totalChunks > Self.batchSize {
             print("  Done: \(file.relativePath) (\(totalInserted) chunks)")
         }
-        return .indexed(wasUpdate: removeExisting)
+        return .indexed(wasUpdate: label == "Updated")
     }
 
     func run() async throws {
@@ -144,97 +132,42 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         let indexedFiles = try await database.allIndexedFiles()
 
         let extractor = TextExtractor()
+        let embedder = EmbeddingService()
 
-        // Categorize files into work items
-        struct FileWork: Sendable {
-            let file: FileInfo
-            let label: String
-            let removeExisting: Bool
-        }
-
-        var workItems: [FileWork] = []
+        var added = 0
+        var updated = 0
         var unchanged = 0
+        var skippedUnreadable = 0
+        var skippedEmbedFailures = 0
 
+        // Process files sequentially. Each file's chunks are embedded and
+        // flushed in batches. A completion record is written only after all
+        // chunks succeed, so interrupted files are re-indexed on restart.
         for file in files {
+            let label: String
             if let existingModDate = indexedFiles[file.relativePath] {
                 if file.modificationDate > existingModDate {
-                    workItems.append(FileWork(file: file, label: "Updated", removeExisting: true))
+                    label = "Updated"
                 } else {
                     unchanged += 1
                     if verbose {
                         print("  Unchanged: \(file.relativePath)")
                     }
+                    continue
                 }
             } else {
-                workItems.append(FileWork(file: file, label: "Added", removeExisting: false))
-            }
-        }
-
-        // Process files in parallel — each task gets its own EmbeddingService
-        // (and therefore its own NLEmbedding instance) to avoid the segfault
-        // that occurs when multiple threads call vector(for:) on the same
-        // NLEmbedding. Concurrency is capped at maxConcurrency to bound
-        // memory usage since each NLEmbedding instance is ~50 MB resident.
-        let concurrency = Self.maxConcurrency
-        let verboseFlag = verbose
-
-        var added = 0
-        var updated = 0
-        var skippedUnreadable = 0
-        var skippedEmbedFailures = 0
-
-        let results: [IndexResult] = await withTaskGroup(of: IndexResult.self) { group in
-            var itemIterator = workItems.makeIterator()
-
-            // Seed the group with up to `concurrency` tasks
-            for _ in 0..<concurrency {
-                guard let work = itemIterator.next() else { break }
-                group.addTask {
-                    let embedder = EmbeddingService()
-                    do {
-                        return try await self.indexFile(
-                            work.file,
-                            using: extractor,
-                            embedder: embedder,
-                            database: database,
-                            label: work.label,
-                            removeExisting: work.removeExisting,
-                            verbose: verboseFlag
-                        )
-                    } catch {
-                        return .skippedEmbedFailure
-                    }
-                }
+                label = "Added"
             }
 
-            // As each task completes, start the next one
-            var collected: [IndexResult] = []
-            collected.reserveCapacity(workItems.count)
-            for await result in group {
-                collected.append(result)
-                if let work = itemIterator.next() {
-                    group.addTask {
-                        let embedder = EmbeddingService()
-                        do {
-                            return try await self.indexFile(
-                                work.file,
-                                using: extractor,
-                                embedder: embedder,
-                                database: database,
-                                label: work.label,
-                                removeExisting: work.removeExisting,
-                                verbose: verboseFlag
-                            )
-                        } catch {
-                            return .skippedEmbedFailure
-                        }
-                    }
-                }
-            }
-            return collected
-        }
+            let result = try await indexFile(
+                file,
+                using: extractor,
+                embedder: embedder,
+                database: database,
+                label: label,
+                verbose: verbose
+            )
 
-        for result in results {
             switch result {
             case .indexed(let wasUpdate):
                 if wasUpdate {

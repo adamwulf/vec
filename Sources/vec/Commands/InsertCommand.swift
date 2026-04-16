@@ -49,8 +49,12 @@ struct InsertCommand: AsyncParsableCommand {
         let fileInfo = try FileScanner.fileInfo(for: filePath, relativeTo: sourceDir)
         let chunks = try extractor.extract(from: fileInfo)
 
+        // Remove completion record first so interruption triggers re-index
+        try await database.unmarkFileIndexed(path: relativePath)
+        // Remove any existing chunks (partial or full)
+        try await database.removeEntries(forPath: relativePath)
+
         var totalInserted = 0
-        var needsDelete = true
         var warnedNonEnglish = false
 
         // Process chunks in batches to bound memory
@@ -77,20 +81,17 @@ struct InsertCommand: AsyncParsableCommand {
 
             guard !records.isEmpty else { continue }
 
-            // First batch atomically replaces old entries;
-            // subsequent batches just insert.
-            if needsDelete {
-                try await database.replaceEntries(forPath: relativePath, with: records)
-                needsDelete = false
-            } else {
-                try await database.insertBatch(records)
-            }
-
+            try await database.insertBatch(records)
             totalInserted += records.count
         }
 
         if totalInserted == 0 && !chunks.isEmpty {
             print("Warning: \(chunks.count) chunks extracted but none could be embedded from \(relativePath)")
+        }
+
+        // Mark file as fully indexed only after all chunks succeed
+        if totalInserted > 0 {
+            try await database.markFileIndexed(path: relativePath, modifiedAt: fileInfo.modificationDate)
         }
         print("Indexed \(totalInserted) chunks from \(relativePath)")
     }
