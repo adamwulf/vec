@@ -2,122 +2,137 @@
 
 ## Goal
 
-Replace the current verbose per-file progress output (one line per file event) with a single terminal line that is rewritten in place using `\r`, showing rolling stats:
+Replace the current verbose per-file progress output with a single stdout line that is rewritten in place using `\r`, showing rolling counts:
 
 - files processed (out of total)
-- chunks processed
+- chunks embedded
 - non-English files detected
 
-Non-verbose mode stays silent (unchanged). The final `"Update complete: ..."` summary still prints on its own line after the rolling line closes.
+Non-verbose mode stays silent (unchanged). The final `"Update complete: …"` summary still prints on a fresh line after the rolling line closes.
 
 ## Problem
 
-The new `IndexingPipeline` runs N file workers concurrently. The current progress callback emits one line per event (`Added: path (N chunks)`, `Done: path`, `Skipped: path`, per-file non-English warnings on stderr). With parallelism, these lines interleave and are no longer a useful per-chunk trace. The user wants a single, concise rolling line instead.
+The new `IndexingPipeline` runs N file workers concurrently. The current progress callback emits one string per event, and those strings interleave across workers. The user wants a single rolling stats line instead.
 
 ## Design
 
-### 1. Replace the string-based progress callback with a structured event stream
+The design favors a small, narrow change. Rejected alternatives and why they were rejected are called out in §Rejected Alternatives.
 
-Current:
+### 1. Minimal pipeline callback change
+
+Current pipeline signature (`IndexingPipeline.swift:59`):
 
 ```swift
 progress: (@Sendable (String) -> Void)?
 ```
 
-The callback carries pre-formatted strings, which means only the pipeline can decide what the user sees. We need the command layer to own presentation (so it can render a `\r` line), while the pipeline owns the events.
-
-New (in `IndexingPipeline.swift`):
+Replace with a counter-style event enum that carries only the information the renderer actually needs. No paths, no labels, no language strings:
 
 ```swift
-public enum IndexingEvent: Sendable {
-    case fileStarted(path: String, label: String, chunkCount: Int)
-    case fileFinished(path: String, chunkCount: Int)       // chunks actually embedded
-    case fileSkippedUnreadable(path: String)
-    case fileSkippedEmbedFailure(path: String, totalChunks: Int)
-    case nonEnglishDetected(path: String, language: String)
+public enum ProgressEvent: Sendable {
+    case fileFinished(chunks: Int)   // a file completed (any outcome that counts toward progress)
+    case fileSkipped                 // unreadable, no text, or all-chunks-failed
+    case nonEnglishDetected
+    case chunksEmbedded(count: Int)  // emitted per embed batch so the chunk counter ticks smoothly
 }
 
-public typealias IndexingEventHandler = @Sendable (IndexingEvent) -> Void
+public typealias ProgressHandler = @Sendable (ProgressEvent) -> Void
 ```
 
-`run(...)` takes `progress: IndexingEventHandler? = nil` instead of the string callback. The handler is called from multiple concurrent contexts, so it must be `@Sendable`. Making the caller's renderer thread-safe is the command layer's responsibility (see §3).
+`run(progress: ProgressHandler?)` keeps `nil` as default, so `InsertCommand` still compiles untouched.
 
-### 2. Pipeline changes
+The handler is called from multiple concurrent contexts. It must be `@Sendable` and it must be **synchronous** — a sync `@Sendable` closure cannot `await` into an actor. The renderer therefore uses `NSLock` (or `OSAllocatedUnfairLock` on platforms where it's available; `NSLock` is fine for our support floor) to serialize counter updates and stdout writes. No actor, no `Task { … }` wrapping, no event reordering.
 
-- Remove the pre-formatted progress strings in `processFile` and the DB-writer task. Emit structured events instead.
-- Move the non-English stderr warning out of `processFile`. Emit `.nonEnglishDetected` and let the command layer decide whether to print to stderr or just increment a counter. (Keeping the detection logic in the pipeline; just changing the surface.)
-- `InsertCommand` currently doesn't pass `progress`, so the API change is backwards compatible — the default `nil` keeps its behavior.
+### 2. Per-batch chunk counter
 
-### 3. Rolling renderer in `UpdateIndexCommand`
+`processFile` already splits chunks into batches and embeds each batch in a child task. Emit `.chunksEmbedded(count: records.count)` from inside each batch's child task after embedding returns. That makes the chunk counter advance smoothly during a single large file instead of jumping in a big burst at file completion.
 
-Add a small actor (file-local in `UpdateIndexCommand.swift`) that:
+Emit `.fileFinished(chunks:)` at the end of `processFile` (for success) and at the DB-writer for the empty-records path (`IndexingPipeline.swift:113-115`). Emit `.fileSkipped` for unreadable/no-text/all-chunks-failed cases. `label` and per-file paths are no longer passed through progress — they only existed to format strings the command layer no longer prints.
 
-- Holds counters: `filesDone`, `chunksDone`, `nonEnglish`, `skipped`, plus immutable `totalFiles`.
-- Serializes event handling (so concurrent workers can't scramble stdout).
-- Renders the line with `\r` and no trailing newline, e.g.:
+### 3. Leave the stderr non-English warning alone
 
-  ```
-  Indexing: 42/128 files • 1,284 chunks • 3 non-English • 1 skipped\r
-  ```
+The pipeline currently writes a non-English warning directly to stderr (`IndexingPipeline.swift:178-181`). Leave that write in place, unchanged, for **both** verbose and non-verbose modes. The plan emits `.nonEnglishDetected` in addition to the stderr write so the rolling line's counter can track it.
 
-- Uses `FileHandle.standardOutput.write(...)` so we can control the lack of newline without worrying about `print` buffering. Follow up each write with `fflush(stdout)` (via `FileHandle`'s write semantics; a single write of the full formatted string is fine — no explicit flush call needed because `FileHandle.standardOutput` is unbuffered in Swift).
-- Exposes a `finish()` method that writes a trailing `\n` so the summary prints on a new line.
+This intentionally accepts a small duplication in verbose mode (stderr warning + counter), because:
 
-The renderer should only activate when `verbose` is true. In non-verbose mode, no progress handler is passed to `run(...)`.
+- It keeps one code path for the warning.
+- Stderr is a separate stream; it doesn't corrupt the stdout `\r` line (terminals render them on independent buffers).
+- The prior revision of this plan routed warnings through the handler to suppress them in verbose mode. That was scope creep — the user did not ask for stderr changes.
 
-### 4. Event → counter mapping
+### 4. Rolling renderer in `UpdateIndexCommand`
 
-- `.fileStarted` → no counter change. (We only count a file when it *finishes*, so the ratio `filesDone/totalFiles` is accurate.)
-- `.fileFinished(chunkCount)` → `filesDone += 1`, `chunksDone += chunkCount`.
-- `.fileSkippedUnreadable` / `.fileSkippedEmbedFailure` → `filesDone += 1`, `skipped += 1`. (Skipped files still count as "done processing" so the ratio reaches `totalFiles/totalFiles`.)
-- `.nonEnglishDetected` → `nonEnglish += 1`.
+A small file-local `final class ProgressRenderer` (not an actor — see §1) with:
 
-After every counter change, re-render the line.
+- An `NSLock`.
+- Counters: `filesDone`, `chunksDone`, `nonEnglishCount`, plus immutable `totalFiles`.
+- `lastRenderedLen: Int` so each render pads with spaces to the previous length, then the string terminates. This overwrites any leftover characters from the previous longer render without relying on a fixed terminal width. No `ioctl`, no `COLUMNS` parsing.
+- `handle(_ event: ProgressEvent)` — mutates counters under the lock and writes one formatted line with a leading `\r`.
+- `finish()` — writes `\n` so the summary prints on a new line. Must be **idempotent**: if called twice (e.g. once from `defer`, once from normal flow) the second call is a no-op. Also a no-op if no render has happened yet (zero work items), to avoid a blank line before the summary.
 
-### 5. Terminal width handling
+Format (no thousands separators, to sidestep locale issues):
 
-If the formatted line is longer than the terminal width it will wrap and break the `\r` redraw. Mitigation: keep the line short (the format above is well under 80 chars for reasonable counts) and pad to a fixed minimum width (e.g. 80) with trailing spaces so shorter follow-up renders fully overwrite longer prior renders. Do not attempt to query `COLUMNS` — overkill for this feature.
+```
+Indexing: 42/128 files • 1284 chunks • 3 non-English\r
+```
 
-### 6. Non-TTY behavior
+If `totalFiles == 0`, the renderer is never instantiated — the update command goes straight to the removal loop and summary.
 
-If stdout is not a TTY (piped to a file or another process), `\r`-based progress is useless and clutters logs. Check `isatty(fileno(stdout)) != 0`. When not a TTY, just skip rendering (still pass a handler so counts are tracked, but emit nothing). The summary at the end still prints.
+Writes go through `FileHandle.standardOutput.write(_:)`. We do **not** rely on any "unbuffered in Swift" claim; instead we call `fsync`/`fflush` semantics via an explicit:
+
+```swift
+setbuf(stdout, nil)  // at renderer init
+```
+
+…or simpler: use `FileHandle.standardOutput` consistently and do nothing about buffering, because on a TTY (the only case we render on) stdout is line-buffered by default, and `\r` without a newline still gets flushed promptly on macOS Terminal / iTerm. If flush-laziness shows up during manual testing, fall back to `fflush(stdout)` after each write. Decide during implementation; not worth pre-optimizing.
+
+### 5. TTY gate
+
+Gate rendering on TTY:
+
+```swift
+let isTTY = isatty(FileHandle.standardOutput.fileDescriptor) != 0
+```
+
+When not a TTY (piped / redirected), pass no handler at all (`progress: nil`). Counts are not needed because the summary at the end already reports totals. This keeps piped output clean.
+
+### 6. Error safety
+
+In verbose mode, call `renderer.finish()` from a `defer` block *and* after successful pipeline completion. `finish()` is idempotent (§4), so either path leaves stdout on a fresh line before the summary or before any thrown error propagates.
 
 ### 7. Removed-file and unchanged-file messages
 
-The current verbose output also prints `"  Unchanged: path"` and `"  Removed: path"` lines from the command layer (not via the pipeline callback). In the new design:
+Today the command layer prints `"  Unchanged: path"` and `"  Removed: path"` when verbose. Suppress both — they don't fit a rolling-stats line. Counts are already in the final summary.
 
-- Suppress both. They're per-item lines that don't fit the rolling-stats model.
-- Keep the `unchanged` count in the final summary (already present).
-- Add a `removed` count to the rolling line? **No** — removal happens in a separate loop after the pipeline finishes, so it doesn't need to be rolling. Keep removed count in the final summary only.
+Note: the removal loop runs *after* the pipeline finishes. During removal, no rolling line updates (the renderer has already called `finish()`). That's fine — removal is typically fast and not worth its own progress display. If a user reports needing removal progress later, add it then.
 
-### 8. Non-English stderr warning
+## Rejected Alternatives
 
-Today, non-English warnings go to stderr unconditionally, regardless of verbose. Decision:
-
-- In verbose mode, the rolling counter replaces the stderr warning. Suppress the per-file stderr warning when verbose.
-- In non-verbose mode, keep the current stderr behavior. (It's a meaningful warning for users not watching progress closely; removing it would be a silent behavior change unrelated to the progress refactor.)
-
-Implementation: the command layer decides what to do with `.nonEnglishDetected`. In verbose mode it increments the counter. In non-verbose mode, if `UpdateIndexCommand` wants the stderr warning, it passes a non-nil handler even when not verbose, whose only job is to write the stderr line. (Slight overhead, but keeps behavior parity.)
-
-Alternative: leave the stderr write inside the pipeline and have the command layer suppress it via a flag. Rejected — pushing presentation to the command layer is cleaner.
+- **Structured event enum carrying paths/labels/languages.** Rejected: renderer doesn't use those fields. Narrow enum keeps the API small.
+- **Actor-based renderer.** Rejected: forces async event handling, which either makes the callback type `async` (viral through the pipeline) or requires `Task { await … }` wrapping that reorders events. Lock-guarded class is simpler and correct.
+- **Fixed 80-column padding.** Rejected: breaks on narrow terminals by causing the line to wrap — `\r` then only rewinds the last wrapped row. Tracking the previous render's length handles any width without querying the terminal.
+- **Suppress stderr non-English warning in verbose mode.** Rejected: scope creep. Accepts one line of duplication (stderr + counter) in exchange for zero change to existing warning code paths.
+- **Emit `.fileStarted` / include current filename in rolling line.** Rejected: user didn't ask for it; each extra render token is another thing to get wrong across locales / widths. Easy to add later if asked.
+- **Include `skipped` in the rolling line.** Rejected: user asked for "files, chunks, non-English." Skips are rare and captured in the final summary.
 
 ## Files Touched
 
-- `Sources/VecKit/IndexingPipeline.swift` — add `IndexingEvent`, change `run(progress:)` signature, remove string formatting, remove stderr write.
-- `Sources/vec/Commands/UpdateIndexCommand.swift` — add renderer actor, wire it to the new event handler, handle TTY check, suppress per-file `Unchanged`/`Removed` lines.
-- `Sources/vec/Commands/InsertCommand.swift` — no functional change, but verify it still compiles (it doesn't pass `progress`).
-- Tests — see §Testing.
+- `Sources/VecKit/IndexingPipeline.swift` — add `ProgressEvent` enum, change `progress` parameter type, remove string-formatting calls, emit `.chunksEmbedded` per batch, emit `.fileFinished` / `.fileSkipped` / `.nonEnglishDetected`. Keep stderr warning write untouched.
+- `Sources/vec/Commands/UpdateIndexCommand.swift` — add `ProgressRenderer` class, TTY gate, wire handler, suppress per-item `Unchanged` / `Removed` verbose lines, add `defer { renderer?.finish() }`.
+- `Sources/vec/Commands/InsertCommand.swift` — no change (doesn't pass `progress`).
+- Tests — update any test that constructs a string-based progress callback against `IndexingPipeline.run`.
 
 ## Testing
 
-- Build cleanly with `swift build`.
-- Run `swift test` to catch regressions in anything that currently exercises `IndexingPipeline`. (The public API changed — any test passing a string callback will need to update.)
-- Manual: `vec update-index --verbose` against a directory with >100 files, including at least one non-English file. Verify the line redraws in place, non-English count increments, summary prints on a fresh line.
-- Manual: `vec update-index --verbose > out.txt` to confirm non-TTY path produces no progress output, only the summary.
-- Manual: `vec update-index` (no verbose) — verify silent behavior is preserved and stderr still warns for non-English files.
+- `swift build`
+- `swift test`
+- Manual (TTY): `vec update-index --verbose` against a directory with >100 files including one non-English file. Verify: line redraws in place, chunks counter advances smoothly during large files (not only at file boundaries), non-English counter increments, summary prints on a fresh line. Verify stderr warning still appears for the non-English file.
+- Manual (pipe): `vec update-index --verbose | cat` — no `\r` junk, no progress output, only summary and any stderr warnings.
+- Manual (non-verbose): `vec update-index` — silent stdout progress, stderr warning still fires for non-English files. Parity with current behavior.
+- Manual (empty): `vec update-index` in a directory with zero new/updated/removed files — no progress line, only summary, no stray blank line.
 
 ## Out of Scope
 
-- Changing default verbosity, adding a new `--progress` flag, or introducing a logging framework.
-- Reworking `InsertCommand`'s output (single-file, doesn't need progress).
-- Colored output / ANSI styling beyond `\r`.
+- Changing default verbosity or adding a `--progress` flag.
+- Reworking `InsertCommand` output.
+- Colored / ANSI-styled output beyond `\r`.
+- Per-file or per-batch timing / throughput metrics.
