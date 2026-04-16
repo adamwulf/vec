@@ -21,7 +21,12 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     /// Maximum number of chunks to embed and flush to the database at once.
     private static let batchSize = 20
 
-    private enum IndexResult {
+    /// Maximum number of files to embed in parallel.
+    /// Each concurrent task creates its own `NLEmbedding` instance (~50 MB
+    /// resident), so this caps peak memory while still saturating CPU cores.
+    private static let maxConcurrency = max(ProcessInfo.processInfo.activeProcessorCount, 2)
+
+    private enum IndexResult: Sendable {
         case indexed(wasUpdate: Bool)
         case skippedUnreadable
         case skippedEmbedFailure
@@ -30,9 +35,10 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     /// Extract text and generate embeddings for a file, flushing to the database in
     /// batches of `batchSize` to bound memory usage for large files.
     ///
-    /// Embedding is done sequentially because `NLEmbedding.vector(for:)` is not
-    /// safe to call concurrently on the same instance — concurrent calls cause
-    /// segfaults in the NaturalLanguage framework's C++ internals.
+    /// Each call must receive its own `EmbeddingService` instance.
+    /// `NLEmbedding.vector(for:)` is not safe to call concurrently on the
+    /// *same* instance, but separate instances each own an independent C++
+    /// model and can run in parallel without segfaults.
     private func indexFile(
         _ file: FileInfo,
         using extractor: TextExtractor,
@@ -133,11 +139,10 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         let files = try scanner.scan()
         let indexedFiles = try await database.allIndexedFiles()
 
-        let embedder = EmbeddingService()
         let extractor = TextExtractor()
 
         // Categorize files into work items
-        struct FileWork {
+        struct FileWork: Sendable {
             let file: FileInfo
             let label: String
             let removeExisting: Bool
@@ -161,28 +166,71 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             }
         }
 
-        // Process files sequentially — NLEmbedding is not safe for concurrent use
+        // Process files in parallel — each task gets its own EmbeddingService
+        // (and therefore its own NLEmbedding instance) to avoid the segfault
+        // that occurs when multiple threads call vector(for:) on the same
+        // NLEmbedding. Concurrency is capped at maxConcurrency to bound
+        // memory usage since each NLEmbedding instance is ~50 MB resident.
+        let concurrency = Self.maxConcurrency
+        let verboseFlag = verbose
+
         var added = 0
         var updated = 0
         var skippedUnreadable = 0
         var skippedEmbedFailures = 0
 
-        for work in workItems {
-            let result: IndexResult
-            do {
-                result = try await indexFile(
-                    work.file,
-                    using: extractor,
-                    embedder: embedder,
-                    database: database,
-                    label: work.label,
-                    removeExisting: work.removeExisting,
-                    verbose: verbose
-                )
-            } catch {
-                result = .skippedEmbedFailure
+        let results: [IndexResult] = await withTaskGroup(of: IndexResult.self) { group in
+            var itemIterator = workItems.makeIterator()
+
+            // Seed the group with up to `concurrency` tasks
+            for _ in 0..<concurrency {
+                guard let work = itemIterator.next() else { break }
+                group.addTask {
+                    let embedder = EmbeddingService()
+                    do {
+                        return try await self.indexFile(
+                            work.file,
+                            using: extractor,
+                            embedder: embedder,
+                            database: database,
+                            label: work.label,
+                            removeExisting: work.removeExisting,
+                            verbose: verboseFlag
+                        )
+                    } catch {
+                        return .skippedEmbedFailure
+                    }
+                }
             }
 
+            // As each task completes, start the next one
+            var collected: [IndexResult] = []
+            collected.reserveCapacity(workItems.count)
+            for await result in group {
+                collected.append(result)
+                if let work = itemIterator.next() {
+                    group.addTask {
+                        let embedder = EmbeddingService()
+                        do {
+                            return try await self.indexFile(
+                                work.file,
+                                using: extractor,
+                                embedder: embedder,
+                                database: database,
+                                label: work.label,
+                                removeExisting: work.removeExisting,
+                                verbose: verboseFlag
+                            )
+                        } catch {
+                            return .skippedEmbedFailure
+                        }
+                    }
+                }
+            }
+            return collected
+        }
+
+        for result in results {
             switch result {
             case .indexed(let wasUpdate):
                 if wasUpdate {
