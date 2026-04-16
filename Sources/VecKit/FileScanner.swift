@@ -1,4 +1,5 @@
 import Foundation
+import UniformTypeIdentifiers
 
 /// Scans a directory for files to index, respecting .gitignore patterns.
 public class FileScanner {
@@ -7,20 +8,6 @@ public class FileScanner {
     private let respectsGitignore: Bool
     private let includeHiddenFiles: Bool
 
-    /// Known text file extensions that should be indexed.
-    private static let textExtensions: Set<String> = [
-        "md", "txt", "swift", "py", "js", "ts", "tsx", "jsx",
-        "json", "yaml", "yml", "toml", "xml", "html", "css", "scss",
-        "sh", "bash", "zsh", "fish",
-        "rb", "go", "rs", "c", "h", "cpp", "hpp", "m", "mm",
-        "java", "kt", "scala", "r",
-        "sql", "graphql",
-        "env", "ini", "cfg", "conf", "config",
-        "log", "csv", "tsv",
-        "tex", "rst", "adoc", "org",
-        "cmake"
-    ]
-
     /// Well-known text filenames that have no file extension.
     private static let knownTextFilenames: Set<String> = [
         "Makefile", "Dockerfile", "LICENSE", "Gemfile",
@@ -28,9 +15,6 @@ public class FileScanner {
         "Fastfile", "Dangerfile", "Berksfile", "Guardfile",
         "CHANGELOG", "CONTRIBUTING", "AUTHORS", "CODEOWNERS"
     ]
-
-    /// File extensions that get special handling.
-    private static let pdfExtension = "pdf"
 
     /// Directories to always skip.
     private static let skipDirectories: Set<String> = [
@@ -90,8 +74,13 @@ public class FileScanner {
 
             let ext = url.pathExtension.lowercased()
 
-            // Check if it's a supported file type
-            guard Self.textExtensions.contains(ext) || ext == Self.pdfExtension
+            // Check if it's a supported file type using UTType
+            let utType = UTType(filenameExtension: ext)
+            let isText = utType?.conforms(to: .text) ?? false
+            let isPDF = utType?.conforms(to: .pdf) ?? false
+            let isImage = utType?.conforms(to: .image) ?? false
+
+            guard isText || isPDF || isImage
                     || Self.knownTextFilenames.contains(fileName) else {
                 // Try to detect text files without known extensions
                 if isLikelyTextFile(url) {

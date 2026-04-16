@@ -1,5 +1,7 @@
 import Foundation
 import PDFKit
+import UniformTypeIdentifiers
+import Vision
 
 /// Extracts text content from files and splits into chunks for embedding.
 public class TextExtractor {
@@ -21,6 +23,12 @@ public class TextExtractor {
     public func extract(from file: FileInfo) throws -> [TextChunk] {
         if file.fileExtension == "pdf" {
             return extractFromPDF(file)
+        }
+
+        // Check for image files using UTType
+        if let utType = UTType(filenameExtension: file.fileExtension),
+           utType.conforms(to: .image) {
+            return extractFromImage(file)
         }
 
         guard let content = try? String(contentsOf: file.url, encoding: .utf8) else {
@@ -119,5 +127,37 @@ public class TextExtractor {
         }
 
         return chunks
+    }
+
+    // MARK: - Image OCR Extraction
+
+    private func extractFromImage(_ file: FileInfo) -> [TextChunk] {
+        let requestHandler = VNImageRequestHandler(url: file.url)
+
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.recognitionLanguages = ["en"]
+        request.usesLanguageCorrection = true
+
+        do {
+            try requestHandler.perform([request])
+        } catch {
+            return []
+        }
+
+        guard let observations = request.results else { return [] }
+
+        let recognizedStrings = observations.compactMap { observation in
+            observation.topCandidates(1).first?.string
+        }
+
+        guard !recognizedStrings.isEmpty else { return [] }
+
+        let fullText = recognizedStrings.joined(separator: "\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !fullText.isEmpty else { return [] }
+
+        return [TextChunk(text: fullText, type: .image)]
     }
 }

@@ -2,7 +2,7 @@
 
 ## Current State
 
-The `vec` CLI tool and its `VecKit` library are production-ready for all Priority 1, 2, 3, 4, and 5 items. All seven commands are implemented, the project builds cleanly, and all tests pass (run `swift test` to verify current count). The embedding service uses Apple's on-device `NLEmbedding`. The `sqlite-vector` package is integrated via SPM binary target with runtime extension loading.
+The `vec` CLI tool and its `VecKit` library are production-ready for all Priority 1, 2, 3, 4, 5, and 6 items. All seven commands are implemented, the project builds cleanly, and all tests pass (run `swift test` to verify current count). The embedding service uses Apple's on-device `NLEmbedding`. The `sqlite-vector` package is integrated via SPM binary target with runtime extension loading. File type detection uses Apple's `UTType` framework, and image files are supported via Vision framework OCR.
 
 ### What's Implemented
 
@@ -17,8 +17,8 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 | `vec info [-d <name>]` | Done | Shows database metadata: name, source directory, created date, file count, chunk count, DB file size. |
 | `VectorDatabase` | Done | SQLite + sqlite-vector wrapper. Insert, search, remove, allIndexedFiles, totalChunkCount. Schema creation wrapped in transaction for crash safety. |
 | `EmbeddingService` | Done | Uses `NLEmbedding.sentenceEmbedding(for: .english)`. Dimension determined at runtime (see `EmbeddingService.dimension`). Includes `detectLanguage()` and `warnIfNonEnglish()` methods — non-English content is still embedded but warns to stderr once per file. |
-| `FileScanner` | Done | Directory walking, .gitignore support via `git check-ignore`, hidden file filtering (dot-prefix), skips .git/node_modules/.build/etc, binary detection. Pipe-safe Process I/O. `knownTextFilenames` set for extensionless files (Makefile, Dockerfile, etc.). Resilient resource value reads (`try?`). |
-| `TextExtractor` | Done | Plain text (whole-doc), markdown (overlapping chunks), PDF (per-page). |
+| `FileScanner` | Done | Directory walking, UTType-based file detection (.text, .pdf, .image), .gitignore support via `git check-ignore`, hidden file filtering (dot-prefix), skips .git/node_modules/.build/etc, binary detection. Pipe-safe Process I/O. `knownTextFilenames` set for extensionless files (Makefile, Dockerfile, etc.). Resilient resource value reads (`try?`). |
+| `TextExtractor` | Done | Plain text (whole-doc), markdown (overlapping chunks), PDF (per-page), image OCR (Vision framework). |
 | `PathUtilities` | Done | Safe relative path computation using NSString.standardizingPath. |
 | `CSQLiteVec` | Done | System library shim for sqlite3 C API access. |
 
@@ -28,10 +28,10 @@ Run `swift test` to see current suite counts. Test files are in `Tests/VecKitTes
 
 | Test Suite | File | Coverage |
 |-----------|------|----------|
-| `VecKitTests` | `VecKitTests.swift` | `ChunkType` raw values, `TextChunk` construction |
+| `VecKitTests` | `VecKitTests.swift` | `ChunkType` raw values (including image), `TextChunk` construction |
 | `EmbeddingServiceTests` | `VecKitTests.swift` | Real embeddings, empty/whitespace input, dimension check, language detection (English, non-English, empty) |
-| `TextExtractorTests` | `VecKitTests.swift` | Large/small markdown, txt files, empty/whitespace files, headings-only, every-line-heading, long single line, binary file |
-| `FileScannerTests` | `VecKitTests.swift` | .git skipping, binary detection (with and without extension), node_modules, relative paths, hidden skip/include, .git still skipped when hidden enabled, gitignore filtering, non-git fallback, disable gitignore, .vecignore patterns, spaces/unicode in names, empty directory |
+| `TextExtractorTests` | `VecKitTests.swift` | Large/small markdown, txt files, empty/whitespace files, headings-only, every-line-heading, long single line, binary file, image OCR extraction, PDF extraction (fixture-based) |
+| `FileScannerTests` | `VecKitTests.swift` | .git skipping, binary detection (with and without extension), node_modules, relative paths, hidden skip/include, .git still skipped when hidden enabled, gitignore filtering, non-git fallback, disable gitignore, .vecignore patterns, spaces/unicode in names, empty directory, image file detection |
 | `PathUtilitiesTests` | `VecKitTests.swift` | Normal paths, trailing slashes, .., outside directory, same path, root dir, deep nesting, prefix collision |
 | `ChunkingStrategyTests` | `VecKitTests.swift` | Overlap behavior, heading boundaries, custom chunk/overlap sizes |
 | `VectorDatabaseTests` | `VectorDatabaseTests.swift` | Initialize, open, insert, search (ordering, similarity, limit, fields, PDF page), allIndexedFiles, removeEntries, multi-file scenarios, corrupted DB detection |
@@ -171,6 +171,22 @@ Currently, every command except `init` and `list` requires a positional `<db-nam
 - **5d.** In each command's `run()`, resolve via: `db != nil ? DatabaseLocator.resolve(db!) : DatabaseLocator.resolveFromCurrentDirectory()`
 - **5e.** Update `CLITests` for new argument patterns (commands no longer require positional db-name, accept `-d` flag)
 - **5f.** Run `swift test` to verify all tests pass
+
+---
+
+## Priority 6: UTType-based file detection and image OCR support — DONE
+
+Replaced hard-coded file extension allowlists in FileScanner with Apple's `UTType` (from `UniformTypeIdentifiers` framework) for file type detection. Added image-to-text OCR support using Apple's Vision framework.
+
+### What was done
+
+- **6a.** FileScanner refactored to use `UTType(filenameExtension:)` with `.conforms(to:)` checks for `.text`, `.pdf`, and `.image` instead of maintaining manual extension sets (`textExtensions`, `pdfExtension` removed)
+- **6b.** `knownTextFilenames` set and `isLikelyTextFile` fallback preserved for extensionless files that UTType can't identify
+- **6c.** `ChunkType.image` case added to the enum for OCR-extracted text chunks
+- **6d.** `TextExtractor.extractFromImage(_:)` method added using `VNRecognizeTextRequest` with `.accurate` recognition level, English language, and language correction enabled
+- **6e.** Image detection added to `TextExtractor.extract(from:)` using UTType check before UTF-8 text reading
+- **6f.** SearchCommand updated to show `(OCR)` label for image chunk types in text output; JSON output handles image `chunk_type` automatically via existing `rawValue` serialization
+- **6g.** Tests: `ChunkType.image` raw value test, programmatic PNG image OCR test (CoreGraphics-rendered text), FileScanner test verifying .png files are picked up by scanner
 
 ---
 

@@ -46,4 +46,5 @@ public enum ChunkType: String {
     case whole = "whole"
     case chunk = "chunk"
     case pdfPage = "pdf_page"
+    case image = "image"
 }
