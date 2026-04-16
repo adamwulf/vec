@@ -82,6 +82,8 @@ private final class ProgressRenderer: @unchecked Sendable {
             saveQueueDepth += 1
         case .saveDequeued:
             if saveQueueDepth > 0 { saveQueueDepth -= 1 }
+        case .poolWarmed:
+            break
         case .batchEmbedded(_, let chunks):
             chunksDone += chunks
             let now = Date()

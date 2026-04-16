@@ -76,6 +76,10 @@ public enum ProgressEvent: Sendable {
     /// show live save-queue depth as a bottleneck signal.
     case saveEnqueued
     case saveDequeued
+    /// Pool warmup completed. Emitted once per `run()` after every pooled
+    /// embedder has been pre-touched serially, before any worker task starts.
+    /// `seconds` is wall-clock time spent in the warmup loop.
+    case poolWarmed(seconds: Double)
 }
 
 public typealias ProgressHandler = @Sendable (ProgressEvent) -> Void
@@ -109,13 +113,30 @@ public final class IndexingPipeline: Sendable {
     /// Pool of pre-created EmbeddingService instances.
     private let pool: EmbedderPool
 
-    public init(
+    /// Whether to warm each pooled embedder serially before the worker
+    /// task group starts. Defaults to true (the H5 result). Exposed as an
+    /// internal init seam so measurement tests can compare cold vs warm
+    /// without polluting the public API.
+    internal let warmupEnabled: Bool
+
+    public convenience init(
         embedBatchSize: Int = 20,
         concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2)
+    ) {
+        self.init(embedBatchSize: embedBatchSize, concurrency: concurrency, warmup: true)
+    }
+
+    /// Internal init that exposes the warmup toggle. Used by measurement
+    /// tests to bypass warmup; production callers should use the public init.
+    internal init(
+        embedBatchSize: Int = 20,
+        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
+        warmup: Bool
     ) {
         self.embedBatchSize = embedBatchSize
         self.workerCount = concurrency
         self.pool = EmbedderPool(count: concurrency)
+        self.warmupEnabled = warmup
     }
 
     /// Run the full indexing pipeline for a set of file work items.
@@ -136,6 +157,16 @@ public final class IndexingPipeline: Sendable {
 
         let batchSize = embedBatchSize
         let pool = self.pool
+
+        // H5: warm each pooled embedder serially before workers start, so
+        // the first batch doesn't pay 10× parallel NLEmbedding cold-load
+        // cost contending for memory bandwidth.
+        if warmupEnabled {
+            let warmStart = DispatchTime.now()
+            await pool.warmAll()
+            let warmSeconds = Self.elapsed(since: warmStart)
+            progress?(.poolWarmed(seconds: warmSeconds))
+        }
 
         // Save stream: file workers → DB writer (single consumer)
         let (saveStream, saveContinuation) = AsyncStream<SaveWork>.makeStream(
@@ -402,6 +433,16 @@ actor EmbedderPool {
             waiter.resume(returning: embedder)
         } else {
             available.append(embedder)
+        }
+    }
+
+    /// Pre-touches every pooled embedder with one throwaway `embed` call.
+    /// Done **serially** on purpose: the goal is to avoid N parallel cold
+    /// model loads contending for memory bandwidth on the first batch.
+    /// Safe to call before any acquire — operates on `available` directly.
+    func warmAll() async {
+        for embedder in available {
+            _ = embedder.embed("warmup text")
         }
     }
 }
