@@ -1,6 +1,74 @@
 import Foundation
 import ArgumentParser
 import VecKit
+#if canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#endif
+
+/// Thread-safe renderer for a single-line rolling progress display in verbose mode.
+///
+/// The `IndexingPipeline` calls `handle(_:)` from multiple concurrent workers.
+/// A lock (not an actor) serializes counter updates and stdout writes so the
+/// synchronous `@Sendable` progress callback doesn't need to await.
+private final class ProgressRenderer: @unchecked Sendable {
+    private let lock = NSLock()
+    private let totalFiles: Int
+    private var filesDone = 0
+    private var chunksDone = 0
+    private var nonEnglishCount = 0
+    private var lastRenderedLen = 0
+    private var finished = false
+    private var everRendered = false
+
+    init(totalFiles: Int) {
+        self.totalFiles = totalFiles
+    }
+
+    func handle(_ event: ProgressEvent) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !finished else { return }
+
+        switch event {
+        case .fileFinished:
+            filesDone += 1
+        case .fileSkipped:
+            filesDone += 1
+        case .nonEnglishDetected:
+            nonEnglishCount += 1
+        case .chunksEmbedded(let count):
+            chunksDone += count
+        }
+
+        render()
+    }
+
+    /// Idempotent: safe to call from both the normal flow and a `defer` on error.
+    /// Writes a trailing newline so the next stdout line starts fresh.
+    func finish() {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !finished else { return }
+        finished = true
+        if everRendered {
+            FileHandle.standardOutput.write(Data("\n".utf8))
+        }
+    }
+
+    /// Must be called with the lock held.
+    private func render() {
+        let line = "Indexing: \(filesDone)/\(totalFiles) files • \(chunksDone) chunks • \(nonEnglishCount) non-English"
+        var padded = "\r" + line
+        if line.count < lastRenderedLen {
+            padded += String(repeating: " ", count: lastRenderedLen - line.count)
+        }
+        lastRenderedLen = line.count
+        everRendered = true
+        FileHandle.standardOutput.write(Data(padded.utf8))
+    }
+}
 
 struct UpdateIndexCommand: AsyncParsableCommand {
 
@@ -15,7 +83,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Flag(name: .long, help: "Include hidden files and folders")
     var allowHidden: Bool = false
 
-    @Flag(name: .shortAndLong, help: "Show detailed progress for each file")
+    @Flag(name: .shortAndLong, help: "Show a rolling stats line while indexing")
     var verbose: Bool = false
 
     func run() async throws {
@@ -40,31 +108,41 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                     workItems.append((file: file, label: "Updated"))
                 } else {
                     unchanged += 1
-                    if verbose {
-                        print("  Unchanged: \(file.relativePath)")
-                    }
                 }
             } else {
                 workItems.append((file: file, label: "Added"))
             }
         }
 
-        // Run the indexing pipeline
-        let pipeline = IndexingPipeline()
-
-        let progress: (@Sendable (String) -> Void)?
-        if verbose {
-            progress = { message in print(message) }
+        // Wire up the rolling progress renderer when verbose and attached to a TTY.
+        // Piped/redirected stdout skips progress — the final summary still prints.
+        let stdoutIsTTY = isatty(FileHandle.standardOutput.fileDescriptor) != 0
+        let renderer: ProgressRenderer?
+        let progress: ProgressHandler?
+        if verbose && stdoutIsTTY && !workItems.isEmpty {
+            let r = ProgressRenderer(totalFiles: workItems.count)
+            renderer = r
+            progress = { event in r.handle(event) }
         } else {
+            renderer = nil
             progress = nil
         }
 
-        let results: [IndexResult] = try await pipeline.run(
-            workItems: workItems,
-            extractor: TextExtractor(),
-            database: database,
-            progress: progress
-        )
+        let pipeline = IndexingPipeline()
+
+        let results: [IndexResult]
+        do {
+            results = try await pipeline.run(
+                workItems: workItems,
+                extractor: TextExtractor(),
+                database: database,
+                progress: progress
+            )
+            renderer?.finish()
+        } catch {
+            renderer?.finish()
+            throw error
+        }
 
         // Tally results
         var added = 0
@@ -94,9 +172,6 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             if !currentPaths.contains(indexedPath) {
                 try await database.removeEntries(forPath: indexedPath)
                 removed += 1
-                if verbose {
-                    print("  Removed: \(indexedPath)")
-                }
             }
         }
 
