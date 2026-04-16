@@ -24,10 +24,9 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         case skippedEmbedFailure
     }
 
-    /// Extract text and generate embeddings for a file in parallel, then insert into the database.
-    /// When `removeExisting` is true (re-indexing a modified file), old entries are only
-    /// removed after new embeddings are successfully generated, preventing data loss if
-    /// extraction or embedding fails.
+    /// Extract text and generate embeddings for a file in parallel, then write to the database
+    /// in a single transactional batch. When `removeExisting` is true (re-indexing a modified
+    /// file), old entries are atomically replaced within the same transaction.
     private func indexFile(
         _ file: FileInfo,
         using extractor: TextExtractor,
@@ -80,13 +79,9 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             return .skippedEmbedFailure
         }
 
-        // Only now that we have new embeddings, remove the old entries
-        if removeExisting {
-            try await database.removeEntries(forPath: file.relativePath)
-        }
-
-        for (chunk, embedding) in embedded {
-            try await database.insert(
+        // Build ChunkRecords for batch insert
+        let records = embedded.map { (chunk, embedding) in
+            ChunkRecord(
                 filePath: file.relativePath,
                 lineStart: chunk.lineStart,
                 lineEnd: chunk.lineEnd,
@@ -97,6 +92,15 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                 embedding: embedding
             )
         }
+
+        // Single actor hop: either replace (delete + insert) or batch insert,
+        // all within one SQLite transaction (one fsync).
+        if removeExisting {
+            try await database.replaceEntries(forPath: file.relativePath, with: records)
+        } else {
+            try await database.insertBatch(records)
+        }
+
         if verbose {
             print("  \(label): \(file.relativePath) (\(embedded.count) chunks)")
         }

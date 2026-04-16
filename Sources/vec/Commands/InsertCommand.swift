@@ -38,9 +38,7 @@ struct InsertCommand: AsyncParsableCommand {
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
         try await database.open()
 
-        // Remove existing entries for this file
         let relativePath = PathUtilities.relativePath(of: filePath.path, in: sourceDir.path)
-        try await database.removeEntries(forPath: relativePath)
 
         let extractor = TextExtractor()
         let embedder = EmbeddingService()
@@ -67,9 +65,9 @@ struct InsertCommand: AsyncParsableCommand {
             return results.map { ($0.chunk, $0.embedding) }
         }
 
-        // Insert all embeddings into the database
-        for (chunk, embedding) in embedded {
-            try await database.insert(
+        // Build records and atomically replace in one transaction + one actor hop
+        let records = embedded.map { (chunk, embedding) in
+            ChunkRecord(
                 filePath: relativePath,
                 lineStart: chunk.lineStart,
                 lineEnd: chunk.lineEnd,
@@ -80,6 +78,8 @@ struct InsertCommand: AsyncParsableCommand {
                 embedding: embedding
             )
         }
+
+        try await database.replaceEntries(forPath: relativePath, with: records)
 
         if embedded.isEmpty && !chunks.isEmpty {
             print("Warning: \(chunks.count) chunks extracted but none could be embedded from \(relativePath)")

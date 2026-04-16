@@ -2,6 +2,38 @@ import Foundation
 import CSQLiteVec
 import Accelerate
 
+/// A record to insert into the chunks table, used by batch operations.
+public struct ChunkRecord: Sendable {
+    public let filePath: String
+    public let lineStart: Int?
+    public let lineEnd: Int?
+    public let chunkType: ChunkType
+    public let pageNumber: Int?
+    public let fileModifiedAt: Date
+    public let contentPreview: String
+    public let embedding: [Float]
+
+    public init(
+        filePath: String,
+        lineStart: Int?,
+        lineEnd: Int?,
+        chunkType: ChunkType,
+        pageNumber: Int?,
+        fileModifiedAt: Date,
+        contentPreview: String,
+        embedding: [Float]
+    ) {
+        self.filePath = filePath
+        self.lineStart = lineStart
+        self.lineEnd = lineEnd
+        self.chunkType = chunkType
+        self.pageNumber = pageNumber
+        self.fileModifiedAt = fileModifiedAt
+        self.contentPreview = contentPreview
+        self.embedding = embedding
+    }
+}
+
 /// Wraps SQLite for storing and querying vector embeddings using pure-Swift
 /// cosine-distance search. No external dynamic library required.
 public actor VectorDatabase {
@@ -60,7 +92,7 @@ public actor VectorDatabase {
 
     // MARK: - Insert
 
-    /// Insert a chunk embedding into the database.
+    /// Insert a single chunk embedding into the database.
     @discardableResult
     public func insert(
         filePath: String,
@@ -72,41 +104,67 @@ public actor VectorDatabase {
         contentPreview: String,
         embedding: [Float]
     ) throws -> Int64 {
-        let sql = """
-            INSERT INTO chunks (file_path, line_start, line_end, chunk_type, page_number, file_modified_at, content_preview, embedding)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """
+        try _insert(
+            filePath: filePath,
+            lineStart: lineStart,
+            lineEnd: lineEnd,
+            chunkType: chunkType,
+            pageNumber: pageNumber,
+            fileModifiedAt: fileModifiedAt,
+            contentPreview: contentPreview,
+            embedding: embedding
+        )
+    }
 
-        var stmt: OpaquePointer?
-        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
-            throw sqlError("Failed to prepare insert statement")
-        }
-        defer { sqlite3_finalize(stmt) }
+    /// Insert multiple chunk records in a single transaction.
+    /// One actor hop, one fsync — 10-100x faster than individual inserts for bulk writes.
+    public func insertBatch(_ records: [ChunkRecord]) throws {
+        guard !records.isEmpty else { return }
 
-        sqlite3_bind_text(stmt, 1, filePath, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
-        bindOptionalInt(stmt, index: 2, value: lineStart)
-        bindOptionalInt(stmt, index: 3, value: lineEnd)
-        sqlite3_bind_text(stmt, 4, chunkType.rawValue, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
-        bindOptionalInt(stmt, index: 5, value: pageNumber)
-        sqlite3_bind_double(stmt, 6, fileModifiedAt.timeIntervalSince1970)
-        sqlite3_bind_text(stmt, 7, contentPreview, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+        try _execute("BEGIN TRANSACTION")
+        do {
+            for record in records {
+                try _insert(
+                    filePath: record.filePath,
+                    lineStart: record.lineStart,
+                    lineEnd: record.lineEnd,
+                    chunkType: record.chunkType,
+                    pageNumber: record.pageNumber,
+                    fileModifiedAt: record.fileModifiedAt,
+                    contentPreview: record.contentPreview,
+                    embedding: record.embedding
+                )
+            }
+            try _execute("COMMIT")
+        } catch {
+            try? _execute("ROLLBACK")
+            throw error
+        }
+    }
 
-        // Store embedding as raw Float32 bytes
-        let data = embedding.withUnsafeBufferPointer { buffer in
-            Data(buffer: buffer)
+    /// Atomically replace all entries for a file path: delete existing entries then
+    /// insert new records, all within a single transaction.
+    public func replaceEntries(forPath path: String, with records: [ChunkRecord]) throws {
+        try _execute("BEGIN TRANSACTION")
+        do {
+            try _removeEntries(forPath: path)
+            for record in records {
+                try _insert(
+                    filePath: record.filePath,
+                    lineStart: record.lineStart,
+                    lineEnd: record.lineEnd,
+                    chunkType: record.chunkType,
+                    pageNumber: record.pageNumber,
+                    fileModifiedAt: record.fileModifiedAt,
+                    contentPreview: record.contentPreview,
+                    embedding: record.embedding
+                )
+            }
+            try _execute("COMMIT")
+        } catch {
+            try? _execute("ROLLBACK")
+            throw error
         }
-        let bindResult = data.withUnsafeBytes { rawBuffer in
-            sqlite3_bind_blob(stmt, 8, rawBuffer.baseAddress, Int32(rawBuffer.count), unsafeBitCast(-1, to: sqlite3_destructor_type.self))
-        }
-        guard bindResult == SQLITE_OK else {
-            throw sqlError("Failed to bind embedding blob")
-        }
-
-        guard sqlite3_step(stmt) == SQLITE_DONE else {
-            throw sqlError("Failed to insert chunk")
-        }
-
-        return sqlite3_last_insert_rowid(db)
     }
 
     // MARK: - Query
@@ -211,21 +269,7 @@ public actor VectorDatabase {
     /// Remove all entries for a given file path.
     @discardableResult
     public func removeEntries(forPath path: String) throws -> Int {
-        let sql = "DELETE FROM chunks WHERE file_path = ?"
-
-        var stmt: OpaquePointer?
-        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
-            throw sqlError("Failed to prepare delete statement")
-        }
-        defer { sqlite3_finalize(stmt) }
-
-        sqlite3_bind_text(stmt, 1, path, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
-
-        guard sqlite3_step(stmt) == SQLITE_DONE else {
-            throw sqlError("Failed to delete entries")
-        }
-
-        return Int(sqlite3_changes(db))
+        try _removeEntries(forPath: path)
     }
 
     // MARK: - Counts
@@ -247,7 +291,91 @@ public actor VectorDatabase {
         return Int(sqlite3_column_int64(stmt, 0))
     }
 
-    // MARK: - Private
+    // MARK: - Private (non-actor-boundary helpers for use within transactions)
+
+    /// Insert a single row — called internally, does not cross the actor boundary.
+    @discardableResult
+    private func _insert(
+        filePath: String,
+        lineStart: Int?,
+        lineEnd: Int?,
+        chunkType: ChunkType,
+        pageNumber: Int?,
+        fileModifiedAt: Date,
+        contentPreview: String,
+        embedding: [Float]
+    ) throws -> Int64 {
+        let sql = """
+            INSERT INTO chunks (file_path, line_start, line_end, chunk_type, page_number, file_modified_at, content_preview, embedding)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """
+
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            throw sqlError("Failed to prepare insert statement")
+        }
+        defer { sqlite3_finalize(stmt) }
+
+        sqlite3_bind_text(stmt, 1, filePath, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+        bindOptionalInt(stmt, index: 2, value: lineStart)
+        bindOptionalInt(stmt, index: 3, value: lineEnd)
+        sqlite3_bind_text(stmt, 4, chunkType.rawValue, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+        bindOptionalInt(stmt, index: 5, value: pageNumber)
+        sqlite3_bind_double(stmt, 6, fileModifiedAt.timeIntervalSince1970)
+        sqlite3_bind_text(stmt, 7, contentPreview, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+
+        // Store embedding as raw Float32 bytes
+        let data = embedding.withUnsafeBufferPointer { buffer in
+            Data(buffer: buffer)
+        }
+        let bindResult = data.withUnsafeBytes { rawBuffer in
+            sqlite3_bind_blob(stmt, 8, rawBuffer.baseAddress, Int32(rawBuffer.count), unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+        }
+        guard bindResult == SQLITE_OK else {
+            throw sqlError("Failed to bind embedding blob")
+        }
+
+        guard sqlite3_step(stmt) == SQLITE_DONE else {
+            throw sqlError("Failed to insert chunk")
+        }
+
+        return sqlite3_last_insert_rowid(db)
+    }
+
+    /// Delete entries for a path — called internally, does not cross the actor boundary.
+    @discardableResult
+    private func _removeEntries(forPath path: String) throws -> Int {
+        let sql = "DELETE FROM chunks WHERE file_path = ?"
+
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            throw sqlError("Failed to prepare delete statement")
+        }
+        defer { sqlite3_finalize(stmt) }
+
+        sqlite3_bind_text(stmt, 1, path, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+
+        guard sqlite3_step(stmt) == SQLITE_DONE else {
+            throw sqlError("Failed to delete entries")
+        }
+
+        return Int(sqlite3_changes(db))
+    }
+
+    /// Execute raw SQL — called internally, does not cross the actor boundary.
+    private func _execute(_ sql: String) throws {
+        var errMsg: UnsafeMutablePointer<CChar>?
+        guard sqlite3_exec(db, sql, nil, nil, &errMsg) == SQLITE_OK else {
+            let message: String
+            if let errMsg = errMsg {
+                message = String(cString: errMsg)
+                sqlite3_free(errMsg)
+            } else {
+                message = "Unknown error"
+            }
+            throw VecError.sqliteError(message)
+        }
+    }
 
     private func openDatabase() throws {
         guard sqlite3_open(dbPath, &db) == SQLITE_OK else {
@@ -272,28 +400,14 @@ public actor VectorDatabase {
 
         let createIndex = "CREATE INDEX IF NOT EXISTS idx_chunks_file_path ON chunks(file_path);"
 
-        try execute("BEGIN TRANSACTION")
+        try _execute("BEGIN TRANSACTION")
         do {
-            try execute(createTable)
-            try execute(createIndex)
-            try execute("COMMIT")
+            try _execute(createTable)
+            try _execute(createIndex)
+            try _execute("COMMIT")
         } catch {
-            try? execute("ROLLBACK")
+            try? _execute("ROLLBACK")
             throw error
-        }
-    }
-
-    private func execute(_ sql: String) throws {
-        var errMsg: UnsafeMutablePointer<CChar>?
-        guard sqlite3_exec(db, sql, nil, nil, &errMsg) == SQLITE_OK else {
-            let message: String
-            if let errMsg = errMsg {
-                message = String(cString: errMsg)
-                sqlite3_free(errMsg)
-            } else {
-                message = "Unknown error"
-            }
-            throw VecError.sqliteError(message)
         }
     }
 
