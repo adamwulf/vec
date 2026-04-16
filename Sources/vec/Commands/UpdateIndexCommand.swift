@@ -67,8 +67,12 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         var totalInserted = 0
         var needsDelete = removeExisting
         var warnedNonEnglish = false
-        var chunksProcessed = 0
+        var chunksEmbedded = 0
         let totalChunks = chunks.count
+
+        if verbose {
+            print("  \(label): \(file.relativePath) (\(totalChunks) chunks)")
+        }
 
         // Process chunks in batches to bound memory
         for batchStart in stride(from: 0, to: chunks.count, by: Self.batchSize) {
@@ -80,12 +84,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             for chunk in batch {
                 embedder.warnIfNonEnglish(text: chunk.text, filePath: file.relativePath, warned: &warnedNonEnglish)
                 guard let vector = embedder.embed(chunk.text) else { continue }
-                chunksProcessed += 1
-                if verbose {
-                    let pct = Int(Double(chunksProcessed) / Double(totalChunks) * 100)
-                    print("  \(label): \(file.relativePath) [\(chunksProcessed)/\(totalChunks) chunks, \(pct)%]", terminator: "\r")
-                    fflush(stdout)
-                }
+                chunksEmbedded += 1
                 records.append(ChunkRecord(
                     filePath: file.relativePath,
                     lineStart: chunk.lineStart,
@@ -110,19 +109,24 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             }
 
             totalInserted += records.count
+
+            if verbose && totalChunks > Self.batchSize {
+                let pct = Int(Double(chunksEmbedded) / Double(totalChunks) * 100)
+                print("    \(file.relativePath) [\(chunksEmbedded)/\(totalChunks) chunks, \(pct)%]")
+            }
         }
 
         // If we needed to delete but never had any successful embeddings,
         // don't delete the old data — preserve it.
         if totalInserted == 0 {
             if verbose {
-                print("  Skipped: \(file.relativePath) (failed to embed \(chunks.count) chunks)")
+                print("    Skipped: \(file.relativePath) (failed to embed \(totalChunks) chunks)")
             }
             return .skippedEmbedFailure
         }
 
-        if verbose {
-            print("  \(label): \(file.relativePath) (\(totalInserted) chunks)")
+        if verbose && totalChunks > Self.batchSize {
+            print("  Done: \(file.relativePath) (\(totalInserted) chunks)")
         }
         return .indexed(wasUpdate: removeExisting)
     }
