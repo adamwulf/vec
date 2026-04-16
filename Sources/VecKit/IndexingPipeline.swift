@@ -261,6 +261,11 @@ public final class IndexingPipeline: Sendable {
         let pipelineStart = DispatchTime.now()
         let statsCollector = StatsCollector(pipelineStart: pipelineStart)
         let accumulator = FileAccumulator()
+        // Per-chunk backpressure: extract blocks once the embed queue is
+        // roughly two pool-sizes deep. Keeps memory bounded on large
+        // corpora (previously extract would race through all files and
+        // queue tens of thousands of chunks' text before embed caught up).
+        let extractGate = ExtractBackpressure(capacity: workerCount * 2)
 
         try await withThrowingTaskGroup(of: Void.self) { group in
 
@@ -345,6 +350,11 @@ public final class IndexingPipeline: Sendable {
                     )
 
                     for (index, chunk) in chunks.enumerated() {
+                        // Block until the embed queue has room. Permit
+                        // released in the embed task after handoff to the
+                        // accumulator. Keeps extract from running ahead
+                        // of embed on large corpora.
+                        await extractGate.acquire()
                         let work = EmbedWork(
                             file: item.file,
                             label: item.label,
@@ -418,6 +428,13 @@ public final class IndexingPipeline: Sendable {
                                 record: record
                             )
                             accumContinuation.yield(emitted)
+                            // Release the extract-gate permit that was
+                            // acquired when this chunk was yielded onto
+                            // the embed stream. Released on every embed
+                            // path (success or vector == nil failure) —
+                            // if an embed path stops releasing, extract
+                            // will eventually deadlock on a full gate.
+                            await extractGate.release()
                         }
                     }
                 }
@@ -675,6 +692,52 @@ actor EmbedderPool {
     func warmAll() async {
         for embedder in available {
             _ = embedder.embed("warmup text")
+        }
+    }
+}
+
+// MARK: - Extract Backpressure
+
+/// Counting semaphore used to gate the extract stage against the embed
+/// stage. Extract acquires one permit per chunk before yielding; embed
+/// releases one permit per chunk once the chunk has been handed off to the
+/// accumulator. Sized to `workerCount * 2` on init — large enough that the
+/// pool never idles waiting for extract (there's always a chunk queued up
+/// behind the one being embedded), small enough that extract blocks before
+/// chunking a second huge file worth of text into memory.
+///
+/// The old extract stage used an unbounded `AsyncStream` buffer, which on
+/// large corpora let extract race ahead of embed by tens of thousands of
+/// chunks — each carrying the chunk's text plus metadata. This actor
+/// replaces that with a hard bound.
+actor ExtractBackpressure {
+    private let capacity: Int
+    private var available: Int
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    init(capacity: Int) {
+        self.capacity = capacity
+        self.available = capacity
+    }
+
+    /// Block until a permit is available, then consume one.
+    func acquire() async {
+        if available > 0 {
+            available -= 1
+            return
+        }
+        await withCheckedContinuation { continuation in
+            waiters.append(continuation)
+        }
+    }
+
+    /// Return one permit. Resumes the oldest waiter if any.
+    func release() {
+        if let waiter = waiters.first {
+            waiters.removeFirst()
+            waiter.resume()
+        } else {
+            available += 1
         }
     }
 }
