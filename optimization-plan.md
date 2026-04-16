@@ -224,6 +224,51 @@ should hit warm caches.
 becomes a one-liner (warm up the single instance) and most of the
 cold-start should disappear anyway.
 
+### Result: KEEP WARMUP ON, BUT IT'S NEUTRAL IN THIS HARNESS (2026-04-16)
+
+Implementation: `EmbedderPool.warmAll()` calls `.embed("warmup text")`
+serially on every pooled embedder before the worker task group starts.
+Wired through `IndexingPipeline.run()` behind an internal `warmup: Bool`
+init seam (default `true`). Emits `.poolWarmed(seconds:)` progress event.
+
+Measurement at `Tests/VecKitTests/PoolWarmupTests.swift`: same 70-file
+synthetic corpus as H2, default concurrency (10), 4 timed runs (no
+discarded warm-up — the whole point is to keep cold-start cost in trial
+1). Order: off-1, on-1, off-2, on-2.
+
+| condition  | trial1 first_batch | trial2 first_batch | trial1 wall | trial2 wall |
+|:-----------|:------------------:|:------------------:|:-----------:|:-----------:|
+| warmup off |       0.35s        |       0.29s        |   24.38s    |   24.76s    |
+| warmup on  |       0.27s        |       0.27s        |   24.52s    |   24.61s    |
+
+- First-batch latency improvement: ~0.05s (within noise).
+- Wall-clock impact: also within noise (off avg 24.57s, on avg 24.57s).
+- Did NOT reproduce the user's reported ~15s cold-start. The XCTest
+  process loads NLEmbedding once at framework load time before any test
+  body runs; trial 1 here pays a much smaller cost than `vec
+  update-index` does at process startup. The synthetic 480-chunk corpus
+  is also smaller than the 929-file production case.
+
+**Conclusion:** keep warmup on by default. Even though this harness
+can't measure the production cold-start, the production-side argument
+is unchanged: 10 parallel `NLEmbedding.vector(for:)` first-calls hit
+memory bandwidth at the same time, and serializing the cold loads costs
+nothing in steady-state (this test confirms ≤ noise impact). On a real
+`vec update-index` invocation the user reports ~15s cold-start that
+this should help with — needs a manual production-corpus check to
+confirm magnitude, but the change is safe to ship as a default since
+it's neutral in the controlled measurement.
+
+**Caveats / follow-ups:**
+- A more honest reproduction would launch a fresh process per trial
+  (one `swift run vec update-index --verbose` per trial, not one XCTest
+  process) so model load is not amortized across trials. Out of scope
+  for this measurement.
+- If the user confirms first-batch latency still ≥ 5s in production
+  with warmup enabled, the next step is to look at extract-bound
+  startup (the one-document-and-then-line-chunks pattern in
+  `TextExtractor`) rather than embedder cold-load.
+
 ---
 
 ### H6. Extract and embed in parallel per-file (streaming batches)
