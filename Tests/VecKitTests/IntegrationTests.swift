@@ -61,8 +61,9 @@ final class IntegrationTests: XCTestCase {
         return db
     }
 
-    /// Index a single file: extract chunks, embed, and insert into the database.
-    /// Replicates the core indexing logic from UpdateIndexCommand.
+    /// Index a single file: extract chunks, embed, insert into the database,
+    /// and mark as fully indexed. Replicates the core indexing logic from
+    /// UpdateIndexCommand.
     private func indexFile(_ file: FileInfo, into db: VectorDatabase, extractor: TextExtractor) async throws {
         let chunks = try extractor.extract(from: file)
         for chunk in chunks {
@@ -78,6 +79,7 @@ final class IntegrationTests: XCTestCase {
                 embedding: embedding
             )
         }
+        try await db.markFileIndexed(path: file.relativePath, modifiedAt: file.modificationDate)
     }
 
     // MARK: - 1. Scan + Extract + Embed + Store + Search

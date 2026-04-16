@@ -329,7 +329,7 @@ final class VectorDatabaseTests: XCTestCase {
         XCTAssertEqual(result.contentPreview, text)
     }
 
-    // MARK: - 11. allIndexedFiles() returns correct paths and max modification dates
+    // MARK: - 11. allIndexedFiles() returns correct paths and modification dates
 
     func testAllIndexedFilesReturnsCorrectPathsAndDates() async throws {
         let db = try await makeInitializedDB()
@@ -375,13 +375,17 @@ final class VectorDatabaseTests: XCTestCase {
             embedding: emb3
         )
 
+        // Mark files as fully indexed (as update-index would after all chunks succeed)
+        try await db.markFileIndexed(path: "README.md", modifiedAt: lateDate)
+        try await db.markFileIndexed(path: "main.swift", modifiedAt: earlyDate)
+
         let files = try await db.allIndexedFiles()
 
         XCTAssertEqual(files.count, 2)
         XCTAssertNotNil(files["README.md"])
         XCTAssertNotNil(files["main.swift"])
 
-        // README.md should have the later date (MAX)
+        // README.md should have the date passed to markFileIndexed
         XCTAssertEqual(files["README.md"]!.timeIntervalSince1970, lateDate.timeIntervalSince1970, accuracy: 1.0)
         XCTAssertEqual(files["main.swift"]!.timeIntervalSince1970, earlyDate.timeIntervalSince1970, accuracy: 1.0)
     }
@@ -399,6 +403,7 @@ final class VectorDatabaseTests: XCTestCase {
     func testRemoveEntriesRemovesAndReturnsCorrectCount() async throws {
         let db = try await makeInitializedDB()
 
+        let modDate = Date()
         let emb1 = try embed("First chunk for removal test")
         let emb2 = try embed("Second chunk for removal test")
 
@@ -408,7 +413,7 @@ final class VectorDatabaseTests: XCTestCase {
             lineEnd: 50,
             chunkType: .chunk,
             pageNumber: nil,
-            fileModifiedAt: Date(),
+            fileModifiedAt: modDate,
             contentPreview: "First chunk",
             embedding: emb1
         )
@@ -419,15 +424,17 @@ final class VectorDatabaseTests: XCTestCase {
             lineEnd: 100,
             chunkType: .chunk,
             pageNumber: nil,
-            fileModifiedAt: Date(),
+            fileModifiedAt: modDate,
             contentPreview: "Second chunk",
             embedding: emb2
         )
 
+        try await db.markFileIndexed(path: "toremove.swift", modifiedAt: modDate)
+
         let removed = try await db.removeEntries(forPath: "toremove.swift")
         XCTAssertEqual(removed, 2)
 
-        // Verify they're gone
+        // Verify they're gone from allIndexedFiles (completion record removed too)
         let files = try await db.allIndexedFiles()
         XCTAssertNil(files["toremove.swift"])
     }
@@ -445,6 +452,7 @@ final class VectorDatabaseTests: XCTestCase {
     func testMultipleFilesInsertTwoRemoveOneOtherRemains() async throws {
         let db = try await makeInitializedDB()
 
+        let modDate = Date()
         let emb1 = try embed("Content of file alpha for multi-file test")
         let emb2 = try embed("Content of file beta for multi-file test")
 
@@ -454,10 +462,11 @@ final class VectorDatabaseTests: XCTestCase {
             lineEnd: nil,
             chunkType: .whole,
             pageNumber: nil,
-            fileModifiedAt: Date(),
+            fileModifiedAt: modDate,
             contentPreview: "Alpha content",
             embedding: emb1
         )
+        try await db.markFileIndexed(path: "alpha.swift", modifiedAt: modDate)
 
         try await db.insert(
             filePath: "beta.swift",
@@ -465,10 +474,11 @@ final class VectorDatabaseTests: XCTestCase {
             lineEnd: nil,
             chunkType: .whole,
             pageNumber: nil,
-            fileModifiedAt: Date(),
+            fileModifiedAt: modDate,
             contentPreview: "Beta content",
             embedding: emb2
         )
+        try await db.markFileIndexed(path: "beta.swift", modifiedAt: modDate)
 
         // Remove alpha
         let removed = try await db.removeEntries(forPath: "alpha.swift")
@@ -484,6 +494,83 @@ final class VectorDatabaseTests: XCTestCase {
         let results = try await db.search(embedding: emb2, limit: 10)
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results[0].filePath, "beta.swift")
+    }
+
+    // MARK: - Partial indexing: chunks without completion record are not considered indexed
+
+    func testPartiallyIndexedFileNotReturnedByAllIndexedFiles() async throws {
+        let db = try await makeInitializedDB()
+
+        let modDate = Date()
+        let emb1 = try embed("First chunk of a partially indexed file")
+        let emb2 = try embed("Second chunk of a partially indexed file")
+
+        // Insert chunks but do NOT call markFileIndexed — simulates interruption
+        try await db.insert(
+            filePath: "partial.swift",
+            lineStart: 1,
+            lineEnd: 50,
+            chunkType: .chunk,
+            pageNumber: nil,
+            fileModifiedAt: modDate,
+            contentPreview: "First chunk",
+            embedding: emb1
+        )
+
+        try await db.insert(
+            filePath: "partial.swift",
+            lineStart: 51,
+            lineEnd: 100,
+            chunkType: .chunk,
+            pageNumber: nil,
+            fileModifiedAt: modDate,
+            contentPreview: "Second chunk",
+            embedding: emb2
+        )
+
+        // allIndexedFiles should NOT include partial.swift
+        let files = try await db.allIndexedFiles()
+        XCTAssertNil(files["partial.swift"],
+                     "File with chunks but no completion record should not appear in allIndexedFiles")
+
+        // The chunks still exist in the database (they just aren't tracked as complete)
+        let count = try await db.totalChunkCount()
+        XCTAssertEqual(count, 2)
+    }
+
+    func testUnmarkFileIndexedRemovesCompletionRecord() async throws {
+        let db = try await makeInitializedDB()
+
+        let modDate = Date()
+        let emb = try embed("Content for unmark test")
+
+        try await db.insert(
+            filePath: "test.swift",
+            lineStart: nil,
+            lineEnd: nil,
+            chunkType: .whole,
+            pageNumber: nil,
+            fileModifiedAt: modDate,
+            contentPreview: "Test content",
+            embedding: emb
+        )
+        try await db.markFileIndexed(path: "test.swift", modifiedAt: modDate)
+
+        // Verify it's indexed
+        var files = try await db.allIndexedFiles()
+        XCTAssertNotNil(files["test.swift"])
+
+        // Unmark it
+        try await db.unmarkFileIndexed(path: "test.swift")
+
+        // Should no longer appear in allIndexedFiles
+        files = try await db.allIndexedFiles()
+        XCTAssertNil(files["test.swift"],
+                     "File should not appear in allIndexedFiles after unmarkFileIndexed")
+
+        // But chunks should still exist
+        let count = try await db.totalChunkCount()
+        XCTAssertEqual(count, 1)
     }
 
     // MARK: - 16. totalChunkCount() returns correct totals

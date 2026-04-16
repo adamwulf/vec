@@ -246,9 +246,13 @@ public actor VectorDatabase {
 
     // MARK: - Index Management
 
-    /// Get all indexed file paths and their modification dates.
+    /// Get all fully-indexed file paths and their modification dates.
+    ///
+    /// Only files with a completion record in `indexed_files` are returned.
+    /// Files whose indexing was interrupted (partial chunks but no completion
+    /// record) are excluded so they will be re-indexed on the next run.
     public func allIndexedFiles() throws -> [String: Date] {
-        let sql = "SELECT DISTINCT file_path, MAX(file_modified_at) FROM chunks GROUP BY file_path"
+        let sql = "SELECT file_path, file_modified_at FROM indexed_files"
 
         var stmt: OpaquePointer?
         guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
@@ -266,10 +270,58 @@ public actor VectorDatabase {
         return files
     }
 
-    /// Remove all entries for a given file path.
+    /// Mark a file as fully indexed by inserting a completion record.
+    ///
+    /// This should only be called after all chunks for the file have been
+    /// successfully written. The record is used by `allIndexedFiles()` to
+    /// determine whether a file needs re-indexing.
+    public func markFileIndexed(path: String, modifiedAt: Date) throws {
+        let sql = """
+            INSERT OR REPLACE INTO indexed_files (file_path, file_modified_at)
+            VALUES (?, ?)
+            """
+
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            throw sqlError("Failed to prepare mark-indexed statement")
+        }
+        defer { sqlite3_finalize(stmt) }
+
+        sqlite3_bind_text(stmt, 1, path, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+        sqlite3_bind_double(stmt, 2, modifiedAt.timeIntervalSince1970)
+
+        guard sqlite3_step(stmt) == SQLITE_DONE else {
+            throw sqlError("Failed to mark file as indexed")
+        }
+    }
+
+    /// Remove the completion record for a file path.
+    ///
+    /// Call this before re-indexing a file so that if the process is
+    /// interrupted, the file will be re-indexed on the next run.
+    public func unmarkFileIndexed(path: String) throws {
+        let sql = "DELETE FROM indexed_files WHERE file_path = ?"
+
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            throw sqlError("Failed to prepare unmark-indexed statement")
+        }
+        defer { sqlite3_finalize(stmt) }
+
+        sqlite3_bind_text(stmt, 1, path, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+
+        guard sqlite3_step(stmt) == SQLITE_DONE else {
+            throw sqlError("Failed to unmark file as indexed")
+        }
+    }
+
+    /// Remove all entries for a given file path, including chunks and the
+    /// completion record in `indexed_files`.
     @discardableResult
     public func removeEntries(forPath path: String) throws -> Int {
-        try _removeEntries(forPath: path)
+        let removed = try _removeEntries(forPath: path)
+        try unmarkFileIndexed(path: path)
+        return removed
     }
 
     // MARK: - Counts
@@ -384,7 +436,7 @@ public actor VectorDatabase {
     }
 
     private func createSchema() throws {
-        let createTable = """
+        let createChunksTable = """
             CREATE TABLE IF NOT EXISTS chunks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 file_path TEXT NOT NULL,
@@ -398,12 +450,20 @@ public actor VectorDatabase {
             );
             """
 
-        let createIndex = "CREATE INDEX IF NOT EXISTS idx_chunks_file_path ON chunks(file_path);"
+        let createChunksIndex = "CREATE INDEX IF NOT EXISTS idx_chunks_file_path ON chunks(file_path);"
+
+        let createIndexedFilesTable = """
+            CREATE TABLE IF NOT EXISTS indexed_files (
+                file_path TEXT PRIMARY KEY NOT NULL,
+                file_modified_at REAL NOT NULL
+            );
+            """
 
         try _execute("BEGIN TRANSACTION")
         do {
-            try _execute(createTable)
-            try _execute(createIndex)
+            try _execute(createChunksTable)
+            try _execute(createChunksIndex)
+            try _execute(createIndexedFilesTable)
             try _execute("COMMIT")
         } catch {
             try? _execute("ROLLBACK")
@@ -425,6 +485,54 @@ public actor VectorDatabase {
 
         if sqlite3_column_int(stmt, 0) == 0 {
             throw VecError.databaseCorrupted("Missing required table: chunks")
+        }
+
+        // Migrate: add indexed_files table if missing (pre-existing databases)
+        try migrateIfNeeded()
+    }
+
+    /// Add the `indexed_files` table for databases created before this
+    /// migration. Populates it from existing chunk data so that files already
+    /// fully indexed are not unnecessarily re-processed.
+    private func migrateIfNeeded() throws {
+        let checkSQL = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'indexed_files'"
+        var checkStmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, checkSQL, -1, &checkStmt, nil) == SQLITE_OK else {
+            throw sqlError("Failed to check for indexed_files table")
+        }
+        defer { sqlite3_finalize(checkStmt) }
+
+        guard sqlite3_step(checkStmt) == SQLITE_ROW else {
+            throw sqlError("Failed to query sqlite_master for indexed_files")
+        }
+
+        if sqlite3_column_int(checkStmt, 0) != 0 {
+            return // Table already exists, no migration needed
+        }
+
+        let createTable = """
+            CREATE TABLE indexed_files (
+                file_path TEXT PRIMARY KEY NOT NULL,
+                file_modified_at REAL NOT NULL
+            );
+            """
+
+        // Populate from existing chunks so already-indexed files aren't re-done
+        let populateSQL = """
+            INSERT INTO indexed_files (file_path, file_modified_at)
+            SELECT file_path, MAX(file_modified_at)
+            FROM chunks
+            GROUP BY file_path;
+            """
+
+        try _execute("BEGIN TRANSACTION")
+        do {
+            try _execute(createTable)
+            try _execute(populateSQL)
+            try _execute("COMMIT")
+        } catch {
+            try? _execute("ROLLBACK")
+            throw error
         }
     }
 
