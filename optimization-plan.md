@@ -271,7 +271,119 @@ it's neutral in the controlled measurement.
 
 ---
 
-### H6. Extract and embed in parallel per-file (streaming batches)
+### H7. Three-stage pipeline: extract / embed / save, one task per chunk
+
+**The problem with the current architecture.** `IndexingPipeline.run()`
+uses a nested TaskGroup pattern: an outer group of N file-workers, and
+each worker *itself* opens a TaskGroup inside `processFile` that spawns
+one embed task per batch. All those inner groups share the single
+`EmbedderPool` of N instances.
+
+Consequences:
+- A worker holds a file "hostage" from extract through full embed
+  before releasing — it can't pull the next file off the queue until
+  every chunk of the current file is embedded and collected.
+- The pool is over-subscribed under contention: while worker A's
+  batches acquire embedders, workers B–J's batches queue on
+  `pool.acquire()`.
+- Per-file batching (`embedBatchSize = 20`) wastes pool capacity on
+  small files: a 30-chunk file produces 2 batches → 2 embedders busy,
+  8 idle. See the conversation context: user pointed out this wastes
+  available parallelism on files with < `batchSize × poolSize`
+  chunks.
+
+**Evidence from production run (post-H5):**
+At 86s of indexing, the verbose line shows `0/925 files | 860 chunks |
+workers 10/10 | bn embed`. The user confirmed this is because the FIRST
+file in the corpus is very large — all 860 embedded chunks belong to
+that one file. So the workers aren't deadlocked on a medium-file
+contention pattern; instead, 9 of the 10 workers are holding *smaller*
+files hostage through their embed phases while one huge file monopolizes
+pool capacity. Either way, the nested-TaskGroup design means workers
+can't hand chunks off to a shared embed stage — which is what H7 fixes.
+
+**Secondary evidence:** H5's warmup dropped first-batch latency from
+15.0s → 12.7s in the production run — a real ~15% cold-start win, but
+steady-state c/s avg is unchanged at ~10 c/s. So embed throughput, not
+startup, is the wall.
+
+**Proposed new architecture — three stages connected by streams:**
+
+```
+  File workers (N_extract) → chunk stream
+                                ↓
+  Embed workers (N_embed, one per pooled embedder, pool-gated)
+                                ↓
+  Per-file accumulator (groups chunks back by file, signals when done)
+                                ↓
+  DB writer (1, serial)
+```
+
+Key properties:
+- One task per chunk at the embed stage — no more batching layer,
+  pool is the natural gate.
+- Extract workers hand chunks off immediately and pick up the next
+  file — no "hostage" behavior.
+- Per-file accumulator holds partial results until a file's chunk
+  count is reached, then emits `SaveWork` to the DB writer.
+- Extract concurrency and embed concurrency are decoupled. On Apple
+  Silicon we might want `N_extract < N_embed` because extract is
+  cheap and embed is the bottleneck.
+
+**This subsumes three earlier hypotheses:**
+- **H3** (larger chunks): no longer the right lever — per-chunk
+  overhead is dominated by the embed call, not batching.
+- **H6** (intra-file streaming): falls out automatically.
+- Plus the "batching wastes pool on small files" observation that
+  triggered this hypothesis.
+
+**Risk & complexity:**
+- Largest refactor in the plan. Touches `IndexingPipeline.run`,
+  `processFile`, and the stream topology.
+- Chunks can arrive out of order at the accumulator; `ChunkRecord`
+  already carries `lineStart`/`lineEnd`, but the per-file array
+  reassembled for `database.replaceEntries` may need sort-by-order
+  to preserve display grouping.
+- Progress events need rework. `.batchEmbedded(seconds, chunks)`
+  becomes `.chunkEmbedded(seconds)` (or we emit every K chunks to
+  keep renderer lock traffic manageable — needs measurement).
+
+**Test plan:**
+1. Add a new integration test
+   `Tests/VecKitTests/ThreeStagePipelineTests.swift` that runs the
+   same synthetic log corpus as H2/H5 and records:
+   - chunks/sec (should improve)
+   - first-file-completion wall-clock (should drop dramatically —
+     no more "0/N files done at 86s")
+   - total wall-clock
+   - `workers busy` utilization over time
+2. Keep the existing `ConcurrencySweepTests` / `PoolWarmupTests`
+   passing unchanged.
+3. All existing unit + integration tests pass.
+4. Do a manual production run on the user's 929-file log corpus
+   with `vec update-index --verbose` and compare the
+   `[verbose-stats]` line against the pre-H7 baseline in this
+   document.
+
+**Success criteria:**
+- First file completes in < 30s on the production corpus (currently
+  > 86s).
+- Sustained c/s avg improves by ≥ 50% on the production corpus.
+- No correctness regression — same chunks embedded, same search
+  results on spot-check queries.
+
+**Execution notes:**
+- Keep the refactor behind the existing public API if possible.
+  `IndexingPipeline.run(workItems:extractor:database:progress:)`
+  is the contract; its internals can change.
+- The `EmbedderPool` design is reusable as-is. We just stop nesting
+  TaskGroups inside each worker.
+- Keep an `embedBatchSize` field for now but mark it ignored by H7's
+  path and remove after the refactor lands.
+
+---
+
+### H6 (SUPERSEDED by H7). Extract and embed in parallel per-file (streaming batches)
 
 Current per-file flow in `IndexingPipeline.swift:252`:
 `extract all chunks → batch → embed batches concurrently`. For a large
