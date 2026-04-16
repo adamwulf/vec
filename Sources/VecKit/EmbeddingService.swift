@@ -9,6 +9,13 @@ public class EmbeddingService {
     /// The dimension of the embedding vectors produced by this service.
     public let dimension: Int
 
+    /// Maximum number of characters passed to NLEmbedding.
+    /// Very large strings cause the underlying C++ runtime to throw
+    /// `std::bad_alloc`, crashing the process. 10 000 characters is
+    /// well within what the framework handles and captures enough
+    /// content for a meaningful sentence-level embedding.
+    static let maxEmbeddingTextLength = 10_000
+
     public init() {
         self.embedding = NLEmbedding.sentenceEmbedding(for: .english)
         // NLEmbedding for English sentences produces 512-dimensional vectors
@@ -17,11 +24,17 @@ public class EmbeddingService {
 
     /// Generate an embedding vector for the given text.
     /// Returns nil if the text cannot be embedded.
+    /// Text longer than ``maxEmbeddingTextLength`` is truncated to
+    /// avoid a crash in the NaturalLanguage framework.
     public func embed(_ text: String) -> [Float]? {
         guard let embedding = embedding else { return nil }
 
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        var trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
+
+        if trimmed.count > Self.maxEmbeddingTextLength {
+            trimmed = String(trimmed.prefix(Self.maxEmbeddingTextLength))
+        }
 
         guard let vector = embedding.vector(for: trimmed) else { return nil }
 

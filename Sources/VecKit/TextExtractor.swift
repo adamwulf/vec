@@ -6,10 +6,10 @@ import Vision
 /// Extracts text content from files and splits into chunks for embedding.
 public class TextExtractor {
 
-    /// Default chunk size in lines for markdown files.
-    public static let defaultChunkSize = 50
+    /// Default chunk size in lines for text files.
+    public static let defaultChunkSize = 10
     /// Default number of overlapping lines between consecutive chunks.
-    public static let defaultOverlapSize = 10
+    public static let defaultOverlapSize = 2
 
     private let chunkSize: Int
     private let overlapSize: Int
@@ -46,18 +46,16 @@ public class TextExtractor {
         // Always add a whole-document embedding
         chunks.append(TextChunk(text: trimmed, type: .whole))
 
-        // For markdown files, also create overlapping line-based chunks
-        if file.fileExtension == "md" {
-            let lineChunks = chunkMarkdown(content)
-            chunks.append(contentsOf: lineChunks)
-        }
+        // Create overlapping line-based chunks for all text files
+        let lineChunks = chunkText(content)
+        chunks.append(contentsOf: lineChunks)
 
         return chunks
     }
 
-    // MARK: - Markdown Chunking
+    // MARK: - Text Chunking
 
-    private func chunkMarkdown(_ content: String) -> [TextChunk] {
+    private func chunkText(_ content: String) -> [TextChunk] {
         let lines = content.components(separatedBy: .newlines)
 
         guard lines.count > chunkSize else {
