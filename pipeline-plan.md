@@ -53,7 +53,7 @@ for each file:
 N concurrent tasks pull work items from a shared `WorkQueue` actor. For each file:
 
 1. **Extract chunks** via `TextExtractor.extract(from:)` — sequential, I/O-bound
-2. **Language warning** via `NLLanguageRecognizer.dominantLanguage(for:)` — called on the first chunk's text, before entering the TaskGroup. This is a static-like call that does not use `NLEmbedding`, so no concurrency concern. If non-English, a warning is emitted to stderr. This avoids the `inout Bool` / `@Sendable` closure incompatibility entirely.
+2. **Language warning** via `NLLanguageRecognizer.dominantLanguage(for:)` — called on the first chunk's text, before entering the TaskGroup. This is a type method (class method) that does not use `NLEmbedding`, so no concurrency concern. If non-English, a warning is emitted to stderr. This avoids the `inout Bool` / `@Sendable` closure incompatibility entirely.
 3. **Parallel embedding** via inner `TaskGroup`:
    - All chunk batches are submitted to the TaskGroup
    - Each task: `pool.acquire()` → embed batch with the vended `EmbeddingService` → `pool.release(embedder)` → return `[ChunkRecord]`
@@ -130,7 +130,7 @@ actor EmbedderPool {
 
 This avoids the ~50MB model load/unload per batch. All N instances are created once at pipeline startup and reused throughout. Each `EmbeddingService` instance is used by only one task at a time (the pool guarantees exclusive access), so there is no concurrent `vector(for:)` call on the same instance.
 
-**Cancellation safety**: If a task is cancelled while waiting in `acquire()`, the `CheckedContinuation` will still be resumed (continuations must be resumed exactly once). The cancelled task will receive the embedder, should call `release()` in a `defer`, and the embedder returns to the pool. No leaked instances or deadlocks.
+**Cancellation safety**: Swift task cancellation is cooperative — it sets a flag but does not interrupt suspended code. A `CheckedContinuation` stored in `waiters` remains suspended until another task calls `release()`, which resumes it. Since each embed task calls `release()` in a `defer` block, every acquired embedder is always returned, ensuring waiting continuations are eventually resumed. The cancelled task receives the embedder, the `defer` returns it to the pool, and no instances leak. In the edge case where structured cancellation (e.g., parent `TaskGroup` cancellation) cancels all tasks simultaneously, tasks that have already acquired embedders will release them via `defer` as they unwind, which resumes any waiters.
 
 **Concurrency tradeoff**: With N file workers and N pooled embedders, the effective parallelism depends on the workload:
 - **Many small files**: Each worker holds ~1 embedder at a time. N files embed concurrently, each sequentially — equivalent to the simpler "one embedder per worker" design. This is fine because the bottleneck is distributed across many files.
@@ -211,7 +211,7 @@ Each file's DB write goes through: `unmarkFileIndexed` → `replaceEntries` → 
 1. **Single-chunk file**: Inner TaskGroup has one task. Embedder acquired from pool and released quickly. No overhead vs. sequential.
 2. **Very large file (1000+ chunks)**: 50+ batches. Inner TaskGroup submits all, pool gates them N-at-a-time. Other file workers may pause while waiting for embedders — this is correct behavior, preventing memory explosion.
 3. **Embed failure (`vector` returns nil)**: Chunk is skipped. If all chunks fail, file result is `.skippedEmbedFailure`. Existing DB data is preserved (no DB calls made for this file).
-4. **Non-English content**: Language is detected via `NLLanguageRecognizer.dominantLanguage(for:)` on the first chunk *before* entering the TaskGroup. This is a static method that does not use `NLEmbedding` and has no concurrency constraints. At most one warning per file.
+4. **Non-English content**: Language is detected via `NLLanguageRecognizer.dominantLanguage(for:)` on the first chunk *before* entering the TaskGroup. This is a type method that does not use `NLEmbedding` and has no concurrency constraints. At most one warning per file.
 5. **Empty work list**: `run()` returns `[]` immediately.
 6. **Task cancellation**: Pool continuations are always resumed. Cancelled tasks receive an embedder, release it via `defer`, and the embedder returns to the pool. No leaked instances or deadlocks.
 
