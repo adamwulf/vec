@@ -14,19 +14,11 @@ import Glibc
 /// and stdout writes so the synchronous `@Sendable` progress callback doesn't
 /// need to await.
 ///
-/// Counters it maintains:
-/// - `filesDone` (from `.fileFinished`/`.fileSkipped`)
-/// - `chunksDone` (from `.batchEmbedded(chunks:)`)
-/// - `nonEnglishCount` (from `.nonEnglishDetected`)
-/// - `busyWorkers` (from balanced `.workerBusy`/`.workerIdle` pairs on the
-///   same task — decoupled from file-lifecycle events so the counter is
-///   correct even on the DB-writer empty-records skip path)
-/// - a 5-second sliding window of `(timestamp, chunks)` for a live ch/s
-///   reading that responds to the current throughput rather than cumulative.
-///
-/// A first-batch latency line is printed once, the moment the first
-/// `.batchEmbedded` event arrives, diagnosing the "workers all stuck in
-/// extract" startup stall directly.
+/// Busy-worker tracking relies on `.workerBusy`/`.workerIdle` being balanced
+/// pairs from the *same* worker task — decoupled from file-lifecycle events
+/// so the counter stays correct even on the DB-writer's empty-records skip
+/// path, which emits `.fileSkipped` from a task that never emitted
+/// `.workerBusy`.
 private final class ProgressRenderer: @unchecked Sendable {
     private let lock = NSLock()
     private let totalFiles: Int
@@ -37,8 +29,6 @@ private final class ProgressRenderer: @unchecked Sendable {
     private var chunksDone = 0
     private var nonEnglishCount = 0
     private var busyWorkers = 0
-    /// Ring of recent batch completions for sliding-window ch/s. Entries
-    /// older than `windowSeconds` are trimmed on each render.
     private var recentBatches: [(time: Date, chunks: Int)] = []
     private let windowSeconds: TimeInterval = 5.0
 
@@ -47,7 +37,6 @@ private final class ProgressRenderer: @unchecked Sendable {
     /// Last render's visible length. Each render pads to at least this
     /// length so busy-counter shrinking doesn't leave stale characters.
     private var lastRenderedLen = 0
-    /// Whether the "first embed batch" startup line has been printed yet.
     private var firstBatchPrinted = false
 
     init(totalFiles: Int, totalWorkers: Int) {
