@@ -485,7 +485,61 @@ final class VectorDatabaseTests: XCTestCase {
         XCTAssertEqual(results[0].filePath, "beta.swift")
     }
 
-    // MARK: - 16. open() on corrupted DB (missing chunks table) throws databaseCorrupted
+    // MARK: - 16. totalChunkCount() returns correct totals
+
+    func testTotalChunkCountOnEmptyDB() throws {
+        let db = try makeInitializedDB()
+        let count = try db.totalChunkCount()
+        XCTAssertEqual(count, 0)
+    }
+
+    func testTotalChunkCountWithMultipleFilesAndChunks() throws {
+        let db = try makeInitializedDB()
+
+        let emb1 = try embed("First chunk of the readme file")
+        let emb2 = try embed("Second chunk of the readme file")
+        let emb3 = try embed("Main swift source file content")
+
+        // Two chunks for one file
+        try db.insert(
+            filePath: "README.md",
+            lineStart: 1,
+            lineEnd: 50,
+            chunkType: .chunk,
+            pageNumber: nil,
+            fileModifiedAt: Date(),
+            contentPreview: "First chunk",
+            embedding: emb1
+        )
+
+        try db.insert(
+            filePath: "README.md",
+            lineStart: 51,
+            lineEnd: 100,
+            chunkType: .chunk,
+            pageNumber: nil,
+            fileModifiedAt: Date(),
+            contentPreview: "Second chunk",
+            embedding: emb2
+        )
+
+        // One chunk for another file
+        try db.insert(
+            filePath: "main.swift",
+            lineStart: nil,
+            lineEnd: nil,
+            chunkType: .whole,
+            pageNumber: nil,
+            fileModifiedAt: Date(),
+            contentPreview: "Main swift file",
+            embedding: emb3
+        )
+
+        let count = try db.totalChunkCount()
+        XCTAssertEqual(count, 3)
+    }
+
+    // MARK: - 17. open() on corrupted DB (missing chunks table) throws databaseCorrupted
 
     func testOpenOnCorruptedDBThrowsDatabaseCorrupted() throws {
         // Initialize a valid database

@@ -17,7 +17,7 @@ cp node_modules/@sqliteai/sqlite-vector-darwin-arm64/vector.dylib /usr/local/lib
 
 ### Option 2: Download from GitHub Releases
 
-1. Visit: https://github.com/sqliteai/sqlite-vector/releases/tag/0.9.95
+1. Visit: https://github.com/sqliteai/sqlite-vector/releases
 2. Download the macOS ARM64 dylib (or the xcframework zip)
 3. Extract and place the `.dylib` file at `/usr/local/lib/vector`
 
@@ -67,7 +67,7 @@ Once any of these paths are used to place the dylib, `vec init <db-name>` will s
 ## About sqlite-vector
 
 **Project**: [sqliteai/sqlite-vector](https://github.com/sqliteai/sqlite-vector)  
-**Latest Version**: 0.9.95 (April 7, 2026)  
+**Latest Version**: Check [releases page](https://github.com/sqliteai/sqlite-vector/releases)  
 **License**: Varies by implementation  
 **Language**: C (compiled for macOS ARM64)
 

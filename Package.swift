@@ -38,7 +38,8 @@ let package = Package(
         ),
         .testTarget(
             name: "VecKitTests",
-            dependencies: ["VecKit", "CSQLiteVec"]
+            dependencies: ["VecKit", "CSQLiteVec"],
+            resources: [.copy("Fixtures")]
         ),
         .testTarget(
             name: "CLITests",

@@ -2,7 +2,7 @@
 
 ## Current State
 
-The `vec` CLI tool and its `VecKit` library are production-ready for all Priority 1, 2, 3, 4, and 5 items. All seven commands are implemented, the project builds cleanly, and tests pass across 10 test suites (121 tests). The embedding service uses Apple's on-device `NLEmbedding`. The `sqlite-vector` package is integrated via SPM binary target with runtime extension loading.
+The `vec` CLI tool and its `VecKit` library are production-ready for all Priority 1, 2, 3, 4, and 5 items. All seven commands are implemented, the project builds cleanly, and all tests pass (run `swift test` to verify current count). The embedding service uses Apple's on-device `NLEmbedding`. The `sqlite-vector` package is integrated via SPM binary target with runtime extension loading.
 
 ### What's Implemented
 
@@ -16,7 +16,7 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 | `vec remove [-d <name>] <path>` | Done | Removes entries for a single file. Path validation against source directory. |
 | `vec info [-d <name>]` | Done | Shows database metadata: name, source directory, created date, file count, chunk count, DB file size. |
 | `VectorDatabase` | Done | SQLite + sqlite-vector wrapper. Insert, search, remove, allIndexedFiles, totalChunkCount. Schema creation wrapped in transaction for crash safety. |
-| `EmbeddingService` | Done | Uses `NLEmbedding.sentenceEmbedding(for: .english)`, 512 dimensions. Includes `detectLanguage()` and `warnIfNonEnglish()` methods — non-English content is still embedded but warns to stderr once per file. |
+| `EmbeddingService` | Done | Uses `NLEmbedding.sentenceEmbedding(for: .english)`. Dimension determined at runtime (see `EmbeddingService.dimension`). Includes `detectLanguage()` and `warnIfNonEnglish()` methods — non-English content is still embedded but warns to stderr once per file. |
 | `FileScanner` | Done | Directory walking, .gitignore support via `git check-ignore`, hidden file filtering (dot-prefix), skips .git/node_modules/.build/etc, binary detection. Pipe-safe Process I/O. `knownTextFilenames` set for extensionless files (Makefile, Dockerfile, etc.). Resilient resource value reads (`try?`). |
 | `TextExtractor` | Done | Plain text (whole-doc), markdown (overlapping chunks), PDF (per-page). |
 | `PathUtilities` | Done | Safe relative path computation using NSString.standardizingPath. |
@@ -24,18 +24,20 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 
 ### What's Tested
 
-| Test Suite | Count | Coverage |
-|-----------|-------|----------|
-| `VecKitTests` | 3 | `ChunkType` raw values, `TextChunk` construction |
-| `EmbeddingServiceTests` | 7 | Real embeddings, empty/whitespace input, dimension check, language detection (English, non-English, empty) |
-| `TextExtractorTests` | 9 | Large/small markdown, txt files, empty/whitespace files, headings-only, every-line-heading, long single line, binary file |
-| `FileScannerTests` | 17 | .git skipping, binary detection (with and without extension), node_modules, relative paths, hidden skip/include, .git still skipped when hidden enabled, gitignore filtering, non-git fallback, disable gitignore, .vecignore patterns, spaces/unicode in names, empty directory |
-| `PathUtilitiesTests` | 10 | Normal paths, trailing slashes, .., outside directory, same path, root dir, deep nesting, prefix collision |
-| `ChunkingStrategyTests` | 3 | Overlap behavior, heading boundaries, custom chunk/overlap sizes |
-| `VectorDatabaseTests` | 17 | Initialize, open, insert, search (ordering, similarity, limit, fields, PDF page), allIndexedFiles, removeEntries, multi-file scenarios, corrupted DB detection |
-| `DatabaseLocatorTests` | 21 | Name validation (alphanumeric, hyphens/underscores, empty, spaces, slashes, special chars, path traversal, reserved names), directory paths, config read/write roundtrip, missing/malformed config, allDatabases listing, resolveFromCurrentDirectory (single match, no match, multiple matches) |
-| `IntegrationTests` | 6 | Full scan+embed+store+search pipeline, update-index flows (modified/deleted/added files), insert-then-search, remove-then-search |
-| `CLITests` | 28 | Subcommand registration (including info), argument parsing for all 7 commands, default values, flag parsing, short flags, --allow-hidden, default subcommand routing, --db/-d flag parsing for all commands |
+Run `swift test` to see current suite counts. Test files are in `Tests/VecKitTests/` and `Tests/CLITests/`.
+
+| Test Suite | File | Coverage |
+|-----------|------|----------|
+| `VecKitTests` | `VecKitTests.swift` | `ChunkType` raw values, `TextChunk` construction |
+| `EmbeddingServiceTests` | `VecKitTests.swift` | Real embeddings, empty/whitespace input, dimension check, language detection (English, non-English, empty) |
+| `TextExtractorTests` | `VecKitTests.swift` | Large/small markdown, txt files, empty/whitespace files, headings-only, every-line-heading, long single line, binary file |
+| `FileScannerTests` | `VecKitTests.swift` | .git skipping, binary detection (with and without extension), node_modules, relative paths, hidden skip/include, .git still skipped when hidden enabled, gitignore filtering, non-git fallback, disable gitignore, .vecignore patterns, spaces/unicode in names, empty directory |
+| `PathUtilitiesTests` | `VecKitTests.swift` | Normal paths, trailing slashes, .., outside directory, same path, root dir, deep nesting, prefix collision |
+| `ChunkingStrategyTests` | `VecKitTests.swift` | Overlap behavior, heading boundaries, custom chunk/overlap sizes |
+| `VectorDatabaseTests` | `VectorDatabaseTests.swift` | Initialize, open, insert, search (ordering, similarity, limit, fields, PDF page), allIndexedFiles, removeEntries, multi-file scenarios, corrupted DB detection |
+| `DatabaseLocatorTests` | `DatabaseLocatorTests.swift` | Name validation (alphanumeric, hyphens/underscores, empty, spaces, slashes, special chars, path traversal, reserved names), directory paths, config read/write roundtrip, missing/malformed config, allDatabases listing, resolveFromCurrentDirectory (single match, no match, multiple matches) |
+| `IntegrationTests` | `IntegrationTests.swift` | Full scan+embed+store+search pipeline, update-index flows (modified/deleted/added files), insert-then-search, remove-then-search |
+| `CLITests` | `CLITests.swift` | Subcommand registration (including info), argument parsing for all 7 commands, default values, flag parsing, short flags, --allow-hidden, default subcommand routing, --db/-d flag parsing for all commands |
 
 ---
 
@@ -124,7 +126,7 @@ All databases now live under `~/.vec/<db-name>/` instead of per-directory `.vec/
 - **4h.** FileScanner: removed `.vec` from skipDirectories
 - **4i.** Vec.swift: SearchCommand as defaultSubcommand for `vec <db-name> "query"` shorthand
 - **4j.** InfoCommand: takes `<db-name>`, shows name, source directory, created date, file count, chunk count, DB file size
-- **4k.** Tests: 121 tests passing (28 CLI, 21 DatabaseLocator, 17 VectorDatabase, 6 Integration, + others)
+- **4k.** Tests: all passing (run `swift test` for current counts across CLI, DatabaseLocator, VectorDatabase, Integration, and other suites)
 - **4l.** VecError: added `invalidDatabaseName`, `databaseNotFound`, `sourceDirectoryMissing`, updated messages
 - **4m.** `info` added to reserved command names in DatabaseLocator
 - **4n.** VectorDatabase schema creation wrapped in transaction (BEGIN/COMMIT with ROLLBACK on failure)

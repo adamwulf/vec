@@ -16,4 +16,14 @@ public struct SearchResult {
     public let contentPreview: String?
     /// Distance from the query vector (lower = more similar)
     public let distance: Double
+
+    public init(filePath: String, lineStart: Int?, lineEnd: Int?, chunkType: ChunkType, pageNumber: Int?, contentPreview: String?, distance: Double) {
+        self.filePath = filePath
+        self.lineStart = lineStart
+        self.lineEnd = lineEnd
+        self.chunkType = chunkType
+        self.pageNumber = pageNumber
+        self.contentPreview = contentPreview
+        self.distance = distance
+    }
 }

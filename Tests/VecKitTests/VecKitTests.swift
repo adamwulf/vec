@@ -74,6 +74,56 @@ final class EmbeddingServiceTests: XCTestCase {
         XCTAssertNil(service.detectLanguage(""))
         XCTAssertNil(service.detectLanguage("   "))
     }
+
+    // MARK: - warnIfNonEnglish Tests
+
+    func testWarnIfNonEnglishReturnsTrueForNonEnglishText() {
+        let service = EmbeddingService()
+        var warned = false
+        let result = service.warnIfNonEnglish(
+            text: "これは日本語のテキストです。自然言語処理のテストです。",
+            filePath: "test.txt",
+            warned: &warned
+        )
+        XCTAssertTrue(result, "Should return true for non-English text")
+        XCTAssertTrue(warned, "warned flag should be set to true")
+    }
+
+    func testWarnIfNonEnglishReturnsFalseWhenAlreadyWarned() {
+        let service = EmbeddingService()
+        var warned = true
+        let result = service.warnIfNonEnglish(
+            text: "これは日本語のテキストです。自然言語処理のテストです。",
+            filePath: "test.txt",
+            warned: &warned
+        )
+        XCTAssertFalse(result, "Should return false when already warned")
+        XCTAssertTrue(warned, "warned flag should remain true")
+    }
+
+    func testWarnIfNonEnglishReturnsFalseForEnglishText() {
+        let service = EmbeddingService()
+        var warned = false
+        let result = service.warnIfNonEnglish(
+            text: "The quick brown fox jumps over the lazy dog",
+            filePath: "english.txt",
+            warned: &warned
+        )
+        XCTAssertFalse(result, "Should return false for English text")
+        XCTAssertFalse(warned, "warned flag should remain false for English text")
+    }
+
+    func testWarnIfNonEnglishReturnsFalseForEmptyText() {
+        let service = EmbeddingService()
+        var warned = false
+        let result = service.warnIfNonEnglish(
+            text: "",
+            filePath: "empty.txt",
+            warned: &warned
+        )
+        XCTAssertFalse(result, "Should return false for empty text")
+        XCTAssertFalse(warned, "warned flag should remain false for empty text")
+    }
 }
 
 // MARK: - TextExtractor Tests
@@ -266,6 +316,99 @@ final class TextExtractorTests: XCTestCase {
         let chunks = try extractor.extract(from: file)
         // Binary file cannot be read as UTF-8, so extract() should return empty
         XCTAssertEqual(chunks.count, 0)
+    }
+
+    // MARK: - PDF Extraction Tests
+
+    private func pdfFixtureURL() -> URL {
+        Bundle.module.url(forResource: "MobyDick", withExtension: "pdf", subdirectory: "Fixtures")!
+    }
+
+    private func pdfFileInfo() -> FileInfo {
+        let url = pdfFixtureURL()
+        let modDate = (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? Date()
+        return FileInfo(relativePath: "MobyDick.pdf", url: url, modificationDate: modDate, fileExtension: "pdf")
+    }
+
+    func testPDFExtractionProducesWholeAndPageChunks() throws {
+        let file = pdfFileInfo()
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        // Should have at least one chunk
+        XCTAssertGreaterThan(chunks.count, 1)
+
+        // First chunk should be the whole-document chunk
+        XCTAssertEqual(chunks[0].type, .whole)
+        XCTAssertNil(chunks[0].pageNumber)
+        XCTAssertFalse(chunks[0].text.isEmpty)
+
+        // Remaining chunks should be pdfPage type
+        let pageChunks = chunks.filter { $0.type == .pdfPage }
+        XCTAssertGreaterThan(pageChunks.count, 0)
+    }
+
+    func testPDFPageChunksHaveCorrectPageNumbers() throws {
+        let file = pdfFileInfo()
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        let pageChunks = chunks.filter { $0.type == .pdfPage }
+
+        // All page chunks should have 1-based page numbers
+        for chunk in pageChunks {
+            XCTAssertNotNil(chunk.pageNumber)
+            XCTAssertGreaterThan(chunk.pageNumber!, 0, "Page numbers should be 1-based")
+        }
+
+        // Page numbers should be sequential (no gaps for pages with text)
+        let pageNumbers = pageChunks.compactMap(\.pageNumber)
+        XCTAssertEqual(pageNumbers, pageNumbers.sorted(), "Page numbers should be in order")
+
+        // First page should be page 1
+        XCTAssertEqual(pageNumbers.first, 1)
+    }
+
+    func testPDFPageChunksHaveNoLineRanges() throws {
+        let file = pdfFileInfo()
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        let pageChunks = chunks.filter { $0.type == .pdfPage }
+
+        // PDF page chunks should not have line ranges
+        for chunk in pageChunks {
+            XCTAssertNil(chunk.lineStart)
+            XCTAssertNil(chunk.lineEnd)
+        }
+    }
+
+    func testPDFWholeChunkContainsTextFromMultiplePages() throws {
+        let file = pdfFileInfo()
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        let wholeChunk = chunks.first { $0.type == .whole }
+        XCTAssertNotNil(wholeChunk)
+
+        // The whole-document chunk should contain text from across the PDF
+        // Moby Dick starts with recognizable content
+        let text = wholeChunk!.text
+        XCTAssertTrue(text.contains("MOBY") || text.contains("Moby") || text.contains("whale") || text.contains("Whale"),
+                       "Whole-document chunk should contain Moby Dick content")
+    }
+
+    func testPDFPageChunksContainNonEmptyText() throws {
+        let file = pdfFileInfo()
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        let pageChunks = chunks.filter { $0.type == .pdfPage }
+
+        for chunk in pageChunks {
+            let trimmed = chunk.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            XCTAssertFalse(trimmed.isEmpty, "Page \(chunk.pageNumber ?? 0) should have non-empty text")
+        }
     }
 }
 
@@ -595,6 +738,57 @@ final class FileScannerTests: XCTestCase {
         let scanner = FileScanner(directory: tempDir)
         let files = try scanner.scan()
         XCTAssertEqual(files.count, 0)
+    }
+
+    func testVecignoreRootRelativePatternMatchesOnlyAtRoot() throws {
+        createTextFile(at: "specific-file.txt", content: "root level file")
+        createTextFile(at: "subdir/specific-file.txt", content: "nested file")
+        createTextFile(at: "readme.md", content: "# Hello")
+        createTextFile(at: ".vecignore", content: "/specific-file.txt\n")
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains("specific-file.txt"),
+                        "/specific-file.txt should exclude root-level match")
+        XCTAssertTrue(relativePaths.contains("subdir/specific-file.txt"),
+                       "Root-relative pattern should NOT match nested file, got: \(relativePaths)")
+    }
+
+    func testVecignoreCommentLinesAreIgnored() throws {
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "debug.log", content: "log output")
+        createTextFile(at: "readme.md", content: "# Hello")
+        // The comment line should be ignored; only *.log is an active pattern
+        createTextFile(at: ".vecignore", content: "# This is a comment\n*.log\n# Another comment\n")
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains("debug.log"),
+                        "*.log should still be vecignored despite comment lines")
+    }
+
+    func testVecignoreBlankLinesAreIgnored() throws {
+        createTextFile(at: "main.swift", content: "import Foundation")
+        createTextFile(at: "debug.log", content: "log output")
+        createTextFile(at: "readme.md", content: "# Hello")
+        // Blank lines between patterns should be ignored
+        createTextFile(at: ".vecignore", content: "\n\n*.log\n\n\n")
+
+        let scanner = FileScanner(directory: tempDir, respectsGitignore: false, includeHiddenFiles: true)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("main.swift"), "Expected main.swift, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertFalse(relativePaths.contains("debug.log"),
+                        "*.log should still be vecignored despite blank lines")
     }
 }
 

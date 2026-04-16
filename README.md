@@ -11,7 +11,7 @@ Once indexed, you can perform semantic search across your files to find relevant
 ## Features
 
 - **On-device embeddings** — Uses Apple's `NLEmbedding.sentenceEmbedding(for:)` for fast, private, offline vector generation
-- **Chunked indexing** — Markdown files are split into 50-line overlapping chunks (10-line overlap) for fine-grained search results
+- **Chunked indexing** — Markdown files are split into overlapping line-based chunks for fine-grained search results (see `TextExtractor.defaultChunkSize` and `defaultOverlapSize` for defaults)
 - **Whole-document embeddings** — Each file also gets a full-document embedding for broader matches
 - **PDF support** — Extracts text per page from PDFs and indexes each page separately
 - **Change detection** — Tracks file modification dates to efficiently update only changed files
@@ -117,7 +117,7 @@ Removes all embeddings for a file from the index.
 
 | Type | Indexing Strategy |
 |------|-------------------|
-| Markdown (`.md`) | 50-line overlapping chunks + whole document |
+| Markdown (`.md`) | Overlapping line-based chunks + whole document |
 | Swift (`.swift`) | Whole file |
 | Plain text (`.txt`) | Whole file |
 | PDF (`.pdf`) | Per-page text extraction |
@@ -126,7 +126,7 @@ Removes all embeddings for a file from the index.
 
 ## How It Works
 
-1. **Embedding**: Text content is converted to vector embeddings using `NLEmbedding.sentenceEmbedding(for:revision:)` from Apple's NaturalLanguage framework. This produces 512-dimensional vectors entirely on-device.
+1. **Embedding**: Text content is converted to vector embeddings using `NLEmbedding.sentenceEmbedding(for:revision:)` from Apple's NaturalLanguage framework. The embedding dimensionality is determined by the model (see `EmbeddingService.dimension`), and all processing happens entirely on-device.
 
 2. **Storage**: Embeddings are stored in a SQLite database using the sqlite-vector extension, which provides SIMD-accelerated similarity search.
 

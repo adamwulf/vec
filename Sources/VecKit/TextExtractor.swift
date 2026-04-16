@@ -5,11 +5,14 @@ import PDFKit
 public class TextExtractor {
 
     /// Default chunk size in lines for markdown files.
+    public static let defaultChunkSize = 50
+    /// Default number of overlapping lines between consecutive chunks.
+    public static let defaultOverlapSize = 10
+
     private let chunkSize: Int
-    /// Number of overlapping lines between consecutive chunks.
     private let overlapSize: Int
 
-    public init(chunkSize: Int = 50, overlapSize: Int = 10) {
+    public init(chunkSize: Int = TextExtractor.defaultChunkSize, overlapSize: Int = TextExtractor.defaultOverlapSize) {
         self.chunkSize = chunkSize
         self.overlapSize = overlapSize
     }
