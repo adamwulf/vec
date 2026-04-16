@@ -40,6 +40,10 @@ public struct IndexingStats: Sendable {
     /// Total batches embedded across all files. Useful for computing mean
     /// batch size and batch-embed throughput.
     public var totalBatches: Int = 0
+    /// Total chunks across all batches. Cross-check against
+    /// `totalChunksEmbedded` (summed from `recordFile`): equality means
+    /// no batch result was dropped between embed-time and DB-time.
+    public var totalBatchChunks: Int = 0
     /// Summed seconds spent in `EmbeddingService.embed` calls across all
     /// batches. Equal to or slightly less than `embedSeconds` — the gap
     /// reflects embedder-pool waits and task-group bookkeeping.
@@ -93,8 +97,9 @@ public final class IndexingPipeline: Sendable {
     /// Maximum chunks per embed batch.
     private let embedBatchSize: Int
 
-    /// Number of concurrent file workers.
-    private let workerCount: Int
+    /// Number of concurrent file workers. Exposed so callers can size
+    /// progress displays ("N/M busy") against the same value the pool uses.
+    public let workerCount: Int
 
     /// Pool of pre-created EmbeddingService instances.
     private let pool: EmbedderPool
@@ -451,6 +456,7 @@ private actor StatsCollector {
     /// startup" — the gap between pipeline start and first embed.
     func recordBatch(seconds: Double, chunks: Int) {
         stats.totalBatches += 1
+        stats.totalBatchChunks += chunks
         stats.totalBatchEmbedSeconds += seconds
         if firstBatchAt == nil {
             firstBatchAt = DispatchTime.now()

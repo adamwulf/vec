@@ -114,7 +114,6 @@ private final class ProgressRenderer: @unchecked Sendable {
 
     /// Must be called with the lock held.
     private func render() {
-        // Trim out-of-window entries.
         let cutoff = Date().addingTimeInterval(-windowSeconds)
         while let first = recentBatches.first, first.time < cutoff {
             recentBatches.removeFirst()
@@ -138,12 +137,15 @@ private final class ProgressRenderer: @unchecked Sendable {
             chunksPerSec = 0
         }
 
+        // Compact format to stay under 80 cols even at 5-digit files /
+        // 6-digit chunks: drop the word "busy" and use "c/s" instead of
+        // "ch/s". Pipe separators keep fields visually distinct without
+        // adding the width of "• ".
         let elapsed = Date().timeIntervalSince(startTime)
-        let line = "Indexing: \(filesDone)/\(totalFiles) • \(chunksDone) chunks • \(nonEnglishCount) non-English • \(busyWorkers)/\(totalWorkers) busy • \(Self.formatSeconds(elapsed)) • \(String(format: "%.0f", chunksPerSec)) ch/s"
+        let line = "Indexing: \(filesDone)/\(totalFiles) | \(chunksDone) ch | \(nonEnglishCount) non-en | \(busyWorkers)/\(totalWorkers) | \(Self.formatSeconds(elapsed)) | \(String(format: "%.0f", chunksPerSec)) c/s"
 
-        // Pad to the previous length so shrinking counters (busy) don't
-        // leave stale characters. Terminals treat the padding as spaces
-        // that overwrite the old suffix; \r then rewinds to column 0.
+        // Pad to previous length: busy counter can shrink, so the monotonic
+        // length invariant from the original design no longer holds.
         var padded = line
         if line.count < lastRenderedLen {
             padded += String(repeating: " ", count: lastRenderedLen - line.count)
@@ -206,9 +208,11 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             }
         }
 
-        // Use the same worker count the pipeline will use, so the rolling
-        // line's "N/M busy" denominator matches reality.
-        let workerCount = max(ProcessInfo.processInfo.activeProcessorCount, 2)
+        // Source worker count from the pipeline so the rolling line's
+        // "N/M" denominator can't silently desync from the actual pool size
+        // if the default ever changes.
+        let pipeline = IndexingPipeline()
+        let workerCount = pipeline.workerCount
 
         // Wire up the rolling progress renderer when verbose and attached to a TTY.
         // Piped/redirected stdout skips progress — the final summary still prints.
@@ -223,8 +227,6 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             renderer = nil
             progress = nil
         }
-
-        let pipeline = IndexingPipeline(concurrency: workerCount)
 
         let results: [IndexResult]
         let stats: IndexingStats
@@ -328,7 +330,10 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         print("Timing (wall: \(formatSeconds(wallSeconds)), \(workerCount) workers)")
         print("  extract: \(formatSeconds(stats.extractSeconds)) (\(String(format: "%.0f", extractPct))%)  embed: \(formatSeconds(stats.embedSeconds)) (\(String(format: "%.0f", embedPct))%)  db: \(formatSeconds(stats.dbSeconds)) (\(String(format: "%.0f", dbPct))%)")
         print("  throughput: \(String(format: "%.1f", chunksPerSec)) ch/s (\(stats.totalChunksEmbedded) chunks)  \(String(format: "%.1f", filesPerSec)) files/s  pool util: \(String(format: "%.0f", poolUtilization))%")
-        print("  per-file embed: p50 \(formatSeconds(stats.p50EmbedSeconds)) • p95 \(formatSeconds(stats.p95EmbedSeconds))  batches: \(stats.totalBatches)")
+        let meanBatchSize = stats.totalBatches > 0
+            ? Double(stats.totalBatchChunks) / Double(stats.totalBatches)
+            : 0
+        print("  per-file embed: p50 \(formatSeconds(stats.p50EmbedSeconds)) • p95 \(formatSeconds(stats.p95EmbedSeconds))  batches: \(stats.totalBatches) (mean \(String(format: "%.1f", meanBatchSize)) ch)")
         if let first = stats.firstBatchLatencySeconds {
             print("  first embed batch: \(formatSeconds(first)) after start")
         }
@@ -351,6 +356,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             "workers=\(workerCount)",
             "chunks=\(stats.totalChunksEmbedded)",
             "batches=\(stats.totalBatches)",
+            "mean_batch=\(String(format: "%.1f", meanBatchSize))",
             "wall=\(String(format: "%.2f", wallSeconds))s",
             "extract=\(String(format: "%.2f", stats.extractSeconds))s",
             "embed=\(String(format: "%.2f", stats.embedSeconds))s",
