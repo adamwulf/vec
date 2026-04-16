@@ -9,20 +9,51 @@ import Glibc
 
 /// Thread-safe renderer for a single-line rolling progress display in verbose mode.
 ///
-/// The `IndexingPipeline` calls `handle(_:)` from multiple concurrent workers.
-/// A lock (not an actor) serializes counter updates and stdout writes so the
-/// synchronous `@Sendable` progress callback doesn't need to await.
+/// The `IndexingPipeline` calls `handle(_:)` from multiple concurrent workers
+/// plus the DB-writer task. A lock (not an actor) serializes counter updates
+/// and stdout writes so the synchronous `@Sendable` progress callback doesn't
+/// need to await.
+///
+/// Counters it maintains:
+/// - `filesDone` (from `.fileFinished`/`.fileSkipped`)
+/// - `chunksDone` (from `.batchEmbedded(chunks:)`)
+/// - `nonEnglishCount` (from `.nonEnglishDetected`)
+/// - `busyWorkers` (from balanced `.workerBusy`/`.workerIdle` pairs on the
+///   same task — decoupled from file-lifecycle events so the counter is
+///   correct even on the DB-writer empty-records skip path)
+/// - a 5-second sliding window of `(timestamp, chunks)` for a live ch/s
+///   reading that responds to the current throughput rather than cumulative.
+///
+/// A first-batch latency line is printed once, the moment the first
+/// `.batchEmbedded` event arrives, diagnosing the "workers all stuck in
+/// extract" startup stall directly.
 private final class ProgressRenderer: @unchecked Sendable {
     private let lock = NSLock()
     private let totalFiles: Int
+    private let totalWorkers: Int
+    private let startTime: Date
+
     private var filesDone = 0
     private var chunksDone = 0
     private var nonEnglishCount = 0
+    private var busyWorkers = 0
+    /// Ring of recent batch completions for sliding-window ch/s. Entries
+    /// older than `windowSeconds` are trimmed on each render.
+    private var recentBatches: [(time: Date, chunks: Int)] = []
+    private let windowSeconds: TimeInterval = 5.0
+
     private var finished = false
     private var everRendered = false
+    /// Last render's visible length. Each render pads to at least this
+    /// length so busy-counter shrinking doesn't leave stale characters.
+    private var lastRenderedLen = 0
+    /// Whether the "first embed batch" startup line has been printed yet.
+    private var firstBatchPrinted = false
 
-    init(totalFiles: Int) {
+    init(totalFiles: Int, totalWorkers: Int) {
         self.totalFiles = totalFiles
+        self.totalWorkers = totalWorkers
+        self.startTime = Date()
     }
 
     func handle(_ event: ProgressEvent) {
@@ -31,14 +62,39 @@ private final class ProgressRenderer: @unchecked Sendable {
         guard !finished else { return }
 
         switch event {
+        case .workerBusy:
+            busyWorkers += 1
+        case .workerIdle:
+            // Defensive: clamp to zero so a dropped event never corrupts the
+            // display. Balanced pairs from the same task make this
+            // theoretically unnecessary, but a visible bad counter is worse
+            // than a silent clamp.
+            if busyWorkers > 0 { busyWorkers -= 1 }
         case .fileFinished:
             filesDone += 1
         case .fileSkipped:
             filesDone += 1
         case .nonEnglishDetected:
             nonEnglishCount += 1
-        case .chunksEmbedded(let count):
-            chunksDone += count
+        case .batchEmbedded(_, let chunks):
+            chunksDone += chunks
+            let now = Date()
+            recentBatches.append((time: now, chunks: chunks))
+            // Fire the one-time startup diagnostic as soon as the first
+            // batch lands. Terminate the rolling line's partial (if any)
+            // with a clean newline so the startup line prints on its own
+            // row, then the next render() redraws the rolling line fresh.
+            if !firstBatchPrinted {
+                firstBatchPrinted = true
+                let elapsed = now.timeIntervalSince(startTime)
+                let prefix = everRendered ? "\n" : ""
+                let line = prefix + "First embed batch completed \(Self.formatSeconds(elapsed)) after start\n"
+                FileHandle.standardOutput.write(Data(line.utf8))
+                // Force a full-width re-render so the rolling line
+                // re-establishes itself on the next row.
+                lastRenderedLen = 0
+                everRendered = false
+            }
         }
 
         render()
@@ -56,13 +112,53 @@ private final class ProgressRenderer: @unchecked Sendable {
         }
     }
 
-    /// Must be called with the lock held. Counters only ever increase, so the
-    /// rendered string's length is monotonic — no padding needed to overwrite
-    /// leftovers from a previous render.
+    /// Must be called with the lock held.
     private func render() {
-        let line = "\rIndexing: \(filesDone)/\(totalFiles) files • \(chunksDone) chunks • \(nonEnglishCount) non-English"
+        // Trim out-of-window entries.
+        let cutoff = Date().addingTimeInterval(-windowSeconds)
+        while let first = recentBatches.first, first.time < cutoff {
+            recentBatches.removeFirst()
+        }
+
+        // Sliding-window ch/s. Use the actual span covered by retained
+        // entries (not the full window) so a partial window during startup
+        // reports the real rate, not an underestimate. Fall back to
+        // elapsed-since-start if we have fewer than 2 entries.
+        let chunksPerSec: Double
+        if recentBatches.count >= 2,
+           let first = recentBatches.first,
+           let last = recentBatches.last {
+            let span = last.time.timeIntervalSince(first.time)
+            let chunks = recentBatches.reduce(0) { $0 + $1.chunks }
+            chunksPerSec = span > 0.01 ? Double(chunks) / span : 0
+        } else if let only = recentBatches.first {
+            let span = Date().timeIntervalSince(only.time)
+            chunksPerSec = span > 0.01 ? Double(only.chunks) / span : 0
+        } else {
+            chunksPerSec = 0
+        }
+
+        let elapsed = Date().timeIntervalSince(startTime)
+        let line = "Indexing: \(filesDone)/\(totalFiles) • \(chunksDone) chunks • \(nonEnglishCount) non-English • \(busyWorkers)/\(totalWorkers) busy • \(Self.formatSeconds(elapsed)) • \(String(format: "%.0f", chunksPerSec)) ch/s"
+
+        // Pad to the previous length so shrinking counters (busy) don't
+        // leave stale characters. Terminals treat the padding as spaces
+        // that overwrite the old suffix; \r then rewinds to column 0.
+        var padded = line
+        if line.count < lastRenderedLen {
+            padded += String(repeating: " ", count: lastRenderedLen - line.count)
+        }
+        lastRenderedLen = line.count
         everRendered = true
-        FileHandle.standardOutput.write(Data(line.utf8))
+        FileHandle.standardOutput.write(Data(("\r" + padded).utf8))
+    }
+
+    fileprivate static func formatSeconds(_ seconds: Double) -> String {
+        if seconds >= 1 {
+            return String(format: "%.1fs", seconds)
+        } else {
+            return String(format: "%.0fms", seconds * 1000)
+        }
     }
 }
 
@@ -110,13 +206,17 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             }
         }
 
+        // Use the same worker count the pipeline will use, so the rolling
+        // line's "N/M busy" denominator matches reality.
+        let workerCount = max(ProcessInfo.processInfo.activeProcessorCount, 2)
+
         // Wire up the rolling progress renderer when verbose and attached to a TTY.
         // Piped/redirected stdout skips progress — the final summary still prints.
         let stdoutIsTTY = isatty(FileHandle.standardOutput.fileDescriptor) != 0
         let renderer: ProgressRenderer?
         let progress: ProgressHandler?
         if verbose && stdoutIsTTY && !workItems.isEmpty {
-            let r = ProgressRenderer(totalFiles: workItems.count)
+            let r = ProgressRenderer(totalFiles: workItems.count, totalWorkers: workerCount)
             renderer = r
             progress = { event in r.handle(event) }
         } else {
@@ -124,7 +224,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             progress = nil
         }
 
-        let pipeline = IndexingPipeline()
+        let pipeline = IndexingPipeline(concurrency: workerCount)
 
         let results: [IndexResult]
         let stats: IndexingStats
@@ -195,22 +295,46 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         print(summary + ".")
 
         if verbose && !workItems.isEmpty {
-            printTimingFooter(stats: stats, wallSeconds: wallSeconds)
+            printTimingFooter(stats: stats, wallSeconds: wallSeconds, workerCount: workerCount, filesIndexed: added + updated)
         }
     }
 
-    /// Per-stage totals are summed across N concurrent workers, so they can sum
-    /// to more than wall time. The ratio shows where time goes; wall time shows
-    /// how long the user actually waited.
-    private func printTimingFooter(stats: IndexingStats, wallSeconds: Double) {
+    /// Per-stage totals are summed across N concurrent workers, so they can
+    /// sum to more than wall time. The footer reports both the raw totals
+    /// and CPU-time percentages (which sum to 100% and tell the user which
+    /// stage dominated the work). Wall time shows how long the user waited.
+    private func printTimingFooter(stats: IndexingStats, wallSeconds: Double, workerCount: Int, filesIndexed: Int) {
         let chunksPerSec = stats.embedSeconds > 0
             ? Double(stats.totalChunksEmbedded) / stats.embedSeconds
             : 0
+        let filesPerSec = wallSeconds > 0 ? Double(filesIndexed) / wallSeconds : 0
+
+        // CPU-time percentages — share of summed worker+db stage seconds.
+        let stageTotal = stats.extractSeconds + stats.embedSeconds + stats.dbSeconds
+        let extractPct = stageTotal > 0 ? stats.extractSeconds / stageTotal * 100 : 0
+        let embedPct = stageTotal > 0 ? stats.embedSeconds / stageTotal * 100 : 0
+        let dbPct = stageTotal > 0 ? stats.dbSeconds / stageTotal * 100 : 0
+
+        // Pool utilization: total embed seconds across batches / wall-seconds
+        // * N workers. 100% means every worker was busy embedding every
+        // second; <100% means workers were extract-bound, db-bound, or
+        // idle between files.
+        let maxPossibleEmbedSeconds = wallSeconds * Double(workerCount)
+        let poolUtilization = maxPossibleEmbedSeconds > 0
+            ? stats.totalBatchEmbedSeconds / maxPossibleEmbedSeconds * 100
+            : 0
 
         print("")
-        print("Timing (wall: \(formatSeconds(wallSeconds)))")
-        print("  extract: \(formatSeconds(stats.extractSeconds))  embed: \(formatSeconds(stats.embedSeconds))  db: \(formatSeconds(stats.dbSeconds))")
-        print("  embed throughput: \(String(format: "%.1f", chunksPerSec)) chunks/sec (\(stats.totalChunksEmbedded) chunks)")
+        print("Timing (wall: \(formatSeconds(wallSeconds)), \(workerCount) workers)")
+        print("  extract: \(formatSeconds(stats.extractSeconds)) (\(String(format: "%.0f", extractPct))%)  embed: \(formatSeconds(stats.embedSeconds)) (\(String(format: "%.0f", embedPct))%)  db: \(formatSeconds(stats.dbSeconds)) (\(String(format: "%.0f", dbPct))%)")
+        print("  throughput: \(String(format: "%.1f", chunksPerSec)) ch/s (\(stats.totalChunksEmbedded) chunks)  \(String(format: "%.1f", filesPerSec)) files/s  pool util: \(String(format: "%.0f", poolUtilization))%")
+        print("  per-file embed: p50 \(formatSeconds(stats.p50EmbedSeconds)) • p95 \(formatSeconds(stats.p95EmbedSeconds))  batches: \(stats.totalBatches)")
+        if let first = stats.firstBatchLatencySeconds {
+            print("  first embed batch: \(formatSeconds(first)) after start")
+        }
+        if let biggest = stats.largestFile {
+            print("  largest file: \(biggest.chunkCount) chunks, \(formatSeconds(biggest.totalSeconds))  \(biggest.path)")
+        }
 
         if !stats.slowestFiles.isEmpty {
             print("Slowest files:")
@@ -218,6 +342,27 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                 print("  \(formatSeconds(timing.totalSeconds))  [extract \(formatSeconds(timing.extractSeconds)), embed \(formatSeconds(timing.embedSeconds)), db \(formatSeconds(timing.dbSeconds)), \(timing.chunkCount) chunks]  \(timing.path)")
             }
         }
+
+        // Copy/paste-friendly one-liner. Space-separated key=value so it
+        // greps, diffs, and parses with awk/python trivially. Keep keys
+        // stable across runs so trend plots work.
+        let verboseStats = [
+            "files=\(filesIndexed)",
+            "workers=\(workerCount)",
+            "chunks=\(stats.totalChunksEmbedded)",
+            "batches=\(stats.totalBatches)",
+            "wall=\(String(format: "%.2f", wallSeconds))s",
+            "extract=\(String(format: "%.2f", stats.extractSeconds))s",
+            "embed=\(String(format: "%.2f", stats.embedSeconds))s",
+            "db=\(String(format: "%.2f", stats.dbSeconds))s",
+            "chps=\(String(format: "%.1f", chunksPerSec))",
+            "fps=\(String(format: "%.2f", filesPerSec))",
+            "util=\(String(format: "%.0f", poolUtilization))%",
+            "p50_embed=\(String(format: "%.3f", stats.p50EmbedSeconds))s",
+            "p95_embed=\(String(format: "%.3f", stats.p95EmbedSeconds))s",
+            "first_batch=\(stats.firstBatchLatencySeconds.map { String(format: "%.2f", $0) + "s" } ?? "n/a")"
+        ].joined(separator: " ")
+        print("[verbose-stats] " + verboseStats)
     }
 
     private func formatSeconds(_ seconds: Double) -> String {
