@@ -2,7 +2,9 @@ import Foundation
 import NaturalLanguage
 
 /// Generates text embeddings using Apple's on-device NLEmbedding.
-public class EmbeddingService {
+/// Thread-safe: the underlying NLEmbedding is immutable after init
+/// and its `vector(for:)` method is safe to call from multiple threads.
+public final class EmbeddingService: @unchecked Sendable {
 
     private let embedding: NLEmbedding?
 

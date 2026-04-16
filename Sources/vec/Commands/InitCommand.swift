@@ -30,7 +30,7 @@ struct InitCommand: AsyncParsableCommand {
         }
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
-        try database.initialize()
+        try await database.initialize()
         let config = DatabaseConfig(sourceDirectory: sourceDir.path, createdAt: Date())
         try DatabaseLocator.writeConfig(config, to: dbDir)
 

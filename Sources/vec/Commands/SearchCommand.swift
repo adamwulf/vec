@@ -40,7 +40,7 @@ struct SearchCommand: AsyncParsableCommand {
             : DatabaseLocator.resolveFromCurrentDirectory()
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
-        try database.open()
+        try await database.open()
 
         let embedder = EmbeddingService()
         guard let queryEmbedding = embedder.embed(query) else {
@@ -50,7 +50,7 @@ struct SearchCommand: AsyncParsableCommand {
 
         // Fetch extra chunks so we can group by file and still return enough files
         let fetchLimit = limit * 3
-        let results = try database.search(embedding: queryEmbedding, limit: fetchLimit)
+        let results = try await database.search(embedding: queryEmbedding, limit: fetchLimit)
         let grouped = SearchResultCoalescer.coalesce(results, limit: limit)
 
         switch format {

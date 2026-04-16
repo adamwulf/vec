@@ -1,7 +1,7 @@
 import Foundation
 
 /// A single search result from a vector similarity query.
-public struct SearchResult {
+public struct SearchResult: Sendable {
     /// Path relative to the project root
     public let filePath: String
     /// Starting line number, if applicable

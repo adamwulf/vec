@@ -37,8 +37,8 @@ struct ListCommand: AsyncParsableCommand {
             do {
                 let sourceURL = URL(fileURLWithPath: entry.config.sourceDirectory, isDirectory: true)
                 let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceURL)
-                try db.open()
-                let files = try db.allIndexedFiles()
+                try await db.open()
+                let files = try await db.allIndexedFiles()
                 fileCount = "\(files.count)"
             } catch {
                 fileCount = "(error: \(error.localizedDescription))"

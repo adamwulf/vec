@@ -4,7 +4,7 @@ import Accelerate
 
 /// Wraps SQLite for storing and querying vector embeddings using pure-Swift
 /// cosine-distance search. No external dynamic library required.
-public class VectorDatabase {
+public actor VectorDatabase {
 
     /// The directory containing the database files (e.g. `~/.vec/<db-name>/`).
     public let databaseDirectory: URL

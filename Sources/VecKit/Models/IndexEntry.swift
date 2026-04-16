@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents a file discovered by the scanner, with metadata needed for indexing.
-public struct FileInfo {
+public struct FileInfo: Sendable {
     /// Path relative to the project root
     public let relativePath: String
     /// Absolute URL to the file
@@ -20,7 +20,7 @@ public struct FileInfo {
 }
 
 /// Represents a chunk of text extracted from a file, ready to be embedded.
-public struct TextChunk {
+public struct TextChunk: Sendable {
     /// The text content to embed
     public let text: String
     /// The type of chunk
@@ -42,7 +42,7 @@ public struct TextChunk {
 }
 
 /// The type of chunk stored in the index.
-public enum ChunkType: String {
+public enum ChunkType: String, Sendable {
     case whole = "whole"
     case chunk = "chunk"
     case pdfPage = "pdf_page"

@@ -36,11 +36,11 @@ struct InsertCommand: AsyncParsableCommand {
         }
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
-        try database.open()
+        try await database.open()
 
         // Remove existing entries for this file
         let relativePath = PathUtilities.relativePath(of: filePath.path, in: sourceDir.path)
-        try database.removeEntries(forPath: relativePath)
+        try await database.removeEntries(forPath: relativePath)
 
         let extractor = TextExtractor()
         let embedder = EmbeddingService()
@@ -48,12 +48,28 @@ struct InsertCommand: AsyncParsableCommand {
         let fileInfo = try FileScanner.fileInfo(for: filePath, relativeTo: sourceDir)
         let chunks = try extractor.extract(from: fileInfo)
 
-        var warnedNonEnglish = false
-        var count = 0
-        for chunk in chunks {
-            embedder.warnIfNonEnglish(text: chunk.text, filePath: relativePath, warned: &warnedNonEnglish)
-            guard let embedding = embedder.embed(chunk.text) else { continue }
-            try database.insert(
+        // Embed all chunks in parallel
+        let embedded: [(TextChunk, [Float])] = await withTaskGroup(of: (Int, TextChunk, [Float]?).self) { group in
+            for (index, chunk) in chunks.enumerated() {
+                group.addTask {
+                    let vector = embedder.embed(chunk.text)
+                    return (index, chunk, vector)
+                }
+            }
+
+            var results: [(index: Int, chunk: TextChunk, embedding: [Float])] = []
+            for await (index, chunk, vector) in group {
+                if let vector = vector {
+                    results.append((index, chunk, vector))
+                }
+            }
+            results.sort { $0.index < $1.index }
+            return results.map { ($0.chunk, $0.embedding) }
+        }
+
+        // Insert all embeddings into the database
+        for (chunk, embedding) in embedded {
+            try await database.insert(
                 filePath: relativePath,
                 lineStart: chunk.lineStart,
                 lineEnd: chunk.lineEnd,
@@ -63,12 +79,11 @@ struct InsertCommand: AsyncParsableCommand {
                 contentPreview: String(chunk.text.prefix(200)),
                 embedding: embedding
             )
-            count += 1
         }
 
-        if count == 0 && !chunks.isEmpty {
+        if embedded.isEmpty && !chunks.isEmpty {
             print("Warning: \(chunks.count) chunks extracted but none could be embedded from \(relativePath)")
         }
-        print("Indexed \(count) chunks from \(relativePath)")
+        print("Indexed \(embedded.count) chunks from \(relativePath)")
     }
 }
