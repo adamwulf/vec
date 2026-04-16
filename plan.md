@@ -88,7 +88,7 @@ Run `swift test` to see current suite counts. Test files are in `Tests/VecKitTes
 - `--format json` for `search` command — implemented with `OutputFormat` enum and `printJSONResults()`
 - `.vecignore` support — implemented with `fnmatch()` pattern matching in FileScanner
 - Search result coalescing — results grouped by file path, `--limit` controls file count, whole-doc chunks show `(whole file)`, JSON includes `chunk_type`
-- Remaining items (`--verbose`/`--quiet`, `vector_quantize()`) deferred as lower priority
+- Remaining items (`--verbose`/`--quiet`) deferred as lower priority
 
 #### 3c. Error handling improvements — DONE
 - `VectorDatabase.open()` now calls `verifySchema()` to check the chunks table exists
