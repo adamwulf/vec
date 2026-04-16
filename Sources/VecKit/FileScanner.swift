@@ -9,10 +9,11 @@ public class FileScanner {
     private let includeHiddenFiles: Bool
 
     /// Text file extensions that UTType misclassifies or doesn't recognize.
-    /// .ts is classified as MPEG-2 transport stream instead of TypeScript.
-    /// .fish, .graphql, .env, .rst, .adoc, .org have no UTType registration.
+    /// .ts/.mts are classified as MPEG-2 transport streams instead of TypeScript.
+    /// .fish, .graphql, .env, .rst, .org, .jsonl, .jsonc, .cjs have no UTType registration.
     private static let textExtensionOverrides: Set<String> = [
-        "ts", "tsx", "fish", "graphql", "env", "rst", "adoc", "org"
+        "ts", "mts", "fish", "graphql", "env", "rst", "org",
+        "jsonl", "jsonc", "cjs"
     ]
 
     /// Well-known text filenames that have no file extension.
