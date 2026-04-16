@@ -11,6 +11,7 @@ final class CLITests: XCTestCase {
         let names = subcommands.map { $0.configuration.commandName ?? "" }
 
         XCTAssertTrue(names.contains("init"), "Missing 'init' subcommand")
+        XCTAssertTrue(names.contains("deinit"), "Missing 'deinit' subcommand")
         XCTAssertTrue(names.contains("update-index"), "Missing 'update-index' subcommand")
         XCTAssertTrue(names.contains("search"), "Missing 'search' subcommand")
         XCTAssertTrue(names.contains("insert"), "Missing 'insert' subcommand")
@@ -33,6 +34,24 @@ final class CLITests: XCTestCase {
 
     func testInitCommandParsesWithForceFlag() throws {
         let cmd = try InitCommand.parseAsRoot(["my-project", "--force"]) as! InitCommand
+        XCTAssertEqual(cmd.dbName, "my-project")
+        XCTAssertTrue(cmd.force)
+    }
+
+    // MARK: - DeinitCommand
+
+    func testDeinitCommandParsesDbName() throws {
+        let cmd = try DeinitCommand.parseAsRoot(["my-project"]) as! DeinitCommand
+        XCTAssertEqual(cmd.dbName, "my-project")
+        XCTAssertFalse(cmd.force)
+    }
+
+    func testDeinitCommandFailsWithoutDbName() {
+        XCTAssertThrowsError(try DeinitCommand.parseAsRoot([]))
+    }
+
+    func testDeinitCommandParsesWithForceFlag() throws {
+        let cmd = try DeinitCommand.parseAsRoot(["my-project", "--force"]) as! DeinitCommand
         XCTAssertEqual(cmd.dbName, "my-project")
         XCTAssertTrue(cmd.force)
     }
