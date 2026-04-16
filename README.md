@@ -1,6 +1,6 @@
 # vec
 
-A command-line tool for creating and querying local vector databases, powered by [sqlite-vector](https://github.com/sqliteai/sqlite-vector) and Apple's `NLEmbedding`.
+A command-line tool for creating and querying local vector databases, powered by SQLite and Apple's `NLEmbedding`.
 
 ## Overview
 
@@ -15,7 +15,7 @@ Once indexed, you can perform semantic search across your files to find relevant
 - **Whole-document embeddings** — Each file also gets a full-document embedding for broader matches
 - **PDF support** — Extracts text per page from PDFs and indexes each page separately
 - **Change detection** — Tracks file modification dates to efficiently update only changed files
-- **SQLite-backed** — Uses sqlite-vector for high-performance vector similarity search
+- **SQLite-backed** — Uses SQLite with pure-Swift cosine similarity search (no dynamic libraries needed)
 - **`.gitignore` support** — Automatically respects `.gitignore` patterns
 - **`.vecignore` support** — Additional ignore patterns via a `.vecignore` file at the project root
 
@@ -128,7 +128,7 @@ Removes all embeddings for a file from the index.
 
 1. **Embedding**: Text content is converted to vector embeddings using `NLEmbedding.sentenceEmbedding(for:revision:)` from Apple's NaturalLanguage framework. The embedding dimensionality is determined by the model (see `EmbeddingService.dimension`), and all processing happens entirely on-device.
 
-2. **Storage**: Embeddings are stored in a SQLite database using the sqlite-vector extension, which provides SIMD-accelerated similarity search.
+2. **Storage**: Embeddings are stored as raw Float32 blobs in a SQLite database. Similarity search is computed in pure Swift using cosine distance.
 
 3. **Search**: Query text is embedded using the same model, then compared against stored embeddings using cosine distance to find the most semantically similar content.
 
