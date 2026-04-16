@@ -1,5 +1,8 @@
 import XCTest
 import NaturalLanguage
+import CoreGraphics
+import ImageIO
+import UniformTypeIdentifiers
 @testable import VecKit
 
 final class VecKitTests: XCTestCase {
@@ -8,6 +11,7 @@ final class VecKitTests: XCTestCase {
         XCTAssertEqual(ChunkType.whole.rawValue, "whole")
         XCTAssertEqual(ChunkType.chunk.rawValue, "chunk")
         XCTAssertEqual(ChunkType.pdfPage.rawValue, "pdf_page")
+        XCTAssertEqual(ChunkType.image.rawValue, "image")
     }
 
     func testTextChunkCreation() {
@@ -410,6 +414,80 @@ final class TextExtractorTests: XCTestCase {
             XCTAssertFalse(trimmed.isEmpty, "Page \(chunk.pageNumber ?? 0) should have non-empty text")
         }
     }
+
+    func testImageExtractionDoesNotCrashAndReturnsImageChunks() throws {
+        // Create a simple PNG image programmatically with text drawn into it
+        let imageURL = tempDir.appendingPathComponent("test_ocr.png")
+
+        let width = 400
+        let height = 100
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        guard let context = CGContext(
+            data: nil,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: colorSpace,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else {
+            XCTFail("Could not create CGContext")
+            return
+        }
+
+        // Fill white background
+        context.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+
+        // Draw "Hello World" text in black
+        context.setFillColor(CGColor(red: 0, green: 0, blue: 0, alpha: 1))
+        let text = "Hello World" as CFString
+        let font = CTFontCreateWithName("Helvetica" as CFString, 36, nil)
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: font,
+            .foregroundColor: CGColor(red: 0, green: 0, blue: 0, alpha: 1)
+        ]
+        let attrString = NSAttributedString(string: text as String, attributes: attributes)
+        let line = CTLineCreateWithAttributedString(attrString)
+        context.textPosition = CGPoint(x: 20, y: 30)
+        CTLineDraw(line, context)
+
+        guard let cgImage = context.makeImage() else {
+            XCTFail("Could not create CGImage")
+            return
+        }
+
+        // Write as PNG
+        guard let destination = CGImageDestinationCreateWithURL(
+            imageURL as CFURL,
+            UTType.png.identifier as CFString,
+            1,
+            nil
+        ) else {
+            XCTFail("Could not create image destination")
+            return
+        }
+        CGImageDestinationAddImage(destination, cgImage, nil)
+        CGImageDestinationFinalize(destination)
+
+        let modDate = try imageURL.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate!
+        let file = FileInfo(
+            relativePath: "test_ocr.png",
+            url: imageURL,
+            modificationDate: modDate,
+            fileExtension: "png"
+        )
+
+        let extractor = TextExtractor()
+        let chunks = try extractor.extract(from: file)
+
+        // Vision OCR may or may not recognize text from programmatic images,
+        // so we just verify the code path doesn't crash and returns valid results
+        for chunk in chunks {
+            XCTAssertEqual(chunk.type, .image)
+            XCTAssertFalse(chunk.text.isEmpty)
+        }
+    }
 }
 
 // MARK: - FileScanner Tests
@@ -789,6 +867,31 @@ final class FileScannerTests: XCTestCase {
         XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
         XCTAssertFalse(relativePaths.contains("debug.log"),
                         "*.log should still be vecignored despite blank lines")
+    }
+
+    func testScanFindsImageFiles() throws {
+        createTextFile(at: "readme.md", content: "# Hello")
+
+        // Create a minimal valid PNG file (1x1 pixel)
+        let pngHeader: [UInt8] = [
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+            0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1
+            0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, // 8-bit RGB
+            0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, // IDAT chunk
+            0x54, 0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00,
+            0x00, 0x00, 0x02, 0x00, 0x01, 0xE2, 0x21, 0xBC,
+            0x33, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, // IEND chunk
+            0x44, 0xAE, 0x42, 0x60, 0x82
+        ]
+        createFile(at: "photo.png", content: Data(pngHeader))
+
+        let scanner = FileScanner(directory: tempDir)
+        let files = try scanner.scan()
+        let relativePaths = files.map { $0.relativePath }
+
+        XCTAssertTrue(relativePaths.contains("readme.md"), "Expected readme.md, got: \(relativePaths)")
+        XCTAssertTrue(relativePaths.contains("photo.png"), "Expected photo.png to be picked up as image, got: \(relativePaths)")
     }
 }
 

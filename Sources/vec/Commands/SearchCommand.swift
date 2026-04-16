@@ -75,7 +75,9 @@ struct SearchCommand: AsyncParsableCommand {
 
             for match in group.matches {
                 let matchScore = String(format: "%.2f", max(0, 1.0 - match.distance))
-                if let start = match.lineStart, let end = match.lineEnd {
+                if match.chunkType == .image {
+                    print("  (OCR)  (\(matchScore))")
+                } else if let start = match.lineStart, let end = match.lineEnd {
                     print("  Lines \(start)-\(end)  (\(matchScore))")
                 } else if let page = match.pageNumber {
                     print("  Page \(page)  (\(matchScore))")
