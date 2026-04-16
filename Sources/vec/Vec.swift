@@ -11,6 +11,7 @@ struct Vec: AsyncParsableCommand {
         version: "0.1.0",
         subcommands: [
             InitCommand.self,
+            DeinitCommand.self,
             UpdateIndexCommand.self,
             SearchCommand.self,
             InsertCommand.self,
