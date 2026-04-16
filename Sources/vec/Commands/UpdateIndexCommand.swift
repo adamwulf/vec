@@ -127,8 +127,10 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         let pipeline = IndexingPipeline()
 
         let results: [IndexResult]
+        let stats: IndexingStats
+        let pipelineStart = Date()
         do {
-            results = try await pipeline.run(
+            (results, stats) = try await pipeline.run(
                 workItems: workItems,
                 extractor: TextExtractor(),
                 database: database,
@@ -139,6 +141,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             renderer?.finish()
             throw error
         }
+        let wallSeconds = Date().timeIntervalSince(pipelineStart)
 
         // Tally results
         var added = 0
@@ -190,5 +193,38 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             summary += " (\(files.count) files scanned)"
         }
         print(summary + ".")
+
+        if verbose && !workItems.isEmpty {
+            printTimingFooter(stats: stats, wallSeconds: wallSeconds)
+        }
+    }
+
+    /// Per-stage totals are summed across N concurrent workers, so they can sum
+    /// to more than wall time. The ratio shows where time goes; wall time shows
+    /// how long the user actually waited.
+    private func printTimingFooter(stats: IndexingStats, wallSeconds: Double) {
+        let chunksPerSec = stats.embedSeconds > 0
+            ? Double(stats.totalChunksEmbedded) / stats.embedSeconds
+            : 0
+
+        print("")
+        print("Timing (wall: \(formatSeconds(wallSeconds)))")
+        print("  extract: \(formatSeconds(stats.extractSeconds))  embed: \(formatSeconds(stats.embedSeconds))  db: \(formatSeconds(stats.dbSeconds))")
+        print("  embed throughput: \(String(format: "%.1f", chunksPerSec)) chunks/sec (\(stats.totalChunksEmbedded) chunks)")
+
+        if !stats.slowestFiles.isEmpty {
+            print("Slowest files:")
+            for timing in stats.slowestFiles {
+                print("  \(formatSeconds(timing.totalSeconds))  [extract \(formatSeconds(timing.extractSeconds)), embed \(formatSeconds(timing.embedSeconds)), db \(formatSeconds(timing.dbSeconds)), \(timing.chunkCount) chunks]  \(timing.path)")
+            }
+        }
+    }
+
+    private func formatSeconds(_ seconds: Double) -> String {
+        if seconds >= 1 {
+            return String(format: "%.2fs", seconds)
+        } else {
+            return String(format: "%.0fms", seconds * 1000)
+        }
     }
 }

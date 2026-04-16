@@ -8,6 +8,25 @@ public enum IndexResult: Sendable {
     case skippedEmbedFailure(filePath: String)
 }
 
+/// Per-stage wall-clock totals (summed across all files and concurrent workers)
+/// plus the slowest individual files. Useful for spotting which stage dominates
+/// real time and which files are tail-latency outliers.
+public struct IndexingStats: Sendable {
+    public struct FileTiming: Sendable {
+        public let path: String
+        public let totalSeconds: Double
+        public let extractSeconds: Double
+        public let embedSeconds: Double
+        public let dbSeconds: Double
+        public let chunkCount: Int
+    }
+    public var extractSeconds: Double = 0
+    public var embedSeconds: Double = 0
+    public var dbSeconds: Double = 0
+    public var totalChunksEmbedded: Int = 0
+    public var slowestFiles: [FileTiming] = []
+}
+
 /// Structured progress event emitted by the pipeline. Consumers are expected to
 /// maintain their own counters; the pipeline carries no presentation concerns.
 public enum ProgressEvent: Sendable {
@@ -24,6 +43,8 @@ struct SaveWork: Sendable {
     let file: FileInfo
     let label: String
     let records: [ChunkRecord]
+    let extractSeconds: Double
+    let embedSeconds: Double
 }
 
 /// A two-stage producer/consumer pipeline that parallelizes file indexing:
@@ -67,8 +88,8 @@ public final class IndexingPipeline: Sendable {
         extractor: TextExtractor,
         database: VectorDatabase,
         progress: ProgressHandler? = nil
-    ) async throws -> [IndexResult] {
-        guard !workItems.isEmpty else { return [] }
+    ) async throws -> (results: [IndexResult], stats: IndexingStats) {
+        guard !workItems.isEmpty else { return ([], IndexingStats()) }
 
         let batchSize = embedBatchSize
         let pool = self.pool
@@ -79,6 +100,7 @@ public final class IndexingPipeline: Sendable {
         )
 
         let resultCollector = ResultCollector()
+        let statsCollector = StatsCollector()
 
         try await withThrowingTaskGroup(of: Void.self) { group in
 
@@ -100,8 +122,12 @@ public final class IndexingPipeline: Sendable {
                                 )
 
                                 switch result {
-                                case .skipped(let indexResult):
+                                case .skipped(let indexResult, let extractSeconds):
                                     await resultCollector.record(indexResult)
+                                    await statsCollector.recordSkipped(
+                                        path: item.file.relativePath,
+                                        extractSeconds: extractSeconds
+                                    )
                                 case .save(let saveWork):
                                     saveContinuation.yield(saveWork)
                                 }
@@ -120,17 +146,33 @@ public final class IndexingPipeline: Sendable {
 
                     if work.records.isEmpty {
                         await resultCollector.record(.skippedEmbedFailure(filePath: path))
+                        await statsCollector.recordFile(
+                            path: path,
+                            extractSeconds: work.extractSeconds,
+                            embedSeconds: work.embedSeconds,
+                            dbSeconds: 0,
+                            chunkCount: 0
+                        )
                         progress?(.fileSkipped)
                         continue
                     }
 
+                    let dbStart = DispatchTime.now()
                     // Crash-safe: unmark → replace (atomic delete+insert) → mark
                     try await database.unmarkFileIndexed(path: path)
                     try await database.replaceEntries(forPath: path, with: work.records)
                     try await database.markFileIndexed(path: path, modifiedAt: work.file.modificationDate)
+                    let dbSeconds = Self.elapsed(since: dbStart)
 
                     let wasUpdate = work.label == "Updated"
                     await resultCollector.record(.indexed(filePath: path, wasUpdate: wasUpdate, chunkCount: work.records.count))
+                    await statsCollector.recordFile(
+                        path: path,
+                        extractSeconds: work.extractSeconds,
+                        embedSeconds: work.embedSeconds,
+                        dbSeconds: dbSeconds,
+                        chunkCount: work.records.count
+                    )
                     progress?(.fileFinished(chunks: work.records.count))
                 }
             }
@@ -138,13 +180,21 @@ public final class IndexingPipeline: Sendable {
             try await group.waitForAll()
         }
 
-        return await resultCollector.allResults()
+        let results = await resultCollector.allResults()
+        let stats = await statsCollector.snapshot()
+        return (results, stats)
+    }
+
+    /// Wall-clock seconds since the given DispatchTime.
+    fileprivate static func elapsed(since start: DispatchTime) -> Double {
+        let nanos = DispatchTime.now().uptimeNanoseconds &- start.uptimeNanoseconds
+        return Double(nanos) / 1_000_000_000
     }
 
     // MARK: - Per-file Processing
 
     private enum FileProcessResult: Sendable {
-        case skipped(IndexResult)
+        case skipped(IndexResult, extractSeconds: Double)
         case save(SaveWork)
     }
 
@@ -158,17 +208,20 @@ public final class IndexingPipeline: Sendable {
         progress: ProgressHandler?
     ) async -> FileProcessResult {
         // Extract chunks
+        let extractStart = DispatchTime.now()
         let chunks: [TextChunk]
         do {
             chunks = try extractor.extract(from: file)
         } catch {
+            let extractSeconds = elapsed(since: extractStart)
             progress?(.fileSkipped)
-            return .skipped(.skippedUnreadable(filePath: file.relativePath))
+            return .skipped(.skippedUnreadable(filePath: file.relativePath), extractSeconds: extractSeconds)
         }
+        let extractSeconds = elapsed(since: extractStart)
 
         if chunks.isEmpty {
             progress?(.fileSkipped)
-            return .skipped(.skippedUnreadable(filePath: file.relativePath))
+            return .skipped(.skippedUnreadable(filePath: file.relativePath), extractSeconds: extractSeconds)
         }
 
         // Language warning — before TaskGroup, no concurrency concern.
@@ -195,6 +248,7 @@ public final class IndexingPipeline: Sendable {
         }
 
         // Embed batches in parallel via TaskGroup, gated by the embedder pool
+        let embedStart = DispatchTime.now()
         let allRecords: [[ChunkRecord]] = await withTaskGroup(of: (Int, [ChunkRecord]).self) { group in
             for (index, batch) in batches.enumerated() {
                 group.addTask {
@@ -235,12 +289,15 @@ public final class IndexingPipeline: Sendable {
             return indexed.map(\.1)
         }
 
+        let embedSeconds = elapsed(since: embedStart)
         let records = allRecords.flatMap { $0 }
 
         return .save(SaveWork(
             file: file,
             label: label,
-            records: records
+            records: records,
+            extractSeconds: extractSeconds,
+            embedSeconds: embedSeconds
         ))
     }
 }
@@ -305,5 +362,43 @@ private actor ResultCollector {
 
     func allResults() -> [IndexResult] {
         results
+    }
+}
+
+// MARK: - Stats Collector
+
+/// Thread-safe collector for per-stage timings. Stage totals are summed across
+/// all workers (so they can exceed wall-clock when N workers run in parallel —
+/// that's the point: the ratio shows where CPU/IO time is actually spent).
+private actor StatsCollector {
+    private var stats = IndexingStats()
+    private var fileTimings: [IndexingStats.FileTiming] = []
+
+    func recordFile(path: String, extractSeconds: Double, embedSeconds: Double, dbSeconds: Double, chunkCount: Int) {
+        stats.extractSeconds += extractSeconds
+        stats.embedSeconds += embedSeconds
+        stats.dbSeconds += dbSeconds
+        stats.totalChunksEmbedded += chunkCount
+        fileTimings.append(IndexingStats.FileTiming(
+            path: path,
+            totalSeconds: extractSeconds + embedSeconds + dbSeconds,
+            extractSeconds: extractSeconds,
+            embedSeconds: embedSeconds,
+            dbSeconds: dbSeconds,
+            chunkCount: chunkCount
+        ))
+    }
+
+    func recordSkipped(path: String, extractSeconds: Double) {
+        stats.extractSeconds += extractSeconds
+    }
+
+    func snapshot() -> IndexingStats {
+        var result = stats
+        result.slowestFiles = fileTimings
+            .sorted { $0.totalSeconds > $1.totalSeconds }
+            .prefix(5)
+            .map { $0 }
+        return result
     }
 }
