@@ -2,7 +2,7 @@
 
 ## Current State
 
-The `vec` CLI tool and its `VecKit` library are production-ready for all Priority 1, 2, 3, 4, 5, and 6 items. All seven commands are implemented, the project builds cleanly, and all tests pass (run `swift test` to verify current count). The embedding service uses Apple's on-device `NLEmbedding`. The `sqlite-vector` package is integrated via SPM binary target with runtime extension loading. File type detection uses Apple's `UTType` framework, and image files are supported via Vision framework OCR.
+The `vec` CLI tool and its `VecKit` library are production-ready for all Priority 1, 2, 3, 4, 5, and 6 items. All seven commands are implemented, the project builds cleanly, and all tests pass (run `swift test` to verify current count). The embedding service uses Apple's on-device `NLEmbedding`. Vector similarity search uses pure-Swift cosine distance (via Accelerate/vDSP) over embeddings stored as Float32 blobs in SQLite — no external dynamic libraries required. File type detection uses Apple's `UTType` framework, and image files are supported via Vision framework OCR.
 
 ### What's Implemented
 
@@ -15,7 +15,7 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 | `vec insert [-d <name>] <path>` | Done | Adds/replaces a single file. Path validation against source directory. |
 | `vec remove [-d <name>] <path>` | Done | Removes entries for a single file. Path validation against source directory. |
 | `vec info [-d <name>]` | Done | Shows database metadata: name, source directory, created date, file count, chunk count, DB file size. |
-| `VectorDatabase` | Done | SQLite + sqlite-vector wrapper. Insert, search, remove, allIndexedFiles, totalChunkCount. Schema creation wrapped in transaction for crash safety. |
+| `VectorDatabase` | Done | SQLite wrapper with pure-Swift cosine similarity search (Accelerate/vDSP). Insert, search, remove, allIndexedFiles, totalChunkCount. Schema creation wrapped in transaction for crash safety. |
 | `EmbeddingService` | Done | Uses `NLEmbedding.sentenceEmbedding(for: .english)`. Dimension determined at runtime (see `EmbeddingService.dimension`). Includes `detectLanguage()` and `warnIfNonEnglish()` methods — non-English content is still embedded but warns to stderr once per file. |
 | `FileScanner` | Done | Directory walking, UTType-based file detection (.text, .pdf, .image), .gitignore support via `git check-ignore`, hidden file filtering (dot-prefix), skips .git/node_modules/.build/etc, binary detection. Pipe-safe Process I/O. `knownTextFilenames` set for extensionless files (Makefile, Dockerfile, etc.). Resilient resource value reads (`try?`). |
 | `TextExtractor` | Done | Plain text (whole-doc), markdown (overlapping chunks), PDF (per-page), image OCR (Vision framework). |
@@ -70,7 +70,7 @@ Run `swift test` to see current suite counts. Test files are in `Tests/VecKitTes
 - Both "new file" and "updated file" branches use shared helper
 
 #### 2b. Dead code in extension loading — RESOLVED
-- The `@rpath/vector.framework/vector` path is NOT dead code — it's how the test runner finds the sqlite-vector extension via dyld. Added clarifying comment.
+- No longer applicable — sqlite-vector extension removed entirely. Vector search now uses pure-Swift cosine distance via Accelerate/vDSP.
 
 #### 2c. Similarity score display — DONE
 - Clamped with `max(0, 1.0 - distance)` to prevent negative values
@@ -196,5 +196,5 @@ Replaced hard-coded file extension allowlists in FileScanner with Apple's `UTTyp
 - Non-English text embedding behavior tests
 - Symlink behavior tests
 - `--verbose` / `--quiet` flags on all commands
-- `vector_quantize()` after updates for better search performance
+- Approximate nearest neighbor (ANN) indexing for large-scale search performance
 - Database migration from old `.vec/` format to new `~/.vec/<name>/` format

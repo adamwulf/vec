@@ -95,8 +95,11 @@ public class VectorDatabase {
         let data = embedding.withUnsafeBufferPointer { buffer in
             Data(buffer: buffer)
         }
-        _ = data.withUnsafeBytes { rawBuffer in
+        let bindResult = data.withUnsafeBytes { rawBuffer in
             sqlite3_bind_blob(stmt, 8, rawBuffer.baseAddress, Int32(rawBuffer.count), unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+        }
+        guard bindResult == SQLITE_OK else {
+            throw sqlError("Failed to bind embedding blob")
         }
 
         guard sqlite3_step(stmt) == SQLITE_DONE else {
@@ -332,7 +335,8 @@ public class VectorDatabase {
     /// Compute cosine distance between two vectors using SIMD-accelerated vDSP.
     /// Returns 0.0 for identical vectors, up to 2.0 for opposite vectors.
     private func cosineDistance(_ a: [Float], _ b: [Float]) -> Double {
-        let count = min(a.count, b.count)
+        guard a.count == b.count else { return 1.0 }
+        let count = a.count
         guard count > 0 else { return 1.0 }
         let n = vDSP_Length(count)
 
