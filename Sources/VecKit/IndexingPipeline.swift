@@ -8,12 +8,22 @@ public enum IndexResult: Sendable {
     case skippedEmbedFailure(filePath: String)
 }
 
+/// Structured progress event emitted by the pipeline. Consumers are expected to
+/// maintain their own counters; the pipeline carries no presentation concerns.
+public enum ProgressEvent: Sendable {
+    case fileFinished(chunks: Int)
+    case fileSkipped
+    case nonEnglishDetected
+    case chunksEmbedded(count: Int)
+}
+
+public typealias ProgressHandler = @Sendable (ProgressEvent) -> Void
+
 /// A batch of embedded records for a complete file, ready for DB insertion.
 struct SaveWork: Sendable {
     let file: FileInfo
     let label: String
     let records: [ChunkRecord]
-    let totalChunks: Int
 }
 
 /// A two-stage producer/consumer pipeline that parallelizes file indexing:
@@ -56,7 +66,7 @@ public final class IndexingPipeline: Sendable {
         workItems: [(file: FileInfo, label: String)],
         extractor: TextExtractor,
         database: VectorDatabase,
-        progress: (@Sendable (String) -> Void)? = nil
+        progress: ProgressHandler? = nil
     ) async throws -> [IndexResult] {
         guard !workItems.isEmpty else { return [] }
 
@@ -109,10 +119,8 @@ public final class IndexingPipeline: Sendable {
                     let path = work.file.relativePath
 
                     if work.records.isEmpty {
-                        if work.totalChunks > 0 {
-                            progress?("    Skipped: \(path) (failed to embed \(work.totalChunks) chunks)")
-                        }
                         await resultCollector.record(.skippedEmbedFailure(filePath: path))
+                        progress?(.fileSkipped)
                         continue
                     }
 
@@ -123,10 +131,7 @@ public final class IndexingPipeline: Sendable {
 
                     let wasUpdate = work.label == "Updated"
                     await resultCollector.record(.indexed(filePath: path, wasUpdate: wasUpdate, chunkCount: work.records.count))
-
-                    if work.totalChunks > batchSize {
-                        progress?("  Done: \(path) (\(work.records.count) chunks)")
-                    }
+                    progress?(.fileFinished(chunks: work.records.count))
                 }
             }
 
@@ -150,26 +155,25 @@ public final class IndexingPipeline: Sendable {
         extractor: TextExtractor,
         pool: EmbedderPool,
         batchSize: Int,
-        progress: (@Sendable (String) -> Void)?
+        progress: ProgressHandler?
     ) async -> FileProcessResult {
         // Extract chunks
         let chunks: [TextChunk]
         do {
             chunks = try extractor.extract(from: file)
         } catch {
-            progress?("  Skipped: \(file.relativePath) (unreadable)")
+            progress?(.fileSkipped)
             return .skipped(.skippedUnreadable(filePath: file.relativePath))
         }
 
         if chunks.isEmpty {
-            progress?("  Skipped: \(file.relativePath) (no extractable text)")
+            progress?(.fileSkipped)
             return .skipped(.skippedUnreadable(filePath: file.relativePath))
         }
 
-        let totalChunks = chunks.count
-        progress?("  \(label): \(file.relativePath) (\(totalChunks) chunks)")
-
-        // Language warning — before TaskGroup, no concurrency concern
+        // Language warning — before TaskGroup, no concurrency concern.
+        // The stderr write stays in place for all modes; the event lets
+        // verbose renderers keep a rolling non-English counter.
         if let firstText = chunks.first?.text {
             let trimmed = firstText.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty {
@@ -178,6 +182,7 @@ public final class IndexingPipeline: Sendable {
                     FileHandle.standardError.write(
                         Data("Warning: non-English content detected in \(file.relativePath) (detected: \(lang.rawValue)), embedding quality may be reduced\n".utf8)
                     )
+                    progress?(.nonEnglishDetected)
                 }
             }
         }
@@ -214,6 +219,9 @@ public final class IndexingPipeline: Sendable {
                             embedding: vector
                         ))
                     }
+                    if !records.isEmpty {
+                        progress?(.chunksEmbedded(count: records.count))
+                    }
                     return (index, records)
                 }
             }
@@ -232,8 +240,7 @@ public final class IndexingPipeline: Sendable {
         return .save(SaveWork(
             file: file,
             label: label,
-            records: records,
-            totalChunks: totalChunks
+            records: records
         ))
     }
 }
