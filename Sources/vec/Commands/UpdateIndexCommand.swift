@@ -60,6 +60,9 @@ struct UpdateIndexCommand: AsyncParsableCommand {
 
         var totalInserted = 0
         var needsDelete = removeExisting
+        var warnedNonEnglish = false
+        var chunksProcessed = 0
+        let totalChunks = chunks.count
 
         // Process chunks in batches to bound memory
         for batchStart in stride(from: 0, to: chunks.count, by: Self.batchSize) {
@@ -69,7 +72,14 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             // Embed sequentially within each batch
             var records: [ChunkRecord] = []
             for chunk in batch {
+                embedder.warnIfNonEnglish(text: chunk.text, filePath: file.relativePath, warned: &warnedNonEnglish)
                 guard let vector = embedder.embed(chunk.text) else { continue }
+                chunksProcessed += 1
+                if verbose {
+                    let pct = Int(Double(chunksProcessed) / Double(totalChunks) * 100)
+                    print("  \(label): \(file.relativePath) [\(chunksProcessed)/\(totalChunks) chunks, \(pct)%]", terminator: "\r")
+                    fflush(stdout)
+                }
                 records.append(ChunkRecord(
                     filePath: file.relativePath,
                     lineStart: chunk.lineStart,

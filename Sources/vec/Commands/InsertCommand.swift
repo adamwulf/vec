@@ -51,6 +51,7 @@ struct InsertCommand: AsyncParsableCommand {
 
         var totalInserted = 0
         var needsDelete = true
+        var warnedNonEnglish = false
 
         // Process chunks in batches to bound memory
         for batchStart in stride(from: 0, to: chunks.count, by: Self.batchSize) {
@@ -60,6 +61,7 @@ struct InsertCommand: AsyncParsableCommand {
             // Embed sequentially — NLEmbedding is not safe for concurrent use
             var records: [ChunkRecord] = []
             for chunk in batch {
+                embedder.warnIfNonEnglish(text: chunk.text, filePath: relativePath, warned: &warnedNonEnglish)
                 guard let vector = embedder.embed(chunk.text) else { continue }
                 records.append(ChunkRecord(
                     filePath: relativePath,
