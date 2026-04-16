@@ -31,10 +31,10 @@ struct RemoveCommand: AsyncParsableCommand {
         }
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
-        try database.open()
+        try await database.open()
 
         let relativePath = PathUtilities.relativePath(of: filePath.path, in: sourceDir.path)
-        let removed = try database.removeEntries(forPath: relativePath)
+        let removed = try await database.removeEntries(forPath: relativePath)
 
         if removed > 0 {
             print("Removed \(removed) entries for \(relativePath)")

@@ -18,16 +18,54 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Flag(name: .shortAndLong, help: "Show detailed progress for each file")
     var verbose: Bool = false
 
-    private enum IndexResult {
-        case indexed
+    /// Maximum number of chunks to embed and flush to the database at once.
+    private static let batchSize = 20
+
+    private enum IndexResult: Sendable {
+        case indexed(wasUpdate: Bool)
         case skippedUnreadable
         case skippedEmbedFailure
     }
 
-    /// Extract text and generate embeddings for a file, then insert into the database.
-    /// When `removeExisting` is true (re-indexing a modified file), old entries are only
-    /// removed after new embeddings are successfully generated, preventing data loss if
-    /// extraction or embedding fails.
+    /// Embed a batch of chunks in parallel and return ChunkRecords ready for insertion.
+    private func embedBatch(
+        _ batch: ArraySlice<TextChunk>,
+        filePath: String,
+        fileModifiedAt: Date,
+        embedder: EmbeddingService
+    ) async -> [ChunkRecord] {
+        await withTaskGroup(of: (Int, TextChunk, [Float]?).self) { group in
+            for (index, chunk) in batch.enumerated() {
+                group.addTask {
+                    let vector = embedder.embed(chunk.text)
+                    return (index, chunk, vector)
+                }
+            }
+
+            var results: [(index: Int, chunk: TextChunk, embedding: [Float])] = []
+            for await (index, chunk, vector) in group {
+                if let vector = vector {
+                    results.append((index, chunk, vector))
+                }
+            }
+            results.sort { $0.index < $1.index }
+            return results.map { result in
+                ChunkRecord(
+                    filePath: filePath,
+                    lineStart: result.chunk.lineStart,
+                    lineEnd: result.chunk.lineEnd,
+                    chunkType: result.chunk.type,
+                    pageNumber: result.chunk.pageNumber,
+                    fileModifiedAt: fileModifiedAt,
+                    contentPreview: String(result.chunk.text.prefix(200)),
+                    embedding: result.embedding
+                )
+            }
+        }
+    }
+
+    /// Extract text and generate embeddings for a file, flushing to the database in
+    /// batches of `batchSize` to bound memory usage for large files.
     private func indexFile(
         _ file: FileInfo,
         using extractor: TextExtractor,
@@ -36,7 +74,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         label: String,
         removeExisting: Bool = false,
         verbose: Bool = false
-    ) throws -> IndexResult {
+    ) async throws -> IndexResult {
         let chunks: [TextChunk]
         do {
             chunks = try extractor.extract(from: file)
@@ -53,53 +91,48 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             return .skippedUnreadable
         }
 
-        // Generate all embeddings before modifying the database, so a failure
-        // here preserves the existing index entries for this file.
-        var warnedNonEnglish = false
-        var embedded: [(TextChunk, [Float])] = []
-        let totalChunks = chunks.count
-        for (index, chunk) in chunks.enumerated() {
-            embedder.warnIfNonEnglish(text: chunk.text, filePath: file.relativePath, warned: &warnedNonEnglish)
-            if let embedding = embedder.embed(chunk.text) {
-                embedded.append((chunk, embedding))
+        var totalInserted = 0
+        var needsDelete = removeExisting
+
+        // Process chunks in batches to bound memory
+        for batchStart in stride(from: 0, to: chunks.count, by: Self.batchSize) {
+            let batchEnd = min(batchStart + Self.batchSize, chunks.count)
+            let batch = chunks[batchStart..<batchEnd]
+
+            let records = await embedBatch(
+                batch,
+                filePath: file.relativePath,
+                fileModifiedAt: file.modificationDate,
+                embedder: embedder
+            )
+
+            guard !records.isEmpty else { continue }
+
+            // First batch with removeExisting atomically replaces old entries;
+            // subsequent batches just insert.
+            if needsDelete {
+                try await database.replaceEntries(forPath: file.relativePath, with: records)
+                needsDelete = false
+            } else {
+                try await database.insertBatch(records)
             }
-            if verbose {
-                let pct = Int(Double(index + 1) / Double(totalChunks) * 100)
-                print("  \(label): \(file.relativePath) [\(index + 1)/\(totalChunks) chunks, \(pct)%]", terminator: "\r")
-                fflush(stdout)
-            }
+
+            totalInserted += records.count
         }
 
-        if embedded.isEmpty {
+        // If we needed to delete but never had any successful embeddings,
+        // don't delete the old data — preserve it.
+        if totalInserted == 0 {
             if verbose {
-                // Clear the progress line before printing skip message
                 print("  Skipped: \(file.relativePath) (failed to embed \(chunks.count) chunks)")
             }
             return .skippedEmbedFailure
         }
 
-        // Only now that we have new embeddings, remove the old entries
-        if removeExisting {
-            try database.removeEntries(forPath: file.relativePath)
-        }
-
-        for (chunk, embedding) in embedded {
-            try database.insert(
-                filePath: file.relativePath,
-                lineStart: chunk.lineStart,
-                lineEnd: chunk.lineEnd,
-                chunkType: chunk.type,
-                pageNumber: chunk.pageNumber,
-                fileModifiedAt: file.modificationDate,
-                contentPreview: String(chunk.text.prefix(200)),
-                embedding: embedding
-            )
-        }
         if verbose {
-            // Print final line replacing the progress indicator
-            print("  \(label): \(file.relativePath) (\(embedded.count) chunks)")
+            print("  \(label): \(file.relativePath) (\(totalInserted) chunks)")
         }
-        return .indexed
+        return .indexed(wasUpdate: removeExisting)
     }
 
     func run() async throws {
@@ -108,33 +141,29 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             : DatabaseLocator.resolveFromCurrentDirectory()
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
-        try database.open()
+        try await database.open()
 
         let scanner = FileScanner(directory: sourceDir, includeHiddenFiles: allowHidden)
         let files = try scanner.scan()
-        let indexedFiles = try database.allIndexedFiles()
+        let indexedFiles = try await database.allIndexedFiles()
 
         let embedder = EmbeddingService()
         let extractor = TextExtractor()
 
-        var added = 0
-        var updated = 0
-        var removed = 0
-        var skippedUnreadable = 0
-        var skippedEmbedFailures = 0
+        // Categorize files into work items
+        struct FileWork: Sendable {
+            let file: FileInfo
+            let label: String
+            let removeExisting: Bool
+        }
 
-        // Find files to add or update
+        var workItems: [FileWork] = []
         var unchanged = 0
+
         for file in files {
             if let existingModDate = indexedFiles[file.relativePath] {
                 if file.modificationDate > existingModDate {
-                    // File changed — re-index. removeExisting defers deletion until
-                    // new embeddings succeed, preventing data loss on failure.
-                    switch try indexFile(file, using: extractor, embedder: embedder, database: database, label: "Updated", removeExisting: true, verbose: verbose) {
-                    case .indexed: updated += 1
-                    case .skippedUnreadable: skippedUnreadable += 1
-                    case .skippedEmbedFailure: skippedEmbedFailures += 1
-                    }
+                    workItems.append(FileWork(file: file, label: "Updated", removeExisting: true))
                 } else {
                     unchanged += 1
                     if verbose {
@@ -142,20 +171,64 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                     }
                 }
             } else {
-                // New file
-                switch try indexFile(file, using: extractor, embedder: embedder, database: database, label: "Added", verbose: verbose) {
-                case .indexed: added += 1
-                case .skippedUnreadable: skippedUnreadable += 1
-                case .skippedEmbedFailure: skippedEmbedFailures += 1
+                workItems.append(FileWork(file: file, label: "Added", removeExisting: false))
+            }
+        }
+
+        // Process all files in parallel
+        let results: [IndexResult] = await withTaskGroup(of: IndexResult.self) { group in
+            for work in workItems {
+                group.addTask {
+                    do {
+                        return try await indexFile(
+                            work.file,
+                            using: extractor,
+                            embedder: embedder,
+                            database: database,
+                            label: work.label,
+                            removeExisting: work.removeExisting,
+                            verbose: verbose
+                        )
+                    } catch {
+                        return .skippedEmbedFailure
+                    }
                 }
+            }
+
+            var collected: [IndexResult] = []
+            for await result in group {
+                collected.append(result)
+            }
+            return collected
+        }
+
+        // Tally results
+        var added = 0
+        var updated = 0
+        var skippedUnreadable = 0
+        var skippedEmbedFailures = 0
+
+        for result in results {
+            switch result {
+            case .indexed(let wasUpdate):
+                if wasUpdate {
+                    updated += 1
+                } else {
+                    added += 1
+                }
+            case .skippedUnreadable:
+                skippedUnreadable += 1
+            case .skippedEmbedFailure:
+                skippedEmbedFailures += 1
             }
         }
 
         // Find files to remove
+        var removed = 0
         let currentPaths = Set(files.map(\.relativePath))
         for indexedPath in indexedFiles.keys {
             if !currentPaths.contains(indexedPath) {
-                try database.removeEntries(forPath: indexedPath)
+                try await database.removeEntries(forPath: indexedPath)
                 removed += 1
                 if verbose {
                     print("  Removed: \(indexedPath)")

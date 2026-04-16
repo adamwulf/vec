@@ -18,10 +18,10 @@ struct InfoCommand: AsyncParsableCommand {
             : DatabaseLocator.resolveFromCurrentDirectory()
 
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
-        try database.open()
+        try await database.open()
 
-        let fileCount = try database.allIndexedFiles().count
-        let chunkCount = try database.totalChunkCount()
+        let fileCount = try await database.allIndexedFiles().count
+        let chunkCount = try await database.totalChunkCount()
 
         // Format created-at date
         let dateFormatter = DateFormatter()

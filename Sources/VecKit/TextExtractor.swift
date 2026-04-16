@@ -4,7 +4,8 @@ import UniformTypeIdentifiers
 import Vision
 
 /// Extracts text content from files and splits into chunks for embedding.
-public class TextExtractor {
+/// Thread-safe: all stored properties are immutable after init.
+public final class TextExtractor: @unchecked Sendable {
 
     /// Default chunk size in lines for text files.
     public static let defaultChunkSize = 30
