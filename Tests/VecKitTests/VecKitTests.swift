@@ -55,6 +55,17 @@ final class EmbeddingServiceTests: XCTestCase {
         XCTAssertNil(service.embed("  \n\t  "))
     }
 
+    func testEmbedVeryLongTextDoesNotCrashAndReturnsResult() {
+        let service = EmbeddingService()
+        // Build a string well over the maxEmbeddingTextLength limit
+        let longText = String(repeating: "The quick brown fox jumps over the lazy dog. ", count: 5000)
+        XCTAssertGreaterThan(longText.count, EmbeddingService.maxEmbeddingTextLength)
+        let result = service.embed(longText)
+        // Should succeed (truncated) rather than crash with std::bad_alloc
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.count, 512)
+    }
+
     func testDimensionIs512() {
         let service = EmbeddingService()
         XCTAssertEqual(service.dimension, 512)
@@ -199,8 +210,9 @@ final class TextExtractorTests: XCTestCase {
         }
     }
 
-    func testMarkdownSmallFileProducesOnlyWholeChunk() throws {
-        let content = generateMarkdownLines(30)
+    func testSmallFileProducesOnlyWholeChunk() throws {
+        // A file with fewer lines than the default chunk size (10) should only have a .whole chunk
+        let content = "Line 1\nLine 2\nLine 3"
         let file = createFile(name: "small.md", content: content)
         let extractor = TextExtractor()
         let chunks = try extractor.extract(from: file)
@@ -214,8 +226,8 @@ final class TextExtractorTests: XCTestCase {
         XCTAssertEqual(lineChunks.count, 0)
     }
 
-    func testTxtFileProducesOnlyWholeChunk() throws {
-        let content = generateMarkdownLines(120) // Even with many lines, .txt doesn't chunk
+    func testTxtFileAlsoProducesChunks() throws {
+        let content = generateMarkdownLines(120) // All text files now get chunked
         let file = createFile(name: "data.txt", content: content)
         let extractor = TextExtractor()
         let chunks = try extractor.extract(from: file)
@@ -223,8 +235,9 @@ final class TextExtractorTests: XCTestCase {
         let wholeChunks = chunks.filter { $0.type == .whole }
         XCTAssertEqual(wholeChunks.count, 1)
 
+        // .txt files should now also produce line chunks
         let lineChunks = chunks.filter { $0.type == .chunk }
-        XCTAssertEqual(lineChunks.count, 0)
+        XCTAssertGreaterThan(lineChunks.count, 0)
     }
 
     func testEmptyFileProducesNoChunks() throws {
@@ -260,9 +273,9 @@ final class TextExtractorTests: XCTestCase {
     }
 
     func testMarkdownWhereEveryLineIsAHeading() throws {
-        // Generate 80 lines where every line is a heading — exceeds default chunkSize of 50
+        // Generate 20 lines where every line is a heading — exceeds default chunkSize of 10
         var lines: [String] = []
-        for i in 1...80 {
+        for i in 1...20 {
             lines.append("# Heading \(i)")
         }
         let content = lines.joined(separator: "\n")
