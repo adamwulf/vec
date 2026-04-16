@@ -157,12 +157,18 @@ public class FileScanner {
         // Write stdin on a background thread to avoid blocking if the pipe buffer
         // fills (>64KB of paths). The process may need to flush stdout before it can
         // consume more stdin, so writing and reading must happen concurrently.
+        //
+        // Ignore SIGPIPE before writing: if the directory is not a git repo,
+        // `git check-ignore` exits immediately (code 128) and the write end of
+        // the pipe becomes broken. Without SIG_IGN the default SIGPIPE handler
+        // kills the entire process with exit code 141.
         let inputData = Data(files.map(\.relativePath).joined(separator: "\n").utf8)
         let stdinHandle = stdinPipe.fileHandleForWriting
         let writeQueue = DispatchQueue(label: "vec.gitignore.stdin")
+        let previousHandler = signal(SIGPIPE, SIG_IGN)
         writeQueue.async {
-            stdinHandle.write(inputData)
-            stdinHandle.closeFile()
+            try? stdinHandle.write(contentsOf: inputData)
+            try? stdinHandle.close()
         }
 
         // Read stdout before waitUntilExit() to prevent deadlock: if git's output
@@ -170,6 +176,7 @@ public class FileScanner {
         // waitUntilExit() would never return.
         let outputData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
+        signal(SIGPIPE, previousHandler)
 
         // Exit code 1 means no paths were ignored, which is fine.
         // Exit code 128 means not a git repo — return unfiltered.

@@ -15,6 +15,9 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Flag(name: .long, help: "Include hidden files and folders")
     var allowHidden: Bool = false
 
+    @Flag(name: .shortAndLong, help: "Show detailed progress for each file")
+    var verbose: Bool = false
+
     private enum IndexResult {
         case indexed
         case skippedUnreadable
@@ -31,15 +34,22 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         embedder: EmbeddingService,
         database: VectorDatabase,
         label: String,
-        removeExisting: Bool = false
+        removeExisting: Bool = false,
+        verbose: Bool = false
     ) throws -> IndexResult {
         let chunks: [TextChunk]
         do {
             chunks = try extractor.extract(from: file)
         } catch {
+            if verbose {
+                print("  Skipped: \(file.relativePath) (unreadable)")
+            }
             return .skippedUnreadable
         }
         if chunks.isEmpty {
+            if verbose {
+                print("  Skipped: \(file.relativePath) (no extractable text)")
+            }
             return .skippedUnreadable
         }
 
@@ -55,7 +65,9 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         }
 
         if embedded.isEmpty {
-            print("  Skipped: \(file.relativePath) (failed to embed)")
+            if verbose {
+                print("  Skipped: \(file.relativePath) (failed to embed \(chunks.count) chunks)")
+            }
             return .skippedEmbedFailure
         }
 
@@ -76,7 +88,9 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                 embedding: embedding
             )
         }
-        print("  \(label): \(file.relativePath)")
+        if verbose {
+            print("  \(label): \(file.relativePath) (\(embedded.count) chunks)")
+        }
         return .indexed
     }
 
@@ -102,21 +116,26 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         var skippedEmbedFailures = 0
 
         // Find files to add or update
+        var unchanged = 0
         for file in files {
             if let existingModDate = indexedFiles[file.relativePath] {
                 if file.modificationDate > existingModDate {
                     // File changed — re-index. removeExisting defers deletion until
                     // new embeddings succeed, preventing data loss on failure.
-                    switch try indexFile(file, using: extractor, embedder: embedder, database: database, label: "Updated", removeExisting: true) {
+                    switch try indexFile(file, using: extractor, embedder: embedder, database: database, label: "Updated", removeExisting: true, verbose: verbose) {
                     case .indexed: updated += 1
                     case .skippedUnreadable: skippedUnreadable += 1
                     case .skippedEmbedFailure: skippedEmbedFailures += 1
                     }
+                } else {
+                    unchanged += 1
+                    if verbose {
+                        print("  Unchanged: \(file.relativePath)")
+                    }
                 }
-                // Otherwise unchanged — skip
             } else {
                 // New file
-                switch try indexFile(file, using: extractor, embedder: embedder, database: database, label: "Added") {
+                switch try indexFile(file, using: extractor, embedder: embedder, database: database, label: "Added", verbose: verbose) {
                 case .indexed: added += 1
                 case .skippedUnreadable: skippedUnreadable += 1
                 case .skippedEmbedFailure: skippedEmbedFailures += 1
@@ -130,11 +149,17 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             if !currentPaths.contains(indexedPath) {
                 try database.removeEntries(forPath: indexedPath)
                 removed += 1
-                print("  Removed: \(indexedPath)")
+                if verbose {
+                    print("  Removed: \(indexedPath)")
+                }
             }
         }
 
         let skipped = skippedUnreadable + skippedEmbedFailures
+        var summary = "Update complete: \(added) added, \(updated) updated, \(removed) removed"
+        if verbose {
+            summary += ", \(unchanged) unchanged"
+        }
         if skipped > 0 {
             var details: [String] = []
             if skippedUnreadable > 0 {
@@ -143,9 +168,11 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             if skippedEmbedFailures > 0 {
                 details.append("\(skippedEmbedFailures) failed to embed")
             }
-            print("Update complete: \(added) added, \(updated) updated, \(removed) removed (\(skipped) skipped: \(details.joined(separator: ", "))).")
-        } else {
-            print("Update complete: \(added) added, \(updated) updated, \(removed) removed.")
+            summary += " (\(skipped) skipped: \(details.joined(separator: ", ")))"
         }
+        if verbose {
+            summary += " (\(files.count) files scanned)"
+        }
+        print(summary + ".")
     }
 }
