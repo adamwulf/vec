@@ -120,6 +120,46 @@ context-switch overhead.
 - If H1 succeeded (shared embedder), the sweep should be re-run — the
   shape of the curve likely changes.
 
+### Result: KEEP CURRENT DEFAULT (2026-04-16)
+
+Measurement test at `Tests/VecKitTests/ConcurrencySweepTests.swift`
+(added in `ffe768c`): 70-file synthetic log-shaped corpus (~480 chunks),
+2 runs per concurrency value, one warm-up run discarded.
+
+Machine: Apple Silicon, `physical_cpu == logical_cpu == 10` (no SMT, so
+the "logical vs physical" distinction this test was built to settle
+doesn't apply here — it would matter on x86 with hyperthreading).
+
+| concurrency | run1 c/s | run2 c/s | avg c/s | avg wall |
+|:-----------:|:--------:|:--------:|:-------:|:--------:|
+|      4      |   15.4   |   15.4   |  15.4   |  31.1s   |
+|      6      |   18.8   |   18.8   |  18.8   |  25.6s   |
+|     10      |   20.8   |   21.4   |  21.1   |  22.8s   |
+|     12      |   21.2   |   22.0   |  21.6   |  22.2s   |
+
+- 4→6: +22% throughput
+- 6→10: +12%
+- 10→12: +2.4% (inside noise)
+
+**Conclusion:** keep the default at `activeProcessorCount` (10 on this
+machine). Going above the plateau costs ~100 MB of NLEmbedding weights
+per extra worker for essentially no throughput. Going below it costs
+measurable throughput.
+
+**Caveat re: original observation.** The user saw `top` showing 800% CPU
+(not 1000%) with 10 workers, which seemed to suggest the extra 2 workers
+were wasted. But on Apple Silicon with mixed Performance + Efficiency
+cores, `top`'s single-core-percent view can understate total capacity —
+E-cores run NLEmbedding slower than P-cores, so even at full saturation
+the sum-of-cores number can look like ~800% of a P-core baseline. The
+sweep numbers say 10 workers fully extract the machine's throughput;
+don't reduce it on the strength of a `top` reading alone.
+
+**Memory-pressure lever.** If RSS becomes the constraint, drop to 8
+workers: costs ~5% throughput in exchange for 2 fewer embedder instances
+(~100 MB). That's a deliberate memory/throughput trade, not a general
+improvement — only pull that lever if memory pressure is actually biting.
+
 ---
 
 ### H3. Larger chunks reduce per-embed overhead
