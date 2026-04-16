@@ -35,6 +35,6 @@ struct InitCommand: AsyncParsableCommand {
         try DatabaseLocator.writeConfig(config, to: dbDir)
 
         print("Initialized empty database '\(dbName)' at \(dbDir.path)")
-        print("Run 'vec update-index \(dbName)' to index files.")
+        print("Run 'vec update-index' from this directory to index files.")
     }
 }
