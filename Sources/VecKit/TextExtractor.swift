@@ -7,9 +7,9 @@ import Vision
 public class TextExtractor {
 
     /// Default chunk size in lines for text files.
-    public static let defaultChunkSize = 10
+    public static let defaultChunkSize = 30
     /// Default number of overlapping lines between consecutive chunks.
-    public static let defaultOverlapSize = 2
+    public static let defaultOverlapSize = 8
 
     private let chunkSize: Int
     private let overlapSize: Int
