@@ -25,15 +25,52 @@ public struct IndexingStats: Sendable {
     public var dbSeconds: Double = 0
     public var totalChunksEmbedded: Int = 0
     public var slowestFiles: [FileTiming] = []
+
+    /// 50th percentile embed-seconds-per-file across non-skipped files (0 if empty).
+    public var p50EmbedSeconds: Double = 0
+    /// 95th percentile embed-seconds-per-file across non-skipped files (0 if empty).
+    public var p95EmbedSeconds: Double = 0
+    /// File that produced the most chunks, if any files were indexed.
+    public var largestFile: FileTiming?
+    /// Wall-clock seconds from pipeline start to the first `.batchEmbedded`
+    /// event. Approximates the "extract-bound startup" window — if this is
+    /// much larger than a typical per-file extract time, workers all got
+    /// stuck in extract before any embedding could start.
+    public var firstBatchLatencySeconds: Double?
+    /// Total batches embedded across all files. Useful for computing mean
+    /// batch size and batch-embed throughput.
+    public var totalBatches: Int = 0
+    /// Total chunks across all batches. Cross-check against
+    /// `totalChunksEmbedded` (summed from `recordFile`): equality means
+    /// no batch result was dropped between embed-time and DB-time.
+    public var totalBatchChunks: Int = 0
+    /// Summed seconds spent in `EmbeddingService.embed` calls across all
+    /// batches. Equal to or slightly less than `embedSeconds` — the gap
+    /// reflects embedder-pool waits and task-group bookkeeping.
+    public var totalBatchEmbedSeconds: Double = 0
 }
 
 /// Structured progress event emitted by the pipeline. Consumers are expected to
 /// maintain their own counters; the pipeline carries no presentation concerns.
+///
+/// Events fall into two groups with different task-origin guarantees:
+///
+/// - **Worker-side events** — `.workerBusy`, `.workerIdle`, `.nonEnglishDetected`,
+///   `.batchEmbedded`: emitted from the N file-worker tasks. `.workerBusy` is
+///   always paired with a matching `.workerIdle` from the *same* task, so a
+///   renderer can maintain a balanced busy counter.
+///
+/// - **DB-writer events** — `.fileFinished`, `.fileSkipped`: emitted from the
+///   single serial DB writer (or from a worker task in the unreadable/no-text
+///   path, before the save stream). These are decoupled from worker busy/idle
+///   — do *not* try to derive "workers in flight" from file-finish events.
 public enum ProgressEvent: Sendable {
+    case workerBusy
+    case workerIdle
     case fileFinished(chunks: Int)
     case fileSkipped
     case nonEnglishDetected
-    case chunksEmbedded(count: Int)
+    case batchEmbedded(seconds: Double, chunks: Int)
 }
 
 public typealias ProgressHandler = @Sendable (ProgressEvent) -> Void
@@ -60,8 +97,9 @@ public final class IndexingPipeline: Sendable {
     /// Maximum chunks per embed batch.
     private let embedBatchSize: Int
 
-    /// Number of concurrent file workers.
-    private let workerCount: Int
+    /// Number of concurrent file workers. Exposed so callers can size
+    /// progress displays ("N/M busy") against the same value the pool uses.
+    public let workerCount: Int
 
     /// Pool of pre-created EmbeddingService instances.
     private let pool: EmbedderPool
@@ -100,7 +138,7 @@ public final class IndexingPipeline: Sendable {
         )
 
         let resultCollector = ResultCollector()
-        let statsCollector = StatsCollector()
+        let statsCollector = StatsCollector(pipelineStart: DispatchTime.now())
 
         try await withThrowingTaskGroup(of: Void.self) { group in
 
@@ -118,7 +156,8 @@ public final class IndexingPipeline: Sendable {
                                     extractor: extractor,
                                     pool: pool,
                                     batchSize: batchSize,
-                                    progress: progress
+                                    progress: progress,
+                                    statsCollector: statsCollector
                                 )
 
                                 switch result {
@@ -199,14 +238,21 @@ public final class IndexingPipeline: Sendable {
     }
 
     /// Process a single file: extract chunks, check language, embed in parallel, return results.
+    ///
+    /// Emits `.workerBusy` on entry and `.workerIdle` on every return path —
+    /// balanced pair from the same task, so a renderer can track live
+    /// "workers in flight". Worker-idle always fires even on the skip paths.
     private static func processFile(
         _ file: FileInfo,
         label: String,
         extractor: TextExtractor,
         pool: EmbedderPool,
         batchSize: Int,
-        progress: ProgressHandler?
+        progress: ProgressHandler?,
+        statsCollector: StatsCollector
     ) async -> FileProcessResult {
+        progress?(.workerBusy)
+
         // Extract chunks
         let extractStart = DispatchTime.now()
         let chunks: [TextChunk]
@@ -215,12 +261,14 @@ public final class IndexingPipeline: Sendable {
         } catch {
             let extractSeconds = elapsed(since: extractStart)
             progress?(.fileSkipped)
+            progress?(.workerIdle)
             return .skipped(.skippedUnreadable(filePath: file.relativePath), extractSeconds: extractSeconds)
         }
         let extractSeconds = elapsed(since: extractStart)
 
         if chunks.isEmpty {
             progress?(.fileSkipped)
+            progress?(.workerIdle)
             return .skipped(.skippedUnreadable(filePath: file.relativePath), extractSeconds: extractSeconds)
         }
 
@@ -259,6 +307,7 @@ public final class IndexingPipeline: Sendable {
                     // safe because every acquire path has a matching release.
                     defer { Task { await pool.release(embedder) } }
 
+                    let batchStart = DispatchTime.now()
                     var records: [ChunkRecord] = []
                     for chunk in batch {
                         guard let vector = embedder.embed(chunk.text) else { continue }
@@ -273,8 +322,10 @@ public final class IndexingPipeline: Sendable {
                             embedding: vector
                         ))
                     }
+                    let batchSeconds = elapsed(since: batchStart)
                     if !records.isEmpty {
-                        progress?(.chunksEmbedded(count: records.count))
+                        progress?(.batchEmbedded(seconds: batchSeconds, chunks: records.count))
+                        await statsCollector.recordBatch(seconds: batchSeconds, chunks: records.count)
                     }
                     return (index, records)
                 }
@@ -292,6 +343,7 @@ public final class IndexingPipeline: Sendable {
         let embedSeconds = elapsed(since: embedStart)
         let records = allRecords.flatMap { $0 }
 
+        progress?(.workerIdle)
         return .save(SaveWork(
             file: file,
             label: label,
@@ -373,6 +425,12 @@ private actor ResultCollector {
 private actor StatsCollector {
     private var stats = IndexingStats()
     private var fileTimings: [IndexingStats.FileTiming] = []
+    private let pipelineStart: DispatchTime
+    private var firstBatchAt: DispatchTime?
+
+    init(pipelineStart: DispatchTime) {
+        self.pipelineStart = pipelineStart
+    }
 
     func recordFile(path: String, extractSeconds: Double, embedSeconds: Double, dbSeconds: Double, chunkCount: Int) {
         stats.extractSeconds += extractSeconds
@@ -393,12 +451,56 @@ private actor StatsCollector {
         stats.extractSeconds += extractSeconds
     }
 
+    /// Records a batch-embed completion. Captures the first-batch-latency
+    /// the first time it's called so the footer can diagnose "extract-bound
+    /// startup" — the gap between pipeline start and first embed.
+    func recordBatch(seconds: Double, chunks: Int) {
+        stats.totalBatches += 1
+        stats.totalBatchChunks += chunks
+        stats.totalBatchEmbedSeconds += seconds
+        if firstBatchAt == nil {
+            firstBatchAt = DispatchTime.now()
+        }
+    }
+
     func snapshot() -> IndexingStats {
         var result = stats
         result.slowestFiles = fileTimings
             .sorted { $0.totalSeconds > $1.totalSeconds }
             .prefix(5)
             .map { $0 }
+
+        // Percentiles over files that produced chunks (zero-chunk files
+        // would skew p50 toward 0 and hide real embed cost).
+        let embedSecondsSorted = fileTimings
+            .filter { $0.chunkCount > 0 }
+            .map(\.embedSeconds)
+            .sorted()
+        result.p50EmbedSeconds = Self.percentile(embedSecondsSorted, 0.50)
+        result.p95EmbedSeconds = Self.percentile(embedSecondsSorted, 0.95)
+
+        result.largestFile = fileTimings
+            .filter { $0.chunkCount > 0 }
+            .max { $0.chunkCount < $1.chunkCount }
+
+        if let first = firstBatchAt {
+            let nanos = first.uptimeNanoseconds &- pipelineStart.uptimeNanoseconds
+            result.firstBatchLatencySeconds = Double(nanos) / 1_000_000_000
+        }
+
         return result
+    }
+
+    /// Linear-interpolation percentile on a pre-sorted array. Returns 0 for
+    /// an empty input.
+    private static func percentile(_ sorted: [Double], _ p: Double) -> Double {
+        guard !sorted.isEmpty else { return 0 }
+        if sorted.count == 1 { return sorted[0] }
+        let rank = p * Double(sorted.count - 1)
+        let lower = Int(rank.rounded(.down))
+        let upper = Int(rank.rounded(.up))
+        if lower == upper { return sorted[lower] }
+        let weight = rank - Double(lower)
+        return sorted[lower] * (1 - weight) + sorted[upper] * weight
     }
 }
