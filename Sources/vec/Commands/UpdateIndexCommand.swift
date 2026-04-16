@@ -21,51 +21,18 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     /// Maximum number of chunks to embed and flush to the database at once.
     private static let batchSize = 20
 
-    private enum IndexResult: Sendable {
+    private enum IndexResult {
         case indexed(wasUpdate: Bool)
         case skippedUnreadable
         case skippedEmbedFailure
     }
 
-    /// Embed a batch of chunks in parallel and return ChunkRecords ready for insertion.
-    private func embedBatch(
-        _ batch: ArraySlice<TextChunk>,
-        filePath: String,
-        fileModifiedAt: Date,
-        embedder: EmbeddingService
-    ) async -> [ChunkRecord] {
-        await withTaskGroup(of: (Int, TextChunk, [Float]?).self) { group in
-            for (index, chunk) in batch.enumerated() {
-                group.addTask {
-                    let vector = embedder.embed(chunk.text)
-                    return (index, chunk, vector)
-                }
-            }
-
-            var results: [(index: Int, chunk: TextChunk, embedding: [Float])] = []
-            for await (index, chunk, vector) in group {
-                if let vector = vector {
-                    results.append((index, chunk, vector))
-                }
-            }
-            results.sort { $0.index < $1.index }
-            return results.map { result in
-                ChunkRecord(
-                    filePath: filePath,
-                    lineStart: result.chunk.lineStart,
-                    lineEnd: result.chunk.lineEnd,
-                    chunkType: result.chunk.type,
-                    pageNumber: result.chunk.pageNumber,
-                    fileModifiedAt: fileModifiedAt,
-                    contentPreview: String(result.chunk.text.prefix(200)),
-                    embedding: result.embedding
-                )
-            }
-        }
-    }
-
     /// Extract text and generate embeddings for a file, flushing to the database in
     /// batches of `batchSize` to bound memory usage for large files.
+    ///
+    /// Embedding is done sequentially because `NLEmbedding.vector(for:)` is not
+    /// safe to call concurrently on the same instance — concurrent calls cause
+    /// segfaults in the NaturalLanguage framework's C++ internals.
     private func indexFile(
         _ file: FileInfo,
         using extractor: TextExtractor,
@@ -99,12 +66,21 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             let batchEnd = min(batchStart + Self.batchSize, chunks.count)
             let batch = chunks[batchStart..<batchEnd]
 
-            let records = await embedBatch(
-                batch,
-                filePath: file.relativePath,
-                fileModifiedAt: file.modificationDate,
-                embedder: embedder
-            )
+            // Embed sequentially within each batch
+            var records: [ChunkRecord] = []
+            for chunk in batch {
+                guard let vector = embedder.embed(chunk.text) else { continue }
+                records.append(ChunkRecord(
+                    filePath: file.relativePath,
+                    lineStart: chunk.lineStart,
+                    lineEnd: chunk.lineEnd,
+                    chunkType: chunk.type,
+                    pageNumber: chunk.pageNumber,
+                    fileModifiedAt: file.modificationDate,
+                    contentPreview: String(chunk.text.prefix(200)),
+                    embedding: vector
+                ))
+            }
 
             guard !records.isEmpty else { continue }
 
@@ -151,7 +127,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         let extractor = TextExtractor()
 
         // Categorize files into work items
-        struct FileWork: Sendable {
+        struct FileWork {
             let file: FileInfo
             let label: String
             let removeExisting: Bool
@@ -175,40 +151,28 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             }
         }
 
-        // Process all files in parallel
-        let results: [IndexResult] = await withTaskGroup(of: IndexResult.self) { group in
-            for work in workItems {
-                group.addTask {
-                    do {
-                        return try await indexFile(
-                            work.file,
-                            using: extractor,
-                            embedder: embedder,
-                            database: database,
-                            label: work.label,
-                            removeExisting: work.removeExisting,
-                            verbose: verbose
-                        )
-                    } catch {
-                        return .skippedEmbedFailure
-                    }
-                }
-            }
-
-            var collected: [IndexResult] = []
-            for await result in group {
-                collected.append(result)
-            }
-            return collected
-        }
-
-        // Tally results
+        // Process files sequentially — NLEmbedding is not safe for concurrent use
         var added = 0
         var updated = 0
         var skippedUnreadable = 0
         var skippedEmbedFailures = 0
 
-        for result in results {
+        for work in workItems {
+            let result: IndexResult
+            do {
+                result = try await indexFile(
+                    work.file,
+                    using: extractor,
+                    embedder: embedder,
+                    database: database,
+                    label: work.label,
+                    removeExisting: work.removeExisting,
+                    verbose: verbose
+                )
+            } catch {
+                result = .skippedEmbedFailure
+            }
+
             switch result {
             case .indexed(let wasUpdate):
                 if wasUpdate {
