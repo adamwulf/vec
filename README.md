@@ -24,7 +24,7 @@ Once indexed, you can perform semantic search across your files to find relevant
 ### With [Mint](https://github.com/yonaskolb/Mint)
 
 ```bash
-mint install adamwulf/vec
+mint install adamwulf/vec@main --force
 ```
 
 ### From source
