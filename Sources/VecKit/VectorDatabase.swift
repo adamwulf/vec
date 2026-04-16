@@ -1,5 +1,6 @@
 import Foundation
 import CSQLiteVec
+import Accelerate
 
 /// Wraps SQLite for storing and querying vector embeddings using pure-Swift
 /// cosine-distance search. No external dynamic library required.
@@ -328,21 +329,22 @@ public class VectorDatabase {
         return VecError.sqliteError(message)
     }
 
-    /// Compute cosine distance between two vectors.
+    /// Compute cosine distance between two vectors using SIMD-accelerated vDSP.
     /// Returns 0.0 for identical vectors, up to 2.0 for opposite vectors.
     private func cosineDistance(_ a: [Float], _ b: [Float]) -> Double {
+        let count = min(a.count, b.count)
+        guard count > 0 else { return 1.0 }
+        let n = vDSP_Length(count)
+
         var dot: Float = 0
         var normA: Float = 0
         var normB: Float = 0
-        let count = min(a.count, b.count)
-        for i in 0..<count {
-            dot += a[i] * b[i]
-            normA += a[i] * a[i]
-            normB += b[i] * b[i]
-        }
+        vDSP_dotpr(a, 1, b, 1, &dot, n)
+        vDSP_dotpr(a, 1, a, 1, &normA, n)
+        vDSP_dotpr(b, 1, b, 1, &normB, n)
+
         let denom = sqrt(normA) * sqrt(normB)
         guard denom > 0 else { return 1.0 }
-        let similarity = Double(dot / denom)
-        return 1.0 - similarity
+        return 1.0 - Double(dot / denom)
     }
 }
