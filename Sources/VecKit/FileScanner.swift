@@ -8,6 +8,13 @@ public class FileScanner {
     private let respectsGitignore: Bool
     private let includeHiddenFiles: Bool
 
+    /// Text file extensions that UTType misclassifies or doesn't recognize.
+    /// .ts is classified as MPEG-2 transport stream instead of TypeScript.
+    /// .fish, .graphql, .env, .rst, .adoc, .org have no UTType registration.
+    private static let textExtensionOverrides: Set<String> = [
+        "ts", "tsx", "fish", "graphql", "env", "rst", "adoc", "org"
+    ]
+
     /// Well-known text filenames that have no file extension.
     private static let knownTextFilenames: Set<String> = [
         "Makefile", "Dockerfile", "LICENSE", "Gemfile",
@@ -81,6 +88,7 @@ public class FileScanner {
             let isImage = utType?.conforms(to: .image) ?? false
 
             guard isText || isPDF || isImage
+                    || Self.textExtensionOverrides.contains(ext)
                     || Self.knownTextFilenames.contains(fileName) else {
                 // Try to detect text files without known extensions
                 if isLikelyTextFile(url) {

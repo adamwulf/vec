@@ -8,7 +8,7 @@ public struct SearchResult {
     public let lineStart: Int?
     /// Ending line number, if applicable
     public let lineEnd: Int?
-    /// Chunk type (whole, chunk, pdf_page)
+    /// Chunk type (whole, chunk, pdf_page, image)
     public let chunkType: ChunkType
     /// PDF page number, if applicable
     public let pageNumber: Int?

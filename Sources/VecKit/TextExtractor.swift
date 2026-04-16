@@ -21,13 +21,16 @@ public class TextExtractor {
 
     /// Extract text chunks from a file, ready for embedding.
     public func extract(from file: FileInfo) throws -> [TextChunk] {
-        if file.fileExtension == "pdf" {
+        let utType = UTType(filenameExtension: file.fileExtension)
+
+        if utType?.conforms(to: .pdf) == true {
             return extractFromPDF(file)
         }
 
-        // Check for image files using UTType
-        if let utType = UTType(filenameExtension: file.fileExtension),
-           utType.conforms(to: .image) {
+        // Only route to image OCR if the file is an image but NOT also text.
+        // SVG files conform to both .text and .image — their XML content is more
+        // useful than OCR output, so we prefer the text extraction path.
+        if utType?.conforms(to: .image) == true && utType?.conforms(to: .text) != true {
             return extractFromImage(file)
         }
 
