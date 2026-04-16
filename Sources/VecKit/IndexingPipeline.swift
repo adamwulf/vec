@@ -24,7 +24,6 @@ struct SaveWork: Sendable {
     let file: FileInfo
     let label: String
     let records: [ChunkRecord]
-    let totalChunks: Int
 }
 
 /// A two-stage producer/consumer pipeline that parallelizes file indexing:
@@ -172,8 +171,6 @@ public final class IndexingPipeline: Sendable {
             return .skipped(.skippedUnreadable(filePath: file.relativePath))
         }
 
-        let totalChunks = chunks.count
-
         // Language warning — before TaskGroup, no concurrency concern.
         // The stderr write stays in place for all modes; the event lets
         // verbose renderers keep a rolling non-English counter.
@@ -243,8 +240,7 @@ public final class IndexingPipeline: Sendable {
         return .save(SaveWork(
             file: file,
             label: label,
-            records: records,
-            totalChunks: totalChunks
+            records: records
         ))
     }
 }

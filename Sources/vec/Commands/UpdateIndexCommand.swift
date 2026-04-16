@@ -18,7 +18,6 @@ private final class ProgressRenderer: @unchecked Sendable {
     private var filesDone = 0
     private var chunksDone = 0
     private var nonEnglishCount = 0
-    private var lastRenderedLen = 0
     private var finished = false
     private var everRendered = false
 
@@ -57,16 +56,13 @@ private final class ProgressRenderer: @unchecked Sendable {
         }
     }
 
-    /// Must be called with the lock held.
+    /// Must be called with the lock held. Counters only ever increase, so the
+    /// rendered string's length is monotonic — no padding needed to overwrite
+    /// leftovers from a previous render.
     private func render() {
-        let line = "Indexing: \(filesDone)/\(totalFiles) files • \(chunksDone) chunks • \(nonEnglishCount) non-English"
-        var padded = "\r" + line
-        if line.count < lastRenderedLen {
-            padded += String(repeating: " ", count: lastRenderedLen - line.count)
-        }
-        lastRenderedLen = line.count
+        let line = "\rIndexing: \(filesDone)/\(totalFiles) files • \(chunksDone) chunks • \(nonEnglishCount) non-English"
         everRendered = true
-        FileHandle.standardOutput.write(Data(padded.utf8))
+        FileHandle.standardOutput.write(Data(line.utf8))
     }
 }
 
