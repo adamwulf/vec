@@ -16,7 +16,7 @@ The `vec` CLI tool and its `VecKit` library are production-ready for all Priorit
 | `vec remove [-d <name>] <path>` | Done | Removes entries for a single file. Path validation against source directory. |
 | `vec info [-d <name>]` | Done | Shows database metadata: name, source directory, created date, file count, chunk count, DB file size. |
 | `VectorDatabase` | Done | SQLite wrapper with pure-Swift cosine similarity search (Accelerate/vDSP). Insert, search, remove, allIndexedFiles, totalChunkCount. Schema creation wrapped in transaction for crash safety. |
-| `EmbeddingService` | Done | Uses `NLEmbedding.sentenceEmbedding(for: .english)`. Dimension determined at runtime (see `EmbeddingService.dimension`). Includes `detectLanguage()` and `warnIfNonEnglish()` methods — non-English content is still embedded but warns to stderr once per file. |
+| `EmbeddingService` | Done | Uses `NLEmbedding.sentenceEmbedding(for: .english)`. Dimension determined at runtime (see `EmbeddingService.dimension`). Non-English detection lives inline in `IndexingPipeline`'s extract stage (via `NLLanguageRecognizer.dominantLanguage`) and surfaces as a `.nonEnglishDetected` progress event. |
 | `FileScanner` | Done | Directory walking, UTType-based file detection (.text, .pdf, .image), .gitignore support via `git check-ignore`, hidden file filtering (dot-prefix), skips .git/node_modules/.build/etc, binary detection. Pipe-safe Process I/O. `knownTextFilenames` set for extensionless files (Makefile, Dockerfile, etc.). Resilient resource value reads (`try?`). |
 | `TextExtractor` | Done | Plain text (whole-doc), markdown (overlapping chunks), PDF (per-page), image OCR (Vision framework). |
 | `PathUtilities` | Done | Safe relative path computation using NSString.standardizingPath. |
@@ -29,7 +29,7 @@ Run `swift test` to see current suite counts. Test files are in `Tests/VecKitTes
 | Test Suite | File | Coverage |
 |-----------|------|----------|
 | `VecKitTests` | `VecKitTests.swift` | `ChunkType` raw values (including image), `TextChunk` construction |
-| `EmbeddingServiceTests` | `VecKitTests.swift` | Real embeddings, empty/whitespace input, dimension check, language detection (English, non-English, empty) |
+| `EmbeddingServiceTests` | `VecKitTests.swift` | Real embeddings, empty/whitespace input, dimension check |
 | `TextExtractorTests` | `VecKitTests.swift` | Large/small markdown, txt files, empty/whitespace files, headings-only, every-line-heading, long single line, binary file, image OCR extraction, PDF extraction (fixture-based) |
 | `FileScannerTests` | `VecKitTests.swift` | .git skipping, binary detection (with and without extension), node_modules, relative paths, hidden skip/include, .git still skipped when hidden enabled, gitignore filtering, non-git fallback, disable gitignore, .vecignore patterns, spaces/unicode in names, empty directory, image file detection |
 | `PathUtilitiesTests` | `VecKitTests.swift` | Normal paths, trailing slashes, .., outside directory, same path, root dir, deep nesting, prefix collision |
@@ -130,7 +130,7 @@ All databases now live under `~/.vec/<db-name>/` instead of per-directory `.vec/
 - **4l.** VecError: added `invalidDatabaseName`, `databaseNotFound`, `sourceDirectoryMissing`, updated messages
 - **4m.** `info` added to reserved command names in DatabaseLocator
 - **4n.** VectorDatabase schema creation wrapped in transaction (BEGIN/COMMIT with ROLLBACK on failure)
-- **4o.** Language detection: `EmbeddingService.detectLanguage()` and `warnIfNonEnglish()` — warns to stderr once per file for non-English content
+- **4o.** Language detection: `IndexingPipeline` extract stage runs `NLLanguageRecognizer.dominantLanguage` on the first chunk per file and emits a `.nonEnglishDetected` progress event so renderers can count/warn.
 - **4p.** FileScanner fixes: binary file scan bug fixed, scanner resilience (`try?` for resourceValues), `knownTextFilenames` set added, cmake extension restored
 
 ---

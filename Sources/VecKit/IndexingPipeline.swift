@@ -43,6 +43,13 @@ public struct IndexingStats: Sendable {
     public var p95EmbedSeconds: Double = 0
     /// File that produced the most chunks, if any files were indexed.
     public var largestFile: FileTiming?
+    /// Summed wall-clock seconds spent in `EmbeddingService.embed()` across
+    /// every per-chunk embed task — pool waits excluded, overlaps across
+    /// concurrent workers preserved. Strictly bounded by
+    /// `wallSeconds * workerCount`, so this is the correct numerator for
+    /// pool-utilization math. `embedSeconds` above is a per-file embed
+    /// *span* and is not suitable for that calculation.
+    public var totalEmbedCallSeconds: Double = 0
 }
 
 /// Structured progress event emitted by the pipeline. Consumers are expected to
@@ -350,6 +357,7 @@ public final class IndexingPipeline: Sendable {
                             progress?(.poolReleased)
 
                             progress?(.chunkEmbedded(seconds: chunkSeconds))
+                            await statsCollector.recordChunkEmbed(seconds: chunkSeconds)
 
                             let record: ChunkRecord?
                             if let vector = vector {
@@ -387,13 +395,10 @@ public final class IndexingPipeline: Sendable {
                             // mid-save bookkeeping under the renderer
                             // lock) would jam every embed task at the
                             // yield call, so extract permits returned in
-                            // batches instead of one-at-a-time. The
-                            // observable symptom was embed q draining to
-                            // 1 then jumping back to N rather than
-                            // refilling smoothly. Release on every path
-                            // (success or vector == nil failure) — if any
-                            // path stops releasing, extract deadlocks on
-                            // a full gate.
+                            // bursts rather than one-at-a-time. Release on
+                            // every path (success or vector == nil failure)
+                            // — if any path stops releasing, extract
+                            // deadlocks on a full gate.
                             await extractGate.release()
                             accumContinuation.yield(emitted)
                         }
@@ -743,6 +748,14 @@ private actor StatsCollector {
 
     func recordSkipped(path: String, extractSeconds: Double) {
         stats.extractSeconds += extractSeconds
+    }
+
+    /// Record one per-chunk `EmbeddingService.embed()` call's wall-clock.
+    /// Summed into `totalEmbedCallSeconds`, which is bounded by
+    /// `wallSeconds * workerCount` and is the correct input for pool
+    /// utilization.
+    func recordChunkEmbed(seconds: Double) {
+        stats.totalEmbedCallSeconds += seconds
     }
 
     func snapshot() -> IndexingStats {

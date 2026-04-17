@@ -377,13 +377,15 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         let embedPct = stageTotal > 0 ? stats.embedSeconds / stageTotal * 100 : 0
         let dbPct = stageTotal > 0 ? stats.dbSeconds / stageTotal * 100 : 0
 
-        // Pool utilization: summed per-file embed-span seconds / wall-seconds
-        // * N workers. 100% means every worker was busy embedding every
-        // second; <100% means workers were extract-bound, db-bound, or
-        // idle between files.
+        // Pool utilization: summed per-chunk embed() wall-clock / (wall
+        // seconds × N workers). 100% means every worker was in embed()
+        // every second; <100% means workers were extract-bound, db-bound,
+        // pool-waiting, or idle between files. Uses totalEmbedCallSeconds
+        // (strictly bounded) rather than embedSeconds (overlapping per-file
+        // spans — can exceed the denominator).
         let maxPossibleEmbedSeconds = wallSeconds * Double(workerCount)
         let poolUtilization = maxPossibleEmbedSeconds > 0
-            ? stats.embedSeconds / maxPossibleEmbedSeconds * 100
+            ? stats.totalEmbedCallSeconds / maxPossibleEmbedSeconds * 100
             : 0
 
         print("")
