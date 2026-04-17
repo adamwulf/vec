@@ -130,3 +130,80 @@ contention from many simultaneous `.chunkEmbedded` events.
 - If the fix works, `ExtractBackpressure` is still useful for memory
   bounding on large corpora — keep it, but its capacity tuning
   matters less.
+
+---
+
+## Post-mortem: the original diagnosis was wrong
+
+**The fix in a535250 did not resolve the sawtooth.** A follow-up
+review (three independent research passes) converged on a different
+root cause: the `embed q` counter is measuring something other than
+what its label implies.
+
+### What `embed q` actually measures
+
+- `.embedEnqueued` fires in the extract task the instant a chunk is
+  yielded onto the stream (`IndexingPipeline.swift:367`).
+- `.embedDequeued` fires as the **first line of the spawned per-chunk
+  child task body** (`IndexingPipeline.swift:387`), *before*
+  `pool.acquire()` and before any embed work.
+
+So `embed q` is `enqueued − (child-body-first-line-executed)`. It is
+NOT "chunks waiting for pool capacity" — the renderer's docstring at
+`UpdateIndexCommand.swift:40-42` was misleading. Under CPU
+saturation, Swift's cooperative executor defers spawned child bodies
+while 10 pool-bound embeds hog threads; their `.embedDequeued`
+events then fire in bursts as pool slots free up. That produces the
+observed 10 → 0 → 10 sawtooth even when the pool is fully utilized
+the whole time.
+
+The AsyncStream-lock story the original diagnosis told is also
+wrong. On an unbounded `AsyncStream`, `yield` does not block on
+consumer work — it briefly takes the buffer lock to append and
+returns. 10 yields cannot stall on each other. So the mechanism the
+fix targeted does not actually exist.
+
+### What the user's mental model actually wants
+
+"Never below 10/10" = pool occupancy, not stream-buffer depth. That
+counter is `poolAcquired − poolReleased`, bounded by pool size, and
+pins at the pool size under saturation.
+
+### Instrumentation change
+
+Added `.poolAcquired` and `.poolReleased` progress events
+(`IndexingPipeline.swift:130-140`) fired around
+`pool.acquire()`/`pool.release()` in the embed task
+(`IndexingPipeline.swift:391-396`). Renderer now shows both
+`embed q N/M` and `pool N/M` side-by-side, and uses `pool` (not
+`embed q`) as the bottleneck signal (`UpdateIndexCommand.swift:183-196`).
+
+Prediction: `pool` pins at 10/10 under saturation while `embed q`
+keeps sawtoothing. If `pool` also dips significantly, something is
+genuinely starving the pool and we'd dig further. If not, the
+"sawtooth bug" was an instrumentation artifact and there's nothing
+to fix in the pipeline itself.
+
+### What about a535250?
+
+The fix was harmless (releasing the permit earlier is slightly
+better for extract throughput under accumulator pressure), but it
+solved a theoretical problem rather than the observed one. Leave it
+in place, but don't expect any visible effect on `embed q` cadence.
+
+### Simplification backlog (for later, not this commit)
+
+Agent review also flagged the pipeline as overengineered for a
+single-bottleneck CPU-bound stage. Candidate simplifications —
+deferred until after we confirm the pool counter reads as predicted:
+
+- Replace per-chunk inner `TaskGroup` + `EmbedderPool` +
+  `ExtractBackpressure` with N permanent worker tasks pulling from a
+  single bounded `AsyncStream`. Each worker owns an embedder for
+  life — no acquire/release hop per chunk.
+- Fuse `FileAccumulator` and the DB writer into one actor; drop the
+  `saveStream`.
+- Rate-limit the renderer (5–10 Hz) instead of firing stdout on
+  every event.
+
+These are architecture changes, not bug fixes. File separately.

@@ -36,9 +36,17 @@ private final class ProgressRenderer: @unchecked Sendable {
     /// handed off). Single-threaded extract → expected to be 0 or 1.
     private var extractQueueDepth = 0
     /// Chunks pushed to the embed stream but not yet picked up by an
-    /// embed task. Persistent positive depth means embed is the
-    /// bottleneck (workers are saturated).
+    /// embed task. **Note:** `.embedDequeued` fires as the first line of
+    /// the per-chunk child task body, so this counter really measures
+    /// "chunks yielded minus chunks whose child body has started running."
+    /// Under CPU saturation it sawtooths (child bodies are deferred while
+    /// pool-bound embeds hold threads) even when the pool is fully
+    /// utilized. Use `poolBusy` below for actual pool occupancy.
     private var embedQueueDepth = 0
+    /// Embedders currently held by a running embed call. Pinned at
+    /// `totalWorkers` under steady-state saturation; any dip is a real
+    /// idle pool slot. This is the true "embed utilization" gauge.
+    private var poolBusy = 0
     /// Files currently buffered in the save stream, waiting for the DB
     /// writer. enqueued - dequeued; growing queue means DB is the
     /// bottleneck, persistent zero means embed/extract is.
@@ -93,6 +101,10 @@ private final class ProgressRenderer: @unchecked Sendable {
             saveQueueDepth += 1
         case .saveDequeued:
             if saveQueueDepth > 0 { saveQueueDepth -= 1 }
+        case .poolAcquired:
+            poolBusy += 1
+        case .poolReleased:
+            if poolBusy > 0 { poolBusy -= 1 }
         case .poolWarmed:
             break
         case .chunkEmbedded:
@@ -168,21 +180,22 @@ private final class ProgressRenderer: @unchecked Sendable {
         let now = Date()
         let elapsed = now.timeIntervalSince(startTime)
         let lifetimeChunksPerSec = elapsed > 0.01 ? Double(chunksDone) / elapsed : 0
-        // Embed bottleneck signal: depth ≥ totalWorkers means every pool
-        // slot has work waiting, so embed is the rate-limit. Save
-        // outranks embed: if files are piling up post-embed, the DB is
-        // the slowest stage.
+        // Bottleneck signal driven by pool occupancy: `poolBusy ==
+        // totalWorkers` means every embedder is held, so embed is
+        // rate-limiting. Save outranks embed (files piling up post-embed
+        // implies DB is slower). Pre-pool-counter this used `embedQueueDepth`,
+        // which sawtooths under saturation and gave misleading "ok" reads.
         let bottleneck: String
         if saveQueueDepth > totalWorkers {
             bottleneck = "db"
-        } else if embedQueueDepth >= totalWorkers {
+        } else if poolBusy >= totalWorkers {
             bottleneck = "embed"
-        } else if extractQueueDepth > 0 && embedQueueDepth == 0 {
+        } else if extractQueueDepth > 0 && poolBusy == 0 {
             bottleneck = "extract"
         } else {
             bottleneck = "ok"
         }
-        let line = "Indexing: \(filesDone)/\(totalFiles) | \(chunksDone) ch | \(nonEnglishCount) non-en | extract q \(extractQueueDepth) | embed q \(embedQueueDepth)/\(totalWorkers) | save q \(saveQueueDepth) | bn \(bottleneck) | \(Self.formatSeconds(elapsed)) | \(String(format: "%.0f", lifetimeChunksPerSec)) c/s avg, \(String(format: "%.0f", windowChunksPerSec)) 30s"
+        let line = "Indexing: \(filesDone)/\(totalFiles) | \(chunksDone) ch | \(nonEnglishCount) non-en | extract q \(extractQueueDepth) | embed q \(embedQueueDepth)/\(totalWorkers) | pool \(poolBusy)/\(totalWorkers) | save q \(saveQueueDepth) | bn \(bottleneck) | \(Self.formatSeconds(elapsed)) | \(String(format: "%.0f", lifetimeChunksPerSec)) c/s avg, \(String(format: "%.0f", windowChunksPerSec)) 30s"
 
         // Every `trailInterval`, commit the current rolling line to
         // scrollback with a newline so the verbose session leaves a
