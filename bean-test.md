@@ -1,17 +1,25 @@
-# Bean Test — Chunk-size / splitter tuning for vec search
+# Bean Test — Retrieval tuning for vec search
 
 ## The problem
 
-A conversation transcript mentions the phrase "bean counter mode" in the
-context of a trademark price negotiation. With the current default chunk
-size (2000 chars, RecursiveCharacterSplitter), `vec search` does **not**
-surface the target files for semantically relevant queries — even though
-`grep -r "bean counter"` finds them immediately.
+Adam has a corpus of meeting transcripts and summaries. One specific
+meeting covers a trademark price negotiation where he talked about being
+in "bean counter mode" and counter-offering $1.5M. With the current
+default chunk size (2000 chars, RecursiveCharacterSplitter), `vec search`
+does **not** reliably surface that meeting for plausible queries someone
+might type to find it — even when `grep` finds exact phrase matches.
 
-Hypothesis: the phrase is too small a fraction of a 2000-char chunk, so
-its signal is averaged out of the chunk's 512-dim sentence-embedding
-vector. Shrinking the chunk should increase the phrase's weight in the
-vector and restore retrieval.
+**The real goal:** a user searching for "where did I negotiate the
+trademark price?" (or any similar paraphrase) should find that meeting in
+the top results. The "bean counter" phrase is just one of many possible
+queries — do NOT over-optimize on that specific phrase. The win is that a
+variety of reasonable queries all surface the right meeting, including
+ones that don't mention "bean counter" at all.
+
+Hypothesis: the current 2000-char chunks average out signal for any
+specific phrase or topic. Shrinking chunks (or switching splitters, or
+adding pre-processing, or any other lever) should increase topical
+concentration per chunk and restore retrieval quality broadly.
 
 ## Target files (what we need the search to surface)
 
@@ -35,21 +43,32 @@ search results for the test queries below:
 
 ## Test queries
 
-These are what a generic agent might try if asked "where did I negotiate
-the price for the trademark? I was in bean counter mode." They range from
-direct phrase overlap (easy) to paraphrased intent (hard), so a good
-config should lift all of them:
+These are what a generic agent might try if asked to find the trademark
+negotiation meeting. They deliberately span from exact-phrase ("bean
+counter") to generic-topical ("trademark assignment meeting") so the
+config can't just win by memorizing one specific idiom. A good config
+lifts ALL of them, not just the phrase-heavy ones.
 
-1. `trademark price negotiation bean counter`
+**Core topical queries** (no "bean counter" phrase — these test that the
+meeting surfaces on its actual subject matter):
+
+1. `trademark price negotiation`
 2. `where did I negotiate the price for the trademark`
-3. `bean counter mode`
-4. `haggling over trademark price`
-5. `1.5 million trademark deal`
-6. `out of bean counter mode for quick execution`
-7. `muse trademark pricing discussion`
-8. `counter offer for trademark assets`
-9. `how much did we ask for the trademark`
-10. `trademark deal pricing move quickly`
+3. `muse trademark pricing discussion`
+4. `counter offer for trademark assets`
+5. `how much did we ask for the trademark`
+6. `trademark assignment agreement meeting`
+7. `right of first refusal trademark`
+
+**Phrase-leaning queries** (these should also work, but the config
+shouldn't only win on these):
+
+8. `bean counter mode trademark`
+9. `1.5 million trademark deal`
+10. `trademark deal move quickly quick execution`
+
+Do not collapse these to a smaller set. The whole point is to see that
+the config generalizes across phrasings.
 
 ## Scoring rule
 
@@ -136,30 +155,64 @@ what's worth the time — roughly in order of effort:
 
 ## Iteration protocol
 
-Work on branch `agent/agent-c54ba5da` (where this file lives). For each
-iteration:
+You (the optimizer) are a **manager** agent — you can and should spawn
+sub-agent workers with `ib new-agent --worker "..."` to keep your own
+context window clear. Running 10 searches' JSON output through your own
+context every iteration is wasteful; a worker can crunch the JSON and
+hand you back one tidy score block.
 
-1. Pick a config (start small: chunk-chars 400, overlap 80).
-2. Reset the test index:
-   - `vec reset --db markdown-memory --yes` (if that's the reset flag;
-     check `vec reset --help` first)
-   - Alternatively: `rm -rf ~/.vec/markdown-memory && vec init ...` —
-     check `vec init` syntax.
-3. Rebuild:
-   - `cd` to the corpus root:
-     `/Users/adamwulf/Library/Containers/com.milestonemade.EssentialMCP/Data/Documents/tools/markdown-memory`
-   - `vec update-index --db markdown-memory --chunk-chars N --chunk-overlap M`
-4. Run all 10 queries through `vec search --db markdown-memory
-   --format json --limit 20 "<query>"`. Parse JSON, score per the rule
-   above.
-5. Append a row to `bean-test-results.md` (create if missing). One row per
-   iteration. Columns:
+For each iteration:
+
+1. **Pick a config.** Start small (chunk-chars 400, overlap 80). Later,
+   drive the next config from the trend in `bean-test-results.md`.
+
+2. **Reset the test index:**
+   `swift run vec reset --db markdown-memory --force`
+
+3. **Rebuild the index:**
+   `swift run vec update-index --db markdown-memory --chunk-chars N --chunk-overlap M`
+   (from anywhere in the repo — --db is enough to locate the DB)
+
+4. **Delegate scoring to a worker sub-agent.** Spawn a `--worker` with a
+   self-contained prompt containing the 10 queries and the scoring rule:
+
+   ```
+   ib new-agent --worker "Run these 10 search queries against the vec
+   markdown-memory DB and score results. For each query, run:
+     swift run vec search --db markdown-memory --format json --limit 20 \"<query>\"
+   Parse the JSON array (index 0 = rank 1). For each of the two target
+   files, score:
+     - rank 1-3: +3
+     - rank 4-10: +2
+     - rank 11-20: +1
+     - absent: 0
+   Target files:
+     - granola/2026-02-26-22-30-164bf8dc/transcript.txt
+     - granola/2026-02-26-22-30-164bf8dc/summary.md
+   Queries: [paste the full list of 10 queries from bean-test.md]
+   Return a markdown block like:
+     | # | query | T rank | S rank | T score | S score | subtotal |
+     plus a final line: TOTAL: X/60, QUERIES_HIT_TOP10: N/10
+   When done, signal: ib send <your-manager-id> 'Scoring complete: X/60, N/10'
+   "
+   ```
+
+   Pass your own agent ID as `<your-manager-id>` (it's in the ittybitty
+   manager banner at session start). When the worker signals complete,
+   read its output with `ib look <worker-id>`, extract the score block,
+   then `ib kill <worker-id> --force`.
+
+5. **Append to `bean-test-results.md`** (create if missing). One row per
+   iteration:
    `timestamp | config | total_score | queries_hit_top10 | notes`
-   Plus a per-query score breakdown in an indented block under the row.
+   Plus the per-query score block from the worker, indented.
+
 6. If the iteration beat the previous best, note it as a new high-water
    mark. Do NOT commit code changes per iteration — only keep the log.
-7. Decide the next config based on the trend (bigger/smaller chunk?
-   different overlap? different splitter?).
+
+7. Decide the next config based on the trend. Spawn the next iteration's
+   scoring worker in parallel with your own work on picking the next
+   config if it helps — workers are cheap, manager context is precious.
 
 At the end (stop condition hit OR search space exhausted):
 - Pick the winning config.
@@ -172,6 +225,8 @@ At the end (stop condition hit OR search space exhausted):
   - Trajectory (how scores moved across iterations)
   - What didn't work and why
   - Any suggested follow-up experiments
+- Kill any remaining sub-agent workers with `ib kill <id> --force` before
+  signaling completion.
 
 ## Known working commands (verified)
 
