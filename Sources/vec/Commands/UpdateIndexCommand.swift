@@ -231,7 +231,25 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Flag(name: .shortAndLong, help: "Show a rolling stats line while indexing")
     var verbose: Bool = false
 
+    @Option(name: .long, help: "Max chunk size in characters. Omit to use the default (\(RecursiveCharacterSplitter.defaultChunkSize)).")
+    var chunkChars: Int?
+
+    @Option(name: .long, help: "Chunk overlap in characters. Must be less than --chunk-chars. Omit to use the default (\(RecursiveCharacterSplitter.defaultChunkOverlap)).")
+    var chunkOverlap: Int?
+
     func run() async throws {
+        let effectiveChunkSize = chunkChars ?? RecursiveCharacterSplitter.defaultChunkSize
+        let effectiveOverlap = chunkOverlap ?? RecursiveCharacterSplitter.defaultChunkOverlap
+        guard effectiveChunkSize > 0 else {
+            throw ValidationError("--chunk-chars must be positive (got \(effectiveChunkSize))")
+        }
+        guard effectiveOverlap >= 0 else {
+            throw ValidationError("--chunk-overlap cannot be negative (got \(effectiveOverlap))")
+        }
+        guard effectiveOverlap < effectiveChunkSize else {
+            throw ValidationError("--chunk-overlap (\(effectiveOverlap)) must be less than --chunk-chars (\(effectiveChunkSize))")
+        }
+
         let (dbDir, _, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
@@ -292,9 +310,13 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         let stats: IndexingStats
         let pipelineStart = Date()
         do {
+            let splitter = RecursiveCharacterSplitter(
+                chunkSize: effectiveChunkSize,
+                chunkOverlap: effectiveOverlap
+            )
             (results, stats) = try await pipeline.run(
                 workItems: workItems,
-                extractor: TextExtractor(),
+                extractor: TextExtractor(splitter: splitter),
                 database: database,
                 progress: progress
             )
