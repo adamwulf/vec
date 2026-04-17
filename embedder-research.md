@@ -1,5 +1,42 @@
 # Embedder Alternatives for `vec` — Research Survey
 
+## Constraint update (2026-04-17)
+
+After the initial draft of this document, the user clarified that the
+earlier constraint set — on-device, no API key, no daemon, Swift-native,
+512-dim sqlite-vec schema preservation — was **over-tight**. The user is
+the only user of this tool, can re-index at will, and wants "the best
+embedder for the task", not the easiest swap.
+
+Explicitly, the following are now OK:
+
+- Throwing away the 512-dim sqlite-vec schema (any dim is fine).
+- Full re-index on every change.
+- Larger model sizes and memory footprints.
+- Separate install steps — Ollama daemon, Docker, llama.cpp binary, a
+  Python subprocess — if the quality win justifies it.
+- A one-time HF download, OR a paid API, OR running a local server.
+- Changing the runtime for the embedding layer entirely (e.g. calling out
+  to a Python process).
+
+Still preferred:
+
+- Data privacy is nice-to-have, not a hard requirement. Hosted APIs
+  (OpenAI, Voyage, Cohere, Google Gemini) are on the table if clearly
+  best.
+- "One-time network download then forever offline" is preferred over
+  "every query hits the network" — but neither is disqualifying.
+
+**The recommendation ranking below has been re-evaluated under these
+constraints; see §5 for the revised ranking and §5.1 for models that the
+original doc dismissed which now deserve a fresh look.**
+
+§§1–4 are left intact as a record of the original reasoning and the
+underlying technical / integration facts (those are still true; only the
+weighting has changed).
+
+---
+
 ## Why this document exists
 
 Our overnight tuning experiment (see `bean-test-results.md`) established that the
@@ -516,62 +553,277 @@ No in-place vector "conversion" is possible — it's a full rebuild either way.
 
 ## 5. Recommendation ranking
 
-Ranked by best-quality-per-unit-of-effort *while preserving our current
-on-device, no-API-key, no-daemon-required UX*:
+**Re-evaluated 2026-04-17 under the loosened constraints in the opening
+"Constraint update" section.** Primary axis is expected retrieval quality
+on this corpus (small English, conversational transcripts + markdown
+notes). Secondary axis is maturity / battle-tested-ness (how widely the
+model is deployed, how stable its published numbers are). Tertiary axis
+is time-to-data — how quickly we can A/B it against the 6/60 baseline.
+Integration effort is **explicitly demoted**: "hard to integrate" is fine
+if the quality delta is large.
 
-1. **`swift-embeddings` + `nomic-embed-text-v1.5` @ 512 dims via Matryoshka.**
-   Keeps our 512-dim schema. SPM drop-in. MTEB 61.96 @512 is a dramatic
-   upgrade from NLEmbedding. Mandatory query / passage prefixes are a minor
-   code change in `EmbeddingService` and the `search` command. If
-   `swift-embeddings` behaves well on our corpus, ship it.
+MTEB numbers below are retrieval-subtask scores where that is what we
+could verify on the model card / leaderboard; where only an overall MTEB
+average was available that is noted explicitly. All dimension / context
+numbers are from the model cards fetched for this round (see §6 for added
+sources). Where we could not verify a number first-hand it is marked
+"unverified".
 
-2. **`similarity-search-kit` with `MiniLMAll`.** Lowest integration effort of
-   all local options (one SPM import, one `encode()` call). Quality ceiling
-   is lower (MTEB ~56) but still clearly above NLEmbedding. Good as a
-   *stopgap* or as the reference integration we then swap the model on.
+### Ranking
 
-3. **OpenAI `text-embedding-3-small` @ 512 dims** (via the `dimensions` API
-   param). Biggest quality/effort ratio if we're willing to give up on-device.
-   Same 512-dim schema. Costs pennies at our corpus size (~10K chunks ≈
-   ~5M tokens ≈ $0.10 one-time). Needs a permissioned API-key story and
-   explicit "your text leaves the machine" notice.
+1. **Qwen3-Embedding-8B (local, via Ollama or llama.cpp GGUF).**
+   **Apache-2.0, 4096 dims (MRL to 32), 32K context.** Currently #1 on the
+   MTEB multilingual leaderboard (overall ≈ 70.58 as of mid-2025) and
+   consistently strong on the English-v2 variant of MTEB. 8B params /
+   ~16 GB bf16 on disk; Q8 GGUF should bring that to ~8 GB. The model is
+   **instruction-aware** — queries take an "Instruct: …\nQuery: …" prefix;
+   documents do not. This is the biggest-quality ceiling in the open-weights
+   space, full stop, and with the back-compat constraint dropped we can
+   afford the memory and first-run download. Under §4.5's pool model this
+   is only viable if we collapse `EmbedderPool` to a single shared
+   instance — verify thread-safety empirically before committing. Run it
+   via Ollama (lowest integration friction, HTTP) or llama.cpp GGUF
+   (native). **Smaller Qwen3-Embedding-0.6B variant (1024-dim, ~1.2 GB,
+   MTEB English-v2 ≈ 70.70) is a surprising and strong fallback** if 8B
+   is overkill — it reportedly lands in a similar neighborhood on English
+   v2 despite being 13× smaller.
 
-   **Caching caveat — resolve before the OpenAI swap lands.** The "$0.10
-   one-time" figure assumes each chunk is embedded exactly once. Today
-   `update-index` re-embeds chunks whenever a file is modified, with no
-   cache keyed by `(content_hash, embedder_id)`. For a purely local
-   embedder that's fine — cost is only wall-clock. For a paid API it
-   matters: an author who re-saves the same file repeatedly pays for each
-   round trip. Before shipping OpenAI support, add a per-chunk content-hash
-   cache so unchanged text reuses its stored vector across re-indexes.
-   Suggested key: `(sha256(chunk_text), embedder_id, embedder_dim)`.
+2. **Voyage-3-large (API).** **Currently the best-measured API embedder
+   for pure retrieval**, per Voyage's own evaluation across 100 retrieval
+   datasets outperforming OpenAI-v3-large by ~9.74% and Cohere-embed-v3
+   by ~20.71%. Awesome-agents' March 2026 snapshot puts its MTEB overall
+   at ~66.80. 2048 dims (Matryoshka to 1024 / 512 / 256), 32K context,
+   int8 / binary quantization support baked in. Pricing: **$0.18 per 1M
+   tokens**; first 200M tokens on the v4-series free tier, but v4-large
+   is newer and has less third-party evaluation yet. For our corpus size
+   (bean-test index ≈ 10K chunks ≈ ~5M tokens) a one-time index cost is
+   under $1. The fact that Anthropic formally partners with Voyage is
+   also a small moat if we later ask Claude to re-rank. **This is the
+   lowest-effort way to actually feel the quality ceiling of modern
+   embedders** — one HTTP client, no weights, no pool, no daemon.
 
-4. **Ollama backend via HTTP.** Zero embedding code to write; piggyback on an
-   OpenAI client. But forces every user to install and run a separate
-   daemon, which conflicts with our "single Swift executable" ethos. Do this
-   only as an optional `--embedder ollama` switch, not default.
+3. **Google Gemini Embedding 001 (API).** Currently #1 on the MTEB
+   English leaderboard (overall ≈ 68.32, retrieval subtask ≈ 67.71 per
+   the March 2026 awesome-agents snapshot). 3072 dims. Hosted API, same
+   integration shape as OpenAI. Pricing not pulled in this pass — needs
+   verifying before commit. Worth testing alongside or against Voyage to
+   see which lands higher on *our* corpus, since MTEB and our 10-query
+   rubric are very different evaluations.
 
-5. **`mxbai-embed-large-v1` or `voyage-4-large`.** Top-tier quality but
-   significantly more integration friction (670 MB local weights, or a paid
-   API with separate auth). Reserve for a second pass if the primary choice
-   plateaus.
+4. **OpenAI `text-embedding-3-large` at full 3072 dims.** Same API client
+   as the v3-small path the original doc discussed, but without the
+   `dimensions=512` truncation. MTEB overall ≈ 64.6, retrieval subtask
+   higher than v3-small's but lower than Voyage-3-large per Voyage's own
+   comparison. $0.13 / 1M tokens. **Easier procurement than Voyage
+   (OpenAI keys are already in most devs' envs) and much cheaper than
+   Voyage-3-large.** If quality-per-dollar matters, this is the pragmatic
+   choice. Note that third-party evaluations consistently show
+   `dimensions=1024` on 3-large performs indistinguishably from 3072 in
+   practice for most retrieval tasks — useful if storage becomes a
+   concern.
 
-### Suggested next experiment (for the next agent)
+5. **`mxbai-embed-large-v1` at full 1024 dims (local).** Apache-2.0,
+   335M params, fp16 ≈ 670 MB. MTEB overall 64.68, retrieval subtask
+   54.39. The ceiling is clearly lower than Qwen3-Embedding-8B but the
+   integration story is much cleaner: BERT-large architecture, works
+   under `swift-embeddings`, llama.cpp GGUF, or Ollama. **Best on-device
+   option if we don't want the 8B Qwen memory bill.** The prior doc's
+   dismissal of this at 1024 dims was entirely driven by the dropped
+   "keep the 512-dim schema" constraint.
 
-Re-run the bean-test optimiser (`bean-test.md`) with the winner candidate
-from the above ranking plugged in. Minimum viable comparison:
+6. **`Alibaba-NLP/gte-large-en-v1.5` (local).** Apache-2.0, 409M params,
+   **1024 dims**, **8192-token context**, BERT+RoPE+GLU architecture, **no
+   required prefix** — a refreshingly simple integration shape. MTEB avg
+   65.39, retrieval subtask **57.91** (higher than mxbai's 54.39). This
+   is the sleeper pick for a local embedder if we want "as-good-as-mxbai
+   on retrieval, no prefix hassle, same dim". Supported by
+   `swift-embeddings` (BERT family) and llama.cpp (GGUF available for
+   some variants — verify before committing).
 
-1. Pin chunk config at the known-winning baseline (Recursive, 2000 chars,
-   200 overlap, no preprocessing — per `bean-test-results.md`).
-2. Swap embedder to **`nomic-embed-text-v1.5` @ 512 dims** via
-   `swift-embeddings`. Re-index. Score 10 queries.
-3. If ≥ 30/60 (the "huge win" bar), also test **@ 768 dims** to see if the
-   full model gives another bump. Update schema dim if so.
-4. If < 30/60, fall back to **`text-embedding-3-small` @ 512 dims** (API) to
-   isolate whether the ceiling is model quality or the corpus itself. Our
-   retrieval was so poor (6/60) that any reasonable 2026-era embedder should
-   clear 20+/60; if it doesn't, we have a deeper problem (chunking boundary,
-   metadata leakage, query formulation) that no embedder can fix.
+7. **`BGE-M3` (local, hybrid).** MIT, 1024-dim dense + sparse (BM25-like)
+   + multi-vector (ColBERT-like) all from one model. XLM-RoBERTa-large
+   base, 8192 context. The **hybrid dense+sparse mode directly addresses
+   the "bean counter" literal-phrase failure** observed in
+   `bean-test-results.md` — the sparse head functions like BM25 with
+   learned weights, so exact phrases are rewarded. This is the only
+   option on this list that *structurally* solves the phrase-evidence
+   problem; all the others rely on the dense vector alone. Integration
+   effort is higher (need to plumb two retrieval channels and fuse
+   scores), but the prior experiment's hybrid-retrieval note (original
+   §1 point 4) is absorbed into this single model.
+
+8. **`BAAI/bge-en-icl` (local, in-context learning).** Apache-2.0, 7B
+   Mistral-based, MTEB ≈ 71.24 overall. The standout feature is that
+   retrieval quality improves measurably when you prepend 2-3 task-style
+   query/response examples to the query. For this specific corpus
+   (meeting-transcript retrieval) that's an actionable lever — we can
+   hand-craft 2-3 synthetic "how would I ask about a meeting like this"
+   examples once and bake them in. Same size / memory cost as
+   Qwen3-Embedding-8B. Worth a run only after Qwen3-Embedding-8B and
+   Voyage-3-large have established a ceiling we'd like to exceed.
+
+9. **`intfloat/multilingual-e5-large-instruct` (local).** MIT, 600M,
+   1024 dims, 512-token max context. Instruction-aware like Qwen3 but
+   much smaller. Less attractive now that Qwen3-Embedding-0.6B exists at
+   the same rough weight class with a higher score and longer context —
+   but still a solid fallback if the Qwen3 family has an unforeseen
+   integration hiccup.
+
+10. **`nvidia/NV-Embed-v2` — DISQUALIFIED by license.** 8B, 4096 dims, MTEB
+    retrieval 62.65 (second-highest verified number in this list after
+    Qwen3/Gemini/Voyage). **License is CC-BY-NC-4.0 — non-commercial
+    only.** Even for a single-user tool the license is sticky: it
+    precludes ever open-sourcing `vec` with NV-Embed-v2 as the default,
+    and NVIDIA explicitly redirects commercial use to paid NIMs.
+    Not worth building on.
+
+11. **Nomic-embed-text-v1.5 @ 768 dims (local).** Everything the original
+    doc said about nomic is still true — it's an honest, well-documented,
+    Apache-2.0 model with a real Swift path via `swift-embeddings`. At
+    768 dims its MTEB is 62.28, which is now clearly behind every ranked
+    option above. **Under the old constraints (512-dim schema, Swift-only
+    integration) nomic was the top pick for the *right* reasons;
+    under the new constraints it is outranked by every local model above
+    it.** See "§5.2 On the nomic-experiment-plan.md" for what this means
+    for the currently-proposed experiment.
+
+### Cut-line / ignore
+
+- `NLContextualEmbedding` — still not designed for sentence similarity
+  (Apple's own docs say so). Unchanged from §3.9.
+- `similarity-search-kit` + `MiniLMAll` — MTEB ~56 is now far below
+  every option above. Only useful if we want a reference SPM integration
+  we'll later swap.
+
+---
+
+## 5.1 Models worth testing that were dismissed under the old constraints
+
+Each item below was ruled out (or deprioritised) in the original doc by a
+constraint that has now been relaxed. Rough delta estimates are against
+the old top pick (**nomic-embed-text-v1.5 @ 512 dims, MTEB retrieval
+≈ 61.96**). All retrieval-subtask numbers are nDCG@10 on MTEB v1 unless
+otherwise noted; some ranking tables quote MTEB *overall* average (a
+broader aggregate of retrieval + classification + clustering + STS +
+reranking) when that is all the model card published.
+
+| Model | Why dismissed before | What opens up now | Est. quality delta vs nomic @512 |
+|---|---|---|---|
+| `Qwen3-Embedding-8B` | Not in original doc. 8B / 16 GB is absurd for the 512-dim schema + pool-of-10 constraints. | Single shared instance + server-side (Ollama) integration makes memory manageable. | Large positive. MTEB multilingual ≈ 70.58 vs nomic 62.28 (overall avg). |
+| `Qwen3-Embedding-0.6B` | Not in original doc. | Fully on-device viable; smaller than mxbai. | Large positive. MTEB English-v2 ≈ 70.70 per model card — *if that reproduces on our corpus*, this would be the clear local default. Needs verification. |
+| `Voyage-3-large` | Original doc had only general voyage-4-series info; dismissed under "prefer on-device". | Paid API is OK. | Large positive. Voyage-3-large beats OpenAI-v3-large by ~9.7% on retrieval (Voyage's own numbers across 100 datasets). |
+| Google `Gemini Embedding 001` | Not in original doc. | Paid API is OK. | Likely largest positive for an API option — MTEB English overall ≈ 68.32, retrieval ≈ 67.71 (awesome-agents snapshot). Needs independent verification. |
+| OpenAI `text-embedding-3-large` **at full 3072 dims** | Original doc dismissed 3072 implicitly because of the 512-dim schema. | Any dim is OK. | Moderate positive. MTEB avg 64.6 vs nomic 62.28 (overall avg). ~1-2 points is not a landslide, but the integration is the cheapest of any API option. |
+| `mxbai-embed-large-v1` **at full 1024** | Original doc demoted it ("5-6× more weights than nomic", "plausible if we're comfortable with 700 MB"). | Size is no longer disqualifying. | Small-to-moderate positive. Retrieval 54.39 is actually *below* nomic's retrieval subtask; its strength is on STS/classification. Worth testing because it's a single HF download, but not the top pick. |
+| `Alibaba-NLP/gte-large-en-v1.5` | Not in original doc (GTE family not surveyed). | — | Moderate positive. Retrieval 57.91, no prefix requirement, 8192 context — a *cleaner* integration than mxbai at similar-or-higher retrieval. |
+| `intfloat/multilingual-e5-large-instruct` | Not in original doc (only `e5-small-v2` was, in §3.7). | — | Small positive. Comparable to mxbai in weight class; upside is the instruction-aware query format, downside is 512-token max. |
+| `nvidia/NV-Embed-v2` | Not in original doc. | Large model OK. | **DISQUALIFIED.** CC-BY-NC-4.0. Even single-user, the license is sticky and precludes ever open-sourcing the tool. Reason it got famous — retrieval 62.65 — is moot. |
+| `BAAI/bge-m3` | Not in original doc. | Any size / any runtime OK. | Architecturally interesting: the only candidate that *structurally* solves the phrase-evidence problem that sank our current cosine-only approach on the bean-test. Dense retrieval 63.00 (overall) is merely ok — the value is the hybrid. |
+| `BAAI/bge-en-icl` | Not in original doc. | Any size OK; in-context examples are a new knob. | Large positive on overall MTEB (~71.24) if ICL examples land well for our query shape. |
+| Ollama backend (any local model above) | Old doc: daemon install "harsh onboarding story". | Daemon OK. | Neutral — this is how we *run* models above, not a different model. Integration shape is the thinnest: single HTTP call, all pool/memory concerns go to the server. |
+| Python subprocess for any sentence-transformers model | Not in original doc. | Language-runtime swap OK. | Neutral mechanism — same caveat as Ollama. Gives us the entire sentence-transformers / MTEB universe, including models we haven't scouted, at the cost of a Python install. |
+
+### Unverified claims flagged for follow-up
+
+- Gemini Embedding 001 pricing and any per-million-tokens tier. The
+  model-card page for it was not fetched in this pass — need to confirm
+  before committing to an API experiment.
+- OpenAI `text-embedding-3-large` retrieval-subtask score *specifically*
+  (not overall avg). The 64.6 figure is overall MTEB; the commonly-quoted
+  retrieval subtask ≈ 55.44 from third-party blog posts could not be
+  sourced from OpenAI directly in this pass — check HF card / MTEB
+  leaderboard before putting it in a decision deck.
+- Qwen3-Embedding-0.6B's reported MTEB English-v2 ≈ 70.70 vs the 8B
+  variant's 70.58 is surprising — needs sanity-checking against the HF
+  card because the "v2" English MTEB is a newer, re-scored leaderboard
+  and the aggregation differs from the original MTEB.
+
+---
+
+## 5.2 On the `nomic-experiment-plan.md` first experiment
+
+### Quick verdict: run it anyway, but **time-box it tightly and have a follow-up queued.**
+
+The `nomic-experiment-plan.md` on the parent branch proposes to A/B swap
+`NLEmbedding` for `nomic-embed-text-v1.5 @ 768 dims` via
+`swift-embeddings`, reusing the 10-query bean-test rubric, with three
+gates: ship (≥30/60), interesting (15–29/60), kill (<15/60).
+
+Arguments **for** running it as written:
+
+- **Time-to-data is the fastest of any option here.** `swift-embeddings`
+  is a pure-SPM drop-in. The whole swap — plus the `vec reset` +
+  reindex + 10-query score — is a single afternoon of work. Voyage-3-
+  large and Qwen3 would each take longer to wire up even though the code
+  surface is smaller, because we'd be introducing an HTTP client
+  (Voyage) or a server dependency (Ollama for Qwen3) from scratch.
+- **It's a load-bearing calibration.** We currently don't know whether
+  the 6/60 ceiling is NLEmbedding specifically or whether the corpus /
+  chunking / queries also share blame. Nomic at 768 sits in the
+  same-architecture-family as every local option above it in the ranking,
+  so its score is a cheap prior for the whole class. If nomic lands in
+  the ship gate (≥30/60), any stronger model will too. If nomic lands in
+  the kill gate (<15/60), that's evidence the corpus / chunking / queries
+  are a bigger problem than the embedder — and we should stop scouting
+  new models until that's understood.
+- The plan file already correctly drops the back-compat scaffolding
+  (protocol, dual-embedder flag, DB metadata check), matching the new
+  constraints.
+
+Arguments **against** running it as written without adjustments:
+
+- Nomic is no longer the top-ranked candidate even among local models.
+  If it hits the "interesting" gate (15–29/60), the plan's fallback
+  ("tune chunk config, try 512 dim") is now weaker than "try the next
+  embedder up the ranking". The plan's decision tree should route
+  directly to Qwen3-Embedding-8B (via Ollama) or Voyage-3-large rather
+  than to Matryoshka-truncating nomic.
+- The plan locks in `swift-embeddings` as the integration substrate.
+  That's fine for nomic *this experiment*, but if the next experiment is
+  Qwen3-8B or an API embedder, `swift-embeddings` isn't the host. Write
+  the experiment's integration code behind a thin embedder-protocol-of-
+  convenience *inside `EmbeddingService`*, not sprayed across three
+  call-sites, so experiment #2 can reuse the plumbing.
+
+### Concrete recommendation
+
+Keep `nomic-experiment-plan.md` as experiment #1. Do not revise its
+success gates. **Do revise the "what's next if we hit the interesting
+gate" decision tree** to jump to Qwen3-Embedding-8B (via Ollama HTTP)
+and Voyage-3-large (API) rather than to chunk-config tuning or
+Matryoshka truncation. Sketch for experiment #2 (whichever is the first
+to fire after nomic):
+
+1. **If nomic hits ship gate (≥30/60):** stop the research axis; we have
+   the answer. Ship nomic, plan the distribution UX (bundled vs HF
+   download on first run). Optionally run Voyage-3-large later as a
+   ceiling check — if Voyage beats nomic by > 10 points, revisit.
+2. **If nomic hits interesting gate (15–29/60):** next experiment is
+   **Qwen3-Embedding-8B via Ollama**, not chunk retuning. Plan:
+   - Pre-flight: `ollama pull qwen3-embedding:8b` (confirm model tag and
+     disk footprint — should be ~8 GB Q8).
+   - Replace the `swift-embeddings` Nomic call in `EmbeddingService`
+     with an HTTP call to `POST http://localhost:11434/api/embed` with
+     `model: "qwen3-embedding"` and the documents / queries wrapped in
+     the "Instruct: …\nQuery: …" format for queries only.
+   - Collapse `EmbedderPool` to a single instance (Ollama serialises
+     requests for us on the server side).
+   - Wipe DB, reindex (dimension will be 4096 unless we MRL-truncate;
+     store at 4096 for experiment #2 to see the ceiling), rescore 10
+     queries. Same rubric as bean-test.
+   - Gates: ship ≥40/60 (higher bar — we spent more setup). Otherwise
+     move to experiment #3.
+3. **If nomic hits kill gate (<15/60):** don't chase more embedders
+   immediately. Instead run a *diagnostic* sanity check: take the two
+   target files and hand-embed them with OpenAI `text-embedding-3-large`
+   via the API, and their top competing files, and compute cosine
+   similarity directly against the 10 queries. That's a cheap sanity
+   check that tells us whether *any* modern embedder would beat NLEmbedding
+   on this specific corpus or whether the corpus+query set is structurally
+   hard. Only after that diagnostic should we run experiment #2.
+
+The nomic experiment is still the right first experiment. Just queue up
+experiment #2's plan *now*, not after nomic returns its score.
 
 ---
 
@@ -594,3 +846,18 @@ from the above ranking plugged in. Minimum viable comparison:
 - MLX-Embeddings (Python): <https://github.com/Blaizzy/mlx-embeddings>.
 - llama.cpp Swift package: <https://swiftpackageindex.com/ggml-org/llama.cpp>, discussion of iOS/macOS use <https://github.com/ggml-org/llama.cpp/discussions/4423>, known SPM issue <https://github.com/ggml-org/llama.cpp/issues/10371>.
 - LM Studio OpenAI-compatible endpoint: <https://lmstudio.ai/docs/api/endpoints/openai>.
+
+### Added 2026-04-17 (for §5 / §5.1 re-evaluation)
+
+- MTEB leaderboard (live): <https://huggingface.co/spaces/mteb/leaderboard>.
+- MTEB repo: <https://github.com/embeddings-benchmark/mteb>.
+- March 2026 awesome-agents MTEB snapshot: <https://awesomeagents.ai/leaderboards/embedding-model-leaderboard-mteb-march-2026/>.
+- Qwen3 Embedding family (8B / 4B / 0.6B): <https://huggingface.co/Qwen/Qwen3-Embedding-8B>, <https://huggingface.co/Qwen/Qwen3-Embedding-4B>, <https://huggingface.co/Qwen/Qwen3-Embedding-0.6B>, <https://github.com/QwenLM/Qwen3-Embedding>.
+- Voyage-3-large launch post: <https://blog.voyageai.com/2025/01/07/voyage-3-large/>.
+- Voyage pricing: <https://docs.voyageai.com/docs/pricing>.
+- GTE-large-en-v1.5: <https://huggingface.co/Alibaba-NLP/gte-large-en-v1.5>.
+- GTE-Qwen2-7B-instruct: <https://huggingface.co/Alibaba-NLP/gte-Qwen2-7B-instruct>.
+- Multilingual-E5-large-instruct: <https://huggingface.co/intfloat/multilingual-e5-large-instruct>.
+- NV-Embed-v2 (disqualified by license): <https://huggingface.co/nvidia/NV-Embed-v2>, paper <https://arxiv.org/abs/2405.17428>.
+- BGE-M3: <https://huggingface.co/BAAI/bge-m3>.
+- BGE-en-ICL: <https://huggingface.co/BAAI/bge-en-icl>, paper <https://arxiv.org/abs/2409.15700>.
