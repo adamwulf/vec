@@ -118,6 +118,16 @@ public enum ProgressEvent: Sendable {
     /// can show live save-queue depth as a bottleneck signal.
     case saveEnqueued
     case saveDequeued
+    /// An embed child task has acquired an `EmbeddingService` from the
+    /// pool and is about to start embedding. Paired with `.poolReleased`.
+    /// Difference is the true pool-occupancy gauge: it pins at pool size
+    /// under saturation, unlike `.embedEnqueued`/`.embedDequeued` which
+    /// measures stream buffer depth and can sawtooth while the pool is
+    /// actually fully utilized.
+    case poolAcquired
+    /// An embed child task has released its `EmbeddingService` back to
+    /// the pool after the `embed()` call returned.
+    case poolReleased
     /// Pool warmup completed. Emitted once per `run()` after every pooled
     /// embedder has been pre-touched serially, before any worker task starts.
     /// `seconds` is wall-clock time spent in the warmup loop.
@@ -388,10 +398,12 @@ public final class IndexingPipeline: Sendable {
                             let chunk = work.chunk
 
                             let embedder = await pool.acquire()
+                            progress?(.poolAcquired)
                             let chunkStart = DispatchTime.now()
                             let vector = embedder.embed(chunk.text)
                             let chunkSeconds = Self.elapsed(since: chunkStart)
                             await pool.release(embedder)
+                            progress?(.poolReleased)
 
                             progress?(.chunkEmbedded(seconds: chunkSeconds))
                             await statsCollector.recordChunkEmbed(seconds: chunkSeconds)
