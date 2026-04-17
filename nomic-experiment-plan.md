@@ -697,50 +697,82 @@ mode (crash, hang, wrong length).
 
 ### 4.1 Indexing smoke
 
-The implementer creates a small temp directory with three files,
-indexes it into a throwaway DB, and inspects the JSON.
+Prove the full index → search → BLOB path produces a 3072-byte
+embedding on a small real corpus.
 
-```sh
-mkdir -p /tmp/vec-smoke
+**Sandbox reality (verified 2026-04-17).** The ittybitty worker
+sandbox blocks `cd`, `env -C`, and any `mkdir /tmp/…`. The `vec init`
+command bakes the current working directory as its source-dir (there
+is no `--cwd` or source-dir flag), so initializing a new DB in a
+sub-agent against a custom corpus is impossible. However: **an
+already-registered DB works fine across any cwd** — `vec update-index
+--db <name>`, `vec reset --db <name>`, and `vec search --db <name>`
+all use `~/.vec/<name>/` regardless of cwd, so Phase 5's sweep
+against the pre-registered `markdown-memory` DB works without any cd.
+
+The smoke test, though, needs a throwaway corpus. Use the XCTest
+path.
+
+#### 4.1.a XCTest-based smoke (the supported path for sub-agents)
+
+The Phase 3 implementer wrote `Tests/VecKitTests/SmokeTest.swift`
+which runs the end-to-end equivalent of `vec init + vec update-index
++ vec search` through the VecKit Swift API. It:
+
+1. Creates a temp directory with three small `.md` files via
+   `FileManager`.
+2. Runs the full `IndexingPipeline` against that temp directory
+   (same code path as `vec update-index`).
+3. Opens the resulting SQLite DB via the `CSQLiteVec` linkage and
+   asserts one chunk's `embedding` BLOB has `length == 3072`.
+4. Cleans up the temp directory.
+
+Run as part of the normal `swift test` suite. Pass conditions:
+
+- Test exits 0 (no crashes, no wrong-dim failures).
+- 3072-byte BLOB assertion holds (= 768 × 4 bytes).
+
+**Fail action:** HALT and signal manager.
+
+#### 4.1.b Memory guardrail (in-process; `ps` is sandbox-blocked)
+
+Within the same XCTest, after the first `embedDocument` call, use
+`mach_task_basic_info` to read RSS and fail hard at > 3 GiB:
+
+```swift
+import Darwin
+var info = mach_task_basic_info()
+var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info_data_t>.size / MemoryLayout<integer_t>.size)
+let kerr = withUnsafeMutablePointer(to: &info) { infoPtr in
+    infoPtr.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+        task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
+    }
+}
+if kerr == KERN_SUCCESS {
+    let rssMiB = Double(info.resident_size) / 1024.0 / 1024.0
+    print("RSS after first embed: \(rssMiB) MiB")
+    XCTAssertLessThan(rssMiB, 3072, "RSS > 3 GiB — check for multiple model copies")
+}
 ```
 
-```sh
-printf 'This is a test about cats.\n' > /tmp/vec-smoke/cats.md
-```
+Expect < 1.5 GiB under normal operation. Log the actual number.
+
+#### 4.1.c Interactive-shell smoke (for humans, not sub-agents)
+
+If running outside the ittybitty sandbox (e.g. Adam at a terminal),
+the canonical CLI smoke is:
 
 ```sh
-printf 'Trademark negotiation discussion.\n' > /tmp/vec-smoke/trademark.md
+mkdir /tmp/vec-smoke
+printf 'Trademark negotiation.\n' > /tmp/vec-smoke/trademark.md
+cd /tmp/vec-smoke
+swift run --package-path <vec-repo> vec init smoke-test --force
+swift run --package-path <vec-repo> vec update-index --db smoke-test
+swift run --package-path <vec-repo> vec search --db smoke-test --format json --limit 5 "trademark"
+sqlite3 ~/.vec/smoke-test/*.db "SELECT length(embedding) FROM chunks LIMIT 1;"  # expect 3072
 ```
 
-```sh
-printf 'Bean counter mode for quick execution.\n' > /tmp/vec-smoke/beans.md
-```
-
-```sh
-swift run vec reset --db smoke-test --force
-```
-
-```sh
-cd /tmp/vec-smoke && swift run --package-path /Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-222ac098/repo vec update-index --db smoke-test
-```
-
-```sh
-swift run vec search --db smoke-test --format json --limit 5 "trademark"
-```
-
-**Pass conditions:**
-
-- `update-index` finishes without crash, reports 3 added.
-- The JSON output of `search` is a non-empty array.
-- The implementer manually inspects one chunk's embedding (via a quick
-  `sqlite3 ~/.vec/smoke-test/index.db "SELECT length(embedding) FROM chunks LIMIT 1"`):
-  expect `768 * 4 = 3072` bytes per row.
-- **Memory guardrail:** after the first warmup embed, record the
-  process RSS (e.g. `ps -o rss= -p <pid>` — RSS is printed in KiB).
-  Expect < 1.5 GiB. If > 3 GiB, HALT and investigate (something is
-  holding multiple model copies or leaking).
-
-**Fail action:** halt and signal manager. Do NOT proceed to §5.
+This is reference only — sub-agent workers use §4.1.a.
 
 ---
 
@@ -806,10 +838,23 @@ For each config in §5.1:
 swift run vec reset --db markdown-memory --force
 ```
 
-For configs #1–#9 (recursive):
+For configs #1–#9 (recursive), run from the CURRENT worktree root
+(no `cd`, no `--package-path` — the sandbox blocks both):
+
 ```sh
-cd /Users/adamwulf/Library/Containers/com.milestonemade.EssentialMCP/Data/Documents/tools/markdown-memory && swift run --package-path /Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-222ac098/repo vec update-index --db markdown-memory --chunk-chars <N> --chunk-overlap <M> --verbose
+swift run vec update-index --db markdown-memory --chunk-chars <N> --chunk-overlap <M> --verbose
 ```
+
+**Why this works without `cd`:** the `markdown-memory` DB was
+pre-initialized (via a prior `vec init`) with its source directory
+already baked in — `vec info --db markdown-memory` shows `Source:
+/Users/adamwulf/Library/Containers/com.milestonemade.EssentialMCP/Data/Documents/tools/markdown-memory`.
+Subsequent `vec update-index --db markdown-memory` reads that mapping
+from `~/.vec/markdown-memory/` and indexes the baked source dir
+regardless of the current working directory. Same for `vec reset
+--db markdown-memory --force` and `vec search --db markdown-memory
+...`. Do NOT attempt to pass a positional source-dir to `update-index`
+— the CLI does not accept one; it uses the init-time binding.
 
 For configs #10–#11 (LineBased): the implementer must add a
 `--splitter line|recursive` flag to `UpdateIndexCommand.swift` (or
