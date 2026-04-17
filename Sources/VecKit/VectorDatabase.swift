@@ -55,8 +55,8 @@ public actor VectorDatabase {
     /// - Parameters:
     ///   - databaseDirectory: The directory containing `index.db` (e.g. `~/.vec/<db-name>/`).
     ///   - sourceDirectory: The directory being indexed.
-    ///   - dimension: The embedding vector dimension (default 512).
-    public init(databaseDirectory: URL, sourceDirectory: URL, dimension: Int = 512) {
+    ///   - dimension: The embedding vector dimension (default 768).
+    public init(databaseDirectory: URL, sourceDirectory: URL, dimension: Int = 768) {
         self.databaseDirectory = databaseDirectory
         self.sourceDirectory = sourceDirectory
         self.dbPath = databaseDirectory
