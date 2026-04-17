@@ -2,6 +2,23 @@ import Foundation
 import CSQLiteVec
 import Accelerate
 
+/// Wraps a sqlite3 connection so that its `deinit` runs on whatever thread
+/// happens to release the last reference. The pointer is trivial and only
+/// needs to be closed once, so no actor hop is required.
+private final class SQLiteHandle: @unchecked Sendable {
+    var db: OpaquePointer?
+
+    init(_ db: OpaquePointer?) {
+        self.db = db
+    }
+
+    deinit {
+        if let db = db {
+            sqlite3_close(db)
+        }
+    }
+}
+
 /// A record to insert into the chunks table, used by batch operations.
 public struct ChunkRecord: Sendable {
     public let filePath: String
@@ -45,7 +62,17 @@ public actor VectorDatabase {
     public let sourceDirectory: URL
 
     private let dbPath: String
-    private var db: OpaquePointer?
+    private var handle: SQLiteHandle?
+    private var db: OpaquePointer? {
+        get { handle?.db }
+        set {
+            if let handle {
+                handle.db = newValue
+            } else if let newValue {
+                handle = SQLiteHandle(newValue)
+            }
+        }
+    }
 
     /// The dimension of vectors stored in this database.
     public let dimension: Int
@@ -82,12 +109,6 @@ public actor VectorDatabase {
         }
         try openDatabase()
         try verifySchema()
-    }
-
-    deinit {
-        if let db = db {
-            sqlite3_close(db)
-        }
     }
 
     // MARK: - Insert
@@ -574,9 +595,11 @@ public actor VectorDatabase {
     }
 
     private func openDatabase() throws {
-        guard sqlite3_open(dbPath, &db) == SQLITE_OK else {
+        var opened: OpaquePointer?
+        guard sqlite3_open(dbPath, &opened) == SQLITE_OK else {
             throw sqlError("Failed to open database at \(dbPath)")
         }
+        handle = SQLiteHandle(opened)
     }
 
     private func createSchema() throws {

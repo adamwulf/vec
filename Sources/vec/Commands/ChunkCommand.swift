@@ -4,7 +4,7 @@ import VecKit
 
 struct ChunkCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "chunk",
         abstract: "Print the content of a single indexed chunk by 1-based position"
     )

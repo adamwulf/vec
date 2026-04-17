@@ -4,7 +4,7 @@ import VecKit
 
 struct InfoCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "info",
         abstract: "Show metadata about a specific database"
     )

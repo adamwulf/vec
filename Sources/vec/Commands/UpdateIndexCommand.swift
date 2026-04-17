@@ -217,7 +217,7 @@ private final class ProgressRenderer: @unchecked Sendable {
 
 struct UpdateIndexCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "update-index",
         abstract: "Update the vector index with new or modified files"
     )

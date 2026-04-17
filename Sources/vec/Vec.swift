@@ -5,7 +5,7 @@ import VecKit
 @main
 struct Vec: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "vec",
         abstract: "A CLI tool for creating and querying local vector databases",
         version: "0.1.0",

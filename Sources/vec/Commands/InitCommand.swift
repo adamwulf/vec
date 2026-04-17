@@ -4,7 +4,7 @@ import VecKit
 
 struct InitCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "init",
         abstract: "Initialize a vector database for the current directory"
     )

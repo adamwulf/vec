@@ -5,7 +5,7 @@ import VecKit
 
 struct SearchCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "search",
         abstract: "Search the vector database for semantically similar content"
     )

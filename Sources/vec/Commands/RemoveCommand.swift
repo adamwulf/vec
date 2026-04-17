@@ -4,7 +4,7 @@ import VecKit
 
 struct RemoveCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "remove",
         abstract: "Remove a file from the vector index"
     )

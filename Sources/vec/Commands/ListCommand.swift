@@ -4,7 +4,7 @@ import VecKit
 
 struct ListCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "list",
         abstract: "List all vector databases"
     )

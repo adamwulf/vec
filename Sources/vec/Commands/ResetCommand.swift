@@ -4,7 +4,7 @@ import VecKit
 
 struct ResetCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "reset",
         abstract: "Delete and recreate an empty database, preserving its source directory"
     )

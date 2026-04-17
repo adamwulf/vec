@@ -4,7 +4,7 @@ import VecKit
 
 struct InsertCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "insert",
         abstract: "Add or update a specific file in the vector index"
     )
