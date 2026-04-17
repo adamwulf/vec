@@ -230,8 +230,12 @@ final class TextExtractorTests: XCTestCase {
     }
 
     func testVeryLongSingleLineProducesOnlyWholeChunk() throws {
-        // A single very long line with no newlines — should produce only a whole-doc chunk
-        let longLine = String(repeating: "This is a very long sentence without any newlines. ", count: 200)
+        // A single very long line with no newlines — should produce only a whole-doc chunk.
+        // Kept under EmbeddingService.maxEmbeddingTextLength so the whole-chunk guard
+        // does not suppress it.
+        let unit = "This is a very long sentence without any newlines. "
+        let repeatCount = max(1, (EmbeddingService.maxEmbeddingTextLength / unit.count) - 10)
+        let longLine = String(repeating: unit, count: repeatCount)
         let file = createFile(name: "long_line.md", content: longLine)
         let extractor = TextExtractor()
         let chunks = try extractor.extract(from: file)
@@ -277,22 +281,29 @@ final class TextExtractorTests: XCTestCase {
         return FileInfo(relativePath: "MobyDick.pdf", url: url, modificationDate: modDate, fileExtension: "pdf")
     }
 
-    func testPDFExtractionProducesWholeAndPageChunks() throws {
+    func testPDFExtractionProducesPageChunks() throws {
         let file = pdfFileInfo()
         let extractor = TextExtractor()
         let chunks = try extractor.extract(from: file)
 
         // Should have at least one chunk
-        XCTAssertGreaterThan(chunks.count, 1)
+        XCTAssertGreaterThan(chunks.count, 0)
 
-        // First chunk should be the whole-document chunk
-        XCTAssertEqual(chunks[0].type, .whole)
-        XCTAssertNil(chunks[0].pageNumber)
-        XCTAssertFalse(chunks[0].text.isEmpty)
-
-        // Remaining chunks should be pdfPage type
+        // Page chunks should be present
         let pageChunks = chunks.filter { $0.type == .pdfPage }
         XCTAssertGreaterThan(pageChunks.count, 0)
+
+        // A whole-document chunk is only produced when the combined page text
+        // fits within EmbeddingService.maxEmbeddingTextLength. The Moby Dick
+        // fixture exceeds that limit, so no `.whole` chunk should be emitted.
+        let totalText = pageChunks.map(\.text).joined(separator: "\n")
+        if totalText.count <= EmbeddingService.maxEmbeddingTextLength {
+            XCTAssertEqual(chunks[0].type, .whole)
+            XCTAssertNil(chunks[0].pageNumber)
+            XCTAssertFalse(chunks[0].text.isEmpty)
+        } else {
+            XCTAssertFalse(chunks.contains { $0.type == .whole })
+        }
     }
 
     func testPDFPageChunksHaveCorrectPageNumbers() throws {
@@ -330,19 +341,27 @@ final class TextExtractorTests: XCTestCase {
         }
     }
 
-    func testPDFWholeChunkContainsTextFromMultiplePages() throws {
+    func testPDFWholeChunkOnlyEmittedWhenTextFitsInEmbeddingLimit() throws {
         let file = pdfFileInfo()
         let extractor = TextExtractor()
         let chunks = try extractor.extract(from: file)
 
-        let wholeChunk = chunks.first { $0.type == .whole }
-        XCTAssertNotNil(wholeChunk)
+        let pageChunks = chunks.filter { $0.type == .pdfPage }
+        let totalText = pageChunks.map(\.text).joined(separator: "\n")
 
-        // The whole-document chunk should contain text from across the PDF
-        // Moby Dick starts with recognizable content
-        let text = wholeChunk!.text
-        XCTAssertTrue(text.contains("MOBY") || text.contains("Moby") || text.contains("whale") || text.contains("Whale"),
-                       "Whole-document chunk should contain Moby Dick content")
+        if totalText.count <= EmbeddingService.maxEmbeddingTextLength {
+            // Small-enough PDF: whole chunk should be present and contain page text
+            let wholeChunk = chunks.first { $0.type == .whole }
+            XCTAssertNotNil(wholeChunk)
+            let text = wholeChunk!.text
+            XCTAssertTrue(text.contains("MOBY") || text.contains("Moby") || text.contains("whale") || text.contains("Whale"),
+                           "Whole-document chunk should contain Moby Dick content")
+        } else {
+            // Oversize PDF: whole chunk must be suppressed to avoid embedding
+            // only the first 10 KB and pretending it's the whole document.
+            XCTAssertFalse(chunks.contains { $0.type == .whole },
+                           "Whole chunk should not be produced for PDFs exceeding the embedding limit")
+        }
     }
 
     func testPDFPageChunksContainNonEmptyText() throws {

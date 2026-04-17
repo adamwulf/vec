@@ -14,6 +14,11 @@ struct SearchCommand: AsyncParsableCommand {
         case json
     }
 
+    enum ChunkDisplay: String, ExpressibleByArgument, CaseIterable {
+        case lines
+        case chunks
+    }
+
     @Option(name: .shortAndLong, help: "Name of the database (stored in ~/.vec/<name>/). Omit to resolve from current directory.")
     var db: String?
 
@@ -28,6 +33,9 @@ struct SearchCommand: AsyncParsableCommand {
 
     @Option(name: .long, help: "Output format: text or json")
     var format: OutputFormat = .text
+
+    @Option(name: .long, help: "How to render text chunks in results: lines (L10-20) or chunks (C1,2,3)")
+    var show: ChunkDisplay = .lines
 
     func run() async throws {
         guard limit > 0 else {
@@ -53,52 +61,104 @@ struct SearchCommand: AsyncParsableCommand {
         let results = try await database.search(embedding: queryEmbedding, limit: fetchLimit)
         let grouped = SearchResultCoalescer.coalesce(results, limit: limit)
 
+        // Resolve chunk ordinals only when needed for --show chunks
+        var ordinalsByFile: [String: [Int64: Int]] = [:]
+        if show == .chunks {
+            for group in grouped {
+                ordinalsByFile[group.filePath] = try await database.chunkOrdinals(filePath: group.filePath)
+            }
+        }
+
         switch format {
         case .text:
-            printTextResults(grouped)
+            printTextResults(grouped, ordinalsByFile: ordinalsByFile)
         case .json:
-            printJSONResults(grouped)
+            printJSONResults(grouped, ordinalsByFile: ordinalsByFile)
         }
     }
 
     // MARK: - Text Output
 
-    private func printTextResults(_ groups: [FileGroup]) {
+    private func printTextResults(_ groups: [FileGroup], ordinalsByFile: [String: [Int64: Int]]) {
         if groups.isEmpty {
             print("No results found.")
             return
         }
 
         for group in groups {
-            let score = String(format: "%.2f", group.bestScore)
-            print("\(group.filePath)  (\(score))")
+            let score = String(format: "%.4f", group.bestScore)
+            let ordinals = ordinalsByFile[group.filePath] ?? [:]
+            let list = renderMatchList(group.matches, ordinals: ordinals)
+            print("\(group.filePath) \(list) (\(score))")
 
-            for match in group.matches {
-                let matchScore = String(format: "%.2f", max(0, 1.0 - match.distance))
-                if match.chunkType == .image {
-                    print("  (OCR)  (\(matchScore))")
-                } else if let start = match.lineStart, let end = match.lineEnd {
-                    print("  Lines \(start)-\(end)  (\(matchScore))")
-                } else if let page = match.pageNumber {
-                    print("  Page \(page)  (\(matchScore))")
-                } else {
-                    print("  (whole file)  (\(matchScore))")
-                }
-
-                if includePreview, let preview = match.contentPreview {
-                    let truncated = preview.prefix(120).replacingOccurrences(of: "\n", with: " ")
-                    print("    \(truncated)")
+            if includePreview {
+                for match in group.matches {
+                    if let preview = match.contentPreview {
+                        let truncated = preview.prefix(120).replacingOccurrences(of: "\n", with: " ")
+                        print("  \(truncated)")
+                    }
                 }
             }
         }
     }
 
+    /// Renders the comma-separated match list. Text line-range chunks collapse
+    /// so only the first one in a run carries the `L` prefix (in lines mode).
+    /// Non-text chunks (whole, PDF page, OCR) always render with their type
+    /// marker.
+    private func renderMatchList(_ matches: [SearchResult], ordinals: [Int64: Int]) -> String {
+        var parts: [String] = []
+        var firstLineRange = true
+
+        for match in matches {
+            let token: String
+            switch match.chunkType {
+            case .image:
+                token = "OCR"
+                firstLineRange = true
+            case .whole:
+                token = "whole"
+                firstLineRange = true
+            case .pdfPage:
+                if let page = match.pageNumber {
+                    token = "P\(page)"
+                } else {
+                    token = "P?"
+                }
+                firstLineRange = true
+            case .chunk:
+                switch show {
+                case .lines:
+                    if let start = match.lineStart, let end = match.lineEnd {
+                        token = firstLineRange ? "L\(start)-\(end)" : "\(start)-\(end)"
+                        firstLineRange = false
+                    } else {
+                        token = "chunk"
+                        firstLineRange = true
+                    }
+                case .chunks:
+                    if let ordinal = ordinals[match.chunkId] {
+                        token = firstLineRange ? "C\(ordinal)" : "\(ordinal)"
+                        firstLineRange = false
+                    } else {
+                        token = firstLineRange ? "C?" : "?"
+                        firstLineRange = false
+                    }
+                }
+            }
+            parts.append(token)
+        }
+
+        return parts.joined(separator: ",")
+    }
+
     // MARK: - JSON Output
 
-    private func printJSONResults(_ groups: [FileGroup]) {
+    private func printJSONResults(_ groups: [FileGroup], ordinalsByFile: [String: [Int64: Int]]) {
         var jsonArray: [[String: Any]] = []
 
         for group in groups {
+            let ordinals = ordinalsByFile[group.filePath] ?? [:]
             var matchesArray: [[String: Any]] = []
             for match in group.matches {
                 var matchObj: [String: Any] = [
@@ -113,6 +173,9 @@ struct SearchCommand: AsyncParsableCommand {
                 }
                 if let page = match.pageNumber {
                     matchObj["page_number"] = page
+                }
+                if let ordinal = ordinals[match.chunkId] {
+                    matchObj["chunk_index"] = ordinal
                 }
                 if includePreview, let preview = match.contentPreview {
                     matchObj["preview"] = preview
