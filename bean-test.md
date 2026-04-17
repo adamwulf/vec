@@ -175,11 +175,21 @@ At the end (stop condition hit OR search space exhausted):
 
 ## Known working commands (verified)
 
-- Build the CLI: `swift build`
-- Invoke the dev build: `.build/debug/vec <subcommand>`
-  (or `swift run vec <subcommand>` — slower first time)
-- The release path on the user's machine is `vec`, but the agent should
-  use the freshly-built dev binary to pick up in-progress code changes.
+**ALWAYS invoke the CLI via `swift run vec <subcommand>`.** This is
+covered by the existing `Bash(swift:*)` permission allowlist and
+auto-rebuilds incrementally on code changes, so you don't need a
+separate `swift build` step between iterations. Do NOT use
+`.build/debug/vec` — it's not on the allowlist and will block on a
+permission prompt with no one to approve it.
+
+Concrete commands:
+- Wipe the test DB: `swift run vec reset --db markdown-memory --force`
+- Rebuild the index:
+  `cd /Users/adamwulf/Library/Containers/com.milestonemade.EssentialMCP/Data/Documents/tools/markdown-memory && swift run --package-path /Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/<your-worktree>/repo vec update-index --db markdown-memory --chunk-chars N --chunk-overlap M`
+  (or invoke from the repo root without `cd` — the DB name alone is
+  enough to locate it, `--db markdown-memory` resolves to `~/.vec/markdown-memory/`)
+- Run a scored search:
+  `swift run vec search --db markdown-memory --format json --limit 20 "your query"`
 
 ## Helpful context
 
