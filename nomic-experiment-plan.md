@@ -1,191 +1,966 @@
-# Experiment: swap NLEmbedding → `nomic-embed-text-v1.5`
+# Nomic Embedder Migration — Implementation Plan
 
-## The goal
+> **Audience:** a fresh implementation worker who has read `bean-test.md`,
+> `bean-test-results.md`, `embedder-research.md` (esp. §3.4, §3.13, §4),
+> and this file. The worker should follow the steps in order and tick the
+> final checklist as they go.
+>
+> **Goal:** rip out `NLEmbedding` and replace with `nomic-embed-text-v1.5`
+> via [`swift-embeddings`](https://github.com/jkrukowski/swift-embeddings)
+> (jkrukowski, MIT, SPM). Then run a parameter sweep against the
+> bean-test corpus to find the chunk config that scores highest on the
+> 10-query rubric.
+>
+> **Pre-approved constraints** (do NOT re-debate, even if they look
+> wasteful):
+> - macOS deployment target may be bumped from `.macOS(.v13)` to
+>   whatever `swift-embeddings` requires (currently `.macOS(.v14)`).
+> - Back-compat is OFF. No `--embedder` flag. No protocol with two
+>   impls. No DB metadata guard. No `NLEmbedding` fallback path.
+> - 768 dims always. No Matryoshka truncation. Update
+>   `VectorDatabase`'s default and every test that hardcodes 512.
+> - Existing DBs are wiped and reindexed.
+> - Integration substrate: `swift-embeddings` only. Not llama.cpp. Not
+>   manual CoreML.
+> - All CLI invocations use `swift run vec <cmd>`. Never
+>   `.build/debug/vec`.
+> - Scoring command: `swift run vec search --db markdown-memory
+>   --format json --limit 20 "<query>"`.
 
-Find out whether swapping our embedder from Apple's `NLEmbedding.sentenceEmbedding`
-to `nomic-embed-text-v1.5` lifts retrieval quality on the bean-test corpus from
-its current ceiling of **6/60** (see `bean-test-results.md`).
+---
 
-This is an isolated experiment, not a production swap. The experiment branch
-should be prepared so we can decide — based on numbers — whether to invest in a
-full migration (DB dim change, async-ification of the call path, caching,
-distribution UX). None of that work belongs in this experiment; keep the
-scaffolding minimal.
+## 0. Quick orientation
 
-## Success criteria
+Touch points (pre-existing, will be modified):
 
-Use the same 10 queries and scoring rubric from `bean-test.md`. Three gates:
+- `Package.swift` — bump platform, add dep.
+- `Sources/VecKit/EmbeddingService.swift` — full rewrite.
+- `Sources/VecKit/IndexingPipeline.swift` — `EmbedderPool.init` (line
+  ~645), `EmbedderPool.warmAll()` (line ~671), embed call site (line
+  ~360). Pool size + sync-to-async propagation.
+- `Sources/vec/Commands/SearchCommand.swift` — query-side embed call
+  (line ~60). Sync→async + `embedQuery(...)` rename.
+- `Sources/VecKit/VectorDatabase.swift` — `dimension: Int = 512`
+  default at line 59. Change to 768.
+- `Sources/VecKit/TextExtractor.swift` — uses
+  `EmbeddingService.maxEmbeddingTextLength` at lines 69 and 116. Either
+  drop the gate or rename to a nomic-specific constant.
+- `Tests/VecKitTests/VecKitTests.swift` — lines 36–71 (`EmbeddingServiceTests`)
+  and lines 239, 319, 371 (which reference `maxEmbeddingTextLength`).
+- `Tests/VecKitTests/NLEmbeddingThreadSafetyTests.swift` — delete or
+  rewrite as a `NomicEmbedder` concurrency canary.
+- `Tests/VecKitTests/IntegrationTests.swift` and
+  `Tests/VecKitTests/VectorDatabaseTests.swift` — also build
+  `EmbeddingService()` (lines ~25). Will need async-ification.
 
-- **Ship gate:** ≥ 30/60 total, AND both target files in top 10 on ≥ 4/10 queries.
-  "This is a real lift; proceed to plan the full migration."
-- **Interesting gate:** 15–29/60. "Moves the needle but not a landslide. Worth
-  testing a follow-up lever (hybrid BM25, larger dim, different chunk config)."
-- **Kill gate:** < 15/60. "Nomic at 512 dims isn't the answer for this corpus.
-  Record the result and revisit whether the bottleneck is chunking, the corpus,
-  or query formulation — not the embedder."
+---
 
-Record the result with per-query table, same format as `bean-test-results.md`.
+## 1. Pre-flight checks
 
-## Back-compat is NOT a constraint
+Run these commands in order. **Halt and signal manager** if any of the
+stop conditions fire.
 
-The user is the only user of this tool and can reindex at will. We do NOT
-need:
+### 1.1 curl works
 
-- `--embedder` flag preserving NLEmbedding as the default.
-- A protocol with two implementations coexisting.
-- A persisted DB config to guard against embedder/index mismatch.
-- An `EmbedderPool` of N copies (if nomic is thread-safe, use one; if not,
-  use N).
-- Support for the 512-dim sqlite-vec schema if a different dim performs better.
+```sh
+curl --version
+```
 
-Just rip out NLEmbedding and replace it. Pick the embedder config that
-produces the best score, not the config that is easiest to roll back from.
+Expect: `curl 7.x` or `8.x` printed and exit code 0.
 
-## Fixed variables (do not retune)
+### 1.2 Hugging Face is reachable
 
-- Chunker: `RecursiveCharacterSplitter`, 2000 chars / 200 overlap (baseline —
-  proven optimum by the prior experiment; changing both embedder AND chunking
-  at once would muddle the signal).
-- Test corpus: `~/Library/Containers/com.milestonemade.EssentialMCP/Data/Documents/tools/markdown-memory`.
-- Test DB: `markdown-memory` (safe to wipe/rebuild; already used by the prior
-  experiment).
-- Test queries: the exact 10 from `bean-test.md`. Do not add or remove any.
+```sh
+curl -sI https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/main/config.json
+```
 
-## Free variables (pick one each, document which)
+Expect: an HTTP response — either `HTTP/2 200` directly, or a `HTTP/2
+302` redirect to a CDN URL. Both are fine. A network error
+("Could not resolve host", connection timeout, etc.) is the failure
+signal.
 
-- **Model precision.** Start with GGUF **Q8_0** (~140 MiB) via llama.cpp OR the
-  default MLTensor format via `swift-embeddings`. We want the lightest option
-  that exercises the full quality — Q8 is widely understood to be
-  quality-indistinguishable from fp16 at a fraction of the size.
-- **Output dim.** Start at **768** (the full model). Back-compat isn't a
-  constraint, so there's no reason to truncate unless the larger dim fails to
-  justify its cost. If 768 lands in the ship gate, it's the winner. If it
-  lands in the interesting gate, retest at 512 and 256 to see whether the
-  Matryoshka truncation meaningfully sacrifices quality for speed/storage.
-- **Prefix handling.** `search_document:` on every indexed chunk;
-  `search_query:` on every search query. Non-negotiable — nomic was trained
-  with these.
+### 1.3 Report exact file sizes that swift-embeddings will pull
 
-## Integration path
+`swift-embeddings`'s `NomicBert.loadModelBundle(from: "nomic-ai/nomic-embed-text-v1.5")`
+downloads files via `swift-transformers`' `Hub.snapshot`. The
+implementer must report the byte sizes of the following files BEFORE
+the experiment starts (paste the raw `Content-Length` headers into the
+results log).
 
-**Use `swift-embeddings` (jkrukowski/swift-embeddings, MIT, SPM-compatible,
-MLTensor-based).** Rationale:
+```sh
+for f in config.json tokenizer.json tokenizer_config.json special_tokens_map.json vocab.txt model.safetensors modules.json sentence_bert_config.json 1_Pooling/config.json; do
+  echo "=== $f ==="
+  curl -sIL "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/main/$f" | grep -i '^content-length\|^HTTP/'
+done
+```
 
-- Explicit NomicBERT support per its README.
-- Pure Swift, pure SPM — no CoreML conversion, no llama.cpp build system.
-- Models download from Hugging Face on first use (see "Network concern" below).
-- The same package can host future model swaps (BGE, MiniLM, E5) without
-  re-architecting.
+(Each command runs as a separate Bash tool call — no piping/chaining
+across calls. `for ... do ... done` is one shell command, which is
+allowed.)
 
-This is the lowest-effort path that gives a real answer.
+If a file 404s, that is OK — it just means swift-embeddings doesn't
+need it. Record the sizes that exist.
 
-### Do NOT do
+Cross-check totals against the HF siblings API:
 
-- Don't add chunk-content caching. Out of scope — relevant only for the OpenAI
-  path and this is local.
-- Don't keep a protocol-switched NLEmbedding fallback path. Just replace it.
-- Don't change the scoring worker's query list or rubric.
-- Don't keep API knobs (env vars, flags) that exist only to preserve the old
-  embedder's behavior.
+```sh
+curl -s https://huggingface.co/api/models/nomic-ai/nomic-embed-text-v1.5/tree/main
+```
 
-## Code changes (minimum viable)
+This returns a JSON list; sum the `size` fields for `.json`, `.txt`,
+and `model.safetensors`.
 
-The codebase currently has a single concrete `EmbeddingService` class used
-directly at three sites:
+**Expected dominant file:** `model.safetensors` ≈ ~525 MiB (137M params
+× 4 bytes for fp32) — but the actual size is what
+`Content-Length` returns; record that, do not assume.
 
-- `Sources/VecKit/IndexingPipeline.swift` — inside `EmbedderPool.init` (line ~646)
-- `Sources/VecKit/IndexingPipeline.swift` — warmup loop (line ~672)
-- `Sources/vec/Commands/SearchCommand.swift` — at the top of `run()` (line ~60)
+### 1.4 Hugging Face cache path
 
-Swap approach (back-compat is not a constraint):
+`swift-transformers`' `HubApi` defaults `downloadBase` to the user's
+Documents directory:
 
-1. **Replace `EmbeddingService`'s implementation** with `swift-embeddings`
-   wrapping `nomic-embed-text-v1.5`. Give it two methods —
-   `embedDocument(_ text: String)` and `embedQuery(_ text: String)` — that
-   prepend `search_document: ` and `search_query: ` respectively before
-   calling into the package.
-2. **Update the three call sites** to use the right method. Indexing-time
-   callers (`IndexingPipeline` pool + warmup) use `embedDocument`.
-   `SearchCommand` uses `embedQuery`.
-3. **Update `dimension`** — if the chosen dim isn't 512, update
-   `VectorDatabase`'s assumptions and any test asserts. The existing DB schema
-   stores raw BLOBs with no dimension enforcement (verified in
-   `VectorDatabase.swift:59,505-529` per the reviewer), so changing `dimension`
-   plus a one-time `vec reset` is enough. No migration code needed.
-4. **EmbedderPool**: if `swift-embeddings` / MLTensor is thread-safe for a
-   shared instance, collapse the pool to a single instance (saves gigabytes at
-   concurrency = 10 for a 768-dim model). If not, keep the pool of N. The
-   agent should check by reading `swift-embeddings` source and trying a
-   concurrent-use test — document the answer in the experiment results.
-5. **Remove NLEmbedding-specific code** (`NLEmbedding.sentenceEmbedding`,
-   `maxEmbeddingTextLength` if nomic's limits differ, the
-   `NLEmbeddingThreadSafetyTests.swift` regression canary — or rewrite it as
-   a `NomicEmbedder` canary if relevant). We're replacing the embedder, not
-   hedging.
+```
+~/Documents/huggingface/models/nomic-ai/nomic-embed-text-v1.5/
+```
 
-Everything else — chunk-content caching, distribution UX (bundling vs
-download-on-demand), keychain/env-var key handling — is **out of scope** for
-this experiment. The deliverable is a score. If the score lands in ship or
-interesting gate, a follow-up task will sort out distribution.
+Verify after first run by listing that directory. The implementer
+should record this path in `nomic-experiment-results.md` so the
+weights can be located, copied, or wiped manually.
 
-## Network concern (user-flagged)
+### 1.5 STOP CONDITIONS for this section
 
-`swift-embeddings` downloads weights from Hugging Face on first use. The model
-is <https://huggingface.co/nomic-ai/nomic-embed-text-v1.5>. Files to verify
-before doing anything else:
+Halt and `ib send agent-e7013d1a "[STUCK] pre-flight: <reason>"` if:
 
-1. **Measure the download.** Before the experiment even starts, the agent
-   should curl / `huggingface-cli` list the file sizes and report:
-   - Total size of what `swift-embeddings` will actually pull (safetensors +
-     tokenizer + config JSON). This is NOT the same as the GGUF numbers in the
-     research doc (~140 MiB Q8 / ~262 MiB fp16) — swift-embeddings uses MLTensor,
-     not GGUF.
-   - Whether any tokenizer / config files are extra downloads.
-2. **One-time-only.** Weights cache locally after first download. Running the
-   experiment repeatedly does not re-download. Confirm the cache location and
-   report it in the experiment log (so it can be manually seeded on other
-   machines or mirrored to S3).
-3. **S3 mirror is a future step, not this experiment's problem.** The agent
-   does NOT need to set up mirroring — just confirm the cache structure is
-   "download once, reuse forever" and note the cache path.
+- `curl` is missing or non-functional.
+- `huggingface.co` is unreachable from this machine.
+- The total of all files swift-embeddings will pull (per §1.3) **exceeds
+  1 GB**.
 
-Report these three items in the experiment log BEFORE starting iteration 1.
-If the download is unexpectedly large (> 1 GB), pause and ask before
-proceeding — at that point Q8 GGUF via llama.cpp might be a better experiment
-path.
+Otherwise: record the per-file sizes + total + cache path in
+`nomic-experiment-results.md` and proceed to §2.
 
-## Execution protocol
+---
 
-1. **Pre-flight.** Report swift-embeddings HF download size, cache path, any
-   surprises.
-2. **Write the code changes** outlined above. Compile cleanly. Verify the
-   NLEmbedding path still works (regression safety).
-3. **Wipe test DB:** `swift run vec reset --db markdown-memory --force`.
-4. **Reindex with nomic:**
-   `swift run vec update-index --db markdown-memory`
-   (chunk config defaults — no `--chunk-chars` / `--chunk-overlap`. No
-   `--embedder` flag exists; we've replaced the embedder outright.)
-5. **Score.** Spawn a worker sub-agent with the same scoring prompt shape as
-   `bean-test.md` section "Iteration protocol" — same 10 queries, same rubric.
-   Do NOT re-invent the queries. Command the worker uses:
-   `swift run vec search --db markdown-memory --format json --limit 20 "<query>"`
-6. **Write up `nomic-experiment-results.md`** with: swift-embeddings download
-   size, cache path, per-query table, total score, which gate was hit,
-   recommendation for next step.
-7. **Do not commit the code changes if the kill gate is hit.** Just commit
-   the results log. If the ship or interesting gate is hit, leave the code in
-   place on the branch — the manager will decide what to merge.
+## 2. Package.swift changes
 
-## Hand-off
+### 2.1 Read the upstream Package.swift first
 
-This plan is executed by a fresh agent on a new branch. When spawning, point
-the agent at:
+`swift-embeddings`'s own `Package.swift` (verified at the time of this
+plan) declares:
 
-- This file (`nomic-experiment-plan.md`) for what to do.
-- `bean-test.md` for the query list and scoring rubric.
-- `bean-test-results.md` for the baseline that any result must be compared
-  against.
-- `embedder-research.md` §3.4 and §3.13 for nomic + swift-embeddings detail
-  (dims, Matryoshka truncation, prefix requirement).
-- `Sources/VecKit/EmbeddingService.swift` and the three call sites
-  (`IndexingPipeline.swift`, `SearchCommand.swift`) for where code changes go.
+- `// swift-tools-version: 6.0`
+- `platforms: [.macOS(.v14), .iOS(.v17), .visionOS(.v1)]`
+
+So our package must:
+1. Bump `platforms` to at least `.macOS(.v14)`.
+2. Stay at `swift-tools-version` `5.9` or higher (we're already at
+   `5.9`; that's fine — only `swift-embeddings` itself needs `6.0`).
+
+### 2.2 Pick the version tag
+
+The latest released tag at the time of this plan is **`0.0.26`** (Feb
+2026). Use `from: "0.0.26"` to allow patch/minor updates within the
+0.0.x series. If `swift package resolve` fails because that tag has
+been retracted, fall back to `from: "0.0.20"` and document.
+
+### 2.3 Diff for `Package.swift`
+
+```diff
+ // swift-tools-version: 5.9
+ import PackageDescription
+
+ let package = Package(
+     name: "vec",
+     platforms: [
+-        .macOS(.v13)
++        .macOS(.v14)
+     ],
+     products: [
+         .library(name: "VecKit", targets: ["VecKit"]),
+         .executable(name: "vec", targets: ["vec"])
+     ],
+     dependencies: [
+-        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0")
++        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
++        .package(url: "https://github.com/jkrukowski/swift-embeddings", from: "0.0.26")
+     ],
+     targets: [
+         .systemLibrary(
+             name: "CSQLiteVec",
+             pkgConfig: "sqlite3",
+             providers: [
+                 .brew(["sqlite"])
+             ]
+         ),
+         .target(
+             name: "VecKit",
+             dependencies: [
+-                "CSQLiteVec"
++                "CSQLiteVec",
++                .product(name: "Embeddings", package: "swift-embeddings")
+             ]
+         ),
+```
+
+Library product name from `swift-embeddings` is **`Embeddings`** (its
+`MLTensorUtils` is a separate optional product we don't need).
+
+### 2.4 Sanity check
+
+```sh
+swift package resolve
+```
+
+```sh
+swift build
+```
+
+Both should complete without errors. If `swift build` errors with
+something like "no such module 'Embeddings'", confirm the product name
+in the upstream Package.swift hasn't drifted — then HALT and signal
+manager.
+
+If `swift package resolve` complains about `argument-parser` or
+`swift-numerics` version conflicts, accept the higher minimum that
+swift-embeddings requires. If that bumps argument-parser past 1.3, just
+update our `from:` to match.
+
+---
+
+## 3. Code changes — file by file
+
+For each file: path, line range, before/after sketch, rationale.
+
+### 3.1 `Sources/VecKit/EmbeddingService.swift` — full rewrite
+
+**Lines:** entire file (47 lines).
+
+**Rationale:** NLEmbedding is gone. Replace with a concurrency-safe
+async wrapper around `NomicBert.ModelBundle` that exposes
+`embedDocument` and `embedQuery` with the required nomic prefixes.
+
+**Sketch (NOT a complete impl — just the shape):**
+
+```swift
+import Foundation
+import Embeddings  // from swift-embeddings
+
+/// Wraps swift-embeddings' NomicBert model for nomic-embed-text-v1.5.
+///
+/// The model is loaded lazily on first use (network download on first
+/// run, cached at ~/Documents/huggingface/models/nomic-ai/...
+/// thereafter). All embeddings are 768-dim Float32.
+///
+/// Nomic was trained with mandatory prefixes:
+///   - "search_document: "  for indexed text
+///   - "search_query: "     for queries
+/// Forgetting them measurably degrades retrieval — both methods add
+/// the prefix internally so callers must use the right method, not
+/// the right string.
+public actor EmbeddingService {
+
+    public static let dimension = 768
+
+    /// Maximum input length in characters before we truncate. Nomic's
+    /// tokenizer max is 8192 tokens (~32 KB chars in English). Pick a
+    /// generous char cap that stays safely under that — pre-tokenization
+    /// truncation just keeps the encoder from blowing up on unbounded
+    /// text. Tunable.
+    public static let maxInputCharacters = 30_000
+
+    private var bundle: NomicBert.ModelBundle?
+
+    public init() {}
+
+    /// Embed a document chunk for indexing.
+    public func embedDocument(_ text: String) async throws -> [Float] {
+        try await embed(prefix: "search_document: ", text: text)
+    }
+
+    /// Embed a query at search time.
+    public func embedQuery(_ text: String) async throws -> [Float] {
+        try await embed(prefix: "search_query: ", text: text)
+    }
+
+    private func embed(prefix: String, text: String) async throws -> [Float] {
+        let bundle = try await loadBundleIfNeeded()
+        var trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return [] }   // caller treats empty as failure
+        if trimmed.count > Self.maxInputCharacters {
+            trimmed = String(trimmed.prefix(Self.maxInputCharacters))
+        }
+        let input = prefix + trimmed
+        let tensor = try bundle.encode(input)            // sync, throws -> MLTensor
+        // Convert MLTensor → [Float]. Per swift-embeddings README:
+        //   await tensor.cast(to: Float.self).shapedArray(of: Float.self).scalars
+        let scalars = await tensor.cast(to: Float.self).shapedArray(of: Float.self).scalars
+        // NomicBert's encode returns a single 768-dim vector
+        // (CLS pooling done internally). If scalars.count == 768
+        // we're done. If it's longer (per-token output), the
+        // implementer must add mean-pooling — verify shape on the
+        // first warmup call and HALT if surprising.
+        return scalars
+    }
+
+    private func loadBundleIfNeeded() async throws -> NomicBert.ModelBundle {
+        if let bundle { return bundle }
+        let loaded = try await NomicBert.loadModelBundle(
+            from: "nomic-ai/nomic-embed-text-v1.5"
+        )
+        self.bundle = loaded
+        return loaded
+    }
+}
+```
+
+**Important shape facts** (verified against
+swift-embeddings 0.0.26 source):
+
+- `NomicBert.loadModelBundle(from:)` is **async throws**, returns
+  `NomicBert.ModelBundle`.
+- `ModelBundle.encode(_:maxLength:postProcess:computePolicy:)` is
+  **sync throws -> MLTensor**.
+- `MLTensor → [Float]` conversion is async (`await tensor.cast(...).shapedArray(...)`).
+- Internal pooling: NomicBert.swift's `processResult` should already
+  produce a single sentence vector. **Verify shape on the first warmup
+  call.** If scalars.count != 768, the implementer must add
+  mean-pooling over the token dimension (sketch: reshape `scalars` into
+  `[seqLen, 768]`, take column-wise mean) — and document it.
+
+**Why an `actor` and not `final class`?** With NLEmbedding we needed N
+copies because the underlying C++ runtime crashed under concurrent
+calls. swift-embeddings' MLTensor backend is documented as not
+thread-safe for shared encode calls (no documented guarantees in the
+README), so a single instance must serialize calls. An `actor`
+provides that for free, and lets us collapse the pool to one
+shared instance — saving ~9× the model weight memory at typical
+worker counts.
+
+### 3.2 `Sources/VecKit/IndexingPipeline.swift` — pool + async propagation
+
+**(a) `EmbedderPool` (lines 638–676)** — collapse to a single shared instance.
+
+Current shape: actor with `available: [EmbeddingService]`,
+`acquire()`/`release()`, `warmAll()`. Rationale was to work around
+NLEmbedding's thread unsafety with N copies.
+
+**New shape:** still an actor (interface preserved so callers don't
+need restructuring), but holds **one** `EmbeddingService` actor.
+`acquire()` returns the same instance every time; `release()` is a
+no-op. The `EmbeddingService` actor itself serializes embed calls.
+
+**Sketch:**
+
+```swift
+actor EmbedderPool {
+    private let embedder: EmbeddingService
+
+    init(count: Int) {
+        // count is ignored — kept on the signature so IndexingPipeline.init
+        // doesn't need to change. swift-embeddings' MLTensor backend has
+        // no documented thread-safety guarantee, so a single shared
+        // instance with serialized access (the EmbeddingService actor)
+        // is the safe default. If we observe segfaults / data races
+        // under concurrent load, raise pool size to N here and document
+        // why.
+        _ = count
+        self.embedder = EmbeddingService()
+    }
+
+    func acquire() async -> EmbeddingService { embedder }
+
+    func release(_ embedder: EmbeddingService) { /* no-op */ }
+
+    func warmAll() async {
+        // Force-load the model + run one inference so the first real
+        // chunk doesn't pay cold-start cost.
+        do {
+            _ = try await embedder.embedDocument("warmup")
+        } catch {
+            // swallow — warmup failure surfaces on the first real embed
+        }
+    }
+}
+```
+
+**Pool size note:** start with effective pool=1. If profiling shows
+serialized embed calls cap throughput far below expectations AND
+thread-safety verification (run `embedder.embedDocument` from N tasks
+concurrently in a quick canary test) shows no crashes, raise to N. But
+do that as a follow-up — it's not required to score the experiment.
+
+**(b) Embed task body (line 360)** — change the synchronous embed
+call to await the async API.
+
+Before:
+```swift
+let vector = embedder.embed(chunk.text)
+```
+
+After:
+```swift
+let vector: [Float]?
+do {
+    let v = try await embedder.embedDocument(chunk.text)
+    vector = v.isEmpty ? nil : v
+} catch {
+    vector = nil
+}
+```
+
+Rationale: pipeline already `await`s `pool.acquire()` from inside an
+async task, so adding another `await` here is free. `embedDocument`
+throws on model-load failure (unlike NLEmbedding's nil return), so
+catch & treat as a per-chunk failure to preserve existing
+"`.skippedEmbedFailure`" semantics.
+
+**(c) `IndexingPipeline.init` (lines 174–179)** — no changes
+required. Pool count parameter is harmless even though the pool
+ignores it.
+
+**(d) `EmbedderPool` doc comments (lines 636–640, 667–670)** —
+update to reflect single-shared-instance design.
+
+### 3.3 `Sources/vec/Commands/SearchCommand.swift` — query-side call
+
+**Lines:** 60–64.
+
+Before:
+```swift
+let embedder = EmbeddingService()
+guard let queryEmbedding = embedder.embed(query) else {
+    print("Error: Failed to generate embedding for query.")
+    throw ExitCode.failure
+}
+```
+
+After:
+```swift
+let embedder = EmbeddingService()
+let queryEmbedding: [Float]
+do {
+    queryEmbedding = try await embedder.embedQuery(query)
+} catch {
+    print("Error: Failed to generate embedding for query: \(error)")
+    throw ExitCode.failure
+}
+guard !queryEmbedding.isEmpty else {
+    print("Error: Empty embedding for query.")
+    throw ExitCode.failure
+}
+```
+
+Rationale: `run()` is already `async`, so `await` is free. Use
+`embedQuery` (not `embedDocument`) to apply the right nomic prefix.
+
+### 3.4 `Sources/VecKit/VectorDatabase.swift` — dimension default
+
+**Line 59.**
+
+Before:
+```swift
+public init(databaseDirectory: URL, sourceDirectory: URL, dimension: Int = 512) {
+```
+
+After:
+```swift
+public init(databaseDirectory: URL, sourceDirectory: URL, dimension: Int = 768) {
+```
+
+Also update the doc comment on line 58:
+```swift
+///   - dimension: The embedding vector dimension (default 768).
+```
+
+**Grep verification:** `grep -n 512 Sources/VecKit/VectorDatabase.swift`
+should return only lines 58 and 59 (the comment + the default
+parameter). The schema stores embeddings as raw BLOBs with no
+dimension constraint (verified at lines 583–595, the chunks-table
+DDL), so no schema migration is needed — just wipe + reindex.
+
+### 3.5 `Sources/VecKit/TextExtractor.swift` — drop the NL char cap
+
+**Lines 69 and 116.**
+
+Both reference `EmbeddingService.maxEmbeddingTextLength`. That
+constant doesn't exist post-rewrite. Two options:
+
+**Preferred:** rename the new constant on `EmbeddingService` (per the
+sketch in §3.1, `EmbeddingService.maxInputCharacters`) and point
+TextExtractor at it:
+
+```diff
+-        if trimmed.count <= EmbeddingService.maxEmbeddingTextLength {
++        if trimmed.count <= EmbeddingService.maxInputCharacters {
+             chunks.append(TextChunk(text: trimmed, type: .whole))
+         }
+```
+
+(Same diff at line 116 for the PDF path.)
+
+Rationale: the gate is preserved (a "whole" chunk is suppressed for
+documents larger than the embedder can handle). Nomic's real cap is
+8192 tokens (~32 KB chars), so `maxInputCharacters = 30_000` raises
+the gate ~3× from the old 10 KB. That's intentional — it lets more
+documents get a `.whole` embedding, which the bean-test results show
+matters for short summary files.
+
+### 3.6 Tests — `Tests/VecKitTests/VecKitTests.swift`
+
+**Lines 36–71** — `EmbeddingServiceTests` rewrite.
+
+The current tests assume sync `embed(_:) -> [Float]?`, dimension 512,
+`maxEmbeddingTextLength` = 10 000. Replace with async tests against
+the new API:
+
+```swift
+final class EmbeddingServiceTests: XCTestCase {
+
+    func testEmbedDocumentReturnsArrayOfDimension768() async throws {
+        let service = EmbeddingService()
+        let result = try await service.embedDocument("hello world")
+        XCTAssertEqual(result.count, 768)
+    }
+
+    func testEmbedQueryReturnsArrayOfDimension768() async throws {
+        let service = EmbeddingService()
+        let result = try await service.embedQuery("hello world")
+        XCTAssertEqual(result.count, 768)
+    }
+
+    func testEmbedEmptyStringReturnsEmpty() async throws {
+        let service = EmbeddingService()
+        let result = try await service.embedDocument("")
+        XCTAssertEqual(result.count, 0)
+    }
+
+    func testEmbedWhitespaceOnlyReturnsEmpty() async throws {
+        let service = EmbeddingService()
+        XCTAssertEqual(try await service.embedDocument("   ").count, 0)
+        XCTAssertEqual(try await service.embedDocument("\n\n").count, 0)
+    }
+
+    func testEmbedVeryLongTextDoesNotCrashAndReturns768() async throws {
+        let service = EmbeddingService()
+        let longText = String(repeating: "The quick brown fox. ", count: 5000)
+        XCTAssertGreaterThan(longText.count, EmbeddingService.maxInputCharacters)
+        let result = try await service.embedDocument(longText)
+        XCTAssertEqual(result.count, 768)
+    }
+
+    func testDimensionIs768() {
+        XCTAssertEqual(EmbeddingService.dimension, 768)
+    }
+}
+```
+
+Rename the test method `testEmbedHelloWorldReturnsNonNilArrayOfDimension512`
+→ `testEmbedDocumentReturnsArrayOfDimension768`. Drop
+`testDimensionIs512` and replace with `testDimensionIs768`. Note
+`dimension` is now a `static let` (the actor instance cannot expose
+sync stored properties without a hop — make it static so callers can
+read it without await).
+
+**Lines 239, 319, 371** — references to
+`EmbeddingService.maxEmbeddingTextLength` from `TextExtractorTests`.
+Rename to `EmbeddingService.maxInputCharacters`. Tests still pass
+because the new cap is 30 000 (so the Moby Dick PDF fixture and
+oversized-line tests still trigger the size gate).
+
+### 3.7 Tests — `Tests/VecKitTests/IntegrationTests.swift` and `Tests/VecKitTests/VectorDatabaseTests.swift`
+
+Both files build `EmbeddingService()` at line ~25 and then call
+`embeddingService.embed(...)` in a helper. The implementer must:
+
+- Convert helpers from sync to async, propagate `async throws`
+  through any caller that uses them.
+- Replace `embeddingService.embed(text)` with
+  `try await embeddingService.embedDocument(text)` (these are
+  building index entries, so document prefix is correct).
+- Replace any "expect 512-dim" assertions with 768.
+
+Run the affected tests after the changes to confirm.
+
+### 3.8 Delete or rewrite `Tests/VecKitTests/NLEmbeddingThreadSafetyTests.swift`
+
+**Decision: delete.** The test exists as a regression canary for
+NLEmbedding's specific C++ runtime bug; no analogous bug is documented
+for swift-embeddings. We can re-introduce a NomicEmbedder concurrency
+canary later if we observe instability.
+
+Removal:
+```sh
+rm Tests/VecKitTests/NLEmbeddingThreadSafetyTests.swift
+```
+
+(If the implementer prefers to keep a canary: rewrite the file as
+`NomicEmbedderConcurrencyTests` that fires N concurrent
+`try await embedder.embedDocument(text)` calls against a single shared
+`EmbeddingService` actor and asserts every call returns 768 floats.
+But this is optional and not required to ship.)
+
+### 3.9 Remove leftover `import NaturalLanguage`
+
+```sh
+grep -rn "import NaturalLanguage" Sources/ Tests/
+```
+
+Expect: hits only in `IndexingPipeline.swift` (line 2 — used for
+`NLLanguageRecognizer` to detect non-English content; KEEP that
+import) and any file that's been deleted/rewritten (drop those).
+EmbeddingService.swift loses its `import NaturalLanguage`.
+
+---
+
+## 4. Smoke test before reindexing
+
+Before kicking off the full sweep, prove the new pipeline doesn't
+crash and produces 768-dim vectors. The implementer creates a small
+temp directory with three files, indexes it into a throwaway DB, and
+inspects the JSON.
+
+```sh
+mkdir -p /tmp/vec-smoke
+```
+
+```sh
+printf 'This is a test about cats.\n' > /tmp/vec-smoke/cats.md
+```
+
+```sh
+printf 'Trademark negotiation discussion.\n' > /tmp/vec-smoke/trademark.md
+```
+
+```sh
+printf 'Bean counter mode for quick execution.\n' > /tmp/vec-smoke/beans.md
+```
+
+```sh
+swift run vec reset --db smoke-test --force
+```
+
+```sh
+cd /tmp/vec-smoke && swift run --package-path /Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-222ac098/repo vec update-index --db smoke-test
+```
+
+```sh
+swift run vec search --db smoke-test --format json --limit 5 "trademark"
+```
+
+**Pass conditions:**
+
+- `update-index` finishes without crash, reports 3 added.
+- The JSON output of `search` is a non-empty array.
+- The implementer manually inspects one chunk's embedding (via a quick
+  `sqlite3 ~/.vec/smoke-test/index.db "SELECT length(embedding) FROM chunks LIMIT 1"`):
+  expect `768 * 4 = 3072` bytes per row.
+
+**Fail action:** halt and signal manager. Do NOT proceed to §5.
+
+---
+
+## 5. Parameter-sweep protocol
+
+Once the smoke test passes, run the parameter sweep against the
+bean-test corpus.
+
+### 5.1 Configurations to test (in order)
+
+Run them in this sequence so the implementer can early-stop on a clear
+winner. Mix recursive char-based and line-based splitters.
+
+| # | Splitter | chunk-chars / chunk-overlap | rationale |
+|---|----------|-----------------------------|-----------|
+| 1 | recursive | 2000 / 200 | baseline — direct A/B vs NLEmbedding 6/60 |
+| 2 | recursive | 1200 / 240 | mid — Iter 7's NLEmbedding worst, may differ |
+| 3 | recursive | 800 / 160 | small-medium |
+| 4 | recursive | 500 / 100 | small |
+| 5 | recursive | 2500 / 250 | larger-mid |
+| 6 | recursive | 300 / 60 | very small |
+| 7 | recursive | 400 / 80 | re-test of NLEmbedding's 3/60 corner |
+| 8 | recursive | 1500 / 300 | mid-larger |
+| 9 | recursive | 3000 / 300 | larger — pushes whole-doc gate |
+| 10 | LineBased | 30 lines / 8 overlap | LineBasedSplitter default |
+| 11 | LineBased | 50 lines / 10 overlap | LineBasedSplitter wider |
+
+**Note on time:** nomic-embed-text-v1.5 at 768 dims is **substantially
+slower** than NLEmbedding at 512 dims. NLEmbedding's bean-test reindex
+ran in ~minutes; nomic may take 5–15× as long depending on hardware
+and pool size (which is now 1).
+
+### 5.2 Time-it-first protocol
+
+**Always reindex configuration #1 (2000/200) first** and record
+wall-clock from the verbose output. That's the baseline cost. Multiply
+by ~1.5× as a rough upper bound for smaller chunk configs (more
+chunks = more embed calls). If the projected total of all 11 configs
+exceeds the 12-hour budget (§7), prioritize:
+
+1. config #1 (#1 baseline)
+2. config #4 or #6 (small chunks — most likely to lift transcript)
+3. config #10 (LineBasedSplitter)
+4. config #5 or #9 (large — most likely to lift summary)
+5. … remaining configs in any order until budget exhausted.
+
+### 5.3 Per-iteration recipe
+
+For each config in §5.1:
+
+```sh
+swift run vec reset --db markdown-memory --force
+```
+
+For configs #1–#9 (recursive):
+```sh
+cd /Users/adamwulf/Library/Containers/com.milestonemade.EssentialMCP/Data/Documents/tools/markdown-memory && swift run --package-path /Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-222ac098/repo vec update-index --db markdown-memory --chunk-chars <N> --chunk-overlap <M> --verbose
+```
+
+For configs #10–#11 (LineBased): the implementer must add a
+`--splitter line|recursive` flag to `UpdateIndexCommand.swift` (or
+temporarily hardcode `LineBasedSplitter(chunkSize: 30, overlapSize:
+8)` in `run()`). This is a separate small code change. Document it
+inline in the iteration log.
+
+### 5.4 Scoring
+
+Score each config against the same 10 queries from `bean-test.md`.
+Run each query and parse the JSON for the two target files:
+
+- `granola/2026-02-26-22-30-164bf8dc/transcript.txt` (T)
+- `granola/2026-02-26-22-30-164bf8dc/summary.md` (S)
+
+Per query: rank 1–3 → +3, rank 4–10 → +2, rank 11–20 → +1, absent → 0
+(scored independently for T and S).
+
+Use exactly:
+```sh
+swift run vec search --db markdown-memory --format json --limit 20 "<query>"
+```
+
+Either parse the JSON in the worker shell directly with `jq` filters,
+or spawn a sub-agent for the scoring (recommended — keeps the
+manager's context clean):
+
+```
+ib new-agent --worker "Run these 10 search queries... [paste full
+prompt from bean-test.md §Iteration protocol]"
+```
+
+### 5.5 Logging — `nomic-experiment-results.md`
+
+After each iteration, append a row to `nomic-experiment-results.md`
+(create on first iteration). Same format as `bean-test-results.md`:
+
+```
+| # | timestamp | config | total | top10 | notes |
+| 1 | 2026-04-17 | recursive 2000/200 | 12/60 | 1/10 | baseline nomic |
+```
+
+Plus the per-query block underneath:
+
+```
+### Iteration 1 — recursive 2000/200, nomic-embed-text-v1.5 768 dims
+| # | query | T rank | S rank | T score | S score | subtotal |
+| 1 | trademark price negotiation | 4 | 8 | 2 | 2 | 4 |
+...
+TOTAL: X/60, QUERIES_HIT_TOP10: N/10
+```
+
+### 5.6 Parallelism — be explicit
+
+- **Reindexing in parallel: NOT SAFE.** Two `swift run vec
+  update-index` instances against the same DB will both try to lock
+  `index.db`. Even against different DBs they share the `swift run`
+  build state and will serialize on the lock anyway. Run reindexes
+  **strictly serially**.
+- **Scoring in parallel: SAFE for read-only `vec search` against an
+  already-built DB.** `vec search` opens SQLite read-only effectively
+  (it only does SELECTs). Spawning N scoring workers against the same
+  DB after a reindex is fine.
+- The implementer can pipeline: reindex config #N, kick off scoring
+  worker for config #N, simultaneously start reindex of config #N+1.
+  Just don't reindex two configs at once.
+
+### 5.7 Commit per iteration
+
+After each iteration logs to `nomic-experiment-results.md`:
+
+```sh
+git add nomic-experiment-results.md
+```
+
+```sh
+git commit -m "nomic-experiment iter N: <config>, <score>/60"
+```
+
+Rationale: 12-hour wall-clock budget is long enough that an OS reboot,
+container restart, or accidental kill could lose work. Commit-per-
+iteration is cheap.
+
+---
+
+## 6. Stop conditions for the whole experiment
+
+These come straight from the pre-approved constraints. Wire them into
+the iteration loop.
+
+### 6.1 SHIP gate
+
+**Trigger:** ANY single config scores ≥ 45/60 AND both target files
+hit top 10 on ≥ 7/10 queries.
+
+**Action:**
+1. STOP further iterations immediately.
+2. Make the winning config the new default in
+   `Sources/vec/Commands/UpdateIndexCommand.swift` (update
+   `RecursiveCharacterSplitter.defaultChunkSize` /
+   `defaultChunkOverlap` if recursive wins, or change the `splitter:`
+   construction if LineBasedSplitter wins).
+3. Commit the change with a message citing the score.
+4. Write the final summary section in `nomic-experiment-results.md`.
+5. Signal manager: `ib send agent-e7013d1a "SHIP gate hit:
+   <config> <score>/60 <top10>/10"`.
+
+### 6.2 KILL gate
+
+**Trigger:** ALL tested configs score < 15/60.
+
+**Action:**
+1. STOP.
+2. Do NOT commit any code change to defaults.
+3. Document in `nomic-experiment-results.md` that nomic-embed-text-v1.5
+   is not the answer for this corpus and write the trajectory.
+4. Signal manager: `ib send agent-e7013d1a "KILL gate hit: best
+   <score>/60 — nomic ineffective on this corpus"`.
+
+### 6.3 TIME budget
+
+12 hours of wall-clock spent on the parameter sweep. Iterations within
+that window are unlimited.
+
+If 12 hours elapse without ship/kill: STOP, commit best-config
+defaults if best score ≥ 30/60 ("interesting" — better than NLEmbedding
+6/60 baseline), document either way, signal manager.
+
+### 6.4 Trend-aware exploration
+
+Iterations are **unlimited within the 12h budget**. If the first 3–4
+configs reveal a clear trend (e.g., small chunks beating large ones),
+explore densely around it — add intermediate configs not in §5.1's
+fixed list. Document any added configs with rationale.
+
+### 6.5 Unrecoverable blocker
+
+Any of:
+
+- HF unreachable mid-experiment (and weights aren't already cached).
+- swift-embeddings crashes deterministically.
+- macOS/Swift toolchain incompatibility surfaces.
+- Out-of-memory or out-of-disk during reindex.
+
+→ STOP, document in `nomic-experiment-results.md`, signal manager:
+`ib send agent-e7013d1a "[STUCK] <reason>"`. Do NOT delete the
+worktree or revert work.
+
+---
+
+## 7. Time budget summary
+
+- Phase 5 parameter sweep: **12 hours wall-clock**, unlimited
+  iterations within that.
+- Per-iteration: ~1 reindex + 10 scoring queries. With pool=1 nomic,
+  expect roughly 10–60 minutes per iteration depending on chunk size
+  (more chunks → longer).
+- Commit after every iteration (§5.7).
+
+---
+
+## 8. Final checklist (tick as you go)
+
+### Pre-flight
+- [ ] curl works (§1.1)
+- [ ] HF reachable (§1.2)
+- [ ] File sizes recorded in `nomic-experiment-results.md` (§1.3)
+- [ ] Total download ≤ 1 GB (§1.5)
+- [ ] HF cache path documented (§1.4)
+
+### Package
+- [ ] `Package.swift`: bumped to `.macOS(.v14)`, added
+      `swift-embeddings` dep at `from: "0.0.26"`, `Embeddings`
+      product wired into `VecKit` target (§2.3)
+- [ ] `swift package resolve` clean (§2.4)
+- [ ] `swift build` clean (§2.4)
+
+### Code
+- [ ] `EmbeddingService.swift` rewritten (actor, async,
+      `embedDocument`/`embedQuery`, 768-dim constant) (§3.1)
+- [ ] `IndexingPipeline.swift`: `EmbedderPool` collapsed to single
+      shared instance; `warmAll` updated; embed call site awaits
+      `embedDocument` (§3.2)
+- [ ] `SearchCommand.swift`: awaits `embedQuery` (§3.3)
+- [ ] `VectorDatabase.swift`: dimension default 768 (§3.4)
+- [ ] `TextExtractor.swift`: char gates point at
+      `EmbeddingService.maxInputCharacters` (§3.5)
+- [ ] `VecKitTests.swift`: `EmbeddingServiceTests` rewritten,
+      512→768, `maxEmbeddingTextLength`→`maxInputCharacters` (§3.6)
+- [ ] `IntegrationTests.swift` + `VectorDatabaseTests.swift`
+      embed-helpers async-ified (§3.7)
+- [ ] `NLEmbeddingThreadSafetyTests.swift` deleted (§3.8)
+- [ ] `import NaturalLanguage` removed from non-pipeline files (§3.9)
+- [ ] `swift test` runs (acceptable for some tests to fail if they
+      depend on first-run model download — document)
+
+### Smoke test
+- [ ] 3-file index built into `smoke-test` DB without crash (§4)
+- [ ] Search returns non-empty JSON
+- [ ] Inspected blob length = 3072 bytes (768 floats × 4 bytes)
+
+### Sweep
+- [ ] Iteration 1 (recursive 2000/200) wall-clock recorded
+- [ ] Total projected sweep time within 12 h budget (§5.2)
+- [ ] Each iteration: reset → reindex → score → log → commit
+- [ ] Stop condition hit (ship / kill / time) (§6)
+
+### Wrap-up
+- [ ] `nomic-experiment-results.md` has trajectory + final summary
+- [ ] If ship gate: default updated in `UpdateIndexCommand.swift`
+- [ ] Manager signaled
+
+---
+
+## Appendix A — known facts about swift-embeddings 0.0.26
+
+These come from inspecting the upstream source at the time of writing.
+If the implementer finds drift, document and adapt.
+
+- Package product: `Embeddings` (the library to depend on; a separate
+  `MLTensorUtils` product exists but isn't needed).
+- Min platform: `.macOS(.v14)`, `.iOS(.v17)`, `.visionOS(.v1)`.
+- `NomicBert.loadModelBundle(from hubRepoId: String, downloadBase:
+  URL? = nil, useBackgroundSession: Bool = false, loadConfig:
+  LoadConfig = LoadConfig()) async throws -> NomicBert.ModelBundle`.
+- `NomicBert.ModelBundle.encode(_ text: String, maxLength: Int =
+  2048, postProcess: PostProcess? = nil, computePolicy: MLComputePolicy
+  = .cpuAndGPU) throws -> MLTensor`. **Sync.** No `await` needed on
+  the encode call itself.
+- `MLTensor → [Float]`: `await tensor.cast(to: Float.self).shapedArray(of:
+  Float.self).scalars`. Async (cast/shapedArray hop the MLTensor
+  context).
+- HF cache path (default `downloadBase`):
+  `~/Documents/huggingface/models/<repo-id>/`. swift-transformers'
+  `HubApi` sets this in its initializer.
+
+## Appendix B — files NOT to touch
+
+These exist and are tempting to "fix" but are out of scope for this
+plan:
+
+- Anything in `Sources/VecKit/RecursiveCharacterSplitter.swift` or
+  `LineBasedSplitter.swift`. The splitters work as-is; chunk
+  configuration is the variable, not the splitter implementation.
+- `optimization-plan.md`, `chunking-research.md`,
+  `pipeline-plan.md`, `plan.md`, `large-file-memory-issue.md` —
+  historical record, not the current spec. Don't delete or rewrite.
+- `bean-test.md` and `bean-test-results.md` — frozen reference. The
+  10 queries and rubric must not change. Add the new results in a
+  separate file (`nomic-experiment-results.md`).
