@@ -33,41 +33,46 @@ final class VecKitTests: XCTestCase {
 
 final class EmbeddingServiceTests: XCTestCase {
 
-    func testEmbedHelloWorldReturnsNonNilArrayOfDimension512() {
+    func testEmbedDocumentReturnsArrayOfDimension768() async throws {
         let service = EmbeddingService()
-        let result = service.embed("hello world")
-        XCTAssertNotNil(result)
-        XCTAssertEqual(result?.count, 512)
+        let result = try await service.embedDocument("hello world")
+        XCTAssertEqual(result.count, 768)
     }
 
-    func testEmbedEmptyStringReturnsNil() {
+    func testEmbedQueryReturnsArrayOfDimension768() async throws {
         let service = EmbeddingService()
-        let result = service.embed("")
-        XCTAssertNil(result)
+        let result = try await service.embedQuery("hello world")
+        XCTAssertEqual(result.count, 768)
     }
 
-    func testEmbedWhitespaceOnlyReturnsNil() {
+    func testEmbedEmptyStringReturnsEmpty() async throws {
         let service = EmbeddingService()
-        XCTAssertNil(service.embed("   "))
-        XCTAssertNil(service.embed("\t\t"))
-        XCTAssertNil(service.embed("\n\n"))
-        XCTAssertNil(service.embed("  \n\t  "))
+        let result = try await service.embedDocument("")
+        XCTAssertEqual(result.count, 0)
     }
 
-    func testEmbedVeryLongTextDoesNotCrashAndReturnsResult() {
+    func testEmbedWhitespaceOnlyReturnsEmpty() async throws {
         let service = EmbeddingService()
-        // Build a string well over the maxEmbeddingTextLength limit
+        let r1 = try await service.embedDocument("   ")
+        XCTAssertEqual(r1.count, 0)
+        let r2 = try await service.embedDocument("\t\t")
+        XCTAssertEqual(r2.count, 0)
+        let r3 = try await service.embedDocument("\n\n")
+        XCTAssertEqual(r3.count, 0)
+        let r4 = try await service.embedDocument("  \n\t  ")
+        XCTAssertEqual(r4.count, 0)
+    }
+
+    func testEmbedVeryLongTextDoesNotCrashAndReturns768() async throws {
+        let service = EmbeddingService()
         let longText = String(repeating: "The quick brown fox jumps over the lazy dog. ", count: 5000)
-        XCTAssertGreaterThan(longText.count, EmbeddingService.maxEmbeddingTextLength)
-        let result = service.embed(longText)
-        // Should succeed (truncated) rather than crash with std::bad_alloc
-        XCTAssertNotNil(result)
-        XCTAssertEqual(result?.count, 512)
+        XCTAssertGreaterThan(longText.count, EmbeddingService.maxInputCharacters)
+        let result = try await service.embedDocument(longText)
+        XCTAssertEqual(result.count, 768)
     }
 
-    func testDimensionIs512() {
-        let service = EmbeddingService()
-        XCTAssertEqual(service.dimension, 512)
+    func testDimensionIs768() {
+        XCTAssertEqual(EmbeddingService.dimension, 768)
     }
 }
 
@@ -205,8 +210,8 @@ final class TextExtractorTests: XCTestCase {
     func testMarkdownWhereEveryLineIsAHeading() throws {
         // Generate enough heading lines that the file exceeds the default
         // `RecursiveCharacterSplitter` chunk size of 2000 chars.
-        // Target: > 2000 chars (to trigger chunking) but < 10000 chars
-        // (so the whole-doc chunk is not suppressed by the embedding limit).
+        // Target: > 2000 chars (to trigger chunking) but under the
+        // embedder's input cap (so the whole-doc chunk is not suppressed).
         var lines: [String] = []
         for i in 1...100 {
             lines.append("# Heading line number \(i) with some descriptive content")
@@ -233,10 +238,10 @@ final class TextExtractorTests: XCTestCase {
         // A single very long line with no newlines, but with sentence
         // boundaries ("`. `"). The default `RecursiveCharacterSplitter`
         // should emit a whole-doc chunk plus sentence-boundary sub-chunks.
-        // Length kept under EmbeddingService.maxEmbeddingTextLength so the
+        // Length kept under EmbeddingService.maxInputCharacters so the
         // whole-chunk guard does not suppress the .whole chunk.
         let unit = "This is a very long sentence without any newlines. "
-        let repeatCount = max(1, (EmbeddingService.maxEmbeddingTextLength / unit.count) - 10)
+        let repeatCount = max(1, (EmbeddingService.maxInputCharacters / unit.count) - 10)
         let longLine = String(repeating: unit, count: repeatCount)
         let file = createFile(name: "long_line.md", content: longLine)
         let extractor = TextExtractor()
@@ -313,10 +318,10 @@ final class TextExtractorTests: XCTestCase {
         XCTAssertGreaterThan(pageChunks.count, 0)
 
         // A whole-document chunk is only produced when the combined page text
-        // fits within EmbeddingService.maxEmbeddingTextLength. The Moby Dick
+        // fits within EmbeddingService.maxInputCharacters. The Moby Dick
         // fixture exceeds that limit, so no `.whole` chunk should be emitted.
         let totalText = pageChunks.map(\.text).joined(separator: "\n")
-        if totalText.count <= EmbeddingService.maxEmbeddingTextLength {
+        if totalText.count <= EmbeddingService.maxInputCharacters {
             XCTAssertEqual(chunks[0].type, .whole)
             XCTAssertNil(chunks[0].pageNumber)
             XCTAssertFalse(chunks[0].text.isEmpty)
@@ -368,7 +373,7 @@ final class TextExtractorTests: XCTestCase {
         let pageChunks = chunks.filter { $0.type == .pdfPage }
         let totalText = pageChunks.map(\.text).joined(separator: "\n")
 
-        if totalText.count <= EmbeddingService.maxEmbeddingTextLength {
+        if totalText.count <= EmbeddingService.maxInputCharacters {
             // Small-enough PDF: whole chunk should be present and contain page text
             let wholeChunk = chunks.first { $0.type == .whole }
             XCTAssertNotNil(wholeChunk)
@@ -377,7 +382,7 @@ final class TextExtractorTests: XCTestCase {
                            "Whole-document chunk should contain Moby Dick content")
         } else {
             // Oversize PDF: whole chunk must be suppressed to avoid embedding
-            // only the first 10 KB and pretending it's the whole document.
+            // only a truncated prefix and pretending it's the whole document.
             XCTAssertFalse(chunks.contains { $0.type == .whole },
                            "Whole chunk should not be produced for PDFs exceeding the embedding limit")
         }
