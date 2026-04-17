@@ -104,7 +104,7 @@ final class CLITests: XCTestCase {
         XCTAssertNil(cmd.db)
         XCTAssertEqual(cmd.query, "hello world")
         XCTAssertEqual(cmd.limit, 10)
-        XCTAssertFalse(cmd.includePreview)
+        XCTAssertFalse(cmd.preview)
     }
 
     func testSearchCommandParsesDbFlagAndQuery() throws {
@@ -112,7 +112,7 @@ final class CLITests: XCTestCase {
         XCTAssertEqual(cmd.db, "my-db")
         XCTAssertEqual(cmd.query, "hello world")
         XCTAssertEqual(cmd.limit, 10)
-        XCTAssertFalse(cmd.includePreview)
+        XCTAssertFalse(cmd.preview)
     }
 
     func testSearchCommandParsesLongDbFlag() throws {
@@ -130,12 +130,12 @@ final class CLITests: XCTestCase {
             "-d", "my-db",
             "some query",
             "--limit", "5",
-            "--include-preview"
+            "--preview"
         ]) as! SearchCommand
         XCTAssertEqual(cmd.db, "my-db")
         XCTAssertEqual(cmd.query, "some query")
         XCTAssertEqual(cmd.limit, 5)
-        XCTAssertTrue(cmd.includePreview)
+        XCTAssertTrue(cmd.preview)
     }
 
     func testSearchCommandParsesShortLimitFlag() throws {
