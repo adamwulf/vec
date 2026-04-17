@@ -38,6 +38,12 @@ struct SearchCommand: AsyncParsableCommand {
     @Option(name: .long, help: "How to render text chunks in results: lines (L10-20) or chunks (C1,2,3)")
     var show: ChunkDisplay = .lines
 
+    @Option(name: .long, help: "Only include files whose basename matches this glob (e.g. '*.txt', 'fumble-?.???')")
+    var glob: String?
+
+    @Option(name: .long, help: "Only include files with at least this many lines (or pages for PDFs)")
+    var minLines: Int?
+
     func run() async throws {
         guard limit > 0 else {
             print("Error: --limit must be a positive integer.")
@@ -57,10 +63,33 @@ struct SearchCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        // Fetch extra chunks so we can group by file and still return enough files
-        let fetchLimit = limit * 3
+        let hasFilters = glob != nil || minLines != nil
+        // Fetch extra chunks so we can group by file and still return enough files.
+        // Widen the pool further when filters are active since many groups may drop out.
+        let fetchLimit = limit * (hasFilters ? 10 : 3)
+        let coalesceLimit = hasFilters ? Int.max : limit
         let results = try await database.search(embedding: queryEmbedding, limit: fetchLimit)
-        let grouped = SearchResultCoalescer.coalesce(results, limit: limit)
+        var grouped = SearchResultCoalescer.coalesce(results, limit: coalesceLimit)
+
+        if let glob {
+            grouped = grouped.filter { group in
+                let basename = (group.filePath as NSString).lastPathComponent
+                return fnmatch(glob, basename, 0) == 0
+            }
+        }
+
+        let metadata = try await database.indexedFileMetadata(paths: grouped.map(\.filePath))
+
+        if let minLines {
+            grouped = grouped.filter { group in
+                guard let count = metadata[group.filePath]?.linePageCount else { return false }
+                return count >= minLines
+            }
+        }
+
+        if hasFilters {
+            grouped = Array(grouped.prefix(limit))
+        }
 
         // Resolve chunk ordinals only when needed for --show chunks
         var ordinalsByFile: [String: [Int64: Int]] = [:]
@@ -69,8 +98,6 @@ struct SearchCommand: AsyncParsableCommand {
                 ordinalsByFile[group.filePath] = try await database.chunkOrdinals(filePath: group.filePath)
             }
         }
-
-        let metadata = try await database.indexedFileMetadata(paths: grouped.map(\.filePath))
 
         switch format {
         case .text:
