@@ -29,8 +29,8 @@ struct SearchCommand: AsyncParsableCommand {
     @Option(name: .shortAndLong, help: "Maximum number of results to return")
     var limit: Int = 10
 
-    @Flag(name: [.customShort("p"), .long], help: "Include a content preview in results")
-    var includePreview: Bool = false
+    @Flag(name: .shortAndLong, help: "Include a content preview in results")
+    var preview: Bool = false
 
     @Option(name: .long, help: "Output format: text or json")
     var format: OutputFormat = .text
@@ -133,10 +133,10 @@ struct SearchCommand: AsyncParsableCommand {
             let size = meta?.linePageCount.map { "\($0)\(sizeUnit)" } ?? "-"
             print("\(group.filePath) \(modified) \(size) \(list) (\(score))")
 
-            if includePreview {
+            if preview {
                 for match in group.matches {
-                    if let preview = match.contentPreview {
-                        let truncated = preview.prefix(120).replacingOccurrences(of: "\n", with: " ")
+                    if let text = match.contentPreview {
+                        let truncated = text.prefix(120).replacingOccurrences(of: "\n", with: " ")
                         print("  \(truncated)")
                     }
                 }
@@ -236,8 +236,8 @@ struct SearchCommand: AsyncParsableCommand {
                 if let ordinal = ordinals[match.chunkId] {
                     matchObj["chunk_index"] = ordinal
                 }
-                if includePreview, let preview = match.contentPreview {
-                    matchObj["preview"] = preview
+                if preview, let text = match.contentPreview {
+                    matchObj["preview"] = text
                 }
                 matchesArray.append(matchObj)
             }
