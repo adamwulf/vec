@@ -19,9 +19,7 @@ public enum IndexResult: Sendable {
 /// the first chunk leaving extract to the last chunk arriving at the
 /// accumulator. It includes pool waits and overlaps with other files'
 /// chunks, so its absolute magnitude isn't directly comparable to the
-/// pre-H7 per-file embed time. The aggregate `embedSeconds` and
-/// `totalBatchEmbedSeconds` (now: summed per-chunk wall-clock across every
-/// embed task) remain the right inputs for pool-utilization math.
+/// pre-H7 per-file embed time.
 public struct IndexingStats: Sendable {
     public struct FileTiming: Sendable {
         public let path: String
@@ -45,27 +43,6 @@ public struct IndexingStats: Sendable {
     public var p95EmbedSeconds: Double = 0
     /// File that produced the most chunks, if any files were indexed.
     public var largestFile: FileTiming?
-    /// Wall-clock seconds from pipeline start to the first `.chunkEmbedded`
-    /// event. Approximates the "extract-bound startup" window — if this is
-    /// much larger than a typical per-file extract time, the extract stage
-    /// got blocked before any chunk could embed.
-    public var firstBatchLatencySeconds: Double?
-    /// Total embed tasks completed across all files. Under H7 each task
-    /// embeds exactly one chunk, so post-refactor this equals
-    /// `totalChunksEmbedded` for any successful run. The field name is kept
-    /// for API stability; the verbose footer's "mean batch size" therefore
-    /// always reads as 1.0 chunks/task post-H7 — that's the truth, not a
-    /// renderer bug.
-    public var totalBatches: Int = 0
-    /// Total chunks across all embed tasks. Cross-check against
-    /// `totalChunksEmbedded` (summed from `recordFile`): equality means
-    /// no embed result was dropped between embed-time and DB-time.
-    public var totalBatchChunks: Int = 0
-    /// Summed seconds spent in `EmbeddingService.embed` calls across all
-    /// per-chunk embed tasks. Equal to or slightly less than
-    /// `embedSeconds` — the gap reflects embedder-pool waits and
-    /// task-group bookkeeping.
-    public var totalBatchEmbedSeconds: Double = 0
 }
 
 /// Structured progress event emitted by the pipeline. Consumers are expected to
@@ -73,14 +50,9 @@ public struct IndexingStats: Sendable {
 ///
 /// Events fall into four groups by origin:
 ///
-/// - **Stage-transition events** — `.extractEnqueued`/`.extractDequeued` and
-///   `.embedEnqueued`/`.embedDequeued`: emitted when items move between
-///   stages. Difference (enqueued − dequeued) is the live queue depth and
-///   tells you which stage is the current bottleneck. Replaces the old
-///   `.workerBusy`/`.workerIdle` pair, which doesn't have a coherent
-///   meaning under the three-stage pipeline (extract is single-threaded,
-///   embed is one task per chunk so "in flight" equals pool size whenever
-///   there's work).
+/// - **Stage-transition events** — `.extractEnqueued`/`.extractDequeued`:
+///   emitted when files move into/out of extract. Difference (enqueued −
+///   dequeued) is the live extract queue depth.
 ///
 /// - **Embed-task events** — `.chunkEmbedded`: emitted from each per-chunk
 ///   embed task. Replaces the old `.batchEmbedded`. Lock-traffic note:
@@ -102,11 +74,6 @@ public enum ProgressEvent: Sendable {
     /// embed stream (or the file produced zero chunks and a sentinel was
     /// pushed to the accumulator).
     case extractDequeued
-    /// A chunk was extracted and pushed to the embed stream, awaiting
-    /// pool capacity.
-    case embedEnqueued
-    /// An embed task picked up a chunk and acquired a pooled embedder.
-    case embedDequeued
     case fileFinished(chunks: Int)
     case fileSkipped
     case nonEnglishDetected(filePath: String, language: String)
@@ -121,9 +88,7 @@ public enum ProgressEvent: Sendable {
     /// An embed child task has acquired an `EmbeddingService` from the
     /// pool and is about to start embedding. Paired with `.poolReleased`.
     /// Difference is the true pool-occupancy gauge: it pins at pool size
-    /// under saturation, unlike `.embedEnqueued`/`.embedDequeued` which
-    /// measures stream buffer depth and can sawtooth while the pool is
-    /// actually fully utilized.
+    /// under saturation.
     case poolAcquired
     /// An embed child task has released its `EmbeddingService` back to
     /// the pool after the `embed()` call returned.
@@ -197,27 +162,11 @@ public final class IndexingPipeline: Sendable {
     /// Pool of pre-created EmbeddingService instances.
     private let pool: EmbedderPool
 
-    /// Whether to warm each pooled embedder serially before the worker
-    /// task group starts. Defaults to true (the H5 result). Exposed as an
-    /// internal init seam so measurement tests can compare cold vs warm
-    /// without polluting the public API.
-    internal let warmupEnabled: Bool
-
-    public convenience init(
+    public init(
         concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2)
-    ) {
-        self.init(concurrency: concurrency, warmup: true)
-    }
-
-    /// Internal init that exposes the warmup toggle. Used by measurement
-    /// tests to bypass warmup; production callers should use the public init.
-    internal init(
-        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
-        warmup: Bool
     ) {
         self.workerCount = concurrency
         self.pool = EmbedderPool(count: concurrency)
-        self.warmupEnabled = warmup
     }
 
     /// Run the full indexing pipeline for a set of file work items.
@@ -241,18 +190,16 @@ public final class IndexingPipeline: Sendable {
         // H5: warm each pooled embedder serially before workers start, so
         // the first chunk doesn't pay 10× parallel NLEmbedding cold-load
         // cost contending for memory bandwidth.
-        if warmupEnabled {
-            let warmStart = DispatchTime.now()
-            await pool.warmAll()
-            let warmSeconds = Self.elapsed(since: warmStart)
-            progress?(.poolWarmed(seconds: warmSeconds))
-        }
+        let warmStart = DispatchTime.now()
+        await pool.warmAll()
+        let warmSeconds = Self.elapsed(since: warmStart)
+        progress?(.poolWarmed(seconds: warmSeconds))
 
         // Embed stream: extract task → embed-spawner.
         // Unbounded buffering: extract should always be faster than embed
         // (no embed call), so chunks queue here until the pool has
-        // capacity. The embed-queue depth (.embedEnqueued − .embedDequeued)
-        // is the diagnostic signal for "is embed the bottleneck?".
+        // capacity. Pool occupancy (.poolAcquired − .poolReleased) is the
+        // diagnostic signal for "is embed the bottleneck?".
         let (embedStream, embedContinuation) = AsyncStream<EmbedWork>.makeStream(
             bufferingPolicy: .unbounded
         )
@@ -268,8 +215,7 @@ public final class IndexingPipeline: Sendable {
         )
 
         let resultCollector = ResultCollector()
-        let pipelineStart = DispatchTime.now()
-        let statsCollector = StatsCollector(pipelineStart: pipelineStart)
+        let statsCollector = StatsCollector()
         let accumulator = FileAccumulator()
         // Per-chunk backpressure: extract blocks once the embed queue is
         // roughly two pool-sizes deep. Keeps memory bounded on large
@@ -374,7 +320,6 @@ public final class IndexingPipeline: Sendable {
                             extractSeconds: extractSeconds,
                             firstChunkAt: firstChunkAt
                         )
-                        progress?(.embedEnqueued)
                         embedContinuation.yield(work)
                     }
                     progress?(.extractDequeued)
@@ -394,7 +339,6 @@ public final class IndexingPipeline: Sendable {
                 await withTaskGroup(of: Void.self) { embedGroup in
                     for await work in embedStream {
                         embedGroup.addTask {
-                            progress?(.embedDequeued)
                             let chunk = work.chunk
 
                             let embedder = await pool.acquire()
@@ -406,7 +350,6 @@ public final class IndexingPipeline: Sendable {
                             progress?(.poolReleased)
 
                             progress?(.chunkEmbedded(seconds: chunkSeconds))
-                            await statsCollector.recordChunkEmbed(seconds: chunkSeconds)
 
                             let record: ChunkRecord?
                             if let vector = vector {
@@ -782,12 +725,6 @@ private actor ResultCollector {
 private actor StatsCollector {
     private var stats = IndexingStats()
     private var fileTimings: [IndexingStats.FileTiming] = []
-    private let pipelineStart: DispatchTime
-    private var firstChunkAt: DispatchTime?
-
-    init(pipelineStart: DispatchTime) {
-        self.pipelineStart = pipelineStart
-    }
 
     func recordFile(path: String, extractSeconds: Double, embedSeconds: Double, dbSeconds: Double, chunkCount: Int) {
         stats.extractSeconds += extractSeconds
@@ -806,19 +743,6 @@ private actor StatsCollector {
 
     func recordSkipped(path: String, extractSeconds: Double) {
         stats.extractSeconds += extractSeconds
-    }
-
-    /// Records one per-chunk embed completion. Captures the
-    /// first-chunk-latency the first time it's called so the footer can
-    /// diagnose extract-bound startup — the gap between pipeline start
-    /// and first embed.
-    func recordChunkEmbed(seconds: Double) {
-        stats.totalBatches += 1
-        stats.totalBatchChunks += 1
-        stats.totalBatchEmbedSeconds += seconds
-        if firstChunkAt == nil {
-            firstChunkAt = DispatchTime.now()
-        }
     }
 
     func snapshot() -> IndexingStats {
@@ -840,11 +764,6 @@ private actor StatsCollector {
         result.largestFile = fileTimings
             .filter { $0.chunkCount > 0 }
             .max { $0.chunkCount < $1.chunkCount }
-
-        if let first = firstChunkAt {
-            let nanos = first.uptimeNanoseconds &- pipelineStart.uptimeNanoseconds
-            result.firstBatchLatencySeconds = Double(nanos) / 1_000_000_000
-        }
 
         return result
     }

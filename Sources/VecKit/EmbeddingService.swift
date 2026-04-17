@@ -44,24 +44,4 @@ public final class EmbeddingService: @unchecked Sendable {
 
         return vector.map { Float($0) }
     }
-
-    /// Detect the dominant language of the given text.
-    /// Returns nil if the language cannot be determined.
-    public func detectLanguage(_ text: String) -> NLLanguage? {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
-        return NLLanguageRecognizer.dominantLanguage(for: trimmed)
-    }
-
-    /// Check if the text is non-English and, if so, emit a one-time warning to stderr.
-    /// Pass `warned` as an inout flag scoped per-file to ensure only one warning per file.
-    /// Returns true if a warning was emitted.
-    @discardableResult
-    public func warnIfNonEnglish(text: String, filePath: String, warned: inout Bool) -> Bool {
-        guard !warned else { return false }
-        guard let lang = detectLanguage(text), lang != .english, lang != .undetermined else { return false }
-        FileHandle.standardError.write(Data("Warning: non-English content detected in \(filePath) (detected: \(lang.rawValue)), embedding quality may be reduced\n".utf8))
-        warned = true
-        return true
-    }
 }

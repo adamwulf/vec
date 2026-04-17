@@ -1,5 +1,4 @@
 import XCTest
-import NaturalLanguage
 import CoreGraphics
 import ImageIO
 import UniformTypeIdentifiers
@@ -69,75 +68,6 @@ final class EmbeddingServiceTests: XCTestCase {
     func testDimensionIs512() {
         let service = EmbeddingService()
         XCTAssertEqual(service.dimension, 512)
-    }
-
-    func testDetectLanguageReturnsEnglishForEnglishText() {
-        let service = EmbeddingService()
-        let lang = service.detectLanguage("The quick brown fox jumps over the lazy dog")
-        XCTAssertEqual(lang, .english)
-    }
-
-    func testDetectLanguageReturnsNonEnglishForForeignText() {
-        let service = EmbeddingService()
-        let lang = service.detectLanguage("これは日本語のテキストです。自然言語処理のテストです。")
-        XCTAssertNotNil(lang)
-        XCTAssertNotEqual(lang, .english)
-    }
-
-    func testDetectLanguageReturnsNilForEmptyText() {
-        let service = EmbeddingService()
-        XCTAssertNil(service.detectLanguage(""))
-        XCTAssertNil(service.detectLanguage("   "))
-    }
-
-    // MARK: - warnIfNonEnglish Tests
-
-    func testWarnIfNonEnglishReturnsTrueForNonEnglishText() {
-        let service = EmbeddingService()
-        var warned = false
-        let result = service.warnIfNonEnglish(
-            text: "これは日本語のテキストです。自然言語処理のテストです。",
-            filePath: "test.txt",
-            warned: &warned
-        )
-        XCTAssertTrue(result, "Should return true for non-English text")
-        XCTAssertTrue(warned, "warned flag should be set to true")
-    }
-
-    func testWarnIfNonEnglishReturnsFalseWhenAlreadyWarned() {
-        let service = EmbeddingService()
-        var warned = true
-        let result = service.warnIfNonEnglish(
-            text: "これは日本語のテキストです。自然言語処理のテストです。",
-            filePath: "test.txt",
-            warned: &warned
-        )
-        XCTAssertFalse(result, "Should return false when already warned")
-        XCTAssertTrue(warned, "warned flag should remain true")
-    }
-
-    func testWarnIfNonEnglishReturnsFalseForEnglishText() {
-        let service = EmbeddingService()
-        var warned = false
-        let result = service.warnIfNonEnglish(
-            text: "The quick brown fox jumps over the lazy dog",
-            filePath: "english.txt",
-            warned: &warned
-        )
-        XCTAssertFalse(result, "Should return false for English text")
-        XCTAssertFalse(warned, "warned flag should remain false for English text")
-    }
-
-    func testWarnIfNonEnglishReturnsFalseForEmptyText() {
-        let service = EmbeddingService()
-        var warned = false
-        let result = service.warnIfNonEnglish(
-            text: "",
-            filePath: "empty.txt",
-            warned: &warned
-        )
-        XCTAssertFalse(result, "Should return false for empty text")
-        XCTAssertFalse(warned, "warned flag should remain false for empty text")
     }
 }
 
