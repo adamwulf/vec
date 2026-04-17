@@ -1,47 +1,64 @@
 import Foundation
-import NaturalLanguage
+import Embeddings
 
-/// Generates text embeddings using Apple's on-device NLEmbedding.
-/// NOT safe for concurrent use on the same instance — concurrent calls
-/// to `vector(for:)` on the same `NLEmbedding` cause segfaults in the
-/// underlying C++ runtime. Create separate instances for concurrent
-/// tasks (each loads an independent ~50 MB model).
-public final class EmbeddingService: @unchecked Sendable {
+/// Wraps `swift-embeddings`' NomicBert model for
+/// `nomic-embed-text-v1.5`.
+///
+/// The model is loaded lazily on first use (network download on first
+/// run, cached at `~/Documents/huggingface/models/nomic-ai/...`
+/// thereafter). All embeddings are 768-dim Float32, mean-pooled and
+/// L2-normalized.
+///
+/// Nomic is trained with mandatory prefixes:
+///   - `"search_document: "` for indexed text
+///   - `"search_query: "`    for queries
+/// Both methods add the prefix internally so callers must pick the
+/// right method, not the right string.
+public actor EmbeddingService {
 
-    private let embedding: NLEmbedding?
+    /// Dimensionality of every vector returned by this service.
+    public static let dimension = 768
 
-    /// The dimension of the embedding vectors produced by this service.
-    public let dimension: Int
+    /// Maximum input length in characters before truncation.
+    /// Nomic's tokenizer max is 8192 tokens (~32 KB chars in English).
+    /// A generous char cap keeps the encoder from blowing up on
+    /// unbounded text.
+    public static let maxInputCharacters = 30_000
 
-    /// Maximum number of characters passed to NLEmbedding.
-    /// Very large strings cause the underlying C++ runtime to throw
-    /// `std::bad_alloc`, crashing the process. 10 000 characters is
-    /// well within what the framework handles and captures enough
-    /// content for a meaningful sentence-level embedding.
-    public static let maxEmbeddingTextLength = 10_000
+    private var bundle: NomicBert.ModelBundle?
 
-    public init() {
-        self.embedding = NLEmbedding.sentenceEmbedding(for: .english)
-        // NLEmbedding for English sentences produces 512-dimensional vectors
-        self.dimension = self.embedding?.dimension ?? 512
+    public init() {}
+
+    /// Embed a document chunk for indexing.
+    public func embedDocument(_ text: String) async throws -> [Float] {
+        try await embed(prefix: "search_document: ", text: text)
     }
 
-    /// Generate an embedding vector for the given text.
-    /// Returns nil if the text cannot be embedded.
-    /// Text longer than ``maxEmbeddingTextLength`` is truncated to
-    /// avoid a crash in the NaturalLanguage framework.
-    public func embed(_ text: String) -> [Float]? {
-        guard let embedding = embedding else { return nil }
+    /// Embed a query at search time.
+    public func embedQuery(_ text: String) async throws -> [Float] {
+        try await embed(prefix: "search_query: ", text: text)
+    }
 
+    private func embed(prefix: String, text: String) async throws -> [Float] {
         var trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
-
-        if trimmed.count > Self.maxEmbeddingTextLength {
-            trimmed = String(trimmed.prefix(Self.maxEmbeddingTextLength))
+        guard !trimmed.isEmpty else { return [] }
+        if trimmed.count > Self.maxInputCharacters {
+            trimmed = String(trimmed.prefix(Self.maxInputCharacters))
         }
 
-        guard let vector = embedding.vector(for: trimmed) else { return nil }
+        let bundle = try await loadBundleIfNeeded()
+        let input = prefix + trimmed
+        let tensor = try bundle.encode(input, postProcess: .meanPoolAndNormalize)
+        let scalars = await tensor.cast(to: Float.self).shapedArray(of: Float.self).scalars
+        return scalars
+    }
 
-        return vector.map { Float($0) }
+    private func loadBundleIfNeeded() async throws -> NomicBert.ModelBundle {
+        if let bundle { return bundle }
+        let loaded = try await NomicBert.loadModelBundle(
+            from: "nomic-ai/nomic-embed-text-v1.5"
+        )
+        self.bundle = loaded
+        return loaded
     }
 }
