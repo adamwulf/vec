@@ -357,7 +357,13 @@ public final class IndexingPipeline: Sendable {
                             let embedder = await pool.acquire()
                             progress?(.poolAcquired)
                             let chunkStart = DispatchTime.now()
-                            let vector = embedder.embed(chunk.text)
+                            let vector: [Float]?
+                            do {
+                                let v = try await embedder.embedDocument(chunk.text)
+                                vector = v.isEmpty ? nil : v
+                            } catch {
+                                vector = nil
+                            }
                             let chunkSeconds = Self.elapsed(since: chunkStart)
                             await pool.release(embedder)
                             progress?(.poolReleased)
@@ -635,42 +641,39 @@ actor FileAccumulator {
 
 // MARK: - Embedder Pool
 
-/// Actor-based pool of pre-created `EmbeddingService` instances.
-/// Vends instances on demand and accepts them back when done.
-/// Limits concurrent embedding to the pool size.
+/// Holds one shared `EmbeddingService` actor. The actor itself
+/// serializes embed calls, so the "pool" is effectively size-1. The
+/// original N-copies design was a workaround for NLEmbedding's C++
+/// runtime crashing under concurrent calls; the nomic backend has no
+/// such bug, and the model is ~525 MiB per instance so duplicating it
+/// would cost many gigabytes of RAM.
 actor EmbedderPool {
-    private var available: [EmbeddingService]
-    private var waiters: [CheckedContinuation<EmbeddingService, Never>] = []
+    private let embedder: EmbeddingService
 
     init(count: Int) {
-        self.available = (0..<count).map { _ in EmbeddingService() }
+        // count is ignored — kept on the signature so
+        // IndexingPipeline.init doesn't need to change. If we ever
+        // observe segfaults or data races under concurrent load, raise
+        // pool size here and document why. CRITICAL: at ~525 MiB per
+        // instance, workerCount=10 would mean ~5.25 GiB of resident
+        // weights alone before activation buffers. Verify RSS before
+        // raising.
+        _ = count
+        self.embedder = EmbeddingService()
     }
 
-    func acquire() async -> EmbeddingService {
-        if let embedder = available.popLast() {
-            return embedder
-        }
-        return await withCheckedContinuation { continuation in
-            waiters.append(continuation)
-        }
-    }
+    func acquire() async -> EmbeddingService { embedder }
 
-    func release(_ embedder: EmbeddingService) {
-        if let waiter = waiters.first {
-            waiters.removeFirst()
-            waiter.resume(returning: embedder)
-        } else {
-            available.append(embedder)
-        }
-    }
+    func release(_ embedder: EmbeddingService) { /* no-op */ }
 
-    /// Pre-touches every pooled embedder with one throwaway `embed` call.
-    /// Done **serially** on purpose: the goal is to avoid N parallel cold
-    /// model loads contending for memory bandwidth on the first batch.
-    /// Safe to call before any acquire — operates on `available` directly.
+    /// Force-loads the model and runs one inference so the first real
+    /// chunk doesn't pay cold-start cost. Swallows errors — a warmup
+    /// failure will surface on the first real embed.
     func warmAll() async {
-        for embedder in available {
-            _ = embedder.embed("warmup text")
+        do {
+            _ = try await embedder.embedDocument("warmup")
+        } catch {
+            // swallow — real embed will surface the failure
         }
     }
 }

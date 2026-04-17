@@ -58,8 +58,15 @@ struct SearchCommand: AsyncParsableCommand {
         try await database.open()
 
         let embedder = EmbeddingService()
-        guard let queryEmbedding = embedder.embed(query) else {
-            print("Error: Failed to generate embedding for query.")
+        let queryEmbedding: [Float]
+        do {
+            queryEmbedding = try await embedder.embedQuery(query)
+        } catch {
+            print("Error: Failed to generate embedding for query: \(error)")
+            throw ExitCode.failure
+        }
+        guard !queryEmbedding.isEmpty else {
+            print("Error: Empty embedding for query.")
             throw ExitCode.failure
         }
 
