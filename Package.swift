@@ -1,17 +1,18 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 import PackageDescription
 
 let package = Package(
     name: "vec",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v15)
     ],
     products: [
         .library(name: "VecKit", targets: ["VecKit"]),
         .executable(name: "vec", targets: ["vec"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0")
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
+        .package(url: "https://github.com/jkrukowski/swift-embeddings", from: "0.0.26")
     ],
     targets: [
         .systemLibrary(
@@ -24,7 +25,8 @@ let package = Package(
         .target(
             name: "VecKit",
             dependencies: [
-                "CSQLiteVec"
+                "CSQLiteVec",
+                .product(name: "Embeddings", package: "swift-embeddings")
             ]
         ),
         .executableTarget(
