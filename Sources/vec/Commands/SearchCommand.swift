@@ -29,14 +29,20 @@ struct SearchCommand: AsyncParsableCommand {
     @Option(name: .shortAndLong, help: "Maximum number of results to return")
     var limit: Int = 10
 
-    @Flag(name: .long, help: "Include a content preview in results")
-    var includePreview: Bool = false
+    @Flag(name: .shortAndLong, help: "Include a content preview in results")
+    var preview: Bool = false
 
     @Option(name: .long, help: "Output format: text or json")
     var format: OutputFormat = .text
 
     @Option(name: .long, help: "How to render text chunks in results: lines (L10-20) or chunks (C1,2,3)")
     var show: ChunkDisplay = .lines
+
+    @Option(name: .long, help: "Only include files whose basename matches this glob (e.g. '*.txt', 'fumble-?.???')")
+    var glob: String?
+
+    @Option(name: .long, help: "Only include files with at least this many lines (or pages for PDFs)")
+    var minLines: Int?
 
     func run() async throws {
         guard limit > 0 else {
@@ -57,10 +63,34 @@ struct SearchCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        // Fetch extra chunks so we can group by file and still return enough files
-        let fetchLimit = limit * 3
+        let hasFilters = glob != nil || minLines != nil
+        // `database.search` scores every chunk regardless of limit, so when
+        // filters are active we ask for everything and truncate after filtering.
+        // Otherwise fetch a small pool to allow for file-level grouping.
+        let fetchLimit = hasFilters ? Int.max : limit * 3
+        let coalesceLimit = hasFilters ? Int.max : limit
         let results = try await database.search(embedding: queryEmbedding, limit: fetchLimit)
-        let grouped = SearchResultCoalescer.coalesce(results, limit: limit)
+        var grouped = SearchResultCoalescer.coalesce(results, limit: coalesceLimit)
+
+        if let glob {
+            grouped = grouped.filter { group in
+                let basename = (group.filePath as NSString).lastPathComponent
+                return fnmatch(glob, basename, 0) == 0
+            }
+        }
+
+        let metadata = try await database.indexedFileMetadata(paths: grouped.map(\.filePath))
+
+        if let minLines {
+            grouped = grouped.filter { group in
+                guard let count = metadata[group.filePath]?.linePageCount else { return false }
+                return count >= minLines
+            }
+        }
+
+        if hasFilters {
+            grouped = Array(grouped.prefix(limit))
+        }
 
         // Resolve chunk ordinals only when needed for --show chunks
         var ordinalsByFile: [String: [Int64: Int]] = [:]
@@ -69,8 +99,6 @@ struct SearchCommand: AsyncParsableCommand {
                 ordinalsByFile[group.filePath] = try await database.chunkOrdinals(filePath: group.filePath)
             }
         }
-
-        let metadata = try await database.indexedFileMetadata(paths: grouped.map(\.filePath))
 
         switch format {
         case .text:
@@ -105,10 +133,10 @@ struct SearchCommand: AsyncParsableCommand {
             let size = meta?.linePageCount.map { "\($0)\(sizeUnit)" } ?? "-"
             print("\(group.filePath) \(modified) \(size) \(list) (\(score))")
 
-            if includePreview {
+            if preview {
                 for match in group.matches {
-                    if let preview = match.contentPreview {
-                        let truncated = preview.prefix(120).replacingOccurrences(of: "\n", with: " ")
+                    if let text = match.contentPreview {
+                        let truncated = text.prefix(120).replacingOccurrences(of: "\n", with: " ")
                         print("  \(truncated)")
                     }
                 }
@@ -208,8 +236,8 @@ struct SearchCommand: AsyncParsableCommand {
                 if let ordinal = ordinals[match.chunkId] {
                     matchObj["chunk_index"] = ordinal
                 }
-                if includePreview, let preview = match.contentPreview {
-                    matchObj["preview"] = preview
+                if preview, let text = match.contentPreview {
+                    matchObj["preview"] = text
                 }
                 matchesArray.append(matchObj)
             }
