@@ -184,6 +184,7 @@ public actor VectorDatabase {
         defer { sqlite3_finalize(stmt) }
 
         struct Candidate {
+            let id: Int64
             let filePath: String
             let lineStart: Int?
             let lineEnd: Int?
@@ -196,6 +197,7 @@ public actor VectorDatabase {
         var candidates: [Candidate] = []
 
         while sqlite3_step(stmt) == SQLITE_ROW {
+            let id = sqlite3_column_int64(stmt, 0)
             let filePath = String(cString: sqlite3_column_text(stmt, 1))
             let lineStart = sqlite3_column_type(stmt, 2) != SQLITE_NULL ? Int(sqlite3_column_int(stmt, 2)) : nil
             let lineEnd = sqlite3_column_type(stmt, 3) != SQLITE_NULL ? Int(sqlite3_column_int(stmt, 3)) : nil
@@ -217,6 +219,7 @@ public actor VectorDatabase {
             let distance = cosineDistance(embedding, storedEmbedding)
 
             candidates.append(Candidate(
+                id: id,
                 filePath: filePath,
                 lineStart: lineStart,
                 lineEnd: lineEnd,
@@ -239,7 +242,8 @@ public actor VectorDatabase {
                 chunkType: c.chunkType,
                 pageNumber: c.pageNumber,
                 contentPreview: c.contentPreview,
-                distance: c.distance
+                distance: c.distance,
+                chunkId: c.id
             )
         }
     }
@@ -338,6 +342,99 @@ public actor VectorDatabase {
 
         guard sqlite3_step(stmt) == SQLITE_ROW else {
             throw sqlError("Failed to retrieve chunk count")
+        }
+
+        return Int(sqlite3_column_int64(stmt, 0))
+    }
+
+    // MARK: - Chunk lookup
+
+    /// Fetch a single chunk by its 1-based position within a file, ordered by
+    /// insertion (`id ASC`). Returns nil if no chunk exists at that index.
+    ///
+    /// Chunk indices are stable for a given indexed state: the extractor
+    /// produces chunks deterministically from file content, so an unchanged
+    /// file re-indexed will yield the same ordering.
+    public func fetchChunk(filePath: String, index: Int) throws -> SearchResult? {
+        guard index >= 1 else { return nil }
+
+        let sql = """
+            SELECT file_path, line_start, line_end, chunk_type, page_number, content_preview
+            FROM chunks
+            WHERE file_path = ?
+            ORDER BY id ASC
+            LIMIT 1 OFFSET ?
+            """
+
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            throw sqlError("Failed to prepare fetch-chunk statement")
+        }
+        defer { sqlite3_finalize(stmt) }
+
+        sqlite3_bind_text(stmt, 1, filePath, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+        sqlite3_bind_int(stmt, 2, Int32(index - 1))
+
+        guard sqlite3_step(stmt) == SQLITE_ROW else {
+            return nil
+        }
+
+        let path = String(cString: sqlite3_column_text(stmt, 0))
+        let lineStart = sqlite3_column_type(stmt, 1) != SQLITE_NULL ? Int(sqlite3_column_int(stmt, 1)) : nil
+        let lineEnd = sqlite3_column_type(stmt, 2) != SQLITE_NULL ? Int(sqlite3_column_int(stmt, 2)) : nil
+        let chunkTypeRaw = String(cString: sqlite3_column_text(stmt, 3))
+        let pageNumber = sqlite3_column_type(stmt, 4) != SQLITE_NULL ? Int(sqlite3_column_int(stmt, 4)) : nil
+        let contentPreview = sqlite3_column_type(stmt, 5) != SQLITE_NULL
+            ? String(cString: sqlite3_column_text(stmt, 5))
+            : nil
+
+        return SearchResult(
+            filePath: path,
+            lineStart: lineStart,
+            lineEnd: lineEnd,
+            chunkType: ChunkType(rawValue: chunkTypeRaw) ?? .whole,
+            pageNumber: pageNumber,
+            contentPreview: contentPreview,
+            distance: 0
+        )
+    }
+
+    /// Return a map from chunk row `id` to its 1-based position within a
+    /// file, ordered by insertion (`id ASC`). Empty map if no chunks exist.
+    public func chunkOrdinals(filePath: String) throws -> [Int64: Int] {
+        let sql = "SELECT id FROM chunks WHERE file_path = ? ORDER BY id ASC"
+
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            throw sqlError("Failed to prepare chunk-ordinals statement")
+        }
+        defer { sqlite3_finalize(stmt) }
+
+        sqlite3_bind_text(stmt, 1, filePath, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+
+        var result: [Int64: Int] = [:]
+        var position = 1
+        while sqlite3_step(stmt) == SQLITE_ROW {
+            result[sqlite3_column_int64(stmt, 0)] = position
+            position += 1
+        }
+        return result
+    }
+
+    /// Count chunks for a given file path.
+    public func chunkCount(filePath: String) throws -> Int {
+        let sql = "SELECT COUNT(*) FROM chunks WHERE file_path = ?"
+
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            throw sqlError("Failed to prepare chunk-count statement")
+        }
+        defer { sqlite3_finalize(stmt) }
+
+        sqlite3_bind_text(stmt, 1, filePath, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+
+        guard sqlite3_step(stmt) == SQLITE_ROW else {
+            throw sqlError("Failed to retrieve chunk count for file")
         }
 
         return Int(sqlite3_column_int64(stmt, 0))

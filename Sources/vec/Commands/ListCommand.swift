@@ -23,8 +23,11 @@ struct ListCommand: AsyncParsableCommand {
             return
         }
 
+        let sizeFormatter = ByteCountFormatter()
+        sizeFormatter.countStyle = .file
+
         // Gather info for each database
-        var rows: [(name: String, source: String, status: String)] = []
+        var rows: [(name: String, source: String, files: String, size: String)] = []
 
         for entry in databases {
             let dbDir = DatabaseLocator.databaseDirectory(for: entry.name)
@@ -44,25 +47,42 @@ struct ListCommand: AsyncParsableCommand {
                 fileCount = "(error: \(error.localizedDescription))"
             }
 
-            rows.append((name: entry.name, source: sourceDisplay, status: fileCount))
+            let dbFilePath = dbDir.appendingPathComponent("index.db").path
+            let sizeDisplay: String
+            if let attrs = try? FileManager.default.attributesOfItem(atPath: dbFilePath),
+               let fileSize = attrs[.size] as? Int64 {
+                sizeDisplay = sizeFormatter.string(fromByteCount: fileSize)
+            } else {
+                sizeDisplay = "unknown"
+            }
+
+            rows.append((name: entry.name, source: sourceDisplay, files: fileCount, size: sizeDisplay))
         }
 
         // Calculate column widths
         let nameHeader = "Name"
         let sourceHeader = "Source Directory"
         let filesHeader = "Files"
+        let sizeHeader = "Size"
 
         let nameWidth = max(nameHeader.count, rows.map(\.name.count).max() ?? 0)
         let sourceWidth = max(sourceHeader.count, rows.map(\.source.count).max() ?? 0)
-        let filesWidth = max(filesHeader.count, rows.map(\.status.count).max() ?? 0)
+        let filesWidth = max(filesHeader.count, rows.map(\.files.count).max() ?? 0)
+        let sizeWidth = max(sizeHeader.count, rows.map(\.size.count).max() ?? 0)
 
         // Print table
-        let header = "\(nameHeader.padding(toLength: nameWidth, withPad: " ", startingAt: 0))  \(sourceHeader.padding(toLength: sourceWidth, withPad: " ", startingAt: 0))  \(filesHeader)"
+        let header = "\(nameHeader.padding(toLength: nameWidth, withPad: " ", startingAt: 0))  "
+            + "\(sourceHeader.padding(toLength: sourceWidth, withPad: " ", startingAt: 0))  "
+            + "\(filesHeader.padding(toLength: filesWidth, withPad: " ", startingAt: 0))  "
+            + "\(sizeHeader)"
         print(header)
-        print(String(repeating: "-", count: nameWidth + 2 + sourceWidth + 2 + filesWidth))
+        print(String(repeating: "-", count: nameWidth + 2 + sourceWidth + 2 + filesWidth + 2 + sizeWidth))
 
         for row in rows {
-            let line = "\(row.name.padding(toLength: nameWidth, withPad: " ", startingAt: 0))  \(row.source.padding(toLength: sourceWidth, withPad: " ", startingAt: 0))  \(row.status)"
+            let line = "\(row.name.padding(toLength: nameWidth, withPad: " ", startingAt: 0))  "
+                + "\(row.source.padding(toLength: sourceWidth, withPad: " ", startingAt: 0))  "
+                + "\(row.files.padding(toLength: filesWidth, withPad: " ", startingAt: 0))  "
+                + "\(row.size)"
             print(line)
         }
     }

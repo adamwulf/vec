@@ -33,7 +33,7 @@ public struct DatabaseLocator {
     /// Reserved names that cannot be used as database names because they
     /// conflict with subcommand names.
     private static let reservedNames: Set<String> = [
-        "init", "deinit", "list", "search", "update-index", "insert", "remove", "help", "version", "info"
+        "init", "deinit", "list", "search", "update-index", "insert", "remove", "help", "version", "info", "chunk", "reset"
     ]
 
     /// Validates that a database name contains only allowed characters

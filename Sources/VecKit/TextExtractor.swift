@@ -44,8 +44,12 @@ public final class TextExtractor: @unchecked Sendable {
 
         var chunks: [TextChunk] = []
 
-        // Always add a whole-document embedding
-        chunks.append(TextChunk(text: trimmed, type: .whole))
+        // Only add a whole-document embedding when the full text fits inside
+        // the embedding limit. Otherwise NLEmbedding would silently truncate
+        // to the first ~10 KB and produce a misleading "whole" vector.
+        if trimmed.count <= EmbeddingService.maxEmbeddingTextLength {
+            chunks.append(TextChunk(text: trimmed, type: .whole))
+        }
 
         // Create overlapping line-based chunks for all text files
         let lineChunks = chunkText(content)
@@ -122,9 +126,10 @@ public final class TextExtractor: @unchecked Sendable {
             allText += text + "\n"
         }
 
-        // Add whole-document embedding if we extracted any text
+        // Add whole-document embedding only if the concatenated text fits
+        // inside the embedding limit. See `extract(from:)` for the reasoning.
         let trimmedAll = allText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !trimmedAll.isEmpty {
+        if !trimmedAll.isEmpty && trimmedAll.count <= EmbeddingService.maxEmbeddingTextLength {
             chunks.insert(TextChunk(text: trimmedAll, type: .whole), at: 0)
         }
 

@@ -198,3 +198,117 @@ Replaced hard-coded file extension allowlists in FileScanner with Apple's `UTTyp
 - `--verbose` / `--quiet` flags on all commands
 - Approximate nearest neighbor (ANN) indexing for large-scale search performance
 - Database migration from old `.vec/` format to new `~/.vec/<name>/` format
+
+---
+
+## Priority 7: Search output polish and chunk inspection — IN PROGRESS
+
+Goal: make `vec search` output more compact and precise, and provide a way to
+inspect an individual chunk by index. Decisions captured here so future work has
+a single source of truth.
+
+### 7a. Search output format rewrite — DONE
+
+Current output prints file header + indented lines per match with 2-decimal
+scores. New format groups chunks per file onto a single line:
+
+```
+filename L18327-18356,18305-18334,7811-7840 (0.1823)
+```
+
+Details:
+
+- One line per file. Chunks comma-separated.
+- Chunks listed in descending match-score order (top match first).
+- File score shown as 4 decimals (`bestScore`, same derivation as today:
+  `max(0, 1.0 - distance)`).
+- Only the first chunk in a line-range run carries the `L` prefix — subsequent
+  line-range chunks drop the `L` (e.g. `L10-20,20-30,30-40`).
+- Non-text chunks keep their type marker regardless of mode: `whole`, `P3` (PDF
+  page), `OCR` (image text).
+- Distance precision is already `Double` under the hood — 4 decimals is well
+  within the real signal.
+
+### 7b. `--show lines|chunks` flag on `vec search` — DONE
+
+Controls how text line-range chunks render. Default: `lines`.
+
+- `--show lines` → `L10-20,20-30,30-40`
+- `--show chunks` → `C1,5,2` where the numbers are stable 1-based chunk IDs
+  (ordered by DB `id ASC` within the file). List order still reflects score
+  ranking, so the positions tell you the ranking and the numbers tell you the
+  stable identity of each chunk.
+- Non-text chunks (`whole`, `P3`, `OCR`) render identically in both modes.
+
+### 7c. `vec chunk <index> <filename>` — DONE
+
+New command. Prints the `content_preview` for the Nth chunk of a file,
+1-based, ordered by DB `id ASC`. Supports `-d` / `--db` and cwd-based database
+resolution just like other commands. Single integer index — one identifier
+space covers line-range chunks, PDF pages, OCR, and whole-file chunks.
+
+Argument order: `vec chunk <index> <filename>`.
+
+Chunk indices are stable for a given indexed state. Re-indexing a file resets
+row IDs, but extractor output is deterministic from file content, so an
+unchanged file gets the same chunk IDs back.
+
+### 7d. Skip `.whole` chunk for oversize files — DONE
+
+`TextExtractor.extract` (Sources/VecKit/TextExtractor.swift:48) always appends a
+`.whole` chunk, but `EmbeddingService.embed` silently truncates text longer than
+`maxEmbeddingTextLength` (10,000 chars). So the "whole-document" embedding for a
+100 MB log is really just an embedding of its first ~10 KB — misleading.
+
+Fix: skip the `.whole` chunk when trimmed text exceeds
+`EmbeddingService.maxEmbeddingTextLength`. Apply the same guard to
+`extractFromPDF` (TextExtractor.swift:122-129), which concatenates all page text
+before embedding. Expose `maxEmbeddingTextLength` as `public` so `TextExtractor`
+can reference the authoritative constant.
+
+No backward-compat concerns: re-indexing deletes and re-inserts, so stale
+`.whole` rows clean themselves up.
+
+### 7e. Stream large files instead of loading into memory — TODO
+
+Tracked in detail in `large-file-memory-issue.md`. Summary:
+
+`TextExtractor.extract` uses `String(contentsOf:)` which loads the entire file
+into RAM. For 100 MB+ log files this is wasteful and risks OOM. Options:
+
+1. `Data(contentsOf:options:.mappedIfSafe)` — let the OS page contents in on
+   demand.
+2. Line-by-line streaming via `FileHandle` with a ring buffer large enough for
+   chunk overlap.
+3. Size-gated fallback (simplest but least thorough).
+
+The chunker currently needs random access to the full line array to build
+overlapping windows, so option 2 requires moving to a sliding-window chunker
+that only keeps the recent `chunkSize + overlapSize` lines in memory.
+
+### 7f. `vec reset` — DONE
+
+Convenience command that combines `deinit` + `init` while preserving the
+configured source directory. Deletes `~/.vec/<db-name>/` and re-creates an
+empty database pointing at the same source. `-d` / `--db` optional (resolves
+from cwd otherwise), `--force` skips the confirmation prompt.
+
+Implementation: `Sources/vec/Commands/ResetCommand.swift`. Registered as a
+subcommand of `Vec`. Added to `DatabaseLocator.reservedNames`.
+
+### 7g. `vec list` size column — DONE
+
+Added a Size column to `vec list` showing the on-disk size of each database's
+`index.db` file, formatted via `ByteCountFormatter`. Missing or unreadable
+files show "unknown" rather than failing the whole listing.
+
+### 7h. Cosine similarity display clarity — DONE
+
+Already resolved (Priority 2c). Display score is `max(0, 1.0 - distance)`,
+which clamps negative (opposite) cosine similarities to 0. In practice
+NLEmbedding rarely produces truly negative similarities — most unrelated text
+lands near 0 (perpendicular) — so clamping rarely hides useful signal.
+
+Noted here so future-me doesn't wonder whether "opposite" matches need special
+handling: they'd still appear in results if they made the top-N by distance,
+just displayed as `0.00`.

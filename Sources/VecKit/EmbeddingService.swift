@@ -18,7 +18,7 @@ public final class EmbeddingService: @unchecked Sendable {
     /// `std::bad_alloc`, crashing the process. 10 000 characters is
     /// well within what the framework handles and captures enough
     /// content for a meaningful sentence-level embedding.
-    static let maxEmbeddingTextLength = 10_000
+    public static let maxEmbeddingTextLength = 10_000
 
     public init() {
         self.embedding = NLEmbedding.sentenceEmbedding(for: .english)

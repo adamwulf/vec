@@ -16,8 +16,10 @@ public struct SearchResult: Sendable {
     public let contentPreview: String?
     /// Distance from the query vector (lower = more similar)
     public let distance: Double
+    /// Row ID of the chunk in the database (stable within a single indexed state).
+    public let chunkId: Int64
 
-    public init(filePath: String, lineStart: Int?, lineEnd: Int?, chunkType: ChunkType, pageNumber: Int?, contentPreview: String?, distance: Double) {
+    public init(filePath: String, lineStart: Int?, lineEnd: Int?, chunkType: ChunkType, pageNumber: Int?, contentPreview: String?, distance: Double, chunkId: Int64 = 0) {
         self.filePath = filePath
         self.lineStart = lineStart
         self.lineEnd = lineEnd
@@ -25,5 +27,6 @@ public struct SearchResult: Sendable {
         self.pageNumber = pageNumber
         self.contentPreview = contentPreview
         self.distance = distance
+        self.chunkId = chunkId
     }
 }
