@@ -29,7 +29,7 @@ struct SearchCommand: AsyncParsableCommand {
     @Option(name: .shortAndLong, help: "Maximum number of results to return")
     var limit: Int = 10
 
-    @Flag(name: .long, help: "Include a content preview in results")
+    @Flag(name: [.customShort("p"), .long], help: "Include a content preview in results")
     var includePreview: Bool = false
 
     @Option(name: .long, help: "Output format: text or json")
