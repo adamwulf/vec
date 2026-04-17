@@ -423,14 +423,24 @@ public final class IndexingPipeline: Sendable {
                                 ordinal: work.ordinal,
                                 record: record
                             )
-                            accumContinuation.yield(emitted)
-                            // Release the extract-gate permit that was
-                            // acquired when this chunk was yielded onto
-                            // the embed stream. Released on every embed
-                            // path (success or vector == nil failure) —
-                            // if an embed path stops releasing, extract
-                            // will eventually deadlock on a full gate.
+                            // Release the extract-gate permit BEFORE the
+                            // accumulator handoff. The permit gates "is
+                            // there pool capacity for the next chunk?",
+                            // which was answered the moment pool.release
+                            // ran above. Releasing after accumContinuation
+                            // .yield meant a stalled accumulator (e.g.
+                            // mid-save bookkeeping under the renderer
+                            // lock) would jam every embed task at the
+                            // yield call, so extract permits returned in
+                            // batches instead of one-at-a-time. The
+                            // observable symptom was embed q draining to
+                            // 1 then jumping back to N rather than
+                            // refilling smoothly. Release on every path
+                            // (success or vector == nil failure) — if any
+                            // path stops releasing, extract deadlocks on
+                            // a full gate.
                             await extractGate.release()
+                            accumContinuation.yield(emitted)
                         }
                     }
                 }
