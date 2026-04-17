@@ -28,14 +28,55 @@ final class CLITests: XCTestCase {
         XCTAssertFalse(cmd.force)
     }
 
-    func testInitCommandFailsWithoutDbName() {
-        XCTAssertThrowsError(try InitCommand.parseAsRoot([]))
+    func testInitCommandParsesWithoutDbName() throws {
+        let cmd = try InitCommand.parseAsRoot([]) as! InitCommand
+        XCTAssertNil(cmd.dbName)
+        XCTAssertFalse(cmd.force)
     }
 
     func testInitCommandParsesWithForceFlag() throws {
         let cmd = try InitCommand.parseAsRoot(["my-project", "--force"]) as! InitCommand
         XCTAssertEqual(cmd.dbName, "my-project")
         XCTAssertTrue(cmd.force)
+    }
+
+    func testInitCommandSanitizePreservesValidName() {
+        XCTAssertEqual(InitCommand.sanitize("my-project"), "my-project")
+        XCTAssertEqual(InitCommand.sanitize("my_project_2"), "my_project_2")
+        XCTAssertEqual(InitCommand.sanitize("ABC123"), "ABC123")
+    }
+
+    func testInitCommandSanitizeReplacesDisallowedCharacters() {
+        XCTAssertEqual(InitCommand.sanitize("my.project"), "my-project")
+        XCTAssertEqual(InitCommand.sanitize("my project"), "my-project")
+        XCTAssertEqual(InitCommand.sanitize("my/project"), "my-project")
+        XCTAssertEqual(InitCommand.sanitize("foo!bar@baz"), "foo-bar-baz")
+    }
+
+    func testInitCommandSanitizeCollapsesAndTrimsDashes() {
+        XCTAssertEqual(InitCommand.sanitize("...name..."), "name")
+        XCTAssertEqual(InitCommand.sanitize("a  b   c"), "a-b-c")
+        XCTAssertEqual(InitCommand.sanitize("-leading"), "leading")
+        XCTAssertEqual(InitCommand.sanitize("trailing-"), "trailing")
+    }
+
+    func testInitCommandSanitizeEmptyResult() {
+        XCTAssertEqual(InitCommand.sanitize("..."), "")
+        XCTAssertEqual(InitCommand.sanitize(""), "")
+    }
+
+    // MARK: - SearchCommand.sizeUnit
+
+    func testSearchCommandSizeUnitIsPForPDF() {
+        XCTAssertEqual(SearchCommand.sizeUnit(forFileExtension: "pdf"), "P")
+        XCTAssertEqual(SearchCommand.sizeUnit(forFileExtension: "PDF"), "P")
+    }
+
+    func testSearchCommandSizeUnitIsLForTextFiles() {
+        XCTAssertEqual(SearchCommand.sizeUnit(forFileExtension: "swift"), "L")
+        XCTAssertEqual(SearchCommand.sizeUnit(forFileExtension: "md"), "L")
+        XCTAssertEqual(SearchCommand.sizeUnit(forFileExtension: "txt"), "L")
+        XCTAssertEqual(SearchCommand.sizeUnit(forFileExtension: ""), "L")
     }
 
     // MARK: - DeinitCommand

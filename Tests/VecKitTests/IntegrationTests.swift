@@ -65,7 +65,7 @@ final class IntegrationTests: XCTestCase {
     /// and mark as fully indexed. Replicates the core indexing logic from
     /// UpdateIndexCommand.
     private func indexFile(_ file: FileInfo, into db: VectorDatabase, extractor: TextExtractor) async throws {
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
         for chunk in chunks {
             guard let embedding = embeddingService.embed(chunk.text) else { continue }
             try await db.insert(

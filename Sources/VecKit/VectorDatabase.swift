@@ -274,15 +274,57 @@ public actor VectorDatabase {
         return files
     }
 
+    /// Metadata for an indexed file, as returned by `indexedFileMetadata`.
+    public struct IndexedFileMetadata: Sendable {
+        public let modifiedAt: Date
+        /// Lines for text files, pages for PDFs, nil for images / unknown.
+        public let linePageCount: Int?
+    }
+
+    /// Fetch modified-date and line/page-count metadata for the given file
+    /// paths. Paths absent from the database simply don't appear in the result.
+    public func indexedFileMetadata(paths: [String]) throws -> [String: IndexedFileMetadata] {
+        guard !paths.isEmpty else { return [:] }
+
+        let placeholders = Array(repeating: "?", count: paths.count).joined(separator: ",")
+        let sql = "SELECT file_path, file_modified_at, line_page_count FROM indexed_files WHERE file_path IN (\(placeholders))"
+
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            throw sqlError("Failed to query indexed-file metadata")
+        }
+        defer { sqlite3_finalize(stmt) }
+
+        for (i, path) in paths.enumerated() {
+            sqlite3_bind_text(stmt, Int32(i + 1), path, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+        }
+
+        var result: [String: IndexedFileMetadata] = [:]
+        while sqlite3_step(stmt) == SQLITE_ROW {
+            let path = String(cString: sqlite3_column_text(stmt, 0))
+            let timestamp = sqlite3_column_double(stmt, 1)
+            let count: Int? = sqlite3_column_type(stmt, 2) == SQLITE_NULL
+                ? nil
+                : Int(sqlite3_column_int64(stmt, 2))
+            result[path] = IndexedFileMetadata(
+                modifiedAt: Date(timeIntervalSince1970: timestamp),
+                linePageCount: count
+            )
+        }
+
+        return result
+    }
+
     /// Mark a file as fully indexed by inserting a completion record.
     ///
     /// This should only be called after all chunks for the file have been
     /// successfully written. The record is used by `allIndexedFiles()` to
-    /// determine whether a file needs re-indexing.
-    public func markFileIndexed(path: String, modifiedAt: Date) throws {
+    /// determine whether a file needs re-indexing. `linePageCount` stores
+    /// lines (text), pages (PDF), or nil (images / unknown).
+    public func markFileIndexed(path: String, modifiedAt: Date, linePageCount: Int? = nil) throws {
         let sql = """
-            INSERT OR REPLACE INTO indexed_files (file_path, file_modified_at)
-            VALUES (?, ?)
+            INSERT OR REPLACE INTO indexed_files (file_path, file_modified_at, line_page_count)
+            VALUES (?, ?, ?)
             """
 
         var stmt: OpaquePointer?
@@ -293,6 +335,11 @@ public actor VectorDatabase {
 
         sqlite3_bind_text(stmt, 1, path, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
         sqlite3_bind_double(stmt, 2, modifiedAt.timeIntervalSince1970)
+        if let linePageCount {
+            sqlite3_bind_int64(stmt, 3, Int64(linePageCount))
+        } else {
+            sqlite3_bind_null(stmt, 3)
+        }
 
         guard sqlite3_step(stmt) == SQLITE_DONE else {
             throw sqlError("Failed to mark file as indexed")
@@ -552,7 +599,8 @@ public actor VectorDatabase {
         let createIndexedFilesTable = """
             CREATE TABLE IF NOT EXISTS indexed_files (
                 file_path TEXT PRIMARY KEY NOT NULL,
-                file_modified_at REAL NOT NULL
+                file_modified_at REAL NOT NULL,
+                line_page_count INTEGER
             );
             """
 
@@ -588,49 +636,8 @@ public actor VectorDatabase {
         try migrateIfNeeded()
     }
 
-    /// Add the `indexed_files` table for databases created before this
-    /// migration. Populates it from existing chunk data so that files already
-    /// fully indexed are not unnecessarily re-processed.
     private func migrateIfNeeded() throws {
-        let checkSQL = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'indexed_files'"
-        var checkStmt: OpaquePointer?
-        guard sqlite3_prepare_v2(db, checkSQL, -1, &checkStmt, nil) == SQLITE_OK else {
-            throw sqlError("Failed to check for indexed_files table")
-        }
-        defer { sqlite3_finalize(checkStmt) }
-
-        guard sqlite3_step(checkStmt) == SQLITE_ROW else {
-            throw sqlError("Failed to query sqlite_master for indexed_files")
-        }
-
-        if sqlite3_column_int(checkStmt, 0) != 0 {
-            return // Table already exists, no migration needed
-        }
-
-        let createTable = """
-            CREATE TABLE indexed_files (
-                file_path TEXT PRIMARY KEY NOT NULL,
-                file_modified_at REAL NOT NULL
-            );
-            """
-
-        // Populate from existing chunks so already-indexed files aren't re-done
-        let populateSQL = """
-            INSERT INTO indexed_files (file_path, file_modified_at)
-            SELECT file_path, MAX(file_modified_at)
-            FROM chunks
-            GROUP BY file_path;
-            """
-
-        try _execute("BEGIN TRANSACTION")
-        do {
-            try _execute(createTable)
-            try _execute(populateSQL)
-            try _execute("COMMIT")
-        } catch {
-            try? _execute("ROLLBACK")
-            throw error
-        }
+        // Single-user tool: schema changes require re-indexing. No migrations.
     }
 
     private func bindOptionalInt(_ stmt: OpaquePointer?, index: Int32, value: Int?) {

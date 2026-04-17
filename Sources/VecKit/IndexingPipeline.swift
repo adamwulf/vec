@@ -126,6 +126,8 @@ struct SaveWork: Sendable {
     let extractSeconds: Double
     let embedSeconds: Double
     let totalChunksExtracted: Int
+    /// Lines for text, pages for PDFs, nil for images / unknown.
+    let linePageCount: Int?
 }
 
 /// A three-stage producer/consumer pipeline that parallelizes file indexing.
@@ -241,9 +243,9 @@ public final class IndexingPipeline: Sendable {
                 for item in workItems {
                     progress?(.extractEnqueued)
                     let extractStart = DispatchTime.now()
-                    let chunks: [TextChunk]
+                    let extraction: ExtractionResult
                     do {
-                        chunks = try extractor.extract(from: item.file)
+                        extraction = try extractor.extract(from: item.file)
                     } catch {
                         let extractSeconds = Self.elapsed(since: extractStart)
                         // Unreadable file: register a zero-total file with
@@ -256,7 +258,8 @@ public final class IndexingPipeline: Sendable {
                             label: item.label,
                             total: 0,
                             extractSeconds: extractSeconds,
-                            firstChunkAt: nil
+                            firstChunkAt: nil,
+                            linePageCount: nil
                         )
                         if let work = await accumulator.closeIfComplete(path: item.file.relativePath) {
                             progress?(.saveEnqueued)
@@ -265,6 +268,7 @@ public final class IndexingPipeline: Sendable {
                         progress?(.extractDequeued)
                         continue
                     }
+                    let chunks = extraction.chunks
                     let extractSeconds = Self.elapsed(since: extractStart)
 
                     if chunks.isEmpty {
@@ -277,7 +281,8 @@ public final class IndexingPipeline: Sendable {
                             label: item.label,
                             total: 0,
                             extractSeconds: extractSeconds,
-                            firstChunkAt: nil
+                            firstChunkAt: nil,
+                            linePageCount: extraction.linePageCount
                         )
                         if let work = await accumulator.closeIfComplete(path: item.file.relativePath) {
                             progress?(.saveEnqueued)
@@ -309,7 +314,8 @@ public final class IndexingPipeline: Sendable {
                         label: item.label,
                         total: chunks.count,
                         extractSeconds: extractSeconds,
-                        firstChunkAt: firstChunkAt
+                        firstChunkAt: firstChunkAt,
+                        linePageCount: extraction.linePageCount
                     )
 
                     for (index, chunk) in chunks.enumerated() {
@@ -461,7 +467,11 @@ public final class IndexingPipeline: Sendable {
                     // Crash-safe: unmark → replace (atomic delete+insert) → mark
                     try await database.unmarkFileIndexed(path: path)
                     try await database.replaceEntries(forPath: path, with: work.records)
-                    try await database.markFileIndexed(path: path, modifiedAt: work.file.modificationDate)
+                    try await database.markFileIndexed(
+                        path: path,
+                        modifiedAt: work.file.modificationDate,
+                        linePageCount: work.linePageCount
+                    )
                     let dbSeconds = Self.elapsed(since: dbStart)
 
                     let wasUpdate = work.label == "Updated"
@@ -541,6 +551,7 @@ actor FileAccumulator {
         // `now - firstChunkAt`. This is an *embed span*, not summed
         // per-chunk wall-clock — see IndexingStats doc.
         var firstChunkAt: DispatchTime?
+        var linePageCount: Int?
     }
 
     private var files: [String: PartialFile] = [:]
@@ -551,7 +562,8 @@ actor FileAccumulator {
         label: String,
         total: Int,
         extractSeconds: Double,
-        firstChunkAt: DispatchTime?
+        firstChunkAt: DispatchTime?,
+        linePageCount: Int?
     ) {
         // First contact for this file. Extract is single-threaded so
         // markFileTotal always runs before any add() for the same file.
@@ -561,7 +573,8 @@ actor FileAccumulator {
             total: total,
             received: [],
             extractSeconds: extractSeconds,
-            firstChunkAt: firstChunkAt
+            firstChunkAt: firstChunkAt,
+            linePageCount: linePageCount
         )
     }
 
@@ -614,7 +627,8 @@ actor FileAccumulator {
             records: sortedRecords,
             extractSeconds: partial.extractSeconds,
             embedSeconds: embedSpan,
-            totalChunksExtracted: partial.total
+            totalChunksExtracted: partial.total,
+            linePageCount: partial.linePageCount
         )
     }
 }
