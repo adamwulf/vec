@@ -64,9 +64,10 @@ struct SearchCommand: AsyncParsableCommand {
         }
 
         let hasFilters = glob != nil || minLines != nil
-        // Fetch extra chunks so we can group by file and still return enough files.
-        // Widen the pool further when filters are active since many groups may drop out.
-        let fetchLimit = limit * (hasFilters ? 10 : 3)
+        // `database.search` scores every chunk regardless of limit, so when
+        // filters are active we ask for everything and truncate after filtering.
+        // Otherwise fetch a small pool to allow for file-level grouping.
+        let fetchLimit = hasFilters ? Int.max : limit * 3
         let coalesceLimit = hasFilters ? Int.max : limit
         let results = try await database.search(embedding: queryEmbedding, limit: fetchLimit)
         var grouped = SearchResultCoalescer.coalesce(results, limit: coalesceLimit)
