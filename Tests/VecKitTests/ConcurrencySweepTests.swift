@@ -207,8 +207,8 @@ final class ConcurrencySweepTests: XCTestCase {
             let run: Int
             let wallSeconds: Double
             let chunksEmbedded: Int
-            let totalBatchEmbedSeconds: Double
-            let firstBatchLatency: Double?
+            let embedSeconds: Double
+            let p95EmbedSeconds: Double
             var chunksPerSec: Double { wallSeconds > 0 ? Double(chunksEmbedded) / wallSeconds : 0 }
         }
 
@@ -225,12 +225,11 @@ final class ConcurrencySweepTests: XCTestCase {
                     run: run,
                     wallSeconds: wall,
                     chunksEmbedded: stats.totalChunksEmbedded,
-                    totalBatchEmbedSeconds: stats.totalBatchEmbedSeconds,
-                    firstBatchLatency: stats.firstBatchLatencySeconds
+                    embedSeconds: stats.embedSeconds,
+                    p95EmbedSeconds: stats.p95EmbedSeconds
                 )
                 rows.append(row)
 
-                let fb = row.firstBatchLatency.map { String(format: "%.2f", $0) + "s" } ?? "n/a"
                 let line = [
                     "[concurrency-sweep-row]",
                     "concurrency=\(row.concurrency)",
@@ -238,8 +237,8 @@ final class ConcurrencySweepTests: XCTestCase {
                     "wall=\(String(format: "%.2f", row.wallSeconds))s",
                     "chunks=\(row.chunksEmbedded)",
                     "chps=\(String(format: "%.1f", row.chunksPerSec))",
-                    "batch_embed_sum=\(String(format: "%.2f", row.totalBatchEmbedSeconds))s",
-                    "first_batch=\(fb)"
+                    "embed_sum=\(String(format: "%.2f", row.embedSeconds))s",
+                    "p95_embed=\(String(format: "%.3f", row.p95EmbedSeconds))s"
                 ].joined(separator: " ")
                 logLine(line)
             }

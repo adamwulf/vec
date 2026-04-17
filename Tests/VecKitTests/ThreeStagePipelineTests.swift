@@ -137,7 +137,6 @@ final class ThreeStagePipelineTests: XCTestCase {
         let firstFileCompletionSeconds: Double?
         let chunksEmbedded: Int
         let filesIndexed: Int
-        let firstBatchLatency: Double?
     }
 
     /// Run the pipeline once on the pre-generated corpus. The progress
@@ -204,8 +203,7 @@ final class ThreeStagePipelineTests: XCTestCase {
             wallSeconds: wall,
             firstFileCompletionSeconds: box.value(),
             chunksEmbedded: stats.totalChunksEmbedded,
-            filesIndexed: workItems.count,
-            firstBatchLatency: stats.firstBatchLatencySeconds
+            filesIndexed: workItems.count
         )
     }
 
@@ -237,7 +235,6 @@ final class ThreeStagePipelineTests: XCTestCase {
             trials.append(result)
 
             let ff = result.firstFileCompletionSeconds.map { String(format: "%.2f", $0) + "s" } ?? "n/a"
-            let fb = result.firstBatchLatency.map { String(format: "%.2f", $0) + "s" } ?? "n/a"
             let chps = result.wallSeconds > 0
                 ? Double(result.chunksEmbedded) / result.wallSeconds
                 : 0
@@ -246,7 +243,6 @@ final class ThreeStagePipelineTests: XCTestCase {
                 "trial=\(trial)",
                 "wall=\(String(format: "%.2f", result.wallSeconds))s",
                 "first_file=\(ff)",
-                "first_batch=\(fb)",
                 "chunks=\(result.chunksEmbedded)",
                 "chps=\(String(format: "%.1f", chps))"
             ].joined(separator: " ")
@@ -255,23 +251,20 @@ final class ThreeStagePipelineTests: XCTestCase {
 
         // Summary table.
         logLine("[three-stage] ==== SUMMARY ====")
-        let header = NSString(format: "[three-stage] %-8@ %-12@ %-14@ %-12@ %-10@ %-10@",
+        let header = NSString(format: "[three-stage] %-8@ %-12@ %-14@ %-10@ %-10@",
                               "trial" as NSString,
                               "wall" as NSString,
                               "first_file" as NSString,
-                              "first_batch" as NSString,
                               "chunks" as NSString,
                               "chps" as NSString)
         logLine(header as String)
         for (i, r) in trials.enumerated() {
             let ff = r.firstFileCompletionSeconds.map { String(format: "%.2fs", $0) } ?? "n/a"
-            let fb = r.firstBatchLatency.map { String(format: "%.2fs", $0) } ?? "n/a"
             let chps = r.wallSeconds > 0 ? Double(r.chunksEmbedded) / r.wallSeconds : 0
-            let line = NSString(format: "[three-stage] %-8d %-12.2f %-14@ %-12@ %-10d %-10.1f",
+            let line = NSString(format: "[three-stage] %-8d %-12.2f %-14@ %-10d %-10.1f",
                                 i + 1,
                                 r.wallSeconds,
                                 ff as NSString,
-                                fb as NSString,
                                 r.chunksEmbedded,
                                 chps)
             logLine(line as String)
