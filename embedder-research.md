@@ -58,19 +58,19 @@ and on our bean-test corpus, well below the small open-source models.
 | **OpenAI `text-embedding-3-small`** | 1536 (↓ configurable) | n/a (API) | **no** | **text leaves machine** | small — HTTP client, auth | ~62.3 | $0.02 / 1M tokens |
 | **OpenAI `text-embedding-3-large`** | 3072 (↓ configurable) | n/a (API) | no | text leaves machine | small — HTTP client, auth | ~64.6 | $0.13 / 1M tokens |
 | **OpenAI `text-embedding-ada-002`** (legacy) | 1536 | n/a (API) | no | leaves machine | small | ~61.0 | $0.10 / 1M tokens |
-| **Voyage-3-lite** | 1024 (configurable 256/512/2048) | n/a (API) | no | leaves machine | small — HTTP | reportedly competitive; MTEB not in docs we could fetch | paid API |
-| **Voyage-3** / voyage-3-large | 1024 (configurable) | n/a (API) | no | leaves machine | small — HTTP | competitive | paid API |
+| **Voyage-4-lite** | 1024 (configurable 256/512/2048) | n/a (API) | no | leaves machine | small — HTTP | reportedly competitive; MTEB not in docs we could fetch | paid API |
+| **Voyage-4** / voyage-4-large | 1024 (configurable) | n/a (API) | no | leaves machine | small — HTTP | competitive | paid API |
 | **Cohere `embed-english-v3`** | 1024 | n/a (API) | no | leaves machine | small — HTTP | "SOTA among 90+ on MTEB" at release (Nov 2023) | paid API |
-| **`nomic-embed-text-v1.5` (CoreML/MLTensor/GGUF)** | 768 Matryoshka-truncatable to 512/256/128/64 | ~274 MB (fp16 safetensors); ~135 MB (Q8 GGUF) | yes | local | medium — swift-embeddings *or* llama.cpp | 62.28 @768, 61.96 @512, 61.04 @256 | Apache-2.0 |
+| **`nomic-embed-text-v1.5` (CoreML/MLTensor/GGUF)** | 768 Matryoshka-truncatable to 512/256/128/64 | safetensors sizes vary by precision — see HF file listing; GGUF Q8_0 ≈ 140 MiB, GGUF fp16 ≈ 262 MiB | yes | local | medium — swift-embeddings *or* llama.cpp | 62.28 @768, 61.96 @512, 61.04 @256 | Apache-2.0 |
 | **`BAAI/bge-small-en-v1.5` (CoreML)** | 384 | ~130 MB | yes | local | medium — CoreML conversion + tokenizer | 62.17 | MIT |
-| **`sentence-transformers/all-MiniLM-L6-v2` (CoreML)** | 384 | ~86 MB | yes | local | **low** — already ships in `similarity-search-kit` as `MiniLMAll` (46 MB quantised) | 56.3 (MTEB avg, generally reported) | Apache-2.0 |
+| **`sentence-transformers/all-MiniLM-L6-v2` (CoreML)** | 384 | ~86 MB | yes | local | **low** — already ships in `similarity-search-kit` as `MiniLMAll` (46 MB quantised) | ~56 (community-reported; not published on the model card) | Apache-2.0 |
 | **`intfloat/e5-small-v2`** | 384 | ~130 MB | yes | local | medium — CoreML conversion | similar to `bge-small`; needs `query:` / `passage:` prefixes | MIT |
 | **`mixedbread-ai/mxbai-embed-large-v1`** | 1024 | ~670 MB (fp16) | yes | local | medium — CoreML conversion; large asset | 64.68 avg, 54.39 retrieval | Apache-2.0 |
 | **Ollama (local server) + any of nomic / mxbai / minilm** | varies (768 / 1024 / 384) | same as underlying model | yes (local server required) | local | small — HTTP client, but user must install/run Ollama | same as underlying model | free |
 | **LM Studio (local server) OpenAI-compatible endpoint** | varies | same as model | yes (local server required) | local | small — reuse OpenAI HTTP client | same as underlying model | free |
-| **`NLContextualEmbedding` (Apple, macOS 14+)** | 512 (iOS) / 768 (macOS), **per-token sequences, not sentence vector** | system | yes | local | medium — would need our own pooling strategy; Apple explicitly says to use `NLEmbedding` for semantic similarity | unknown; not designed for this use case | free, Apple system framework |
+| **`NLContextualEmbedding` (Apple, macOS 14+)** | model-dependent (read at runtime via `NLContextualEmbedding.dimension`; 512/768 are values observed from one specific English variant), **per-token sequences, not sentence vector** | system | yes | local | medium — would need our own pooling strategy; Apple explicitly says to use `NLEmbedding` for semantic similarity | unknown; not designed for this use case | free, Apple system framework |
 | **`similarity-search-kit` bundled models** (`MiniLMAll`, `MiniLMMultiQA`, `Distilbert`) | 384 / 384 / varies | 46 MB / 46 MB / 86 MB | yes | local | **low** — SPM drop-in | MiniLM ~56; MultiQA comparable | Apache-2.0 |
-| **`swift-embeddings` (MLTensor, SPM)** | model-dependent | model-dependent | yes | local | low-medium — SPM drop-in, model downloaded from HF | depends on model chosen | Apache-2.0 (package) |
+| **`swift-embeddings` (MLTensor, SPM)** | model-dependent | model-dependent | yes (after first-run model download from HF) | local | low-medium — SPM drop-in, model downloaded from HF | depends on model chosen | MIT (package) |
 
 ---
 
@@ -146,12 +146,23 @@ and on our bean-test corpus, well below the small open-source models.
   - 256 → 61.04
   - 128 → 59.34
   - 64 → 56.10
-- **Size on disk:** ~0.1B params. Full fp16 safetensors ≈ 274 MB; GGUF
-  quantised variants at <https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF> are smaller (Q8 ~135 MB).
+- **Size on disk:** ~0.1B params. Safetensors file sizes vary by precision
+  and should be read from the HF file listing. GGUF quantised variants at
+  <https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF> are smaller:
+  Q8_0 ≈ 140 MiB, fp16 ≈ 262 MiB.
 - **Max sequence length:** 8192 tokens (dynamic RoPE scaling).
 - **Required prefixes:** yes — `search_document: ...` when indexing,
   `search_query: ...` when querying. Important: both the indexer and the
   search command would need to add these.
+- **Thread-safe for shared instance:** unknown — depends on the inference
+  backend. `swift-embeddings` / `MLTensor` thread-safety is not documented;
+  llama.cpp's context is not thread-safe for concurrent calls on one context
+  but is fine across independent contexts. **Verify before integration** —
+  see §4 memory-footprint discussion.
+- **First-run UX / distribution:** via `swift-embeddings` the weights
+  download from Hugging Face on first use (see §3.13). Bundling the GGUF /
+  safetensors as SPM resources trades a multi-hundred-MB binary for offline
+  determinism.
 - **License:** Apache-2.0.
 - **Quality vs NLEmbedding:** expected to be a substantial step up. MTEB 62.28
   puts it above `text-embedding-ada-002` (61.0) and roughly at
@@ -177,6 +188,11 @@ and on our bean-test corpus, well below the small open-source models.
   for its size.
 - **Cons:** 512-token context is short vs nomic's 8192, which could matter
   if we ever want to embed bigger chunks.
+- **Thread-safe for shared instance:** unknown — backend-dependent (same
+  caveat as nomic). Verify before integration.
+- **First-run UX / distribution:** same as nomic — `swift-embeddings`
+  downloads on first use; alternatives are SPM-bundled resources or a
+  separate fetch step.
 
 ### 3.6 Local: `sentence-transformers/all-MiniLM-L6-v2`
 
@@ -185,11 +201,18 @@ and on our bean-test corpus, well below the small open-source models.
   `MiniLMAll` preset (46 MB quantised CoreML) — this is the lowest-friction
   local swap we have available.
 - **Size:** 22.7M params.
-- **MTEB:** ~56 average — lower than BGE or nomic, but still almost
-  certainly better than NLEmbedding for retrieval given how old NLEmbedding's
-  training data is.
+- **MTEB:** commonly reported ~56 in community benchmarks; the HF model card
+  itself does not publish an overall MTEB average (only per-task numbers, e.g.
+  ArguAna 50.17). Still almost certainly better than NLEmbedding for
+  retrieval given how old NLEmbedding's training data is.
 - **Max sequence length:** 256 word pieces.
 - **License:** Apache-2.0.
+- **Thread-safe for shared instance:** unknown — via
+  `similarity-search-kit`'s CoreML path, safety depends on whether the
+  converted MLModel is called from a single queue. Verify before integration.
+- **First-run UX / distribution:** model ships inside
+  `similarity-search-kit` as a bundled resource — no network required on
+  first run. Lowest-friction distribution story of the local options.
 
 ### 3.7 Local: `intfloat/e5-small-v2`
 
@@ -204,16 +227,24 @@ and on our bean-test corpus, well below the small open-source models.
 ### 3.8 Local: `mixedbread-ai/mxbai-embed-large-v1`
 
 - **Source:** <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>.
-- **Dims:** 1024.
+- **Dims:** 1024 default (configurable via Matryoshka `truncate_dim`; MRL
+  supported per the HF card — contradicting the "in the making" claim from
+  the launch blog).
 - **MTEB:** 64.68 average, 54.39 retrieval. Beats `nomic-embed-text` (49.01
-  retrieval) and reportedly beats `text-embedding-3-large` on the same
-  retrieval benchmark per Mixedbread's launch post.
+  retrieval). Beats `text-embedding-3-large` on MTEB average (64.68 vs 64.58)
+  but **loses on the retrieval subtask** (54.39 vs 55.44).
 - **Size:** 335M params (BERT-large). Fp16 weights ≈ 670 MB — largest of the
   local options.
 - **License:** Apache-2.0.
 - **Trade-off:** highest quality of the local options, but ships 5-6x more
   weights than nomic. Plausible if we're comfortable with a one-time 700 MB
   download on first run.
+- **Thread-safe for shared instance:** unknown — backend-dependent. Verify
+  before integration.
+- **First-run UX / distribution:** same pattern as nomic / BGE — weights
+  download on first use via `swift-embeddings`; bundling a 670 MB asset in
+  SPM resources is almost certainly a non-starter, so expect a separate
+  fetch step in practice.
 
 ### 3.9 Apple `NLContextualEmbedding` (macOS 14+)
 
@@ -222,8 +253,11 @@ and on our bean-test corpus, well below the small open-source models.
   vectors (BERT-like) instead of static word embeddings. Apple's intended use
   is as a feature extractor for text classification / word tagging with
   CreateML.
-- **Dimensions:** 512 on iOS/tvOS/watchOS; 768 on macOS (per the
-  `buh/NaturalLanguageEmbeddings` demo package that exercises it).
+- **Dimensions:** model-dependent; Apple's own docs do not publish a fixed
+  number. The dimension is read at runtime via `NLContextualEmbedding.dimension`
+  and there are multiple model identifiers per language. The 512 / 768
+  figures are values observed in one specific English variant exercised by
+  the `buh/NaturalLanguageEmbeddings` demo — not a general contract.
 - **Max sequence length:** documented, finite; returns a sequence of
   per-token vectors, not a single sentence vector.
 - **Critical caveat (direct Apple quote in the docs page we fetched):**
@@ -275,6 +309,7 @@ and on our bean-test corpus, well below the small open-source models.
 ### 3.13 `swift-embeddings` (MLTensor, jkrukowski)
 
 - **Source:** <https://github.com/jkrukowski/swift-embeddings>.
+- **License:** MIT (per the GitHub repo).
 - **SPM-compatible**. Uses Apple's `MLTensor` framework (no CoreML
   conversion needed).
 - **Supported architectures:** BERT, ModernBERT, NomicBERT, RoBERTa,
@@ -284,6 +319,13 @@ and on our bean-test corpus, well below the small open-source models.
 - **Why interesting:** this is the most promising Swift-native path to
   `nomic-embed-text-v1.5` specifically, without writing our own CoreML
   conversion. Models download from Hugging Face on first use.
+- **Distribution / first-run UX caveat:** "downloads from HF on first use"
+  breaks the offline-capable contract for any user running `vec` offline on
+  first launch. Options: (a) bundle model weights as SPM resources — large
+  binary, potentially multi-hundred-MB; (b) leave download-on-demand as-is
+  and document the online-first-run requirement; (c) ship a separate
+  `vec fetch-models` step that users run once before going offline. This
+  choice has real integration cost and user-facing implications.
 
 ### 3.14 MLX and MLX-Swift
 
@@ -322,11 +364,36 @@ public protocol Embedder: Sendable {
 Then rename the current class to `NLEmbedder: Embedder`, and callers
 (`IndexBuilder`, `search` command, `update-index`) depend on the protocol.
 
-Touched files (4):
-- `Sources/VecKit/EmbeddingService.swift` — split into protocol + impl
-- anywhere a callsite constructs `EmbeddingService()` directly
-- add a factory that reads config/CLI flag to pick the impl
-- `Tests/VecKitTests` — fixture embedder for deterministic tests
+**Switching to `async` is not a cosmetic type change.** Every call site on
+the path needs await-ification, not just the protocol definition. Concrete
+production callsites that currently construct or invoke `EmbeddingService`
+(enumerated from `grep`):
+
+- `Sources/vec/Commands/SearchCommand.swift:60` — `EmbeddingService()` at
+  query time and the immediately-following `.embed(query)` call.
+- `Sources/VecKit/IndexingPipeline.swift:646` — `EmbedderPool` constructs N
+  instances inside `init` (`EmbeddingService()` in a map). This is the
+  primary integration point — `EmbedderPool`, not `IndexingPipeline` at
+  large.
+- `Sources/VecKit/IndexingPipeline.swift:672` — warmup loop calls
+  `embedder.embed("warmup text")` on every pooled instance.
+- `Sources/VecKit/IndexingPipeline.swift:360` — in-pipeline per-chunk
+  `embedder.embed(chunk.text)` call (after `pool.acquire()`).
+
+If the new `Embedder.embed` returns `async`, all four lines need `await`
+plus surrounding context-propagation changes. `EmbedderPool` itself is
+already an actor and its `acquire` / `release` are already async, so most
+of the actor boundary is fine — but the synchronous `.embed` inside the
+task group at :360 and inside `warmAll()` at :672 are the lines that flip
+from sync to async. Plan this as an async-ification of the whole call path.
+
+Touched files (concrete list):
+- `Sources/VecKit/EmbeddingService.swift` — split into protocol + impl.
+- `Sources/VecKit/IndexingPipeline.swift` — three call sites (constructor,
+  warmup, per-chunk embed).
+- `Sources/vec/Commands/SearchCommand.swift` — one query-side call site.
+- Add a factory that reads config/CLI flag to pick the impl.
+- `Tests/VecKitTests` — see §4.6 for specific test files that break.
 
 ### 4.2 Database: variable dimensions
 
@@ -362,6 +429,15 @@ Current `update-index` already has `--chunk-chars` and `--chunk-overlap`. Add:
 - Persist the chosen embedder in the DB metadata table (§4.2) so `search`
   doesn't need the flag again.
 
+**API-key handling scope:** explicitly env-var-only in v1 — the CLI reads
+the key from the environment variable named by `--api-key-env` (default
+`OPENAI_API_KEY`). **Punt keychain integration as out-of-scope** for the
+initial swap; it is worth doing eventually but shouldn't block the
+research-to-implementation path. Do **not** add a literal `--api-key`
+flag: any value passed that way lands in shell history and process-list
+output, which is a real leak surface. If a future version wants
+interactive key entry, use a read-from-stdin prompt, not an argv flag.
+
 ### 4.4 `Package.swift` deltas per option
 
 | Option | New dependency |
@@ -372,7 +448,58 @@ Current `update-index` already has `--chunk-chars` and `--chunk-overlap`. Add:
 | llama.cpp (GGUF nomic / bge) | `.package(url: "https://github.com/ggml-org/llama.cpp", ...)` or an XCFramework binary target |
 | Custom CoreML conversion | none (system CoreML) |
 
-### 4.5 Migration path for existing DBs
+### 4.5 Memory footprint under the current pool model
+
+`EmbedderPool(count: concurrency)` is constructed in `IndexingPipeline.init`
+at `IndexingPipeline.swift:174-179` with
+`concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2)`.
+On typical Apple Silicon that's 8-12 instances. Each pooled instance is a
+**separate copy of the model weights**, because the pool exists to work
+around NLEmbedding's documented thread-unsafety (see
+`Tests/VecKitTests/NLEmbeddingThreadSafetyTests.swift` — the regression
+canary that segfaults if a single instance is shared across tasks).
+
+Concrete memory pictures for a 10-wide pool:
+
+| Embedder | Per-instance weights | Pool total (x10) |
+|---|---|---|
+| `NLEmbedding` (current) | ~50 MB | ~500 MB |
+| `nomic-embed-text-v1.5` GGUF Q8_0 | ~140 MiB | ~1.4 GB |
+| `all-MiniLM-L6-v2` quantised | ~46 MB | ~460 MB |
+| `bge-small-en-v1.5` | ~130 MB | ~1.3 GB |
+| `mxbai-embed-large-v1` fp16 | ~670 MB | ~6.7 GB |
+
+**Implication:** unless a candidate embedder is thread-safe for a single
+shared instance — in which case we can collapse the pool to one and save
+the N× multiplier — the pool size needs to be reconsidered per-candidate.
+`mxbai-embed-large-v1` at pool width 10 is effectively disqualifying on a
+16 GB MacBook.
+
+Each per-option detail in §3 lists a "Thread-safe for shared instance"
+line. Anything marked "unknown" must be verified empirically (mirroring
+what `NLEmbeddingThreadSafetyTests` does for NLEmbedding) before we commit
+to pool size.
+
+### 4.6 Test migration — specific assertions that break
+
+Any embedder that doesn't produce 512-dim vectors breaks these specific
+lines:
+
+- `Tests/VecKitTests/VecKitTests.swift:40` — `XCTAssertEqual(result?.count, 512)`.
+- `Tests/VecKitTests/VecKitTests.swift:65` — same 512 assertion on long-text path.
+- `Tests/VecKitTests/VecKitTests.swift:70` —
+  `XCTAssertEqual(service.dimension, 512)`.
+- `Tests/VecKitTests/NLEmbeddingThreadSafetyTests.swift:19` —
+  `private static let expectedDimension = 512` (used at :33 via
+  `XCTAssertEqual(embedding.dimension, Self.expectedDimension, ...)`).
+
+These need to be parameterised on `embedder.dimension` (or the 512
+literal replaced with the new model's dimension) at minimum. The
+thread-safety test (`NLEmbeddingThreadSafetyTests`) is specifically about
+NLEmbedding's runtime — if we migrate to a new embedder, consider adding
+an analogous concurrency canary for it rather than only mutating this one.
+
+### 4.7 Migration path for existing DBs
 
 Because we're storing vectors as raw BLOBs with no dimension constraint, the
 safest path is:
@@ -409,12 +536,22 @@ on-device, no-API-key, no-daemon-required UX*:
    ~5M tokens ≈ $0.10 one-time). Needs a permissioned API-key story and
    explicit "your text leaves the machine" notice.
 
+   **Caching caveat — resolve before the OpenAI swap lands.** The "$0.10
+   one-time" figure assumes each chunk is embedded exactly once. Today
+   `update-index` re-embeds chunks whenever a file is modified, with no
+   cache keyed by `(content_hash, embedder_id)`. For a purely local
+   embedder that's fine — cost is only wall-clock. For a paid API it
+   matters: an author who re-saves the same file repeatedly pays for each
+   round trip. Before shipping OpenAI support, add a per-chunk content-hash
+   cache so unchanged text reuses its stored vector across re-indexes.
+   Suggested key: `(sha256(chunk_text), embedder_id, embedder_dim)`.
+
 4. **Ollama backend via HTTP.** Zero embedding code to write; piggyback on an
    OpenAI client. But forces every user to install and run a separate
    daemon, which conflicts with our "single Swift executable" ethos. Do this
    only as an optional `--embedder ollama` switch, not default.
 
-5. **`mxbai-embed-large-v1` or `voyage-3-large`.** Top-tier quality but
+5. **`mxbai-embed-large-v1` or `voyage-4-large`.** Top-tier quality but
    significantly more integration friction (670 MB local weights, or a paid
    API with separate auth). Reserve for a second pass if the primary choice
    plateaus.
