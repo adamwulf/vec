@@ -11,6 +11,17 @@ public enum IndexResult: Sendable {
 /// Per-stage wall-clock totals (summed across all files and concurrent workers)
 /// plus the slowest individual files. Useful for spotting which stage dominates
 /// real time and which files are tail-latency outliers.
+///
+/// **H7 note on per-file embed seconds.** Under the three-stage pipeline a
+/// file's chunks no longer embed inside one worker — they fan out across the
+/// pool and arrive at the per-file accumulator out of order. The per-file
+/// `embedSeconds` recorded here is therefore an *embed span*: wall-clock from
+/// the first chunk leaving extract to the last chunk arriving at the
+/// accumulator. It includes pool waits and overlaps with other files'
+/// chunks, so its absolute magnitude isn't directly comparable to the
+/// pre-H7 per-file embed time. The aggregate `embedSeconds` and
+/// `totalBatchEmbedSeconds` (now: summed per-chunk wall-clock across every
+/// embed task) remain the right inputs for pool-utilization math.
 public struct IndexingStats: Sendable {
     public struct FileTiming: Sendable {
         public let path: String
@@ -26,96 +37,177 @@ public struct IndexingStats: Sendable {
     public var totalChunksEmbedded: Int = 0
     public var slowestFiles: [FileTiming] = []
 
-    /// 50th percentile embed-seconds-per-file across non-skipped files (0 if empty).
+    /// 50th percentile embed-span-seconds-per-file across non-skipped files
+    /// (0 if empty). See struct doc on the post-H7 meaning of "embed seconds".
     public var p50EmbedSeconds: Double = 0
-    /// 95th percentile embed-seconds-per-file across non-skipped files (0 if empty).
+    /// 95th percentile embed-span-seconds-per-file across non-skipped files
+    /// (0 if empty). See struct doc on the post-H7 meaning of "embed seconds".
     public var p95EmbedSeconds: Double = 0
     /// File that produced the most chunks, if any files were indexed.
     public var largestFile: FileTiming?
-    /// Wall-clock seconds from pipeline start to the first `.batchEmbedded`
+    /// Wall-clock seconds from pipeline start to the first `.chunkEmbedded`
     /// event. Approximates the "extract-bound startup" window — if this is
-    /// much larger than a typical per-file extract time, workers all got
-    /// stuck in extract before any embedding could start.
+    /// much larger than a typical per-file extract time, the extract stage
+    /// got blocked before any chunk could embed.
     public var firstBatchLatencySeconds: Double?
-    /// Total batches embedded across all files. Useful for computing mean
-    /// batch size and batch-embed throughput.
+    /// Total embed tasks completed across all files. Under H7 each task
+    /// embeds exactly one chunk, so post-refactor this equals
+    /// `totalChunksEmbedded` for any successful run. The field name is kept
+    /// for API stability; the verbose footer's "mean batch size" therefore
+    /// always reads as 1.0 chunks/task post-H7 — that's the truth, not a
+    /// renderer bug.
     public var totalBatches: Int = 0
-    /// Total chunks across all batches. Cross-check against
+    /// Total chunks across all embed tasks. Cross-check against
     /// `totalChunksEmbedded` (summed from `recordFile`): equality means
-    /// no batch result was dropped between embed-time and DB-time.
+    /// no embed result was dropped between embed-time and DB-time.
     public var totalBatchChunks: Int = 0
     /// Summed seconds spent in `EmbeddingService.embed` calls across all
-    /// batches. Equal to or slightly less than `embedSeconds` — the gap
-    /// reflects embedder-pool waits and task-group bookkeeping.
+    /// per-chunk embed tasks. Equal to or slightly less than
+    /// `embedSeconds` — the gap reflects embedder-pool waits and
+    /// task-group bookkeeping.
     public var totalBatchEmbedSeconds: Double = 0
 }
 
 /// Structured progress event emitted by the pipeline. Consumers are expected to
 /// maintain their own counters; the pipeline carries no presentation concerns.
 ///
-/// Events fall into two groups with different task-origin guarantees:
+/// Events fall into four groups by origin:
 ///
-/// - **Worker-side events** — `.workerBusy`, `.workerIdle`, `.nonEnglishDetected`,
-///   `.batchEmbedded`: emitted from the N file-worker tasks. `.workerBusy` is
-///   always paired with a matching `.workerIdle` from the *same* task, so a
-///   renderer can maintain a balanced busy counter.
+/// - **Stage-transition events** — `.extractEnqueued`/`.extractDequeued` and
+///   `.embedEnqueued`/`.embedDequeued`: emitted when items move between
+///   stages. Difference (enqueued − dequeued) is the live queue depth and
+///   tells you which stage is the current bottleneck. Replaces the old
+///   `.workerBusy`/`.workerIdle` pair, which doesn't have a coherent
+///   meaning under the three-stage pipeline (extract is single-threaded,
+///   embed is one task per chunk so "in flight" equals pool size whenever
+///   there's work).
 ///
-/// - **DB-writer events** — `.fileFinished`, `.fileSkipped`: emitted from the
-///   single serial DB writer (or from a worker task in the unreadable/no-text
-///   path, before the save stream). These are decoupled from worker busy/idle
-///   — do *not* try to derive "workers in flight" from file-finish events.
+/// - **Embed-task events** — `.chunkEmbedded`: emitted from each per-chunk
+///   embed task. Replaces the old `.batchEmbedded`. Lock-traffic note:
+///   even at post-H7 throughput (~50–100 c/s) this is one event per chunk
+///   per second, well within an `NSLock`'s capacity in `ProgressRenderer`.
+///
+/// - **File-lifecycle events** — `.fileFinished`, `.fileSkipped`,
+///   `.nonEnglishDetected`: emitted from extract (skips/lang) and the DB
+///   writer (success). The non-English event now fires from extract on
+///   the first chunk per file; under H7 there's no longer an "embed
+///   stage in worker" where it could naturally live.
+///
+/// - **Save-channel events** — `.saveEnqueued`, `.saveDequeued`,
+///   `.poolWarmed`: unchanged from pre-H7.
 public enum ProgressEvent: Sendable {
-    case workerBusy
-    case workerIdle
+    /// File popped off the input queue and started extracting.
+    case extractEnqueued
+    /// File done extracting and all its chunks have been pushed to the
+    /// embed stream (or the file produced zero chunks and a sentinel was
+    /// pushed to the accumulator).
+    case extractDequeued
+    /// A chunk was extracted and pushed to the embed stream, awaiting
+    /// pool capacity.
+    case embedEnqueued
+    /// An embed task picked up a chunk and acquired a pooled embedder.
+    case embedDequeued
     case fileFinished(chunks: Int)
     case fileSkipped
     case nonEnglishDetected(filePath: String, language: String)
-    case batchEmbedded(seconds: Double, chunks: Int)
-    /// File handed off from a worker to the DB-writer save stream.
-    /// Paired with `.saveDequeued` from the DB writer so renderers can
-    /// show live save-queue depth as a bottleneck signal.
+    /// One chunk finished embedding. `seconds` is the wall-clock spent in
+    /// this single `EmbeddingService.embed` call (pool wait excluded).
+    case chunkEmbedded(seconds: Double)
+    /// File handed off from the per-file accumulator to the DB-writer save
+    /// stream. Paired with `.saveDequeued` from the DB writer so renderers
+    /// can show live save-queue depth as a bottleneck signal.
     case saveEnqueued
     case saveDequeued
+    /// Pool warmup completed. Emitted once per `run()` after every pooled
+    /// embedder has been pre-touched serially, before any worker task starts.
+    /// `seconds` is wall-clock time spent in the warmup loop.
+    case poolWarmed(seconds: Double)
 }
 
 public typealias ProgressHandler = @Sendable (ProgressEvent) -> Void
 
 /// A batch of embedded records for a complete file, ready for DB insertion.
+///
+/// `totalChunksExtracted` is the number of chunks the extract stage produced
+/// for this file (before any embed attempts). The DB writer uses it to
+/// distinguish:
+///
+/// - `records.isEmpty && totalChunksExtracted == 0` — extract produced no
+///   chunks (unreadable / empty file) → `.skippedUnreadable`.
+/// - `records.isEmpty && totalChunksExtracted > 0` — every chunk failed to
+///   embed → `.skippedEmbedFailure` (with a per-file stats entry recording
+///   `chunkCount: 0`, matching pre-H7 behavior).
 struct SaveWork: Sendable {
     let file: FileInfo
     let label: String
     let records: [ChunkRecord]
     let extractSeconds: Double
     let embedSeconds: Double
+    let totalChunksExtracted: Int
 }
 
-/// A two-stage producer/consumer pipeline that parallelizes file indexing:
+/// A three-stage producer/consumer pipeline that parallelizes file indexing.
 ///
-/// 1. **File Workers (N)** — extract chunks and embed them in parallel
-/// 2. **DB Writer (1)** — serial consumer that flushes complete files to the database
+/// **Stage 1 — Extract (single task).** Pulls files off the input queue
+/// serially, calls `TextExtractor.extract(from:)`, stamps each chunk with
+/// `(filePath, ordinal, totalChunks)`, and pushes one `EmbedWork` per chunk
+/// onto the embed stream. Single-threaded by design: extract is cheap
+/// relative to embed, and a serial extractor keeps order deterministic per
+/// file (so the accumulator's sort is stable). Files that produce zero
+/// chunks (unreadable / empty) push a synthetic `EmbedWork` with
+/// `totalChunks == 0` so the accumulator can fire an empty save and close
+/// out the file.
 ///
-/// The embedder pool pre-creates N `EmbeddingService` instances at startup
-/// and vends them to embed tasks on demand. Each instance is used by only
-/// one task at a time, avoiding the `NLEmbedding` concurrent-access crash.
+/// **Stage 2 — Embed (one task per chunk, pool-gated).** Each `EmbedWork`
+/// spawns its own task inside a TaskGroup. The task awaits an embedder
+/// from `EmbedderPool` (effective concurrency limit = pool size =
+/// `activeProcessorCount`), runs `embed()`, builds a `ChunkRecord`, and
+/// pushes a `(filePath, ordinal, total, record)` tuple onto the
+/// accumulator stream. Releases the embedder back to the pool. Compared
+/// to pre-H7's per-file batched embed: a huge file no longer holds nine
+/// other workers' chunks hostage — every chunk competes equally for pool
+/// capacity, and small files' chunks interleave naturally.
+///
+/// **Stage 3a — Per-file accumulator (actor).** Groups incoming
+/// `EmbeddedChunk`s by file path. Each file's `total` is known at first
+/// contact (carried on every chunk). When a file's accumulated record
+/// count equals `total`, the accumulator sorts by ordinal and emits one
+/// `SaveWork` to the save stream. Empty files (`total == 0`) emit
+/// immediately.
+///
+/// **Stage 3b — DB writer (single task).** Serial consumer of the save
+/// stream, identical in shape to pre-H7.
 public final class IndexingPipeline: Sendable {
 
-    /// Maximum chunks per embed batch.
-    private let embedBatchSize: Int
-
-    /// Number of concurrent file workers. Exposed so callers can size
-    /// progress displays ("N/M busy") against the same value the pool uses.
+    /// Number of pooled embedders, also the effective concurrency cap for
+    /// the embed stage (every embed task acquires one). Exposed so callers
+    /// can size progress displays against the same value the pool uses.
     public let workerCount: Int
 
     /// Pool of pre-created EmbeddingService instances.
     private let pool: EmbedderPool
 
-    public init(
-        embedBatchSize: Int = 20,
+    /// Whether to warm each pooled embedder serially before the worker
+    /// task group starts. Defaults to true (the H5 result). Exposed as an
+    /// internal init seam so measurement tests can compare cold vs warm
+    /// without polluting the public API.
+    internal let warmupEnabled: Bool
+
+    public convenience init(
         concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2)
     ) {
-        self.embedBatchSize = embedBatchSize
+        self.init(concurrency: concurrency, warmup: true)
+    }
+
+    /// Internal init that exposes the warmup toggle. Used by measurement
+    /// tests to bypass warmup; production callers should use the public init.
+    internal init(
+        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
+        warmup: Bool
+    ) {
         self.workerCount = concurrency
         self.pool = EmbedderPool(count: concurrency)
+        self.warmupEnabled = warmup
     }
 
     /// Run the full indexing pipeline for a set of file work items.
@@ -134,71 +226,263 @@ public final class IndexingPipeline: Sendable {
     ) async throws -> (results: [IndexResult], stats: IndexingStats) {
         guard !workItems.isEmpty else { return ([], IndexingStats()) }
 
-        let batchSize = embedBatchSize
         let pool = self.pool
 
-        // Save stream: file workers → DB writer (single consumer)
+        // H5: warm each pooled embedder serially before workers start, so
+        // the first chunk doesn't pay 10× parallel NLEmbedding cold-load
+        // cost contending for memory bandwidth.
+        if warmupEnabled {
+            let warmStart = DispatchTime.now()
+            await pool.warmAll()
+            let warmSeconds = Self.elapsed(since: warmStart)
+            progress?(.poolWarmed(seconds: warmSeconds))
+        }
+
+        // Embed stream: extract task → embed-spawner.
+        // Unbounded buffering: extract should always be faster than embed
+        // (no embed call), so chunks queue here until the pool has
+        // capacity. The embed-queue depth (.embedEnqueued − .embedDequeued)
+        // is the diagnostic signal for "is embed the bottleneck?".
+        let (embedStream, embedContinuation) = AsyncStream<EmbedWork>.makeStream(
+            bufferingPolicy: .unbounded
+        )
+
+        // Accumulator stream: embed tasks → per-file accumulator.
+        let (accumStream, accumContinuation) = AsyncStream<EmbeddedChunk>.makeStream(
+            bufferingPolicy: .unbounded
+        )
+
+        // Save stream: per-file accumulator → DB writer (single consumer).
         let (saveStream, saveContinuation) = AsyncStream<SaveWork>.makeStream(
             bufferingPolicy: .unbounded
         )
 
         let resultCollector = ResultCollector()
-        let statsCollector = StatsCollector(pipelineStart: DispatchTime.now())
+        let pipelineStart = DispatchTime.now()
+        let statsCollector = StatsCollector(pipelineStart: pipelineStart)
+        let accumulator = FileAccumulator()
+        // Per-chunk backpressure: extract blocks once the embed queue is
+        // roughly two pool-sizes deep. Keeps memory bounded on large
+        // corpora (previously extract would race through all files and
+        // queue tens of thousands of chunks' text before embed caught up).
+        let extractGate = ExtractBackpressure(capacity: workerCount * 2)
 
         try await withThrowingTaskGroup(of: Void.self) { group in
 
-            // Stage 1: File Workers
+            // Stage 1: Extract (single serial task).
+            //
+            // N_extract = 1 by design. Extract is cheap and keeping it
+            // single-threaded preserves intra-file ordinal monotonicity
+            // and removes any need to lock a shared queue.
             group.addTask {
-                let queue = WorkQueue(workItems)
+                for item in workItems {
+                    progress?(.extractEnqueued)
+                    let extractStart = DispatchTime.now()
+                    let chunks: [TextChunk]
+                    do {
+                        chunks = try extractor.extract(from: item.file)
+                    } catch {
+                        let extractSeconds = Self.elapsed(since: extractStart)
+                        // Unreadable file: register a zero-total file with
+                        // the accumulator and immediately close it so the
+                        // DB writer reports the skip. Result accounting
+                        // stays single-sourced (the DB writer).
+                        await accumulator.markFileTotal(
+                            path: item.file.relativePath,
+                            file: item.file,
+                            label: item.label,
+                            total: 0,
+                            extractSeconds: extractSeconds,
+                            firstChunkAt: nil
+                        )
+                        if let work = await accumulator.closeIfComplete(path: item.file.relativePath) {
+                            progress?(.saveEnqueued)
+                            saveContinuation.yield(work)
+                        }
+                        progress?(.extractDequeued)
+                        continue
+                    }
+                    let extractSeconds = Self.elapsed(since: extractStart)
 
-                await withTaskGroup(of: Void.self) { workers in
-                    for _ in 0..<self.workerCount {
-                        workers.addTask {
-                            while let item = await queue.next() {
-                                let result = await Self.processFile(
-                                    item.file,
-                                    label: item.label,
-                                    extractor: extractor,
-                                    pool: pool,
-                                    batchSize: batchSize,
-                                    progress: progress,
-                                    statsCollector: statsCollector
+                    if chunks.isEmpty {
+                        // Empty / no-text file: same close-out as the
+                        // unreadable path. The DB writer will translate
+                        // an empty record set into `.skippedUnreadable`.
+                        await accumulator.markFileTotal(
+                            path: item.file.relativePath,
+                            file: item.file,
+                            label: item.label,
+                            total: 0,
+                            extractSeconds: extractSeconds,
+                            firstChunkAt: nil
+                        )
+                        if let work = await accumulator.closeIfComplete(path: item.file.relativePath) {
+                            progress?(.saveEnqueued)
+                            saveContinuation.yield(work)
+                        }
+                        progress?(.extractDequeued)
+                        continue
+                    }
+
+                    // Language-detect on the first chunk. Pre-H7 this
+                    // happened in `processFile`; with no per-file worker
+                    // anymore, it lives here.
+                    if let firstText = chunks.first?.text {
+                        let trimmed = firstText.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if !trimmed.isEmpty,
+                           let lang = NLLanguageRecognizer.dominantLanguage(for: trimmed),
+                           lang != .english, lang != .undetermined {
+                            progress?(.nonEnglishDetected(
+                                filePath: item.file.relativePath,
+                                language: lang.rawValue
+                            ))
+                        }
+                    }
+
+                    let firstChunkAt = DispatchTime.now()
+                    await accumulator.markFileTotal(
+                        path: item.file.relativePath,
+                        file: item.file,
+                        label: item.label,
+                        total: chunks.count,
+                        extractSeconds: extractSeconds,
+                        firstChunkAt: firstChunkAt
+                    )
+
+                    for (index, chunk) in chunks.enumerated() {
+                        // Block until the embed queue has room. Permit
+                        // released in the embed task after handoff to the
+                        // accumulator. Keeps extract from running ahead
+                        // of embed on large corpora.
+                        await extractGate.acquire()
+                        let work = EmbedWork(
+                            file: item.file,
+                            label: item.label,
+                            chunk: chunk,
+                            ordinal: index,
+                            totalChunks: chunks.count,
+                            extractSeconds: extractSeconds,
+                            firstChunkAt: firstChunkAt
+                        )
+                        progress?(.embedEnqueued)
+                        embedContinuation.yield(work)
+                    }
+                    progress?(.extractDequeued)
+                }
+                // All files extracted; close the embed stream so the
+                // embed-spawner stage knows it's done.
+                embedContinuation.finish()
+            }
+
+            // Stage 2: Embed-spawner. Drains the embed stream, spawns one
+            // task per chunk inside a TaskGroup. The pool's acquire/release
+            // is the natural concurrency gate — we don't need a separate
+            // semaphore. Tasks are unstructured-per-chunk inside the
+            // group, so a long-running embed doesn't block the next chunk
+            // from being scheduled.
+            group.addTask {
+                await withTaskGroup(of: Void.self) { embedGroup in
+                    for await work in embedStream {
+                        embedGroup.addTask {
+                            progress?(.embedDequeued)
+                            let chunk = work.chunk
+
+                            let embedder = await pool.acquire()
+                            let chunkStart = DispatchTime.now()
+                            let vector = embedder.embed(chunk.text)
+                            let chunkSeconds = Self.elapsed(since: chunkStart)
+                            await pool.release(embedder)
+
+                            progress?(.chunkEmbedded(seconds: chunkSeconds))
+                            await statsCollector.recordChunkEmbed(seconds: chunkSeconds)
+
+                            let record: ChunkRecord?
+                            if let vector = vector {
+                                record = ChunkRecord(
+                                    filePath: work.file.relativePath,
+                                    lineStart: chunk.lineStart,
+                                    lineEnd: chunk.lineEnd,
+                                    chunkType: chunk.type,
+                                    pageNumber: chunk.pageNumber,
+                                    fileModifiedAt: work.file.modificationDate,
+                                    contentPreview: String(chunk.text.prefix(200)),
+                                    embedding: vector
                                 )
-
-                                switch result {
-                                case .skipped(let indexResult, let extractSeconds):
-                                    await resultCollector.record(indexResult)
-                                    await statsCollector.recordSkipped(
-                                        path: item.file.relativePath,
-                                        extractSeconds: extractSeconds
-                                    )
-                                case .save(let saveWork):
-                                    progress?(.saveEnqueued)
-                                    saveContinuation.yield(saveWork)
-                                }
+                            } else {
+                                // Embed failed for this chunk — still
+                                // contribute to the file's total so the
+                                // accumulator knows when the file is done.
+                                // Failed chunks just don't produce a
+                                // ChunkRecord; the file is recorded with
+                                // whatever subset succeeded.
+                                record = nil
                             }
+
+                            let emitted = EmbeddedChunk(
+                                filePath: work.file.relativePath,
+                                ordinal: work.ordinal,
+                                record: record
+                            )
+                            accumContinuation.yield(emitted)
+                            // Release the extract-gate permit that was
+                            // acquired when this chunk was yielded onto
+                            // the embed stream. Released on every embed
+                            // path (success or vector == nil failure) —
+                            // if an embed path stops releasing, extract
+                            // will eventually deadlock on a full gate.
+                            await extractGate.release()
                         }
                     }
                 }
-                // All workers done — close the save stream
+                // All embed tasks done; close the accumulator stream.
+                accumContinuation.finish()
+            }
+
+            // Stage 3a: Per-file accumulator. Groups by file path, emits
+            // SaveWork the moment a file's chunk count is reached.
+            group.addTask {
+                for await emitted in accumStream {
+                    if let work = await accumulator.add(emitted) {
+                        progress?(.saveEnqueued)
+                        saveContinuation.yield(work)
+                    }
+                }
+                // No more chunks; close the save stream.
                 saveContinuation.finish()
             }
 
-            // Stage 2: DB Writer (single serial consumer)
+            // Stage 3b: DB Writer (single serial consumer). Identical
+            // shape to pre-H7.
             group.addTask {
                 for await work in saveStream {
                     progress?(.saveDequeued)
                     let path = work.file.relativePath
 
                     if work.records.isEmpty {
-                        await resultCollector.record(.skippedEmbedFailure(filePath: path))
-                        await statsCollector.recordFile(
-                            path: path,
-                            extractSeconds: work.extractSeconds,
-                            embedSeconds: work.embedSeconds,
-                            dbSeconds: 0,
-                            chunkCount: 0
-                        )
+                        if work.totalChunksExtracted > 0 {
+                            // Extract produced chunks but every embed
+                            // failed. Pre-H7 reported this as
+                            // .skippedEmbedFailure and still recorded a
+                            // per-file timing with chunkCount: 0 so the
+                            // file appears in fileTimings. Preserve both.
+                            await resultCollector.record(.skippedEmbedFailure(filePath: path))
+                            await statsCollector.recordFile(
+                                path: path,
+                                extractSeconds: work.extractSeconds,
+                                embedSeconds: work.embedSeconds,
+                                dbSeconds: 0,
+                                chunkCount: 0
+                            )
+                        } else {
+                            // Extract produced zero chunks (unreadable /
+                            // no-text / empty). No embed work happened;
+                            // stats only account the extract time.
+                            await resultCollector.record(.skippedUnreadable(filePath: path))
+                            await statsCollector.recordSkipped(
+                                path: path,
+                                extractSeconds: work.extractSeconds
+                            )
+                        }
                         progress?(.fileSkipped)
                         continue
                     }
@@ -236,141 +520,132 @@ public final class IndexingPipeline: Sendable {
         let nanos = DispatchTime.now().uptimeNanoseconds &- start.uptimeNanoseconds
         return Double(nanos) / 1_000_000_000
     }
-
-    // MARK: - Per-file Processing
-
-    private enum FileProcessResult: Sendable {
-        case skipped(IndexResult, extractSeconds: Double)
-        case save(SaveWork)
-    }
-
-    /// Process a single file: extract chunks, check language, embed in parallel, return results.
-    ///
-    /// Emits `.workerBusy` on entry and `.workerIdle` on every return path —
-    /// balanced pair from the same task, so a renderer can track live
-    /// "workers in flight". Worker-idle always fires even on the skip paths.
-    private static func processFile(
-        _ file: FileInfo,
-        label: String,
-        extractor: TextExtractor,
-        pool: EmbedderPool,
-        batchSize: Int,
-        progress: ProgressHandler?,
-        statsCollector: StatsCollector
-    ) async -> FileProcessResult {
-        progress?(.workerBusy)
-
-        // Extract chunks
-        let extractStart = DispatchTime.now()
-        let chunks: [TextChunk]
-        do {
-            chunks = try extractor.extract(from: file)
-        } catch {
-            let extractSeconds = elapsed(since: extractStart)
-            progress?(.fileSkipped)
-            progress?(.workerIdle)
-            return .skipped(.skippedUnreadable(filePath: file.relativePath), extractSeconds: extractSeconds)
-        }
-        let extractSeconds = elapsed(since: extractStart)
-
-        if chunks.isEmpty {
-            progress?(.fileSkipped)
-            progress?(.workerIdle)
-            return .skipped(.skippedUnreadable(filePath: file.relativePath), extractSeconds: extractSeconds)
-        }
-
-        // Language warning — the pipeline emits the event; the caller
-        // decides how to present it (stderr line in non-verbose mode,
-        // rolling counter in verbose mode).
-        if let firstText = chunks.first?.text {
-            let trimmed = firstText.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty {
-                if let lang = NLLanguageRecognizer.dominantLanguage(for: trimmed),
-                   lang != .english, lang != .undetermined {
-                    progress?(.nonEnglishDetected(filePath: file.relativePath, language: lang.rawValue))
-                }
-            }
-        }
-
-        // Split into batches
-        var batches: [[TextChunk]] = []
-        for batchStart in stride(from: 0, to: chunks.count, by: batchSize) {
-            let batchEnd = min(batchStart + batchSize, chunks.count)
-            batches.append(Array(chunks[batchStart..<batchEnd]))
-        }
-
-        // Embed batches in parallel via TaskGroup, gated by the embedder pool
-        let embedStart = DispatchTime.now()
-        let allRecords: [[ChunkRecord]] = await withTaskGroup(of: (Int, [ChunkRecord]).self) { group in
-            for (index, batch) in batches.enumerated() {
-                group.addTask {
-                    let embedder = await pool.acquire()
-                    // Swift doesn't allow `await` in `defer`, so we use an
-                    // unstructured Task to return the embedder to the pool.
-                    // The release runs shortly after the closure exits —
-                    // safe because every acquire path has a matching release.
-                    defer { Task { await pool.release(embedder) } }
-
-                    let batchStart = DispatchTime.now()
-                    var records: [ChunkRecord] = []
-                    for chunk in batch {
-                        guard let vector = embedder.embed(chunk.text) else { continue }
-                        records.append(ChunkRecord(
-                            filePath: file.relativePath,
-                            lineStart: chunk.lineStart,
-                            lineEnd: chunk.lineEnd,
-                            chunkType: chunk.type,
-                            pageNumber: chunk.pageNumber,
-                            fileModifiedAt: file.modificationDate,
-                            contentPreview: String(chunk.text.prefix(200)),
-                            embedding: vector
-                        ))
-                    }
-                    let batchSeconds = elapsed(since: batchStart)
-                    if !records.isEmpty {
-                        progress?(.batchEmbedded(seconds: batchSeconds, chunks: records.count))
-                        await statsCollector.recordBatch(seconds: batchSeconds, chunks: records.count)
-                    }
-                    return (index, records)
-                }
-            }
-
-            var indexed: [(Int, [ChunkRecord])] = []
-            for await result in group {
-                indexed.append(result)
-            }
-            // Sort by batch index to preserve chunk ordering
-            indexed.sort { $0.0 < $1.0 }
-            return indexed.map(\.1)
-        }
-
-        let embedSeconds = elapsed(since: embedStart)
-        let records = allRecords.flatMap { $0 }
-
-        progress?(.workerIdle)
-        return .save(SaveWork(
-            file: file,
-            label: label,
-            records: records,
-            extractSeconds: extractSeconds,
-            embedSeconds: embedSeconds
-        ))
-    }
 }
 
-// MARK: - Work Queue
+// MARK: - Stage Payloads
 
-/// Actor-based work queue for safely distributing items across concurrent workers.
-/// Each call to `next()` returns the next item, or `nil` when exhausted.
-actor WorkQueue<T: Sendable> {
-    private var iterator: IndexingIterator<[T]>
+/// One unit of work flowing from extract → embed. Every `EmbedWork`
+/// carries a real chunk — empty-file sentinels never traverse the embed
+/// stream (the accumulator closes them out directly in extract).
+struct EmbedWork: Sendable {
+    let file: FileInfo
+    let label: String
+    let chunk: TextChunk
+    let ordinal: Int
+    let totalChunks: Int
+    let extractSeconds: Double
+    let firstChunkAt: DispatchTime?
+}
 
-    init(_ items: [T]) {
-        self.iterator = items.makeIterator()
+/// One embedded chunk flowing from embed → accumulator. `record == nil`
+/// means the embed call returned nil for this chunk (rare); the
+/// accumulator still counts it toward the file's total so the file can
+/// complete, but contributes no record.
+struct EmbeddedChunk: Sendable {
+    let filePath: String
+    let ordinal: Int
+    let record: ChunkRecord?
+}
+
+// MARK: - Per-file Accumulator
+
+/// Holds partial results for files in flight. A file's `total` is set by
+/// the extract stage on first contact; chunks arrive from embed tasks in
+/// arbitrary order. When `received == total`, the accumulator sorts by
+/// ordinal and returns a `SaveWork` ready for the DB writer.
+///
+/// Empty files (`total == 0`) close out immediately via
+/// `closeIfComplete(path:)` — the extract stage calls that synchronously
+/// after `markFileTotal` for the unreadable / no-text paths.
+actor FileAccumulator {
+
+    private struct PartialFile {
+        var file: FileInfo
+        var label: String
+        var total: Int
+        var received: [EmbeddedChunk] = []
+        var extractSeconds: Double
+        // Wall-clock anchor for embed-span: time the first chunk left
+        // extract for this file. nil for empty files. Used to compute
+        // per-file `embedSeconds` at close time as
+        // `now - firstChunkAt`. This is an *embed span*, not summed
+        // per-chunk wall-clock — see IndexingStats doc.
+        var firstChunkAt: DispatchTime?
     }
 
-    func next() -> T? {
-        iterator.next()
+    private var files: [String: PartialFile] = [:]
+
+    func markFileTotal(
+        path: String,
+        file: FileInfo,
+        label: String,
+        total: Int,
+        extractSeconds: Double,
+        firstChunkAt: DispatchTime?
+    ) {
+        // First contact for this file. Extract is single-threaded so
+        // markFileTotal always runs before any add() for the same file.
+        files[path] = PartialFile(
+            file: file,
+            label: label,
+            total: total,
+            received: [],
+            extractSeconds: extractSeconds,
+            firstChunkAt: firstChunkAt
+        )
+    }
+
+    /// Append an embedded chunk. If this completes the file, remove it
+    /// from the in-flight map and return a SaveWork ready for the DB
+    /// writer. Otherwise return nil.
+    func add(_ chunk: EmbeddedChunk) -> SaveWork? {
+        guard var partial = files[chunk.filePath] else {
+            // Unknown file — should never happen because extract calls
+            // markFileTotal before yielding any chunks. Drop silently
+            // rather than crash the pipeline; a missing record will
+            // show up as a chunk-count mismatch in stats if the
+            // accounting ever drifts.
+            return nil
+        }
+        partial.received.append(chunk)
+        files[chunk.filePath] = partial
+        return finalizeIfReady(path: chunk.filePath)
+    }
+
+    /// Force completion check for a file (used by extract for empty /
+    /// unreadable files where no chunks will ever arrive).
+    func closeIfComplete(path: String) -> SaveWork? {
+        return finalizeIfReady(path: path)
+    }
+
+    private func finalizeIfReady(path: String) -> SaveWork? {
+        guard let partial = files[path] else { return nil }
+        guard partial.received.count == partial.total else { return nil }
+
+        // Sort by ordinal so the DB sees chunks in the order extract
+        // produced them. Stable order matters for display grouping
+        // even though the embed stage shuffles arrival order.
+        let sortedRecords: [ChunkRecord] = partial.received
+            .sorted { $0.ordinal < $1.ordinal }
+            .compactMap { $0.record }
+
+        let embedSpan: Double
+        if let start = partial.firstChunkAt {
+            let nanos = DispatchTime.now().uptimeNanoseconds &- start.uptimeNanoseconds
+            embedSpan = Double(nanos) / 1_000_000_000
+        } else {
+            embedSpan = 0
+        }
+
+        files.removeValue(forKey: path)
+        return SaveWork(
+            file: partial.file,
+            label: partial.label,
+            records: sortedRecords,
+            extractSeconds: partial.extractSeconds,
+            embedSeconds: embedSpan,
+            totalChunksExtracted: partial.total
+        )
     }
 }
 
@@ -404,6 +679,62 @@ actor EmbedderPool {
             available.append(embedder)
         }
     }
+
+    /// Pre-touches every pooled embedder with one throwaway `embed` call.
+    /// Done **serially** on purpose: the goal is to avoid N parallel cold
+    /// model loads contending for memory bandwidth on the first batch.
+    /// Safe to call before any acquire — operates on `available` directly.
+    func warmAll() async {
+        for embedder in available {
+            _ = embedder.embed("warmup text")
+        }
+    }
+}
+
+// MARK: - Extract Backpressure
+
+/// Counting semaphore used to gate the extract stage against the embed
+/// stage. Extract acquires one permit per chunk before yielding; embed
+/// releases one permit per chunk once the chunk has been handed off to the
+/// accumulator. Sized to `workerCount * 2` on init — large enough that the
+/// pool never idles waiting for extract (there's always a chunk queued up
+/// behind the one being embedded), small enough that extract blocks before
+/// chunking a second huge file worth of text into memory.
+///
+/// The old extract stage used an unbounded `AsyncStream` buffer, which on
+/// large corpora let extract race ahead of embed by tens of thousands of
+/// chunks — each carrying the chunk's text plus metadata. This actor
+/// replaces that with a hard bound.
+actor ExtractBackpressure {
+    private let capacity: Int
+    private var available: Int
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    init(capacity: Int) {
+        self.capacity = capacity
+        self.available = capacity
+    }
+
+    /// Block until a permit is available, then consume one.
+    func acquire() async {
+        if available > 0 {
+            available -= 1
+            return
+        }
+        await withCheckedContinuation { continuation in
+            waiters.append(continuation)
+        }
+    }
+
+    /// Return one permit. Resumes the oldest waiter if any.
+    func release() {
+        if let waiter = waiters.first {
+            waiters.removeFirst()
+            waiter.resume()
+        } else {
+            available += 1
+        }
+    }
 }
 
 // MARK: - Result Collector
@@ -430,7 +761,7 @@ private actor StatsCollector {
     private var stats = IndexingStats()
     private var fileTimings: [IndexingStats.FileTiming] = []
     private let pipelineStart: DispatchTime
-    private var firstBatchAt: DispatchTime?
+    private var firstChunkAt: DispatchTime?
 
     init(pipelineStart: DispatchTime) {
         self.pipelineStart = pipelineStart
@@ -455,15 +786,16 @@ private actor StatsCollector {
         stats.extractSeconds += extractSeconds
     }
 
-    /// Records a batch-embed completion. Captures the first-batch-latency
-    /// the first time it's called so the footer can diagnose "extract-bound
-    /// startup" — the gap between pipeline start and first embed.
-    func recordBatch(seconds: Double, chunks: Int) {
+    /// Records one per-chunk embed completion. Captures the
+    /// first-chunk-latency the first time it's called so the footer can
+    /// diagnose extract-bound startup — the gap between pipeline start
+    /// and first embed.
+    func recordChunkEmbed(seconds: Double) {
         stats.totalBatches += 1
-        stats.totalBatchChunks += chunks
+        stats.totalBatchChunks += 1
         stats.totalBatchEmbedSeconds += seconds
-        if firstBatchAt == nil {
-            firstBatchAt = DispatchTime.now()
+        if firstChunkAt == nil {
+            firstChunkAt = DispatchTime.now()
         }
     }
 
@@ -487,7 +819,7 @@ private actor StatsCollector {
             .filter { $0.chunkCount > 0 }
             .max { $0.chunkCount < $1.chunkCount }
 
-        if let first = firstBatchAt {
+        if let first = firstChunkAt {
             let nanos = first.uptimeNanoseconds &- pipelineStart.uptimeNanoseconds
             result.firstBatchLatencySeconds = Double(nanos) / 1_000_000_000
         }
