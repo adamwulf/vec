@@ -11,7 +11,7 @@ Once indexed, you can perform semantic search across your files to find relevant
 ## Features
 
 - **On-device embeddings** — Uses Apple's `NLEmbedding.sentenceEmbedding(for:)` for fast, private, offline vector generation
-- **Chunked indexing** — Markdown files are split into overlapping line-based chunks for fine-grained search results (see `TextExtractor.defaultChunkSize` and `defaultOverlapSize` for defaults)
+- **Chunked indexing** — Text files are split into overlapping character-bounded chunks via `RecursiveCharacterSplitter` (a port of LangChain's recursive character splitter) for fine-grained search results. The legacy `LineBasedSplitter` is still available for comparison.
 - **Whole-document embeddings** — Each file also gets a full-document embedding for broader matches
 - **PDF support** — Extracts text per page from PDFs and indexes each page separately
 - **Change detection** — Tracks file modification dates to efficiently update only changed files

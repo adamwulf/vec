@@ -203,25 +203,25 @@ final class TextExtractorTests: XCTestCase {
     }
 
     func testMarkdownWhereEveryLineIsAHeading() throws {
-        // Generate 50 lines where every line is a heading — exceeds default chunkSize of 30
+        // Generate enough heading lines that the file exceeds the default
+        // `RecursiveCharacterSplitter` chunk size of 2000 chars.
+        // Target: > 2000 chars (to trigger chunking) but < 10000 chars
+        // (so the whole-doc chunk is not suppressed by the embedding limit).
         var lines: [String] = []
-        for i in 1...50 {
-            lines.append("# Heading \(i)")
+        for i in 1...100 {
+            lines.append("# Heading line number \(i) with some descriptive content")
         }
         let content = lines.joined(separator: "\n")
         let file = createFile(name: "all_headings.md", content: content)
         let extractor = TextExtractor()
         let chunks = try extractor.extract(from: file).chunks
 
-        // Should have a whole-document chunk
         let wholeChunks = chunks.filter { $0.type == .whole }
         XCTAssertEqual(wholeChunks.count, 1)
 
-        // Should produce line chunks since it exceeds chunkSize
         let lineChunks = chunks.filter { $0.type == .chunk }
         XCTAssertGreaterThan(lineChunks.count, 0)
 
-        // All chunks should have valid line ranges
         for chunk in lineChunks {
             XCTAssertNotNil(chunk.lineStart)
             XCTAssertNotNil(chunk.lineEnd)
@@ -229,10 +229,12 @@ final class TextExtractorTests: XCTestCase {
         }
     }
 
-    func testVeryLongSingleLineProducesOnlyWholeChunk() throws {
-        // A single very long line with no newlines — should produce only a whole-doc chunk.
-        // Kept under EmbeddingService.maxEmbeddingTextLength so the whole-chunk guard
-        // does not suppress it.
+    func testVeryLongSingleLineProducesWholeAndSentenceChunks() throws {
+        // A single very long line with no newlines, but with sentence
+        // boundaries ("`. `"). The default `RecursiveCharacterSplitter`
+        // should emit a whole-doc chunk plus sentence-boundary sub-chunks.
+        // Length kept under EmbeddingService.maxEmbeddingTextLength so the
+        // whole-chunk guard does not suppress the .whole chunk.
         let unit = "This is a very long sentence without any newlines. "
         let repeatCount = max(1, (EmbeddingService.maxEmbeddingTextLength / unit.count) - 10)
         let longLine = String(repeating: unit, count: repeatCount)
@@ -240,11 +242,28 @@ final class TextExtractorTests: XCTestCase {
         let extractor = TextExtractor()
         let chunks = try extractor.extract(from: file).chunks
 
-        // Should have exactly one whole-document chunk
         let wholeChunks = chunks.filter { $0.type == .whole }
         XCTAssertEqual(wholeChunks.count, 1)
 
-        // Should have no line chunks — single line is under chunkSize (1 line < 30)
+        let lineChunks = chunks.filter { $0.type == .chunk }
+        XCTAssertGreaterThan(lineChunks.count, 1,
+                             "Oversize single line should split on sentence boundaries")
+        // Each sub-chunk should be reasonably sized — no mid-word splits.
+        for chunk in lineChunks {
+            XCTAssertLessThanOrEqual(chunk.text.count,
+                                     RecursiveCharacterSplitter.defaultChunkSize + unit.count,
+                                     "Chunk should not grossly exceed chunkSize")
+        }
+    }
+
+    func testLineBasedSplitterLongSingleLineProducesNoChunks() throws {
+        // Legacy LineBasedSplitter preserved behavior: a 1-line file under
+        // the configured line-count threshold produces no line chunks.
+        let longLine = String(repeating: "word ", count: 500)
+        let file = createFile(name: "long_line.md", content: longLine)
+        let extractor = TextExtractor(splitter: LineBasedSplitter())
+        let chunks = try extractor.extract(from: file).chunks
+
         let lineChunks = chunks.filter { $0.type == .chunk }
         XCTAssertEqual(lineChunks.count, 0)
     }
