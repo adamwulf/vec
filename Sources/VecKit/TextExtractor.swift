@@ -20,17 +20,19 @@ public struct ExtractionResult: Sendable {
 /// Thread-safe: all stored properties are immutable after init.
 public final class TextExtractor: @unchecked Sendable {
 
-    /// Default chunk size in lines for text files.
-    public static let defaultChunkSize = 30
-    /// Default number of overlapping lines between consecutive chunks.
-    public static let defaultOverlapSize = 8
+    private let splitter: TextSplitter
 
-    private let chunkSize: Int
-    private let overlapSize: Int
+    /// Construct with any `TextSplitter`. Defaults to
+    /// `RecursiveCharacterSplitter`, a port of LangChain's recursive
+    /// character splitter tuned for ~2000-char chunks with 10% overlap.
+    public init(splitter: TextSplitter = RecursiveCharacterSplitter()) {
+        self.splitter = splitter
+    }
 
-    public init(chunkSize: Int = TextExtractor.defaultChunkSize, overlapSize: Int = TextExtractor.defaultOverlapSize) {
-        self.chunkSize = chunkSize
-        self.overlapSize = overlapSize
+    /// Convenience init for the legacy line-based splitter, kept so existing
+    /// call sites and tests that pass `chunkSize:overlapSize:` keep working.
+    public convenience init(chunkSize: Int, overlapSize: Int) {
+        self.init(splitter: LineBasedSplitter(chunkSize: chunkSize, overlapSize: overlapSize))
     }
 
     /// Extract text chunks from a file, along with a line (or page) count
@@ -68,9 +70,7 @@ public final class TextExtractor: @unchecked Sendable {
             chunks.append(TextChunk(text: trimmed, type: .whole))
         }
 
-        // Create overlapping line-based chunks for all text files
-        let lineChunks = chunkText(content)
-        chunks.append(contentsOf: lineChunks)
+        chunks.append(contentsOf: splitter.split(content))
 
         return ExtractionResult(chunks: chunks, linePageCount: lineCount)
     }
@@ -84,53 +84,6 @@ public final class TextExtractor: @unchecked Sendable {
             newlines += 1
         }
         return content.last == "\n" ? newlines : newlines + 1
-    }
-
-    // MARK: - Text Chunking
-
-    private func chunkText(_ content: String) -> [TextChunk] {
-        let lines = content.components(separatedBy: .newlines)
-
-        guard lines.count > chunkSize else {
-            // File is small enough to be a single chunk, whole-document embedding is sufficient
-            return []
-        }
-
-        var chunks: [TextChunk] = []
-        var start = 0
-
-        while start < lines.count {
-            var end = min(start + chunkSize, lines.count)
-
-            // Try to find a heading boundary near the end to split cleanly
-            if end < lines.count {
-                let searchStart = max(start + chunkSize - 10, start)
-                for i in stride(from: end, through: searchStart, by: -1) {
-                    if i < lines.count && lines[i].hasPrefix("#") {
-                        end = i
-                        break
-                    }
-                }
-            }
-
-            let chunkLines = Array(lines[start..<end])
-            let text = chunkLines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
-
-            if !text.isEmpty {
-                chunks.append(TextChunk(
-                    text: text,
-                    type: .chunk,
-                    lineStart: start + 1,  // 1-based line numbers
-                    lineEnd: end
-                ))
-            }
-
-            // Advance by chunkSize minus overlap
-            let advance = max(chunkSize - overlapSize, 1)
-            start += advance
-        }
-
-        return chunks
     }
 
     // MARK: - PDF Extraction
