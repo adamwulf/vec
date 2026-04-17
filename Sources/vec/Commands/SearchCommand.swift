@@ -1,5 +1,6 @@
 import Foundation
 import ArgumentParser
+import UniformTypeIdentifiers
 import VecKit
 
 struct SearchCommand: AsyncParsableCommand {
@@ -69,27 +70,40 @@ struct SearchCommand: AsyncParsableCommand {
             }
         }
 
+        let metadata = try await database.indexedFileMetadata(paths: grouped.map(\.filePath))
+
         switch format {
         case .text:
-            printTextResults(grouped, ordinalsByFile: ordinalsByFile)
+            printTextResults(grouped, ordinalsByFile: ordinalsByFile, metadata: metadata)
         case .json:
-            printJSONResults(grouped, ordinalsByFile: ordinalsByFile)
+            printJSONResults(grouped, ordinalsByFile: ordinalsByFile, metadata: metadata)
         }
     }
 
     // MARK: - Text Output
 
-    private func printTextResults(_ groups: [FileGroup], ordinalsByFile: [String: [Int64: Int]]) {
+    private func printTextResults(
+        _ groups: [FileGroup],
+        ordinalsByFile: [String: [Int64: Int]],
+        metadata: [String: VectorDatabase.IndexedFileMetadata]
+    ) {
         if groups.isEmpty {
             print("No results found.")
             return
         }
 
+        let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.formatOptions = [.withInternetDateTime]
+
         for group in groups {
             let score = String(format: "%.4f", group.bestScore)
             let ordinals = ordinalsByFile[group.filePath] ?? [:]
             let list = renderMatchList(group.matches, ordinals: ordinals)
-            print("\(group.filePath) \(list) (\(score))")
+            let meta = metadata[group.filePath]
+            let modified = meta.map { dateFormatter.string(from: $0.modifiedAt) } ?? "?"
+            let sizeUnit = SearchCommand.sizeUnit(forFileExtension: (group.filePath as NSString).pathExtension)
+            let size = meta?.linePageCount.map { "\($0)\(sizeUnit)" } ?? "-"
+            print("\(group.filePath) \(modified) \(size) \(list) (\(score))")
 
             if includePreview {
                 for match in group.matches {
@@ -100,6 +114,17 @@ struct SearchCommand: AsyncParsableCommand {
                 }
             }
         }
+    }
+
+    /// Returns the unit suffix for the line/page count of a file with the
+    /// given extension: "P" for PDFs, "L" for everything else.
+    static func sizeUnit(forFileExtension ext: String) -> String {
+        isPDFExtension(ext) ? "P" : "L"
+    }
+
+    static func isPDFExtension(_ ext: String) -> Bool {
+        guard !ext.isEmpty else { return false }
+        return UTType(filenameExtension: ext)?.conforms(to: .pdf) == true
     }
 
     /// Renders the comma-separated match list. Text line-range chunks collapse
@@ -154,8 +179,14 @@ struct SearchCommand: AsyncParsableCommand {
 
     // MARK: - JSON Output
 
-    private func printJSONResults(_ groups: [FileGroup], ordinalsByFile: [String: [Int64: Int]]) {
+    private func printJSONResults(
+        _ groups: [FileGroup],
+        ordinalsByFile: [String: [Int64: Int]],
+        metadata: [String: VectorDatabase.IndexedFileMetadata]
+    ) {
         var jsonArray: [[String: Any]] = []
+        let fmt = ISO8601DateFormatter()
+        fmt.formatOptions = [.withInternetDateTime]
 
         for group in groups {
             let ordinals = ordinalsByFile[group.filePath] ?? [:]
@@ -183,11 +214,19 @@ struct SearchCommand: AsyncParsableCommand {
                 matchesArray.append(matchObj)
             }
 
-            let obj: [String: Any] = [
+            var obj: [String: Any] = [
                 "file": group.filePath,
                 "score": group.bestScore,
                 "matches": matchesArray
             ]
+            if let meta = metadata[group.filePath] {
+                obj["modified"] = fmt.string(from: meta.modifiedAt)
+                if let count = meta.linePageCount {
+                    let ext = (group.filePath as NSString).pathExtension
+                    let key = SearchCommand.isPDFExtension(ext) ? "page_count" : "line_count"
+                    obj[key] = count
+                }
+            }
             jsonArray.append(obj)
         }
 

@@ -65,6 +65,20 @@ final class CLITests: XCTestCase {
         XCTAssertEqual(InitCommand.sanitize(""), "")
     }
 
+    // MARK: - SearchCommand.sizeUnit
+
+    func testSearchCommandSizeUnitIsPForPDF() {
+        XCTAssertEqual(SearchCommand.sizeUnit(forFileExtension: "pdf"), "P")
+        XCTAssertEqual(SearchCommand.sizeUnit(forFileExtension: "PDF"), "P")
+    }
+
+    func testSearchCommandSizeUnitIsLForTextFiles() {
+        XCTAssertEqual(SearchCommand.sizeUnit(forFileExtension: "swift"), "L")
+        XCTAssertEqual(SearchCommand.sizeUnit(forFileExtension: "md"), "L")
+        XCTAssertEqual(SearchCommand.sizeUnit(forFileExtension: "txt"), "L")
+        XCTAssertEqual(SearchCommand.sizeUnit(forFileExtension: ""), "L")
+    }
+
     // MARK: - DeinitCommand
 
     func testDeinitCommandParsesDbName() throws {

@@ -121,7 +121,7 @@ final class TextExtractorTests: XCTestCase {
         let content = generateMarkdownLines(120)
         let file = createFile(name: "large.md", content: content)
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
 
         // Should have a .whole chunk
         let wholeChunks = chunks.filter { $0.type == .whole }
@@ -145,7 +145,7 @@ final class TextExtractorTests: XCTestCase {
         let content = "Line 1\nLine 2\nLine 3"
         let file = createFile(name: "small.md", content: content)
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
 
         // Should have exactly one .whole chunk
         let wholeChunks = chunks.filter { $0.type == .whole }
@@ -160,7 +160,7 @@ final class TextExtractorTests: XCTestCase {
         let content = generateMarkdownLines(120) // All text files now get chunked
         let file = createFile(name: "data.txt", content: content)
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
 
         let wholeChunks = chunks.filter { $0.type == .whole }
         XCTAssertEqual(wholeChunks.count, 1)
@@ -173,14 +173,14 @@ final class TextExtractorTests: XCTestCase {
     func testEmptyFileProducesNoChunks() throws {
         let file = createFile(name: "empty.md", content: "")
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
         XCTAssertEqual(chunks.count, 0)
     }
 
     func testWhitespaceOnlyFileProducesNoChunks() throws {
         let file = createFile(name: "whitespace.md", content: "   \n\n  \t  \n")
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
         XCTAssertEqual(chunks.count, 0)
     }
 
@@ -194,7 +194,7 @@ final class TextExtractorTests: XCTestCase {
         """
         let file = createFile(name: "headings_only.md", content: content)
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
 
         // Should produce at least a whole-document chunk
         let wholeChunks = chunks.filter { $0.type == .whole }
@@ -211,7 +211,7 @@ final class TextExtractorTests: XCTestCase {
         let content = lines.joined(separator: "\n")
         let file = createFile(name: "all_headings.md", content: content)
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
 
         // Should have a whole-document chunk
         let wholeChunks = chunks.filter { $0.type == .whole }
@@ -238,7 +238,7 @@ final class TextExtractorTests: XCTestCase {
         let longLine = String(repeating: unit, count: repeatCount)
         let file = createFile(name: "long_line.md", content: longLine)
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
 
         // Should have exactly one whole-document chunk
         let wholeChunks = chunks.filter { $0.type == .whole }
@@ -264,7 +264,7 @@ final class TextExtractorTests: XCTestCase {
             fileExtension: "bin"
         )
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
         // Binary file cannot be read as UTF-8, so extract() should return empty
         XCTAssertEqual(chunks.count, 0)
     }
@@ -284,7 +284,7 @@ final class TextExtractorTests: XCTestCase {
     func testPDFExtractionProducesPageChunks() throws {
         let file = pdfFileInfo()
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
 
         // Should have at least one chunk
         XCTAssertGreaterThan(chunks.count, 0)
@@ -309,7 +309,7 @@ final class TextExtractorTests: XCTestCase {
     func testPDFPageChunksHaveCorrectPageNumbers() throws {
         let file = pdfFileInfo()
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
 
         let pageChunks = chunks.filter { $0.type == .pdfPage }
 
@@ -330,7 +330,7 @@ final class TextExtractorTests: XCTestCase {
     func testPDFPageChunksHaveNoLineRanges() throws {
         let file = pdfFileInfo()
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
 
         let pageChunks = chunks.filter { $0.type == .pdfPage }
 
@@ -344,7 +344,7 @@ final class TextExtractorTests: XCTestCase {
     func testPDFWholeChunkOnlyEmittedWhenTextFitsInEmbeddingLimit() throws {
         let file = pdfFileInfo()
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
 
         let pageChunks = chunks.filter { $0.type == .pdfPage }
         let totalText = pageChunks.map(\.text).joined(separator: "\n")
@@ -367,7 +367,7 @@ final class TextExtractorTests: XCTestCase {
     func testPDFPageChunksContainNonEmptyText() throws {
         let file = pdfFileInfo()
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
 
         let pageChunks = chunks.filter { $0.type == .pdfPage }
 
@@ -441,7 +441,7 @@ final class TextExtractorTests: XCTestCase {
         )
 
         let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
 
         // Vision OCR may or may not recognize text from programmatic images,
         // so we just verify the code path doesn't crash and returns valid results
@@ -958,7 +958,7 @@ final class ChunkingStrategyTests: XCTestCase {
 
         // Use default chunkSize=50, overlapSize=10 => advance = 40
         let extractor = TextExtractor(chunkSize: 50, overlapSize: 10)
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
         let lineChunks = chunks.filter { $0.type == .chunk }
 
         XCTAssertGreaterThanOrEqual(lineChunks.count, 2, "Should have at least 2 line chunks for 100 lines")
@@ -988,7 +988,7 @@ final class ChunkingStrategyTests: XCTestCase {
         let file = createFile(name: "heading.md", content: content)
 
         let extractor = TextExtractor(chunkSize: 50, overlapSize: 10)
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
         let lineChunks = chunks.filter { $0.type == .chunk }
 
         XCTAssertGreaterThanOrEqual(lineChunks.count, 1)
@@ -1014,7 +1014,7 @@ final class ChunkingStrategyTests: XCTestCase {
         let file = createFile(name: "custom.md", content: content)
 
         let extractor = TextExtractor(chunkSize: 20, overlapSize: 5)
-        let chunks = try extractor.extract(from: file)
+        let chunks = try extractor.extract(from: file).chunks
         let lineChunks = chunks.filter { $0.type == .chunk }
 
         // 50 lines with chunkSize=20, advance=15
