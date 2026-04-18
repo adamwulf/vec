@@ -192,6 +192,9 @@ public actor VectorDatabase {
 
     /// Search for similar embeddings.
     public func search(embedding: [Float], limit: Int) throws -> [SearchResult] {
+        guard embedding.count == dimension else {
+            throw VecError.dimensionMismatch(expected: dimension, actual: embedding.count)
+        }
         // Load all embeddings and compute cosine distance in Swift.
         let sql = """
             SELECT id, file_path, line_start, line_end, chunk_type, page_number, content_preview, embedding
@@ -522,6 +525,9 @@ public actor VectorDatabase {
         contentPreview: String,
         embedding: [Float]
     ) throws -> Int64 {
+        guard embedding.count == dimension else {
+            throw VecError.dimensionMismatch(expected: dimension, actual: embedding.count)
+        }
         let sql = """
             INSERT INTO chunks (file_path, line_start, line_end, chunk_type, page_number, file_modified_at, content_preview, embedding)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)

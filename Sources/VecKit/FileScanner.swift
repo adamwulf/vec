@@ -303,6 +303,11 @@ public enum VecError: Error, LocalizedError {
     /// The DB has no recorded embedder (pre-refactor or freshly
     /// reset) and the operation can't pick one automatically.
     case embedderNotRecorded
+    /// A vector handed to `insert` or `search` doesn't match the
+    /// database's declared dimension. Belt-and-braces guard: the
+    /// CLI already refuses an embedder mismatch at the config layer,
+    /// so this should only ever fire on a direct library misuse.
+    case dimensionMismatch(expected: Int, actual: Int)
 
     public var errorDescription: String? {
         switch self {
@@ -334,6 +339,8 @@ public enum VecError: Error, LocalizedError {
             return "Database was indexed with '\(recorded)'\(aliasHint) but --embedder \(requested) was requested. Either pass the matching embedder or run 'vec reset' to re-index with a different one."
         case .embedderNotRecorded:
             return "Database has no recorded embedder. Run 'vec reset' then 'vec update-index --embedder <name>' to rebuild."
+        case .dimensionMismatch(let expected, let actual):
+            return "Vector dimension mismatch: database expects \(expected)-dim vectors but got \(actual)-dim. The embedder wired to this call disagrees with the DB's recorded embedder."
         }
     }
 }
