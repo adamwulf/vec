@@ -50,14 +50,28 @@ struct SearchCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        let (dbDir, config, sourceDir) = try db != nil
+        let (dbDir, rawConfig, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
+
+        // Pre-refactor DBs have no embedder record but already contain
+        // nomic-produced vectors — stamp nomic on the config so search
+        // works without a user-visible reindex. Opens the DB at the
+        // pre-refactor dim (768) solely to count chunks.
+        let config: DatabaseConfig
+        do {
+            let probe = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+            try await probe.open()
+            let chunkCount = try await probe.totalChunkCount()
+            config = try DatabaseLocator.migratePreRefactorEmbedderRecord(
+                config: rawConfig, chunkCount: chunkCount, dbDir: dbDir
+            )
+        }
 
         // Resolve the embedder from the DB's recorded config. Search
         // refuses to guess — a silent fallback to the default would
         // mean building a query vector at the wrong dim for any
-        // pre-refactor DB or any DB indexed with a different embedder.
+        // DB indexed with a different embedder.
         guard let recorded = config.embedder else {
             print("Error: " + VecError.embedderNotRecorded.errorDescription!)
             throw ExitCode.failure

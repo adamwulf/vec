@@ -16,9 +16,22 @@ struct InsertCommand: AsyncParsableCommand {
     var path: String
 
     func run() async throws {
-        let (dbDir, config, sourceDir) = try db != nil
+        let (dbDir, rawConfig, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
+
+        // Pre-refactor DBs: stamp nomic on the config if vectors exist
+        // but no embedder was recorded — see SearchCommand for the same
+        // migration.
+        let config: DatabaseConfig
+        do {
+            let probe = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+            try await probe.open()
+            let chunkCount = try await probe.totalChunkCount()
+            config = try DatabaseLocator.migratePreRefactorEmbedderRecord(
+                config: rawConfig, chunkCount: chunkCount, dbDir: dbDir
+            )
+        }
 
         // Resolve path relative to cwd, then validate it falls within sourceDir
         let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)

@@ -13,7 +13,7 @@ struct InfoCommand: AsyncParsableCommand {
     var db: String?
 
     func run() async throws {
-        let (dbDir, config, sourceDir) = try db != nil
+        let (dbDir, rawConfig, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
@@ -22,6 +22,12 @@ struct InfoCommand: AsyncParsableCommand {
 
         let fileCount = try await database.allIndexedFiles().count
         let chunkCount = try await database.totalChunkCount()
+
+        // Pre-refactor DBs: stamp nomic if vectors exist without a
+        // recorded embedder, so `vec info` reports reality.
+        let config = try DatabaseLocator.migratePreRefactorEmbedderRecord(
+            config: rawConfig, chunkCount: chunkCount, dbDir: dbDir
+        )
 
         // Format created-at date
         let dateFormatter = DateFormatter()

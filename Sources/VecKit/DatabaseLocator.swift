@@ -113,6 +113,29 @@ public struct DatabaseLocator {
         return results.sorted { $0.name < $1.name }
     }
 
+    /// If `config` has no recorded embedder but the database at
+    /// `databaseDirectory` already contains indexed chunks, stamp the
+    /// config with the pre-refactor embedder identity (nomic-v1.5-768,
+    /// the only backend shipped before this refactor) and return the
+    /// updated config. This is a one-way migration: pre-refactor DBs
+    /// have already produced vectors with nomic, so the stamp just
+    /// records reality. Returns the original config unchanged when
+    /// `embedder` is already set or the DB has no chunks yet.
+    public static func migratePreRefactorEmbedderRecord(
+        config: DatabaseConfig,
+        chunkCount: Int,
+        dbDir: URL
+    ) throws -> DatabaseConfig {
+        guard config.embedder == nil, chunkCount > 0 else { return config }
+        let migrated = DatabaseConfig(
+            sourceDirectory: config.sourceDirectory,
+            createdAt: config.createdAt,
+            embedder: .init(name: "nomic-v1.5-768", dimension: 768)
+        )
+        try writeConfig(migrated, to: dbDir)
+        return migrated
+    }
+
     /// Writes a `DatabaseConfig` to the config.json file in the given database directory.
     public static func writeConfig(_ config: DatabaseConfig, to databaseDirectory: URL) throws {
         let encoder = JSONEncoder()
