@@ -168,14 +168,15 @@ public final class IndexingPipeline: Sendable {
     /// can size progress displays against the same value the pool uses.
     public let workerCount: Int
 
-    /// Pool of pre-created EmbeddingService instances.
+    /// Pool holding the shared embedder actor instance.
     private let pool: EmbedderPool
 
     public init(
-        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2)
+        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
+        embedder: any Embedder
     ) {
         self.workerCount = concurrency
-        self.pool = EmbedderPool(count: concurrency)
+        self.pool = EmbedderPool(embedder: embedder)
     }
 
     /// Run the full indexing pipeline for a set of file work items.
@@ -641,30 +642,36 @@ actor FileAccumulator {
 
 // MARK: - Embedder Pool
 
-/// Holds one shared `EmbeddingService` actor. The actor itself
-/// serializes embed calls, so the "pool" is effectively size-1. The
+/// Holds one shared `Embedder` actor. Every current implementation
+/// (`NomicEmbedder`, `NLEmbedder`) is an `actor`, which serializes
+/// embed calls internally — the "pool" is effectively size-1. The
 /// original N-copies design was a workaround for NLEmbedding's C++
-/// runtime crashing under concurrent calls; the nomic backend has no
-/// such bug, and the model is ~525 MiB per instance so duplicating it
-/// would cost many gigabytes of RAM.
+/// runtime crashing under concurrent calls on one instance; actor
+/// serialization solves that, and modern embedders (nomic, llama) are
+/// hundreds of MiB each, so duplicating for parallelism would cost
+/// gigabytes of RAM for little throughput win.
+///
+/// If a future embedder doesn't serialize internally and doesn't have
+/// C++ thread-safety problems, this type can grow an N-instance free
+/// list — the acquire/release shape already supports it.
 actor EmbedderPool {
-    private let embedder: EmbeddingService
+    // Stored nonisolated so the pool's `name`/`dimension` getters —
+    // which just forward to the embedder's own nonisolated properties
+    // — can run without an actor hop.
+    private nonisolated let embedder: any Embedder
 
-    init(count: Int) {
-        // count is ignored — kept on the signature so
-        // IndexingPipeline.init doesn't need to change. If we ever
-        // observe segfaults or data races under concurrent load, raise
-        // pool size here and document why. CRITICAL: at ~525 MiB per
-        // instance, workerCount=10 would mean ~5.25 GiB of resident
-        // weights alone before activation buffers. Verify RSS before
-        // raising.
-        _ = count
-        self.embedder = EmbeddingService()
+    init(embedder: any Embedder) {
+        self.embedder = embedder
     }
 
-    func acquire() async -> EmbeddingService { embedder }
+    func acquire() async -> any Embedder { embedder }
 
-    func release(_ embedder: EmbeddingService) { /* no-op */ }
+    func release(_ embedder: any Embedder) { /* no-op */ }
+
+    /// Canonical embedder name surfaced for the DB-writer and CLI.
+    /// Nonisolated so it can be read synchronously.
+    nonisolated var name: String { embedder.name }
+    nonisolated var dimension: Int { embedder.dimension }
 
     /// Force-loads the model and runs one inference so the first real
     /// chunk doesn't pay cold-start cost. Swallows errors — a warmup
