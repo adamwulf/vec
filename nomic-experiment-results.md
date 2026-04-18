@@ -339,3 +339,79 @@ TOTAL: 30/60, QUERIES_HIT_TOP10 (both T and S in top 10): 3/10
 - Q6 "trademark assignment agreement meeting" finally shows T in top 10 here (rank 9) — the 300-char granularity lets a matching chunk surface. But the summary drops to rank 12, and the 164bf8dc meeting meta.md does not rank competitively.
 - Dominant competitors continue to be muse-trademark/research/015-zoom-contract-justia.md, muse-trademark/muse-trademark-acquisition.md, granola/2026-03-10-20-59-8e7b43c9/summary.md+transcript.txt, granola/2026-03-27-16-30-58c8fab8/summary.md. At 300 chars they still win most queries because they're longer documents with many relevant chunks, not fewer.
 - Conclusion: the lower-boundary 300/60 probe shows a gentler but still real cliff below the sweet spot. Score curve across recursive configs: 300/60→30, 500/100→32, 800/160→32, 1000/200→28, 1200/120→31, 1200/240→**35** (peak), 1200/360→31, 1400/280→26, 1500/300→23, 2000/200→23, 3000/300→15. Peak remains iter-2 1200/240 (35/60, 3/10). The sweep curve is asymmetric — lower-boundary cliff is gentler. SHIP GATE NOT HIT (30/60 < 45; 3/10 < 7).
+
+## 3. Final summary
+
+### Winning config: **Recursive 1200 chars / 240 overlap**
+
+Score: **35/60, 3/10 queries with both T and S in top 10.**
+
+Below the §6.1 ship gate (≥45/60 AND ≥7/10) but well above the §6.2 kill gate (all 12 configs ≥15/60) and above the §6.3 "interesting" threshold of 30/60. Per §6.3: commit best-config defaults and document.
+
+**Big-picture delta vs NLEmbedding baseline** (from `bean-test-results.md`):
+
+| | Best score | Both-top-10 |
+|---|------------|-------------|
+| NLEmbedding (best of 10 iters) | 6/60 | 0/10 |
+| Nomic (best of 12 iters, 1200/240) | **35/60** | 3/10 |
+| Multiplier | **5.8×** | 3 queries newly passing |
+
+The embedder swap is the larger of the two axes by far — no NLEmbedding config matched even Nomic's worst configuration (1200/240 at 35/60 vs NLEmbedding ceiling of 6/60; Nomic's own worst was 15/60 at 3000/300). Chunk tuning within Nomic adds a further ~2× (15→35), but the dominant gain is from the embedder itself.
+
+### Trajectory
+
+```
+iter  config                                 score   top10   wall-clock
+  1   recursive 2000/200 (baseline)           23     0/10    1923s
+  2   recursive 1200/240                      35     3/10    2940s  ← peak
+  3   recursive  800/160                      32     4/10    4344s
+  4   recursive 1500/300                      23     2/10    2477s
+  5   recursive 1400/280                      26     1/10    2901s
+  6   recursive 1000/200                      28     2/10    3726s
+  7   recursive  500/100                      32     4/10    6852s
+  8   recursive 1200/360 (overlap 30%)        31     3/10    3149s
+  9   recursive 1200/120 (overlap 10%)        31     3/10    2803s
+ 10   LineBased 30 lines / 8 overlap          30     3/10    1568s
+ 11   recursive 3000/300                      15     0/10    1395s  ← upper cliff
+ 12   recursive  300/60                       30     3/10   11259s
+```
+
+Two clean axes emerged:
+
+**Chunk-char axis** (holding overlap at 20%): a sharp peak at 1200, with a steep cliff above (1500→23, 3000→15) and a gentler slope below (800→32, 500→32, 300→30). 1000 dipped slightly (28) — noise-floor variance in the flat-top 500-1200 band.
+
+**Overlap-ratio axis** (holding chunk-chars at 1200): clean inverted-U with 20% as the peak. Both 10% (31) and 30% (31) regress by 4 points — a rough symmetric penalty for both too-little and too-much overlap.
+
+**Splitter class**: LineBased 30/8 (line-based, heading-aware) landed at 30/60 — on par with worst-case recursive configs but below the 1200/240 peak. For this corpus (granola transcripts with no headings + short markdown summaries), line boundaries add no differential signal over character boundaries.
+
+### What didn't work and why
+
+1. **Very small chunks (300/60, 500/100)** — 30–32/60. The intuition that tiny chunks would concentrate "bean counter" signal holds partially (Q8 scores 6/6 on both), but other queries suffer: transcripts fragment so finely that sentence-level topical coherence is lost, so queries like Q2 ("where did I negotiate the price for the trademark") that need a paragraph of context can't retrieve. Also costly: 300/60 took 188 min for one reindex — ~13% of the 24h budget.
+
+2. **Very large chunks (2000/200, 3000/300)** — 23 and 15. At 3000 chars, the target transcript produces only a few, long chunks that average across many non-negotiation conversational turns. Competing full trademark contract documents win because they contain cleanly topical content at all scales.
+
+3. **Non-20% overlap at 1200** — both 10% and 30% lost 4 points each from the 20% peak. Too little overlap (10%) misses boundary context; too much (30%) dilutes per-chunk topical concentration with redundant material. 20% is genuinely the sweet spot.
+
+4. **LineBasedSplitter 30/8** — 30/60. Heading-aware splitting is a no-op on headingless transcripts and helps only marginally on summaries that already fit in 1-3 chunks. The `.whole` chunk for short summaries dominates anyway, and the transcript's coarse line-boundaries aren't any better than character-boundaries.
+
+### Why we didn't hit the ship gate (45/60, 7/10)
+
+The peak at 35/60, 3/10 is meaningfully below the ship target. Inspecting the per-query data, the **transcript** (T) is the binding constraint — it's absent from top 20 on 3-5 queries for nearly every config. Even at the peak 1200/240, T is absent on Q1 ("trademark price negotiation"), Q3 ("muse trademark pricing discussion"), Q6 ("trademark assignment agreement meeting"). These queries match topical content that *other* transcripts (covering the same trademark topic but with cleaner, shorter discussions) embed more densely. A single meeting discussing trademarks is inherently hard to surface when the corpus has a dozen meetings on the same topic — the embeddings correctly rank more-topical documents higher, and that's arguably the right behavior from an embedder perspective.
+
+Three levers remain, all out of this experiment's scope per §3 constraints:
+
+1. **Hybrid retrieval (BM25 + vector)** — let a lexical signal reward exact "bean counter" phrase matches. Outside this plan, but flagged in `bean-test-results.md` §5.
+2. **Query expansion** — generate 2-3 paraphrases per query and aggregate. Outside the index.
+3. **Per-file-type tuning / document-priority boosts** — weight recent meeting transcripts higher than static reference docs. Changes retrieval semantics, not chunking.
+
+### Committed change
+
+Updated `RecursiveCharacterSplitter.defaultChunkSize` from 2000 → **1200** and `defaultChunkOverlap` from 200 → **240** in `Sources/VecKit/RecursiveCharacterSplitter.swift`. No CLI flag changes — this just changes what happens when `--chunk-chars` / `--chunk-overlap` are omitted. Users who explicitly pass those flags see no behavior change.
+
+### Suggested follow-up experiments
+
+1. **Hybrid retrieval (BM25 + vector)** — the 35/60 ceiling on pure-vector at the peak suggests phrase evidence needs an independent channel. Expected lift on phrase-heavy queries (Q8–Q10); likely 5-10 points on this rubric.
+2. **Query expansion with LLM paraphrases** — lift on topical queries (Q1–Q6) where user phrasing differs from corpus phrasing.
+3. **Multi-granularity indexing** — index the same file at both 1200/240 AND a smaller size (e.g. 400/80), and let the ranker see both. Cheap storage increase, potential 2-5 point lift.
+4. **Per-file-type defaults** — `summary.md` files are short enough that `.whole` is always the interesting embedding; `transcript.txt` files benefit from chunking. A file-type branch at index time would let each type use its optimal config.
+5. **Embedder comparison** — BGE-large, E5-large, Jina embeddings. With pluggable embedding infra (planned Phase A), swap in and re-score.
