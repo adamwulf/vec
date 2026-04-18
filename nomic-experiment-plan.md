@@ -811,7 +811,7 @@ and pool size (which is now 1).
 wall-clock from the verbose output. That's the baseline cost. Multiply
 by ~1.5× as a rough upper bound for smaller chunk configs (more
 chunks = more embed calls). If the projected total of all 11 configs
-exceeds the 12-hour budget (§7), prioritize:
+exceeds the 24-hour budget (§7), prioritize:
 
 1. config #1 (#1 baseline)
 2. config #4 or #6 (small chunks — most likely to lift transcript)
@@ -821,8 +821,8 @@ exceeds the 12-hour budget (§7), prioritize:
 
 **Hard abort gate — after iteration #1 completes:** compute
 `projected_total = iter1_wall_clock × 11 × 1.2` (the 1.2 is a safety
-factor for per-config variance). If `projected_total > 10 h` (leaving
-at least 2 h reserve within the 12 h §7 budget for scoring, commits,
+factor for per-config variance). If `projected_total > 20 h` (leaving
+at least 4 h reserve within the 24 h §7 budget for scoring, commits,
 and any stuck-recovery), immediately drop to a minimum-viable sweep:
 pick 4 configs spanning the axes (e.g. one small + one medium + one
 large chunk config + one LineBased). Commit the decision — including
@@ -946,7 +946,7 @@ git add nomic-experiment-results.md
 git commit -m "nomic-experiment iter N: <config>, <score>/60"
 ```
 
-Rationale: 12-hour wall-clock budget is long enough that an OS reboot,
+Rationale: 24-hour wall-clock budget is long enough that an OS reboot,
 container restart, or accidental kill could lose work. Commit-per-
 iteration is cheap.
 
@@ -988,10 +988,10 @@ hit top 10 on ≥ 7/10 queries.
 
 ### 6.3 TIME budget
 
-12 hours of wall-clock spent on the parameter sweep. Iterations within
+24 hours of wall-clock spent on the parameter sweep. Iterations within
 that window are unlimited.
 
-If 12 hours elapse without ship/kill: STOP, commit best-config
+If 24 hours elapse without ship/kill: STOP, commit best-config
 defaults if best score ≥ 30/60 ("interesting" — better than NLEmbedding
 6/60 baseline), document either way, signal manager.
 
@@ -1037,8 +1037,8 @@ worktree or revert work.
 
 ## 7. Time budget summary
 
-- Phase 5 parameter sweep: **12 hours wall-clock**, unlimited
-  iterations within that.
+- Phase 5 parameter sweep: **24 hours wall-clock** (extended from 12 h
+  mid-flight at 2026-04-17), unlimited iterations within that.
 - Per-iteration: ~1 reindex + 10 scoring queries. With pool=1 nomic,
   expect roughly 10–60 minutes per iteration depending on chunk size
   (more chunks → longer).
@@ -1097,7 +1097,7 @@ worktree or revert work.
 
 ### Sweep
 - [ ] Iteration 1 (recursive 2000/200) wall-clock recorded
-- [ ] Total projected sweep time within 12 h budget (§5.2)
+- [ ] Total projected sweep time within 24 h budget (§5.2)
 - [ ] Each iteration: reset → reindex → score → log → commit
 - [ ] Stop condition hit (ship / kill / time) (§6)
 
