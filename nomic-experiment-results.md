@@ -18,6 +18,7 @@ at 768 dims. Same 10 queries + scoring rule as `bean-test.md`.
 | 9 | 2026-04-18 | recursive 1200/120 | 31/60 | 3/10 | wall-clock 2803s (~47 min) |
 | 10 | 2026-04-18 | LineBased 30 lines / 8 overlap | 30/60 | 3/10 | wall-clock 1568s (~26 min) |
 | 11 | 2026-04-18 | recursive 3000/300 | 15/60 | 0/10 | wall-clock 1395s (~23 min) |
+| 12 | 2026-04-18 | recursive 300/60 | 30/60 | 3/10 | wall-clock 11259s (~188 min) |
 
 ## 2. Per-iteration details
 
@@ -308,3 +309,33 @@ TOTAL: 15/60, QUERIES_HIT_TOP10 (both T and S in top 10): 0/10
 - Dominant competitors on every trademark-related query: muse-trademark/research/015-zoom-contract-justia.md, muse-trademark/muse-trademark-acquisition.md, granola/2026-03-10-20-59-8e7b43c9/summary.md, granola/2026-03-27-16-30-58c8fab8/summary.md. These are the actual trademark contract / deal documents — at 3000-char chunks their long-range context maps cleanly onto these queries while the target meeting's transcript chunks become too coarse to feature its specific pricing content.
 - Wall-clock 1394.99s is the fastest indexing across all iters (next: iter-10 LineBased 1568s, iter-1 1923s). 3375 chunks at throughput 2.42 ch/s fits the usual band. Fewer chunks means less wall-clock but also less retrieval granularity, which directly caused the score collapse.
 - Conclusion: the 3000-char upper-boundary probe confirms the sweep curve has a sharp cliff on the high side. Peak remains iter-2 1200/240 (35/60, 3/10). Large chunks are clearly the wrong direction — the chunk-size sweet spot sits in the 800–1200-char window, with 1200/240 as the best explored config. SHIP GATE NOT HIT (15/60 < 45; 0/10 < 7).
+
+### Iteration 12 — recursive 300/60, nomic-embed-text-v1.5 768 dims
+Reindex wall-clock: 11259.04s (674 files, 33374 chunks, 10 workers; embed=15705.60s CPU / 11259s wall; p50 embed 9.56s, p95 82.20s). Lower-boundary probe, symmetric to iter-11's 3000/300 upper-boundary check.
+
+| # | query | T rank | S rank | T score | S score | subtotal |
+|---|-------|--------|--------|---------|---------|----------|
+| 1 | trademark price negotiation | absent | 14 | 0 | 1 | 1 |
+| 2 | where did I negotiate the price for the trademark | absent | 20 | 0 | 1 | 1 |
+| 3 | muse trademark pricing discussion | absent | 4 | 0 | 2 | 2 |
+| 4 | counter offer for trademark assets | 10 | 1 | 2 | 3 | 5 |
+| 5 | how much did we ask for the trademark | absent | 9 | 0 | 2 | 2 |
+| 6 | trademark assignment agreement meeting | 9 | 12 | 2 | 1 | 3 |
+| 7 | right of first refusal trademark | 4 | 3 | 2 | 3 | 5 |
+| 8 | bean counter mode trademark | 2 | 1 | 3 | 3 | 6 |
+| 9 | 1.5 million trademark deal | absent | 7 | 0 | 2 | 2 |
+| 10 | trademark deal move quickly quick execution | absent | 1 | 0 | 3 | 3 |
+
+TOTAL: 30/60, QUERIES_HIT_TOP10 (both T and S in top 10): 3/10
+
+**Observations:**
+- 30/60, 3/10 — below the iter-2 RecursiveCharacter peak (35/60, 1200/240) and matches iter-10 LineBased 30/8. The symmetric lower-boundary probe to iter-11's 3000/300 demonstrates the sweep curve is asymmetric: the upper cliff (3000/300 → 15/60) is much sharper than the lower cliff. 300-char chunks still retrieve reasonably well but do NOT beat the 1200/240 peak.
+- Chunk count 33374 is by far the largest of any iter — ~7× iter-2's 8116 and ~10× iter-11's 3375. Throughput 2.1 ch/s matches the usual band (3000/300 at 2.42 ch/s, 1200/240 at 2.76 ch/s) — per-chunk embed cost is similar regardless of chunk size; wall-clock scales with chunk count.
+- Wall-clock 11259.04s (~188 min / 3h 8m) is the slowest indexing of any iter, confirming the "smaller chunks = more chunks = longer wall clock" prediction from the plan. Context budget: this alone ate ~13% of the 24-hour sweep budget.
+- T (transcript.txt) top 10 on 4/10 (Q4 rank 10, Q6 rank 9, Q7 rank 4, Q8 rank 2) — similar to iter-3 (800/160) and iter-7 (500/100). The tiny 300-char chunks do let phrase-specific queries (Q8 "bean counter") reach the transcript, but many queries (Q1, Q2, Q5, Q9, Q10) still leave T absent from top 20.
+- S (summary.md) top 10 on 6/10 (Q3 rank 4, Q4 rank 1, Q5 rank 9, Q7 rank 3, Q8 rank 1, Q10 rank 1) — strong S retrieval; S is short enough (46 lines) that 300-char chunks segment it into ~5-7 pieces, giving multiple chunk matches plus whole-doc, matching iter-7 level S performance.
+- Both-top-10 count 3/10 (Q4, Q7, Q8) — matches iter-2, iter-8, iter-9, iter-10. The winning query set remains essentially the same; further chunk tuning is not unlocking the other queries (Q1, Q2, Q5, Q6, Q9).
+- Very small chunks fragment transcript content but the phrase-leaning advantage doesn't compound — 300-char fragments often lose context needed to match semantic queries like "where did I negotiate" (Q2 absent for T) even though they preserve short phrases like "bean counter" (Q8 T=2).
+- Q6 "trademark assignment agreement meeting" finally shows T in top 10 here (rank 9) — the 300-char granularity lets a matching chunk surface. But the summary drops to rank 12, and the 164bf8dc meeting meta.md does not rank competitively.
+- Dominant competitors continue to be muse-trademark/research/015-zoom-contract-justia.md, muse-trademark/muse-trademark-acquisition.md, granola/2026-03-10-20-59-8e7b43c9/summary.md+transcript.txt, granola/2026-03-27-16-30-58c8fab8/summary.md. At 300 chars they still win most queries because they're longer documents with many relevant chunks, not fewer.
+- Conclusion: the lower-boundary 300/60 probe shows a gentler but still real cliff below the sweet spot. Score curve across recursive configs: 300/60→30, 500/100→32, 800/160→32, 1000/200→28, 1200/120→31, 1200/240→**35** (peak), 1200/360→31, 1400/280→26, 1500/300→23, 2000/200→23, 3000/300→15. Peak remains iter-2 1200/240 (35/60, 3/10). The sweep curve is asymmetric — lower-boundary cliff is gentler. SHIP GATE NOT HIT (30/60 < 45; 3/10 < 7).
