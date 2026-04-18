@@ -15,6 +15,7 @@ at 768 dims. Same 10 queries + scoring rule as `bean-test.md`.
 | 6 | 2026-04-17 | recursive 1000/200 | 28/60 | 2/10 | wall-clock 3726s (~62 min) |
 | 7 | 2026-04-18 | recursive 500/100 | 32/60 | 4/10 | wall-clock 6852s (~114 min) |
 | 8 | 2026-04-18 | recursive 1200/360 | 31/60 | 3/10 | wall-clock 3149s (~52 min) |
+| 9 | 2026-04-18 | recursive 1200/120 | 31/60 | 3/10 | wall-clock 2803s (~47 min) |
 
 ## 2. Per-iteration details
 
@@ -219,3 +220,30 @@ TOTAL: 31/60, QUERIES_HIT_TOP10 (both T and S in top 10): 3/10
 - Both-top10 count 3/10 (Q7, Q8, Q10) — same count as iter-2 but different winning queries (iter-2 had Q8, Q9, Q10; iter-8 has Q7, Q8, Q10).
 - Wall-clock 3149s at 8780 chunks (vs iter-2's 2940s at 8116 chunks). Larger overlap produces ~8% more chunks (more sliding windows to fill a document) and a ~7% wall-clock increase — overhead is linear-ish with chunk count.
 - Conclusion: 30% overlap at 1200-char chunks is a loss vs 20% overlap. The 1200/240 peak (35/60, 3/10) remains unbeaten. Overlap fraction appears to have an optimum around 20%; pushing higher mildly dilutes signal. Below SHIP gate (need ≥ 45/60 AND ≥ 7/10). SHIP GATE NOT HIT.
+
+### Iteration 9 — recursive 1200/120, nomic-embed-text-v1.5 768 dims
+Reindex wall-clock: 2803.09s (674 files, 7680 chunks, 10 workers; embed=7716.62s CPU / 2803s wall; p50 embed 8.07s, p95 24.75s).
+
+| # | query | T rank | S rank | T score | S score | subtotal |
+|---|-------|--------|--------|---------|---------|----------|
+| 1 | trademark price negotiation | absent | 5 | 0 | 2 | 2 |
+| 2 | where did I negotiate the price for the trademark | 11 | absent | 1 | 0 | 1 |
+| 3 | muse trademark pricing discussion | absent | 4 | 0 | 2 | 2 |
+| 4 | counter offer for trademark assets | 10 | 1 | 2 | 3 | 5 |
+| 5 | how much did we ask for the trademark | 5 | 11 | 2 | 1 | 3 |
+| 6 | trademark assignment agreement meeting | 19 | absent | 1 | 0 | 1 |
+| 7 | right of first refusal trademark | 3 | 13 | 3 | 1 | 4 |
+| 8 | bean counter mode trademark | 2 | 1 | 3 | 3 | 6 |
+| 9 | 1.5 million trademark deal | absent | 9 | 0 | 2 | 2 |
+| 10 | trademark deal move quickly quick execution | 1 | 10 | 3 | 2 | 5 |
+
+TOTAL: 31/60, QUERIES_HIT_TOP10 (both T and S in top 10): 3/10
+
+**Observations:**
+- 31/60 matches iter-8 (1200/360, 30% overlap) exactly — both below iter-2's 1200/240 (35/60, 3/10) peak. This completes the overlap axis at chunk-chars=1200: 10% → 31/60, 20% → 35/60, 30% → 31/60. A clear inverted-U with 20% at the top.
+- The 10% overlap result is symmetric with the 30% overlap result at the same chunk size — the optimum is narrow and centered on 20%. Both too little (120 chars, missing boundary context) and too much (360 chars, diluting topical concentration) regress by ~4 points.
+- T (transcript.txt) in top 10 on 4/10 (Q4, Q7, Q8, Q10) — similar to peer iters. T absent on Q1, Q3, Q9 (the same cold-corner queries).
+- S (summary.md) in top 10 on 6/10 (Q1 5, Q3 4, Q4 1, Q8 1, Q9 9, Q10 10) — slightly better than iter-8's S hit count but matches iter-2's summary behavior overall.
+- Both-top10 count 3/10 (Q4, Q8, Q10) — matches iter-8 and iter-2 count; the winning query set is Q4, Q8, Q10 (Q8 and Q10 hit every strong iter).
+- Wall-clock 2803s at 7680 chunks — the fastest of the 1200-char configs (iter-2 2940s/8116 chunks, iter-8 3149s/8780 chunks). Lower overlap → fewer chunks → faster indexing; throughput 2.74 ch/s is consistent with the band.
+- Conclusion: overlap axis at chunk-chars=1200 is fully charted: 120 (10%) = 31, 240 (20%) = 35, 360 (30%) = 31. Peak remains iter-2 1200/240 (35/60, 3/10). The 1200/240 config is the best explored and sits meaningfully above its neighbors on both the chunk-chars axis (iter-6 1000/200 = 28, iter-5 1400/280 = 26) and the overlap axis (iter-9 1200/120 = 31, iter-8 1200/360 = 31). Below SHIP gate. SHIP GATE NOT HIT.
