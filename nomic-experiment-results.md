@@ -16,6 +16,7 @@ at 768 dims. Same 10 queries + scoring rule as `bean-test.md`.
 | 7 | 2026-04-18 | recursive 500/100 | 32/60 | 4/10 | wall-clock 6852s (~114 min) |
 | 8 | 2026-04-18 | recursive 1200/360 | 31/60 | 3/10 | wall-clock 3149s (~52 min) |
 | 9 | 2026-04-18 | recursive 1200/120 | 31/60 | 3/10 | wall-clock 2803s (~47 min) |
+| 10 | 2026-04-18 | LineBased 30 lines / 8 overlap | 30/60 | 3/10 | wall-clock 1568s (~26 min) |
 
 ## 2. Per-iteration details
 
@@ -247,3 +248,35 @@ TOTAL: 31/60, QUERIES_HIT_TOP10 (both T and S in top 10): 3/10
 - Both-top10 count 3/10 (Q4, Q8, Q10) — matches iter-8 and iter-2 count; the winning query set is Q4, Q8, Q10 (Q8 and Q10 hit every strong iter).
 - Wall-clock 2803s at 7680 chunks — the fastest of the 1200-char configs (iter-2 2940s/8116 chunks, iter-8 3149s/8780 chunks). Lower overlap → fewer chunks → faster indexing; throughput 2.74 ch/s is consistent with the band.
 - Conclusion: overlap axis at chunk-chars=1200 is fully charted: 120 (10%) = 31, 240 (20%) = 35, 360 (30%) = 31. Peak remains iter-2 1200/240 (35/60, 3/10). The 1200/240 config is the best explored and sits meaningfully above its neighbors on both the chunk-chars axis (iter-6 1000/200 = 28, iter-5 1400/280 = 26) and the overlap axis (iter-9 1200/120 = 31, iter-8 1200/360 = 31). Below SHIP gate. SHIP GATE NOT HIT.
+
+### Iteration 10 — LineBased 30 lines / 8 overlap, nomic-embed-text-v1.5 768 dims
+Reindex wall-clock: 1567.93s (672 files, 3897 chunks, 10 workers; embed=6894.40s CPU / 1568s wall; p50 embed 8.89s, p95 17.57s).
+
+**Splitter**: `LineBasedSplitter(chunkSize: 30, overlapSize: 8)` — units are LINES (not chars). Heading-aware: prefers to end a chunk on a Markdown `#` line near the target boundary. Distinct from all prior iters which used `RecursiveCharacterSplitter` (char-based).
+
+**Code scaffolding**: hardcoded the splitter in `Sources/vec/Commands/UpdateIndexCommand.swift` for this iter only — marked with an `ITER-10-SCAFFOLDING` comment. To be reverted (or promoted to a `--splitter` flag) before merging.
+
+| # | query | T rank | S rank | T score | S score | subtotal |
+|---|-------|--------|--------|---------|---------|----------|
+| 1 | trademark price negotiation | absent | 4 | 0 | 2 | 2 |
+| 2 | where did I negotiate the price for the trademark | 15 | 12 | 1 | 1 | 2 |
+| 3 | muse trademark pricing discussion | absent | 4 | 0 | 2 | 2 |
+| 4 | counter offer for trademark assets | 17 | 1 | 1 | 3 | 4 |
+| 5 | how much did we ask for the trademark | 12 | 9 | 1 | 2 | 3 |
+| 6 | trademark assignment agreement meeting | absent | absent | 0 | 0 | 0 |
+| 7 | right of first refusal trademark | 3 | 2 | 3 | 3 | 6 |
+| 8 | bean counter mode trademark | 7 | 1 | 2 | 3 | 5 |
+| 9 | 1.5 million trademark deal | absent | 6 | 0 | 2 | 2 |
+| 10 | trademark deal move quickly quick execution | 6 | 4 | 2 | 2 | 4 |
+
+TOTAL: 30/60, QUERIES_HIT_TOP10 (both T and S in top 10): 3/10
+
+**Observations:**
+- 30/60, 3/10 — below the iter-2 RecursiveCharacter peak (35/60, 1200/240 chars). LineBased 30/8 lands in the same band as iters 6/8/9 (28–31/60) and below iters 3 and 7 (32/60). The qualitatively different splitter (line-based, heading-aware) did NOT outperform the best character-based config despite its conceptual appeal of preserving Markdown section structure.
+- Chunk count 3897 is dramatically lower than any prior iter — ~half of iter-2's 8116 and under a quarter of iter-7's 19587. Line-based 30/8 in a corpus with mostly short files (many granola meta.md, notes.md under the 30-line threshold) yields fewer total chunks. LineBasedSplitter produces NO chunks when `lines.count <= chunkSize`, so short files only contribute whole-doc embeddings — this matches the higher-than-usual "whole" match dominance in several query results.
+- Wall-clock 1568s is the fastest indexing across all iters (next best iter-1 at 1923s) — consequence of the reduced chunk count. Throughput 2.48 ch/s is within the usual band.
+- T (transcript.txt for 164bf8dc) top 10 on just 2/10 (Q7 rank 3, Q10 rank 6) — weakest T performance since iter-1. The 30-line chunks split transcripts (many hundreds of lines) into coarse-ish pieces, but the heading-aware boundary logic is inert on plain transcripts (no `#` lines), so boundaries land mechanically every ~22 lines (30-8 advance). The transcript's unique phrase clusters may be straddling those fixed boundaries.
+- S (summary.md for 164bf8dc) top 10 on 7/10 (Q1 4, Q3 4, Q4 1, Q5 9, Q7 2, Q8 1, Q10 4) — strong S retrieval, matches iter-3/iter-7 levels. Short summaries (≤46 lines) mostly produce a single chunk or two plus a whole embedding, which favors their own ranking.
+- Both-top10 count 3/10 (Q7, Q8, Q10) — matches iter-2, iter-8, iter-9. The winning query set is the same as the char-based runs.
+- Q6 "trademark assignment agreement meeting" still absent for both T and S — same cold corner as most prior iters.
+- Conclusion: heading-aware line-based chunking does not beat recursive character chunking at 1200/240 on this corpus. On markdown-heavy files with headings, LineBased might shine, but the dominant query targets here are granola transcripts (no headings) and a 46-line summary.md, so the heading-boundary logic has no material impact. Peak remains iter-2 RecursiveCharacter 1200/240 (35/60, 3/10). Below SHIP gate (need ≥ 45/60 AND ≥ 7/10). SHIP GATE NOT HIT.

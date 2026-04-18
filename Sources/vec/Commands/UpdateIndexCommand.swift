@@ -310,10 +310,11 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         let stats: IndexingStats
         let pipelineStart = Date()
         do {
-            let splitter = RecursiveCharacterSplitter(
-                chunkSize: effectiveChunkSize,
-                chunkOverlap: effectiveOverlap
-            )
+            // ITER-10-SCAFFOLDING: hardcoded LineBasedSplitter for
+            // nomic-experiment iter 10. Revert before merging.
+            let splitter = LineBasedSplitter(chunkSize: 30, overlapSize: 8)
+            _ = effectiveChunkSize
+            _ = effectiveOverlap
             (results, stats) = try await pipeline.run(
                 workItems: workItems,
                 extractor: TextExtractor(splitter: splitter),
