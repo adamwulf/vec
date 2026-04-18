@@ -43,8 +43,10 @@ struct InsertCommand: AsyncParsableCommand {
             print("Error: " + VecError.embedderNotRecorded.errorDescription!)
             throw ExitCode.failure
         }
-        let embedderAlias = EmbedderFactory.alias(forCanonicalName: recorded.name)
-            ?? EmbedderFactory.defaultAlias
+        guard let embedderAlias = EmbedderFactory.alias(forCanonicalName: recorded.name) else {
+            print("Error: " + VecError.unknownEmbedder(recorded.name).errorDescription!)
+            throw ExitCode.failure
+        }
         let activeEmbedder = try EmbedderFactory.make(alias: embedderAlias)
 
         let database = VectorDatabase(

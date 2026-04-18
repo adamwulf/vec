@@ -62,8 +62,13 @@ struct SearchCommand: AsyncParsableCommand {
             print("Error: " + VecError.embedderNotRecorded.errorDescription!)
             throw ExitCode.failure
         }
-        let embedderAlias = EmbedderFactory.alias(forCanonicalName: recorded.name)
-            ?? EmbedderFactory.defaultAlias
+        // Refuse if the DB names an embedder this build doesn't know
+        // about. Falling back to the default would build a query vector
+        // at the wrong dim for this DB.
+        guard let embedderAlias = EmbedderFactory.alias(forCanonicalName: recorded.name) else {
+            print("Error: " + VecError.unknownEmbedder(recorded.name).errorDescription!)
+            throw ExitCode.failure
+        }
         let embedder: any Embedder
         do {
             embedder = try EmbedderFactory.make(alias: embedderAlias)

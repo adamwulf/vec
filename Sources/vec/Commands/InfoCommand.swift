@@ -41,7 +41,7 @@ struct InfoCommand: AsyncParsableCommand {
             sizeString = "unknown"
         }
 
-        let embedderString = config.embedder.map { "\($0.name) (\($0.dimension)d)" } ?? "-"
+        let embedderString = config.embedder.map { "\($0.name) (\($0.dimension)d)" } ?? "(not yet recorded)"
 
         print("Database:     \(dbDir.lastPathComponent)")
         print("Source:       \(sourceDir.path)")

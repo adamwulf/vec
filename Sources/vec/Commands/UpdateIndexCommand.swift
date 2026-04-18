@@ -267,8 +267,13 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         //     default to EmbedderFactory.defaultAlias.
         let resolvedAlias: String
         if let recorded = config.embedder {
-            let recordedAlias = EmbedderFactory.alias(forCanonicalName: recorded.name)
-                ?? EmbedderFactory.defaultAlias
+            // Refuse explicitly if the DB names an embedder this build
+            // doesn't know about (future-version DB or corruption).
+            // Silently falling back to the default would produce vectors
+            // at the wrong dim for this DB.
+            guard let recordedAlias = EmbedderFactory.alias(forCanonicalName: recorded.name) else {
+                throw VecError.unknownEmbedder(recorded.name)
+            }
             if let requested = embedder, requested != recordedAlias {
                 throw VecError.embedderMismatch(recorded: recorded.name, requested: requested)
             }
