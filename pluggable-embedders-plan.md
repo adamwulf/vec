@@ -43,11 +43,11 @@ migration of existing pre-refactor DBs.
 public protocol Embedder: Sendable {
     /// Short stable identifier. Persisted in DatabaseConfig. Also used
     /// in logs. Examples: "nomic-v1.5-768", "nl-en-512".
-    nonisolated var name: String { get }
+    var name: String { get }
 
     /// Dimensionality of every vector returned. Must match the vectors
     /// stored in the DB for this embedder's DatabaseConfig.
-    nonisolated var dimension: Int { get }
+    var dimension: Int { get }
 
     /// Embed a document chunk for indexing.
     func embedDocument(_ text: String) async throws -> [Float]
@@ -57,14 +57,16 @@ public protocol Embedder: Sendable {
 }
 ```
 
-Why `nonisolated` for `name` and `dimension`:
+Why the protocol keeps `var name` / `var dimension` plain (no
+`nonisolated` keyword at the protocol level):
 
-- They are pure constants set at init and never mutated. Making them
-  `nonisolated` lets non-actor callers (DB writer, CLI) read them
-  without `await`, which keeps the call sites simple.
-- An `actor` conforming to the protocol satisfies the requirement by
-  declaring the properties `nonisolated` (permitted because they are
-  `let`-backed).
+- The protocol-level `nonisolated` spelling is newer and its interaction
+  with actor conformance varies across Swift 6 minor versions. Keeping
+  the requirement plain sidesteps that complexity.
+- Conforming actors satisfy the requirement with `nonisolated let name = ...`
+  — a stored `let` declared `nonisolated` on an actor is the canonical
+  Swift-6 pattern for constant-valued protocol properties and lets
+  non-actor callers read them synchronously.
 - `Sendable` conformance is required so an `Embedder` can cross actor
   boundaries into the pool.
 
@@ -208,12 +210,34 @@ Mismatch semantics:
 - If `DatabaseConfig.embedder != nil` and `--embedder` is omitted →
   resolve to the recorded embedder silently.
 - On `vec search`, no `--embedder` flag exists. Always resolve from
-  `DatabaseConfig.embedder`. If nil (pre-refactor DB) → fall back to
-  the default embedder (nomic) with a stderr warning telling the user
-  to re-index.
+  `DatabaseConfig.embedder`. If nil (pre-refactor DB with existing
+  chunks in an unknown dim), refuse with: "Database has no recorded
+  embedder. Run 'vec reset' then 'vec update-index --embedder <name>'
+  to rebuild." — silent fallback risks dim mismatch between query
+  and stored vectors.
+- `vec insert <path>` (single-file indexing) follows the same rule as
+  update-index: if config has no recorded embedder, refuse with
+  "Run 'vec update-index' first to establish an embedder." Insert
+  doesn't have a `--embedder` flag; it always uses the recorded one.
+  A newly-reset (empty, embedder=nil) DB must be indexed with
+  update-index first.
 
-This keeps the CLI forgiving for pre-refactor DBs while still making
-the happy path fully automatic.
+This keeps the CLI forgiving for pre-refactor DBs (they still list
+and info fine, but search/insert/update-index won't run without an
+explicit user action) while making the happy path fully automatic.
+
+### Config atomicity
+
+Writing `embedder` to config on the first-run path runs *before* the
+pipeline starts the DB writer, so:
+
+- Every chunk inserted during this run has the dim that matches
+  the recorded config.
+- If the run fails mid-index, subsequent `vec update-index` runs
+  inherit the recorded embedder (no mismatch) and resume with
+  consistent dims.
+- If the user wants to switch embedders after a partial run, `vec
+  reset` clears the config and any partial chunks in one shot.
 
 ### Embedder factory
 
