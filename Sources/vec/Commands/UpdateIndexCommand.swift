@@ -237,6 +237,9 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Chunk overlap in characters. Must be less than --chunk-chars. Omit to use the default (\(RecursiveCharacterSplitter.defaultChunkOverlap)).")
     var chunkOverlap: Int?
 
+    @Option(name: .long, help: "Embedder to use (nomic, nl). Default is nomic on first index; must match recorded embedder on subsequent runs (or omit to reuse recorded).")
+    var embedder: String?
+
     func run() async throws {
         let effectiveChunkSize = chunkChars ?? RecursiveCharacterSplitter.defaultChunkSize
         let effectiveOverlap = chunkOverlap ?? RecursiveCharacterSplitter.defaultChunkOverlap
@@ -250,11 +253,49 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             throw ValidationError("--chunk-overlap (\(effectiveOverlap)) must be less than --chunk-chars (\(effectiveChunkSize))")
         }
 
-        let (dbDir, _, sourceDir) = try db != nil
+        let (dbDir, config, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        // Resolve the embedder to use for this run and reconcile it
+        // with whatever the DB has recorded. Rules:
+        //   - If DB has a recorded embedder and --embedder is passed
+        //     with a different name → refuse.
+        //   - If DB has a recorded embedder and --embedder is omitted
+        //     (or matches) → use recorded.
+        //   - If DB has no recorded embedder → use --embedder, or
+        //     default to EmbedderFactory.defaultAlias.
+        let resolvedAlias: String
+        if let recorded = config.embedder {
+            let recordedAlias = EmbedderFactory.alias(forCanonicalName: recorded.name)
+                ?? EmbedderFactory.defaultAlias
+            if let requested = embedder, requested != recordedAlias {
+                throw VecError.embedderMismatch(recorded: recorded.name, requested: requested)
+            }
+            resolvedAlias = recordedAlias
+        } else {
+            resolvedAlias = embedder ?? EmbedderFactory.defaultAlias
+        }
+
+        let activeEmbedder = try EmbedderFactory.make(alias: resolvedAlias)
+
+        // Persist the embedder on the config before any chunks are
+        // written so a crash mid-index doesn't leave the DB with
+        // vectors but no recorded embedder identity.
+        if config.embedder == nil {
+            let updated = DatabaseConfig(
+                sourceDirectory: config.sourceDirectory,
+                createdAt: config.createdAt,
+                embedder: .init(name: activeEmbedder.name, dimension: activeEmbedder.dimension)
+            )
+            try DatabaseLocator.writeConfig(updated, to: dbDir)
+        }
+
+        let database = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: activeEmbedder.dimension
+        )
         try await database.open()
 
         let scanner = FileScanner(directory: sourceDir, includeHiddenFiles: allowHidden)
@@ -280,7 +321,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         // Source worker count from the pipeline so the rolling line's
         // "N/M" denominator can't silently desync from the actual pool size
         // if the default ever changes.
-        let pipeline = IndexingPipeline()
+        let pipeline = IndexingPipeline(embedder: activeEmbedder)
         let workerCount = pipeline.workerCount
 
         // Wire up the rolling progress renderer when verbose and attached to a TTY.

@@ -41,9 +41,12 @@ struct InfoCommand: AsyncParsableCommand {
             sizeString = "unknown"
         }
 
+        let embedderString = config.embedder.map { "\($0.name) (\($0.dimension)d)" } ?? "-"
+
         print("Database:     \(dbDir.lastPathComponent)")
         print("Source:       \(sourceDir.path)")
         print("Created:      \(createdString)")
+        print("Embedder:     \(embedderString)")
         print("Files:        \(fileCount)")
         print("Chunks:       \(chunkCount)")
         print("DB size:      \(sizeString)")

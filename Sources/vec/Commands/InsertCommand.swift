@@ -16,7 +16,7 @@ struct InsertCommand: AsyncParsableCommand {
     var path: String
 
     func run() async throws {
-        let (dbDir, _, sourceDir) = try db != nil
+        let (dbDir, config, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
@@ -35,14 +35,30 @@ struct InsertCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        // Insert doesn't take --embedder: it always uses whatever the
+        // DB was indexed with. A fresh DB that has never been indexed
+        // can't be inserted into piecemeal — point the user at
+        // update-index so the embedder choice is explicit.
+        guard let recorded = config.embedder else {
+            print("Error: " + VecError.embedderNotRecorded.errorDescription!)
+            throw ExitCode.failure
+        }
+        let embedderAlias = EmbedderFactory.alias(forCanonicalName: recorded.name)
+            ?? EmbedderFactory.defaultAlias
+        let activeEmbedder = try EmbedderFactory.make(alias: embedderAlias)
+
+        let database = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: recorded.dimension
+        )
         try await database.open()
 
         let fileInfo = try FileScanner.fileInfo(for: filePath, relativeTo: sourceDir)
 
         // Use the pipeline for single-file indexing — still benefits from
         // parallel chunk embedding for large files.
-        let pipeline = IndexingPipeline()
+        let pipeline = IndexingPipeline(embedder: activeEmbedder)
         let (results, _) = try await pipeline.run(
             workItems: [(file: fileInfo, label: "Updated")],
             extractor: TextExtractor(),

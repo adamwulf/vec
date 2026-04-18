@@ -50,14 +50,35 @@ struct SearchCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        let (dbDir, _, sourceDir) = try db != nil
+        let (dbDir, config, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        // Resolve the embedder from the DB's recorded config. Search
+        // refuses to guess — a silent fallback to the default would
+        // mean building a query vector at the wrong dim for any
+        // pre-refactor DB or any DB indexed with a different embedder.
+        guard let recorded = config.embedder else {
+            print("Error: " + VecError.embedderNotRecorded.errorDescription!)
+            throw ExitCode.failure
+        }
+        let embedderAlias = EmbedderFactory.alias(forCanonicalName: recorded.name)
+            ?? EmbedderFactory.defaultAlias
+        let embedder: any Embedder
+        do {
+            embedder = try EmbedderFactory.make(alias: embedderAlias)
+        } catch {
+            print("Error: \((error as? LocalizedError)?.errorDescription ?? "\(error)")")
+            throw ExitCode.failure
+        }
+
+        let database = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: recorded.dimension
+        )
         try await database.open()
 
-        let embedder = EmbeddingService()
         let queryEmbedding: [Float]
         do {
             queryEmbedding = try await embedder.embedQuery(query)
