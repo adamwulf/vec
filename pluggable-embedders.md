@@ -173,7 +173,7 @@ Nothing else has to change. `DatabaseConfig`, the pipeline, the mismatch machine
 ## Things that deliberately don't change per embedder
 
 - **Chunking.** `RecursiveCharacterSplitter` defaults (1200 char chunk size / 240 overlap) were tuned empirically for nomic but apply to every backend. If a future embedder needs different chunking, the splitter is already a separate type and can take a per-embedder config later.
-- **Max input truncation.** Each `Embedder` implementation enforces its own `maxInputCharacters` internally (`NomicEmbedder.maxInputCharacters = 30_000` for the 2k-token window; `NLEmbedder.maxInputCharacters = 10_000` for a `std::bad_alloc` guardrail observed in practice). `TextExtractor` also caps at `NomicEmbedder.maxInputCharacters` as an early bound — both layers re-truncate, which is harmless.
+- **Max input truncation.** `TextExtractor` always emits a `.whole` chunk for readable files; each `Embedder` truncates internally to its own `maxInputCharacters` (`NomicEmbedder.maxInputCharacters = 30_000` for the 2k-token window; `NLEmbedder.maxInputCharacters = 10_000` for a `std::bad_alloc` guardrail observed in practice). For files larger than an embedder's cap, the whole-chunk vector represents a truncated prefix only.
 - **SQLite schema.** The `chunks.embedding` column stores raw Float32 blobs — `N × 4` bytes. `VectorDatabase(dimension:)` controls the `N`, so the schema itself is dimension-agnostic.
 
 ## Files
