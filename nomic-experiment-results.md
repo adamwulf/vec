@@ -13,6 +13,7 @@ at 768 dims. Same 10 queries + scoring rule as `bean-test.md`.
 | 4 | 2026-04-17 | recursive 1500/300 | 23/60 | 2/10 | wall-clock 2477s (~41 min) |
 | 5 | 2026-04-17 | recursive 1400/280 | 26/60 | 1/10 | wall-clock 2901s (~48 min) |
 | 6 | 2026-04-17 | recursive 1000/200 | 28/60 | 2/10 | wall-clock 3726s (~62 min) |
+| 7 | 2026-04-18 | recursive 500/100 | 32/60 | 4/10 | wall-clock 6852s (~114 min) |
 
 ## 2. Per-iteration details
 
@@ -165,3 +166,29 @@ TOTAL: 28/60, QUERIES_HIT_TOP10 (both T and S in top 10): 2/10
 - Both-top10 count only 2/10 (Q8, Q10) — T is the binding constraint: T often in top-20 but below the top-10 cut on exactly the queries where S is strong.
 - Wall-clock 3726s at 9649 chunks fits the expected throughput curve (iter-3 4344s at 12001 chunks = 2.76 ch/s, iter-2 2940s at 8116 chunks = 2.76 ch/s — this iter 2.59 ch/s, slightly slower but consistent).
 - Peak still sits at iter-2's 1200/240 (35/60, 3/10). 1000/200 under-performs both the 1200/240 peak AND the 800/160 iter-3 result. This is mildly non-monotonic inside the 800-1200 window — possibly noise-level variance rather than a real shape. Not hitting the SHIP gate (need ≥ 45/60 AND ≥ 7/10).
+
+### Iteration 7 — recursive 500/100, nomic-embed-text-v1.5 768 dims
+Reindex wall-clock: 6852.38s (674 files, 19587 chunks, 10 workers; embed=11514.39s CPU / 6852s wall; p50 embed 8.56s, p95 52.90s).
+
+| # | query | T rank | S rank | T score | S score | subtotal |
+|---|-------|--------|--------|---------|---------|----------|
+| 1 | trademark price negotiation | absent | 6 | 0 | 2 | 2 |
+| 2 | where did I negotiate the price for the trademark | 16 | 17 | 1 | 1 | 2 |
+| 3 | muse trademark pricing discussion | absent | 3 | 0 | 3 | 3 |
+| 4 | counter offer for trademark assets | 7 | 1 | 2 | 3 | 5 |
+| 5 | how much did we ask for the trademark | absent | 6 | 0 | 2 | 2 |
+| 6 | trademark assignment agreement meeting | 12 | absent | 1 | 0 | 1 |
+| 7 | right of first refusal trademark | 2 | 4 | 3 | 2 | 5 |
+| 8 | bean counter mode trademark | 2 | 1 | 3 | 3 | 6 |
+| 9 | 1.5 million trademark deal | absent | 5 | 0 | 2 | 2 |
+| 10 | trademark deal move quickly quick execution | 6 | 5 | 2 | 2 | 4 |
+
+TOTAL: 32/60, QUERIES_HIT_TOP10 (both T and S in top 10): 4/10
+
+**Observations:**
+- 32/60 ties iter-3 (800/160) exactly but at ~1.58× the wall-clock (6852s vs 4344s). Small chunks produce 19587 chunks vs iter-3's 12001 — more granular retrieval but not better overall score.
+- T (transcript.txt) in top 10 on 5/10 (Q4, Q6 rank 12? no — Q4 rank 7, Q7 rank 2, Q8 rank 2, Q10 rank 6, Q2 rank 16 / Q6 rank 12 out) → Q4, Q7, Q8, Q10 = 4/10 top 10; same count as iter-3.
+- S (summary.md) in top 10 on 8/10 (Q1 6, Q3 3, Q4 1, Q5 6, Q7 4, Q8 1, Q9 5, Q10 5) — actually the best S retrieval across all iterations. Small chunks favor summary.md (a short document) by concentrating its signal.
+- Both-top10 count 4/10 (Q4, Q7, Q8, Q10) — matches iter-3 exactly.
+- Throughput 2.86 ch/s at 19587 chunks, consistent with the ~2.6-2.9 ch/s band seen across all iters; no per-chunk speedup from smaller chunks.
+- Small-chunk regime (500/100) is NOT an improvement over the 800–1200 sweet spot. S retrieval genuinely stronger but T retrieval unchanged — net-net the same 32/60. Peak remains iter-2 1200/240 (35/60, 3/10). Well below SHIP gate (need ≥ 45/60 AND ≥ 7/10).
