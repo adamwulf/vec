@@ -153,7 +153,7 @@ final class ThreeStagePipelineTests: XCTestCase {
         let workItems = files.map { (file: $0, label: "Added") }
 
         let extractor = TextExtractor()
-        let pipeline = IndexingPipeline()  // default concurrency, warmup on
+        let pipeline = IndexingPipeline(embedder: NomicEmbedder())  // default concurrency, warmup on
 
         // Use a lock-protected box since the progress callback is
         // @Sendable and synchronous.

@@ -7,7 +7,7 @@ final class VectorDatabaseTests: XCTestCase {
     private var tempDir: URL!
     private var dbDir: URL!
     private var sourceDir: URL!
-    private var embeddingService: EmbeddingService!
+    private var embeddingService: NomicEmbedder!
 
     override func setUp() {
         super.setUp()
@@ -22,7 +22,7 @@ final class VectorDatabaseTests: XCTestCase {
         dbDir = tempDir.appendingPathComponent("db")
         sourceDir = tempDir.appendingPathComponent("source")
         try! FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
-        embeddingService = EmbeddingService()
+        embeddingService = NomicEmbedder()
     }
 
     override func tearDown() {
@@ -34,12 +34,12 @@ final class VectorDatabaseTests: XCTestCase {
 
     // MARK: - Helpers
 
-    /// Embed a string using the real EmbeddingService (document
+    /// Embed a string using the real NomicEmbedder (document
     /// prefix, since these helpers build index entries). Fails the
     /// test if the embedding comes back empty.
     private func embed(_ text: String, file: StaticString = #file, line: UInt = #line) async throws -> [Float] {
         let vector = try await embeddingService.embedDocument(text)
-        XCTAssertFalse(vector.isEmpty, "EmbeddingService returned empty vector for: \(text)", file: file, line: line)
+        XCTAssertFalse(vector.isEmpty, "NomicEmbedder returned empty vector for: \(text)", file: file, line: line)
         return vector
     }
 

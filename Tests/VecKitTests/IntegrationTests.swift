@@ -6,7 +6,7 @@ final class IntegrationTests: XCTestCase {
     private var tempDir: URL!
     private var dbDir: URL!
     private var sourceDir: URL!
-    private var embeddingService: EmbeddingService!
+    private var embeddingService: NomicEmbedder!
 
     override func setUp() {
         super.setUp()
@@ -22,7 +22,7 @@ final class IntegrationTests: XCTestCase {
         sourceDir = tempDir.appendingPathComponent("source")
         try! FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
         dbDir = tempDir.appendingPathComponent("db")
-        embeddingService = EmbeddingService()
+        embeddingService = NomicEmbedder()
     }
 
     override func tearDown() {
@@ -34,11 +34,11 @@ final class IntegrationTests: XCTestCase {
 
     // MARK: - Helpers
 
-    /// Embed a query string using the real EmbeddingService. Fails
+    /// Embed a query string using the real NomicEmbedder. Fails
     /// the test if embedding returns an empty vector.
     private func embed(_ text: String, file: StaticString = #file, line: UInt = #line) async throws -> [Float] {
         let vector = try await embeddingService.embedQuery(text)
-        XCTAssertFalse(vector.isEmpty, "EmbeddingService returned empty vector for: \(text)", file: file, line: line)
+        XCTAssertFalse(vector.isEmpty, "NomicEmbedder returned empty vector for: \(text)", file: file, line: line)
         return vector
     }
 

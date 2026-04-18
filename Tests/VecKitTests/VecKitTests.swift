@@ -29,30 +29,30 @@ final class VecKitTests: XCTestCase {
     }
 }
 
-// MARK: - EmbeddingService Tests
+// MARK: - NomicEmbedder Tests
 
-final class EmbeddingServiceTests: XCTestCase {
+final class NomicEmbedderTests: XCTestCase {
 
     func testEmbedDocumentReturnsArrayOfDimension768() async throws {
-        let service = EmbeddingService()
+        let service = NomicEmbedder()
         let result = try await service.embedDocument("hello world")
         XCTAssertEqual(result.count, 768)
     }
 
     func testEmbedQueryReturnsArrayOfDimension768() async throws {
-        let service = EmbeddingService()
+        let service = NomicEmbedder()
         let result = try await service.embedQuery("hello world")
         XCTAssertEqual(result.count, 768)
     }
 
     func testEmbedEmptyStringReturnsEmpty() async throws {
-        let service = EmbeddingService()
+        let service = NomicEmbedder()
         let result = try await service.embedDocument("")
         XCTAssertEqual(result.count, 0)
     }
 
     func testEmbedWhitespaceOnlyReturnsEmpty() async throws {
-        let service = EmbeddingService()
+        let service = NomicEmbedder()
         let r1 = try await service.embedDocument("   ")
         XCTAssertEqual(r1.count, 0)
         let r2 = try await service.embedDocument("\t\t")
@@ -64,15 +64,15 @@ final class EmbeddingServiceTests: XCTestCase {
     }
 
     func testEmbedVeryLongTextDoesNotCrashAndReturns768() async throws {
-        let service = EmbeddingService()
+        let service = NomicEmbedder()
         let longText = String(repeating: "The quick brown fox jumps over the lazy dog. ", count: 5000)
-        XCTAssertGreaterThan(longText.count, EmbeddingService.maxInputCharacters)
+        XCTAssertGreaterThan(longText.count, NomicEmbedder.maxInputCharacters)
         let result = try await service.embedDocument(longText)
         XCTAssertEqual(result.count, 768)
     }
 
     func testDimensionIs768() {
-        XCTAssertEqual(EmbeddingService.dimension, 768)
+        XCTAssertEqual(NomicEmbedder().dimension, 768)
     }
 }
 
@@ -238,10 +238,10 @@ final class TextExtractorTests: XCTestCase {
         // A single very long line with no newlines, but with sentence
         // boundaries ("`. `"). The default `RecursiveCharacterSplitter`
         // should emit a whole-doc chunk plus sentence-boundary sub-chunks.
-        // Length kept under EmbeddingService.maxInputCharacters so the
+        // Length kept under NomicEmbedder.maxInputCharacters so the
         // whole-chunk guard does not suppress the .whole chunk.
         let unit = "This is a very long sentence without any newlines. "
-        let repeatCount = max(1, (EmbeddingService.maxInputCharacters / unit.count) - 10)
+        let repeatCount = max(1, (NomicEmbedder.maxInputCharacters / unit.count) - 10)
         let longLine = String(repeating: unit, count: repeatCount)
         let file = createFile(name: "long_line.md", content: longLine)
         let extractor = TextExtractor()
@@ -318,10 +318,10 @@ final class TextExtractorTests: XCTestCase {
         XCTAssertGreaterThan(pageChunks.count, 0)
 
         // A whole-document chunk is only produced when the combined page text
-        // fits within EmbeddingService.maxInputCharacters. The Moby Dick
+        // fits within NomicEmbedder.maxInputCharacters. The Moby Dick
         // fixture exceeds that limit, so no `.whole` chunk should be emitted.
         let totalText = pageChunks.map(\.text).joined(separator: "\n")
-        if totalText.count <= EmbeddingService.maxInputCharacters {
+        if totalText.count <= NomicEmbedder.maxInputCharacters {
             XCTAssertEqual(chunks[0].type, .whole)
             XCTAssertNil(chunks[0].pageNumber)
             XCTAssertFalse(chunks[0].text.isEmpty)
@@ -373,7 +373,7 @@ final class TextExtractorTests: XCTestCase {
         let pageChunks = chunks.filter { $0.type == .pdfPage }
         let totalText = pageChunks.map(\.text).joined(separator: "\n")
 
-        if totalText.count <= EmbeddingService.maxInputCharacters {
+        if totalText.count <= NomicEmbedder.maxInputCharacters {
             // Small-enough PDF: whole chunk should be present and contain page text
             let wholeChunk = chunks.first { $0.type == .whole }
             XCTAssertNotNil(wholeChunk)

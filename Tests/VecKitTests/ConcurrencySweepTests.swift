@@ -147,7 +147,7 @@ final class ConcurrencySweepTests: XCTestCase {
         let workItems = files.map { (file: $0, label: "Added") }
 
         let extractor = TextExtractor()
-        let pipeline = IndexingPipeline(concurrency: concurrency)
+        let pipeline = IndexingPipeline(concurrency: concurrency, embedder: NomicEmbedder())
 
         let start = DispatchTime.now()
         let (_, stats) = try await pipeline.run(
