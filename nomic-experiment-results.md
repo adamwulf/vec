@@ -10,6 +10,7 @@ at 768 dims. Same 10 queries + scoring rule as `bean-test.md`.
 | 1 | 2026-04-17 | recursive 2000/200 | 23/60 | 0/10 | baseline nomic, wall-clock 1923s (~32 min) |
 | 2 | 2026-04-17 | recursive 1200/240 | 35/60 | 3/10 | wall-clock 2940s (~49 min) |
 | 3 | 2026-04-17 | recursive 800/160 | 32/60 | 4/10 | wall-clock 4344s (~72 min) |
+| 4 | 2026-04-17 | recursive 1500/300 | 23/60 | 2/10 | wall-clock 2477s (~41 min) |
 
 ## 2. Per-iteration details
 
@@ -86,3 +87,28 @@ TOTAL: 32/60, QUERIES_HIT_TOP10 (both T and S in top 10): 4/10
 - S (summary.md) top 10 on 7/10 (Q1, Q3, Q4, Q5, Q7, Q8, Q10) vs iter-2's 7/10 — summary retrieval holds steady. Q9 dropped from 9 to 10 (still top10 boundary).
 - Reindex ~1.5× slower than iter-2 (4344s vs 2940s) due to ~48% more chunks (12001 vs 8116). Total CPU embed time climbs proportionally.
 - Conclusion: 1200/240 remains the high-water mark. Small chunks beat large, but extremely small dilutes topic context for transcripts — smaller is not monotonically better.
+
+### Iteration 4 — recursive 1500/300, nomic-embed-text-v1.5 768 dims
+Reindex wall-clock: 2477.14s (674 files, 6607 chunks, 10 workers; embed=7567.55s CPU / 2477s wall; p50 embed 8.32s, p95 22.46s).
+
+| # | query | T rank | S rank | T score | S score | subtotal |
+|---|-------|--------|--------|---------|---------|----------|
+| 1 | trademark price negotiation | absent | 12 | 0 | 1 | 1 |
+| 2 | where did I negotiate the price for the trademark | 9 | absent | 2 | 0 | 2 |
+| 3 | muse trademark pricing discussion | absent | 4 | 0 | 3 | 3 |
+| 4 | counter offer for trademark assets | 7 | 19 | 2 | 1 | 3 |
+| 5 | how much did we ask for the trademark | 3 | absent | 3 | 0 | 3 |
+| 6 | trademark assignment agreement meeting | absent | absent | 0 | 0 | 0 |
+| 7 | right of first refusal trademark | 7 | 6 | 2 | 2 | 4 |
+| 8 | bean counter mode trademark | 15 | absent | 1 | 0 | 1 |
+| 9 | 1.5 million trademark deal | 17 | 13 | 1 | 1 | 2 |
+| 10 | trademark deal move quickly quick execution | 5 | 10 | 2 | 2 | 4 |
+
+TOTAL: 23/60, QUERIES_HIT_TOP10 (both T and S in top 10): 2/10
+
+**Observations:**
+- Significant regression from iter-2 peak (35/60) and iter-3 (32/60) — 23/60 matches iter-1's baseline (2000/200). Bracketing the 1200/240 peak from the high side confirms 1500/300 is too coarse: we've re-entered iter-1-like territory.
+- T (transcript.txt) top 10 on 4/10 (Q2, Q4, Q5, Q7, Q10) — respectable for T but two absences (Q1, Q3, Q6) and lower-rank hits for Q8 (15) and Q9 (17) drag the total.
+- S (summary.md) top 10 on 3/10 (Q3, Q7, Q10) — major drop vs iter-2 and iter-3 which both landed 7/10 top-10 S hits. Suggests the "whole" embed for the ~900-char summary is drowned out when competing against 1500-char document chunks that contain more noise — similar mechanism to iter-1.
+- Wall-clock 2477s sits between iter-2 (2940s) and iter-1 (1923s); chunk count 6607 also intermediate between iter-1 (4774) and iter-2 (8116).
+- Trend: peak remains at 1200/240. The 1500/300 bracket on the high side is clearly worse, confirming the peak is in the 800–1200 chunk-char range. Next probe logically: smaller offsets around 1200/240 (e.g. 1000/200, 1400/280) or re-confirm by sliding overlap fraction independently.
