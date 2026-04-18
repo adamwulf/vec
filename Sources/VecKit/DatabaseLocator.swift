@@ -6,21 +6,12 @@ public struct DatabaseConfig: Codable {
     public let sourceDirectory: String
     /// When the database was created.
     public let createdAt: Date
-    /// Embedder recorded on first successful index. `nil` for newly
-    /// initialized or freshly-reset DBs (the first `vec update-index`
-    /// run fills it in). Also nil for pre-refactor DBs whose config
-    /// was written before this field existed.
+    /// Embedder recorded on first successful index; nil until then (and on pre-refactor DBs).
     public let embedder: EmbedderRecord?
 
-    /// Minimal identity of an embedder, persisted alongside every
-    /// indexed DB so a subsequent open can detect a mismatch between
-    /// the stored vectors' dimension and whatever embedder the user
-    /// is trying to run.
+    /// Persisted embedder identity so reopens can detect a dimension mismatch. See `pluggable-embedders.md`.
     public struct EmbedderRecord: Codable, Equatable {
-        /// Canonical name, e.g. `"nomic-v1.5-768"`. Matches
-        /// `Embedder.name`.
         public let name: String
-        /// Expected vector dimension for every chunk in the DB.
         public let dimension: Int
 
         public init(name: String, dimension: Int) {
@@ -144,7 +135,7 @@ public struct DatabaseLocator {
 
         let data = try encoder.encode(config)
         let configURL = databaseDirectory.appendingPathComponent(DatabaseConfig.filename)
-        try data.write(to: configURL)
+        try data.write(to: configURL, options: .atomic)
     }
 
     /// Reads a `DatabaseConfig` from the config.json file in the given database directory.

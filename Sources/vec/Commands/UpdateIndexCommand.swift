@@ -237,7 +237,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Chunk overlap in characters. Must be less than --chunk-chars. Omit to use the default (\(RecursiveCharacterSplitter.defaultChunkOverlap)).")
     var chunkOverlap: Int?
 
-    @Option(name: .long, help: "Embedder to use (nomic, nl). Default is nomic on first index; must match recorded embedder on subsequent runs (or omit to reuse recorded).")
+    @Option(name: .long, help: "Embedder to use (\(EmbedderFactory.knownAliases.joined(separator: ", "))). Default is \(EmbedderFactory.defaultAlias) on first index; must match recorded embedder on subsequent runs (or omit to reuse recorded).")
     var embedder: String?
 
     func run() async throws {
@@ -262,7 +262,11 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         // migration.
         let config: DatabaseConfig
         do {
-            let probe = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+            let probe = VectorDatabase(
+                databaseDirectory: dbDir,
+                sourceDirectory: sourceDir,
+                dimension: rawConfig.embedder?.dimension ?? 0
+            )
             try await probe.open()
             let chunkCount = try await probe.totalChunkCount()
             config = try DatabaseLocator.migratePreRefactorEmbedderRecord(

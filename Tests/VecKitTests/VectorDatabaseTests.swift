@@ -45,7 +45,7 @@ final class VectorDatabaseTests: XCTestCase {
 
     /// Create an initialized VectorDatabase using dbDir and sourceDir.
     private func makeInitializedDB() async throws -> VectorDatabase {
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         try await db.initialize()
         return db
     }
@@ -53,7 +53,7 @@ final class VectorDatabaseTests: XCTestCase {
     // MARK: - 1. initialize() creates database dir and index.db
 
     func testInitializeCreatesDatabaseDirAndDatabase() async throws {
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         try await db.initialize()
 
         let dbFile = dbDir.appendingPathComponent("index.db")
@@ -67,7 +67,7 @@ final class VectorDatabaseTests: XCTestCase {
     // MARK: - 2. open() on non-existent DB throws databaseNotInitialized
 
     func testOpenOnNonExistentDBThrowsDatabaseNotInitialized() async {
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
 
         do {
             try await db.open()
@@ -88,12 +88,12 @@ final class VectorDatabaseTests: XCTestCase {
     func testOpenOnInitializedDBSucceeds() async throws {
         // Initialize first, then drop the reference so deinit closes the connection
         do {
-            let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+            let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
             try await db.initialize()
         }
 
         // Now open with a fresh instance
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         try await db.open()
     }
 
@@ -924,7 +924,7 @@ final class VectorDatabaseTests: XCTestCase {
     func testOpenOnCorruptedDBThrowsDatabaseCorrupted() async throws {
         // Initialize a valid database
         do {
-            let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+            let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
             try await db.initialize()
         }
 
@@ -949,7 +949,7 @@ final class VectorDatabaseTests: XCTestCase {
         rawDB = nil
 
         // Now open() should detect the missing table
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         do {
             try await db.open()
             XCTFail("Expected VecError.databaseCorrupted")

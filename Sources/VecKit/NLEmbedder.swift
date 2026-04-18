@@ -1,38 +1,13 @@
 import Foundation
 import NaturalLanguage
 
-/// Wraps Apple's `NLEmbedding.sentenceEmbedding(for: .english)` behind
-/// the `Embedder` protocol.
-///
-/// Restored after the nomic migration so the codebase has a second
-/// concrete embedder to exercise the protocol surface, and because
-/// NL is handy as a fast, no-download fallback on machines that
-/// can't pull nomic weights.
-///
-/// **Thread-safety.** `NLEmbedding` itself is NOT safe to call
-/// concurrently on a single instance — pre-nomic, that was the reason
-/// `EmbedderPool` kept N copies. Wrapping the instance in an actor
-/// serializes `vector(for:)` calls, which is the same correctness
-/// guarantee. Throughput is lower than a multi-instance fanout would
-/// be, but single-instance serialized throughput is fine for the
-/// single-user CLI workloads this tool targets.
-///
-/// **Prefixes.** Unlike nomic, `NLEmbedding.sentenceEmbedding` was
-/// NOT trained with `search_document: ` / `search_query: ` asymmetric
-/// prefixes — those are a nomic-specific convention. For `NLEmbedder`,
-/// `embedDocument` and `embedQuery` are identical; both feed the text
-/// straight to the underlying embedding after trimming and
-/// truncation.
+/// `Embedder` wrapping `NLEmbedding.sentenceEmbedding(for: .english)`. See `pluggable-embedders.md`.
 public actor NLEmbedder: Embedder {
 
     public nonisolated let name = "nl-en-512"
     public nonisolated let dimension = 512
 
-    /// Hard cap in characters applied before the text reaches
-    /// `NLEmbedding.vector(for:)`. The underlying C++ runtime was
-    /// observed to throw `std::bad_alloc` on very long strings
-    /// (commit ecd3ebf introduced the cap). 10 000 chars is a
-    /// documented safe ceiling.
+    /// Hard cap guarding `NLEmbedding.vector(for:)` against `std::bad_alloc` on very long strings.
     public static let maxInputCharacters = 10_000
 
     private let embedding: NLEmbedding?

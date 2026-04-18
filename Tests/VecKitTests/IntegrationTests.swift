@@ -54,7 +54,7 @@ final class IntegrationTests: XCTestCase {
 
     /// Create an initialized VectorDatabase using dbDir and sourceDir.
     private func makeInitializedDB() async throws -> VectorDatabase {
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         try await db.initialize()
         return db
     }

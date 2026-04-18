@@ -49,7 +49,7 @@ final class SmokeTest: XCTestCase {
     }
 
     func testThreeFileIndexProduces768DimBlobs() async throws {
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         try await database.initialize()
 
         let files = try FileScanner(directory: sourceDir).scan()

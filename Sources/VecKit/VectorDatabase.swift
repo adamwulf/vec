@@ -77,13 +77,8 @@ public actor VectorDatabase {
     /// The dimension of vectors stored in this database.
     public let dimension: Int
 
-    /// Primary initializer for centralized storage.
-    ///
-    /// - Parameters:
-    ///   - databaseDirectory: The directory containing `index.db` (e.g. `~/.vec/<db-name>/`).
-    ///   - sourceDirectory: The directory being indexed.
-    ///   - dimension: The embedding vector dimension (default 768).
-    public init(databaseDirectory: URL, sourceDirectory: URL, dimension: Int = 768) {
+    /// Primary initializer for centralized storage. `dimension` must match the embedder's dimension.
+    public init(databaseDirectory: URL, sourceDirectory: URL, dimension: Int) {
         self.databaseDirectory = databaseDirectory
         self.sourceDirectory = sourceDirectory
         self.dbPath = databaseDirectory

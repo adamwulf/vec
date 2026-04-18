@@ -145,7 +145,7 @@ final class ThreeStagePipelineTests: XCTestCase {
     /// completion" separately from total wall.
     private func runOnce(runTag: String) async throws -> RunResult {
         let dbDir = tempDir.appendingPathComponent("db-\(runTag)")
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         try await db.initialize()
 
         let scanner = FileScanner(directory: sourceDir)

@@ -43,7 +43,7 @@ public struct IndexingStats: Sendable {
     public var p95EmbedSeconds: Double = 0
     /// File that produced the most chunks, if any files were indexed.
     public var largestFile: FileTiming?
-    /// Summed wall-clock seconds spent in `EmbeddingService.embed()` across
+    /// Summed wall-clock seconds spent in `Embedder.embedDocument()` across
     /// every per-chunk embed task — pool waits excluded, overlaps across
     /// concurrent workers preserved. Strictly bounded by
     /// `wallSeconds * workerCount`, so this is the correct numerator for
@@ -85,20 +85,20 @@ public enum ProgressEvent: Sendable {
     case fileSkipped
     case nonEnglishDetected(filePath: String, language: String)
     /// One chunk finished embedding. `seconds` is the wall-clock spent in
-    /// this single `EmbeddingService.embed` call (pool wait excluded).
+    /// this single `Embedder.embedDocument` call (pool wait excluded).
     case chunkEmbedded(seconds: Double)
     /// File handed off from the per-file accumulator to the DB-writer save
     /// stream. Paired with `.saveDequeued` from the DB writer so renderers
     /// can show live save-queue depth as a bottleneck signal.
     case saveEnqueued
     case saveDequeued
-    /// An embed child task has acquired an `EmbeddingService` from the
+    /// An embed child task has acquired an `Embedder` from the
     /// pool and is about to start embedding. Paired with `.poolReleased`.
     /// Difference is the true pool-occupancy gauge: it pins at pool size
     /// under saturation.
     case poolAcquired
-    /// An embed child task has released its `EmbeddingService` back to
-    /// the pool after the `embed()` call returned.
+    /// An embed child task has released its `Embedder` back to
+    /// the pool after the `embedDocument()` call returned.
     case poolReleased
     /// Pool warmup completed. Emitted once per `run()` after every pooled
     /// embedder has been pre-touched serially, before any worker task starts.
@@ -774,7 +774,7 @@ private actor StatsCollector {
         stats.extractSeconds += extractSeconds
     }
 
-    /// Record one per-chunk `EmbeddingService.embed()` call's wall-clock.
+    /// Record one per-chunk `Embedder.embedDocument()` call's wall-clock.
     /// Summed into `totalEmbedCallSeconds`, which is bounded by
     /// `wallSeconds * workerCount` and is the correct input for pool
     /// utilization.

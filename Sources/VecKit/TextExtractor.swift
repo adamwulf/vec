@@ -63,12 +63,7 @@ public final class TextExtractor: @unchecked Sendable {
 
         var chunks: [TextChunk] = []
 
-        // Only add a whole-document embedding when the full text fits
-        // inside the embedder's input cap. Otherwise the encoder would
-        // silently truncate and produce a misleading "whole" vector.
-        if trimmed.count <= NomicEmbedder.maxInputCharacters {
-            chunks.append(TextChunk(text: trimmed, type: .whole))
-        }
+        chunks.append(TextChunk(text: trimmed, type: .whole))
 
         chunks.append(contentsOf: splitter.split(content))
 
@@ -110,10 +105,8 @@ public final class TextExtractor: @unchecked Sendable {
             allText += text + "\n"
         }
 
-        // Add whole-document embedding only if the concatenated text fits
-        // inside the embedder's input cap. See `extract(from:)` for the reasoning.
         let trimmedAll = allText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !trimmedAll.isEmpty && trimmedAll.count <= NomicEmbedder.maxInputCharacters {
+        if !trimmedAll.isEmpty {
             chunks.insert(TextChunk(text: trimmedAll, type: .whole), at: 0)
         }
 

@@ -17,7 +17,11 @@ struct InfoCommand: AsyncParsableCommand {
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let database = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: rawConfig.embedder?.dimension ?? 0
+        )
         try await database.open()
 
         let fileCount = try await database.allIndexedFiles().count

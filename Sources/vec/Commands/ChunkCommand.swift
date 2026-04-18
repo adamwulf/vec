@@ -24,7 +24,7 @@ struct ChunkCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        let (dbDir, _, sourceDir) = try db != nil
+        let (dbDir, config, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
@@ -38,7 +38,11 @@ struct ChunkCommand: AsyncParsableCommand {
 
         let relativePath = PathUtilities.relativePath(of: filePath.path, in: sourceDir.path)
 
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let database = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: config.embedder?.dimension ?? 0
+        )
         try await database.open()
 
         let total = try await database.chunkCount(filePath: relativePath)

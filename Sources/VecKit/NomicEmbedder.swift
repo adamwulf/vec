@@ -1,40 +1,23 @@
 import Foundation
 import Embeddings
 
-/// Wraps `swift-embeddings`' NomicBert model for
-/// `nomic-embed-text-v1.5`.
-///
-/// The model is loaded lazily on first use (network download on first
-/// run, cached at `~/Documents/huggingface/models/nomic-ai/...`
-/// thereafter). All embeddings are 768-dim Float32, mean-pooled and
-/// L2-normalized.
-///
-/// Nomic is trained with mandatory prefixes:
-///   - `"search_document: "` for indexed text
-///   - `"search_query: "`    for queries
-/// Both methods add the prefix internally so callers must pick the
-/// right method, not the right string.
+/// `Embedder` wrapping `swift-embeddings`' NomicBert (`nomic-embed-text-v1.5`). See `pluggable-embedders.md`.
 public actor NomicEmbedder: Embedder {
 
     public nonisolated let name = "nomic-v1.5-768"
     public nonisolated let dimension = 768
 
-    /// Maximum input length in characters before truncation.
-    /// Nomic's tokenizer max is 8192 tokens (~32 KB chars in English).
-    /// A generous char cap keeps the encoder from blowing up on
-    /// unbounded text.
+    /// Character cap before truncation; nomic's 8192-token tokenizer allows ~32 KB in English.
     public static let maxInputCharacters = 30_000
 
     private var bundle: NomicBert.ModelBundle?
 
     public init() {}
 
-    /// Embed a document chunk for indexing.
     public func embedDocument(_ text: String) async throws -> [Float] {
         try await embed(prefix: "search_document: ", text: text)
     }
 
-    /// Embed a query at search time.
     public func embedQuery(_ text: String) async throws -> [Float] {
         try await embed(prefix: "search_query: ", text: text)
     }

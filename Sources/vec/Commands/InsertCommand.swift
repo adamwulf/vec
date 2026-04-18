@@ -25,7 +25,11 @@ struct InsertCommand: AsyncParsableCommand {
         // migration.
         let config: DatabaseConfig
         do {
-            let probe = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+            let probe = VectorDatabase(
+                databaseDirectory: dbDir,
+                sourceDirectory: sourceDir,
+                dimension: rawConfig.embedder?.dimension ?? 0
+            )
             try await probe.open()
             let chunkCount = try await probe.totalChunkCount()
             config = try DatabaseLocator.migratePreRefactorEmbedderRecord(

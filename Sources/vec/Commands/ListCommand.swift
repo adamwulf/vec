@@ -39,7 +39,11 @@ struct ListCommand: AsyncParsableCommand {
             let fileCount: String
             do {
                 let sourceURL = URL(fileURLWithPath: entry.config.sourceDirectory, isDirectory: true)
-                let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceURL)
+                let db = VectorDatabase(
+                    databaseDirectory: dbDir,
+                    sourceDirectory: sourceURL,
+                    dimension: entry.config.embedder?.dimension ?? 0
+                )
                 try await db.open()
                 let files = try await db.allIndexedFiles()
                 fileCount = "\(files.count)"
