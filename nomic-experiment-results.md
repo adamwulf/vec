@@ -14,6 +14,7 @@ at 768 dims. Same 10 queries + scoring rule as `bean-test.md`.
 | 5 | 2026-04-17 | recursive 1400/280 | 26/60 | 1/10 | wall-clock 2901s (~48 min) |
 | 6 | 2026-04-17 | recursive 1000/200 | 28/60 | 2/10 | wall-clock 3726s (~62 min) |
 | 7 | 2026-04-18 | recursive 500/100 | 32/60 | 4/10 | wall-clock 6852s (~114 min) |
+| 8 | 2026-04-18 | recursive 1200/360 | 31/60 | 3/10 | wall-clock 3149s (~52 min) |
 
 ## 2. Per-iteration details
 
@@ -192,3 +193,29 @@ TOTAL: 32/60, QUERIES_HIT_TOP10 (both T and S in top 10): 4/10
 - Both-top10 count 4/10 (Q4, Q7, Q8, Q10) — matches iter-3 exactly.
 - Throughput 2.86 ch/s at 19587 chunks, consistent with the ~2.6-2.9 ch/s band seen across all iters; no per-chunk speedup from smaller chunks.
 - Small-chunk regime (500/100) is NOT an improvement over the 800–1200 sweet spot. S retrieval genuinely stronger but T retrieval unchanged — net-net the same 32/60. Peak remains iter-2 1200/240 (35/60, 3/10). Well below SHIP gate (need ≥ 45/60 AND ≥ 7/10).
+
+### Iteration 8 — recursive 1200/360, nomic-embed-text-v1.5 768 dims
+Reindex wall-clock: 3149.37s (674 files, 8780 chunks, 10 workers; embed=7991.75s CPU / 3149s wall; p50 embed 8.09s, p95 28.82s).
+
+| # | query | T rank | S rank | T score | S score | subtotal |
+|---|-------|--------|--------|---------|---------|----------|
+| 1 | trademark price negotiation | absent | 7 | 0 | 2 | 2 |
+| 2 | where did I negotiate the price for the trademark | 13 | absent | 1 | 0 | 1 |
+| 3 | muse trademark pricing discussion | absent | 4 | 0 | 3 | 3 |
+| 4 | counter offer for trademark assets | 13 | 1 | 1 | 3 | 4 |
+| 5 | how much did we ask for the trademark | 4 | 17 | 2 | 1 | 3 |
+| 6 | trademark assignment agreement meeting | 11 | absent | 1 | 0 | 1 |
+| 7 | right of first refusal trademark | 4 | 2 | 3 | 3 | 6 |
+| 8 | bean counter mode trademark | 1 | 6 | 3 | 2 | 5 |
+| 9 | 1.5 million trademark deal | 16 | 13 | 1 | 1 | 2 |
+| 10 | trademark deal move quickly quick execution | 6 | 5 | 2 | 2 | 4 |
+
+TOTAL: 31/60, QUERIES_HIT_TOP10 (both T and S in top 10): 3/10
+
+**Observations:**
+- 31/60 is a mild regression from iter-2's peak (35/60, 1200/240). Holding chunk-chars=1200 at the peak while TRIPLING overlap 240→360 (20%→30%) did NOT lift retrieval — instead it lost 4 points. More overlap did not salvage boundary context; it appears to dilute chunk-level topical concentration instead.
+- T (transcript.txt) in top 10 on 3/10 (Q5, Q7, Q8) — a drop from iter-2's 5/10 top-10 T hits. Q2 slipped 9→13, Q4 14→13 (stable), Q10 1→6 (dropped from peak top-1). New T rank of 11 on Q6 (just out of top-10, was 20 in iter-2).
+- S (summary.md) in top 10 on 6/10 (Q1 7, Q3 4, Q4 1, Q7 2, Q8 6, Q10 5) vs iter-2's 7/10 — modest drop; Q9 13 (was 9), Q5 17 (was 10), Q2 absent (was 19). Summary retrieval slightly weakened as 30% overlap adds redundancy that pushes competing chunks into the same neighborhood.
+- Both-top10 count 3/10 (Q7, Q8, Q10) — same count as iter-2 but different winning queries (iter-2 had Q8, Q9, Q10; iter-8 has Q7, Q8, Q10).
+- Wall-clock 3149s at 8780 chunks (vs iter-2's 2940s at 8116 chunks). Larger overlap produces ~8% more chunks (more sliding windows to fill a document) and a ~7% wall-clock increase — overhead is linear-ish with chunk count.
+- Conclusion: 30% overlap at 1200-char chunks is a loss vs 20% overlap. The 1200/240 peak (35/60, 3/10) remains unbeaten. Overlap fraction appears to have an optimum around 20%; pushing higher mildly dilutes signal. Below SHIP gate (need ≥ 45/60 AND ≥ 7/10). SHIP GATE NOT HIT.
