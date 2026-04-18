@@ -6,12 +6,11 @@ public enum EmbedderFactory {
     private struct Entry {
         let alias: String
         let canonicalName: String
-        let dimension: Int
     }
 
     private static let embedders: [Entry] = [
-        Entry(alias: "nomic", canonicalName: "nomic-v1.5-768", dimension: 768),
-        Entry(alias: "nl", canonicalName: "nl-en-512", dimension: 512),
+        Entry(alias: "nomic", canonicalName: "nomic-v1.5-768"),
+        Entry(alias: "nl", canonicalName: "nl-en-512"),
     ]
 
     public static let defaultAlias = "nomic"
