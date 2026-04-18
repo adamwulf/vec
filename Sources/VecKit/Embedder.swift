@@ -17,13 +17,15 @@ public protocol Embedder: Sendable {
     /// Short, stable identifier for this embedder. Persisted in
     /// `DatabaseConfig.embedder.name`. Must uniquely identify the
     /// model + dim so a DB indexed with a different model is
-    /// detectable at open time.
-    var name: String { get }
+    /// detectable at open time. Nonisolated so non-actor callers
+    /// (DB writer, CLI) can read it synchronously — conforming
+    /// actors back it with a `nonisolated let`.
+    nonisolated var name: String { get }
 
     /// Dimensionality of every vector returned. Every vector stored
     /// in a DB must match this for the embedder recorded in its
-    /// `DatabaseConfig`.
-    var dimension: Int { get }
+    /// `DatabaseConfig`. Nonisolated for the same reason as `name`.
+    nonisolated var dimension: Int { get }
 
     /// Embed a document chunk for indexing.
     ///

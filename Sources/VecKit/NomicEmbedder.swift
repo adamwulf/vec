@@ -14,10 +14,10 @@ import Embeddings
 ///   - `"search_query: "`    for queries
 /// Both methods add the prefix internally so callers must pick the
 /// right method, not the right string.
-public actor EmbeddingService {
+public actor NomicEmbedder: Embedder {
 
-    /// Dimensionality of every vector returned by this service.
-    public static let dimension = 768
+    public nonisolated let name = "nomic-v1.5-768"
+    public nonisolated let dimension = 768
 
     /// Maximum input length in characters before truncation.
     /// Nomic's tokenizer max is 8192 tokens (~32 KB chars in English).
