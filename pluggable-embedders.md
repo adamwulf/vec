@@ -82,10 +82,11 @@ public struct DatabaseConfig: Codable {
 }
 ```
 
-`embedder` is optional so two states decode cleanly:
+`embedder` is optional so three states decode cleanly:
 
-- **Pre-refactor DBs** written before this field existed — the JSON has no `embedder` key, which Swift's `JSONDecoder` happily maps to `nil`. These DBs are treated as "never indexed" and the first `update-index` fills in the record.
-- **Freshly initialized or reset DBs** — `vec init` / `vec reset` both write a config with `embedder: nil`. The first `update-index` populates it.
+- **Pre-refactor DBs** written before this field existed — the JSON has no `embedder` key, which Swift's `JSONDecoder` happily maps to `nil`. Before the refactor, vec shipped exactly one embedder (nomic-embed-text-v1.5, 768d), so these DBs contain nomic-produced vectors by construction. `DatabaseLocator.migratePreRefactorEmbedderRecord` auto-stamps `nomic-v1.5-768` on any pre-refactor config whose DB has at least one chunk. `search`, `insert`, `update-index`, and `info` all invoke this right after reading the config, so an upgraded user's existing DB keeps working without a reindex.
+- **Freshly initialized or reset DBs** — `vec init` / `vec reset` both write a config with `embedder: nil` **and an empty chunks table**. The migration helper is a no-op on an empty DB (there are no vectors to attribute to anyone), so the next `update-index` is free to pick any embedder.
+- **Indexed DBs** — `embedder` is set to the `EmbedderRecord` of whatever was used.
 
 The embedder record is written to `config.json` **before** the indexing pipeline runs. If a run crashes mid-embed, the DB is in a consistent state: partial vectors exist and they all came from the embedder the config names.
 
