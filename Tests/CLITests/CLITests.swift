@@ -1,5 +1,6 @@
 import XCTest
 import ArgumentParser
+import VecKit
 @testable import vec
 
 final class CLITests: XCTestCase {
@@ -237,6 +238,81 @@ final class CLITests: XCTestCase {
     func testInfoCommandParsesLongDbFlag() throws {
         let cmd = try InfoCommand.parseAsRoot(["--db", "my-db"]) as! InfoCommand
         XCTAssertEqual(cmd.db, "my-db")
+    }
+
+    // MARK: - InfoCommand.renderProfileLine
+
+    func testRenderProfileLineForBuiltInProfile() throws {
+        let record = DatabaseConfig.ProfileRecord(
+            identity: "nomic@1200/240",
+            embedderName: "nomic-v1.5-768",
+            dimension: 768
+        )
+        let line = try InfoCommand.renderProfileLine(profile: record, chunkCount: 42)
+        XCTAssertEqual(line, "nomic@1200/240 (768d)")
+    }
+
+    func testRenderProfileLineForCustomProfile() throws {
+        let record = DatabaseConfig.ProfileRecord(
+            identity: "nomic@500/100",
+            embedderName: "nomic-v1.5-768",
+            dimension: 768
+        )
+        let line = try InfoCommand.renderProfileLine(profile: record, chunkCount: 42)
+        XCTAssertEqual(line, "nomic@500/100 (custom, based on nomic) (768d)")
+    }
+
+    func testRenderProfileLineForFreshDB() throws {
+        let line = try InfoCommand.renderProfileLine(profile: nil, chunkCount: 0)
+        XCTAssertEqual(line, "(not yet recorded)")
+    }
+
+    func testRenderProfileLineForPreProfileDB() throws {
+        let line = try InfoCommand.renderProfileLine(profile: nil, chunkCount: 42)
+        XCTAssertEqual(line, "(pre-profile database — run `vec reset <db>` to rebuild)")
+    }
+
+    /// A hand-edited `config.json` with a bogus alias must surface
+    /// `VecError.unknownProfile` rather than silently rendering the raw
+    /// identity string. Matches plan Q1 (lines 1662–1666 of
+    /// indexing-profile-plan.md).
+    func testRenderProfileLinePropagatesUnknownAlias() {
+        let record = DatabaseConfig.ProfileRecord(
+            identity: "bogus@1200/240",
+            embedderName: "bogus-v1",
+            dimension: 768
+        )
+        XCTAssertThrowsError(try InfoCommand.renderProfileLine(
+            profile: record,
+            chunkCount: 1
+        )) { error in
+            guard case VecError.unknownProfile(let alias) = error else {
+                XCTFail("expected VecError.unknownProfile, got \(error)")
+                return
+            }
+            XCTAssertEqual(alias, "bogus")
+        }
+    }
+
+    /// A hand-edited `config.json` with a malformed identity must
+    /// surface `VecError.malformedProfileIdentity` rather than silently
+    /// rendering the raw identity string.
+    func testRenderProfileLinePropagatesMalformedIdentity() {
+        let record = DatabaseConfig.ProfileRecord(
+            identity: "malformed",
+            embedderName: "nomic-v1.5-768",
+            dimension: 768
+        )
+        XCTAssertThrowsError(try InfoCommand.renderProfileLine(
+            profile: record,
+            chunkCount: 1
+        )) { error in
+            guard case VecError.malformedProfileIdentity(let identity) = error else {
+                XCTFail("expected VecError.malformedProfileIdentity, got \(error)")
+                return
+            }
+            XCTAssertEqual(identity, "malformed")
+        }
     }
 
     // MARK: - Default Subcommand

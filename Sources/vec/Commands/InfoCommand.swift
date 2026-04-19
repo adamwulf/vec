@@ -50,7 +50,7 @@ struct InfoCommand: AsyncParsableCommand {
             sizeString = "unknown"
         }
 
-        let profileString = Self.renderProfileLine(
+        let profileString = try Self.renderProfileLine(
             profile: config.profile,
             chunkCount: chunkCount
         )
@@ -70,7 +70,7 @@ struct InfoCommand: AsyncParsableCommand {
     static func renderProfileLine(
         profile: DatabaseConfig.ProfileRecord?,
         chunkCount: Int
-    ) -> String {
+    ) throws -> String {
         guard let recorded = profile else {
             if chunkCount > 0 {
                 return "(pre-profile database — run `vec reset <db>` to rebuild)"
@@ -79,18 +79,16 @@ struct InfoCommand: AsyncParsableCommand {
             }
         }
         // Resolve identity through the factory so `isBuiltIn` reflects
-        // whether the recorded chunk params match the alias defaults. A
-        // corrupt/unknown identity falls back to the raw string — `info`
-        // should not hard-fail when the user is trying to diagnose the DB.
-        if let live = try? IndexingProfileFactory.resolve(identity: recorded.identity) {
-            if live.isBuiltIn {
-                return "\(live.identity) (\(live.embedder.dimension)d)"
-            } else {
-                let parsed = try? IndexingProfile.parseIdentity(live.identity)
-                let alias = parsed?.alias ?? recorded.identity
-                return "\(live.identity) (custom, based on \(alias)) (\(live.embedder.dimension)d)"
-            }
+        // whether the recorded chunk params match the alias defaults.
+        // Per plan Q1: on unknown-alias or malformed identity the resolve
+        // error propagates so `info` surfaces the standard
+        // `unknownProfile` / `malformedProfileIdentity` message.
+        let live = try IndexingProfileFactory.resolve(identity: recorded.identity)
+        if live.isBuiltIn {
+            return "\(live.identity) (\(live.embedder.dimension)d)"
+        } else {
+            let parsed = try IndexingProfile.parseIdentity(live.identity)
+            return "\(live.identity) (custom, based on \(parsed.alias)) (\(live.embedder.dimension)d)"
         }
-        return "\(recorded.identity) (\(recorded.dimension)d)"
     }
 }

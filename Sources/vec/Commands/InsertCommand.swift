@@ -31,13 +31,10 @@ struct InsertCommand: AsyncParsableCommand {
         let chunkCount = try await probe.totalChunkCount()
 
         // Step 2: missing-profile split.
-        guard let recorded = config.profile else {
-            if chunkCount > 0 {
-                throw VecError.preProfileDatabase
-            } else {
-                throw VecError.profileNotRecorded
-            }
-        }
+        let recorded = try ProfileChecks.requireRecordedProfile(
+            config: config,
+            chunkCount: chunkCount
+        )
 
         // Step 3: resolve live profile.
         let profile = try IndexingProfileFactory.resolve(identity: recorded.identity)
