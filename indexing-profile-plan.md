@@ -1049,9 +1049,9 @@ Status legend: ✅ DONE · ⏳ NEXT UP · ◻ NOT STARTED.
 | ✅ DONE | 1 | this agent (77b5f3be) | `indexing-profile-plan.md` — you're reading it | 45 min |
 | ✅ DONE | 2 | 2 reviewer agents in parallel, 3 rounds completed (revisions landed in commits `45aed0c` "indexing-profile-plan: round-3 revisions", `bbfc5ed` round-3 brief, `12d30ed` round-2 revisions; brief files since archived) | Plan review (architecture + correctness) via `review-cycle` skill | 1–2 h |
 | ✅ DONE | 3a | one impl agent | `IndexingProfile` struct + identity parser + `malformedProfileIdentity` error + `IndexingProfileTests` | 1–1.5 h |
-| ⏳ NEXT UP | 3a-r | 2 reviewer agents in parallel | `review-cycle` on Phase 3a → manager approval → next phase | 30–60 min |
-| ◻ NOT STARTED | 3b | one impl agent | `IndexingProfileFactory` (make/resolve/alias table) + `partialChunkOverride` + `invalidChunkParams` + factory tests | 1–1.5 h |
-| ◻ NOT STARTED | 3b-r | 2 reviewer agents in parallel | `review-cycle` on Phase 3b → manager approval → next phase | 30–60 min |
+| ✅ DONE | 3a-r | 2 reviewer agents in parallel | `review-cycle` on Phase 3a → manager approval → next phase | 30–60 min |
+| ✅ DONE | 3b | one impl agent | `IndexingProfileFactory` (make/resolve/alias table) + `partialChunkOverride` + `invalidChunkParams` + factory tests | 1–1.5 h |
+| ⏳ NEXT UP | 3b-r | 2 reviewer agents in parallel | `review-cycle` on Phase 3b → manager approval → next phase | 30–60 min |
 | ◻ NOT STARTED | 3c | one impl agent | `DatabaseConfig.profile` field + `profileNotRecorded` + `preProfileDatabase` errors + `IndexingProfileConfigTests` | 1–1.5 h |
 | ◻ NOT STARTED | 3c-r | 2 reviewer agents in parallel | `review-cycle` on Phase 3c → manager approval → next phase | 30–60 min |
 | ◻ NOT STARTED | 3d | one impl agent | Wire `UpdateIndexCommand` to factory + profile field + full check-order + `ProfileMismatchTests` | 1.5–2 h |
@@ -1162,7 +1162,7 @@ any blocking issues → manager approval → only then start Phase 3b.
 
 ## Phase 3b — `IndexingProfileFactory`
 
-**Status: ◻ NOT STARTED.**
+**Status: ✅ DONE.**
 
 **Goal.** Land the factory enum that produces live profiles from
 aliases or persisted identity strings. Old `EmbedderFactory` still

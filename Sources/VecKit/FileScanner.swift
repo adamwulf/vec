@@ -312,6 +312,22 @@ public enum VecError: Error, LocalizedError {
     /// grammar check or the round-trip equality check — indicates a
     /// corrupt `config.json`.
     case malformedProfileIdentity(String)
+    /// The user passed exactly one of `--chunk-chars` / `--chunk-overlap`.
+    /// Both must be provided together, or neither. Thrown at the CLI
+    /// layer before `IndexingProfileFactory.make` is called — the
+    /// factory itself traps this case with a precondition since it's
+    /// a programmer error to reach the factory with a partial override.
+    case partialChunkOverride
+    /// Chunk parameters failed validation (non-positive size,
+    /// negative overlap, or overlap >= size). The associated string
+    /// carries the human-readable reason from the factory.
+    case invalidChunkParams(String)
+    /// The user passed `--embedder <alias>` with a name that isn't in
+    /// `IndexingProfileFactory.knownAliases`, or a persisted identity
+    /// string referenced an alias that isn't registered. Coexists
+    /// with `unknownEmbedder` during the refactor — Phase 3d
+    /// consolidates them.
+    case unknownProfile(String)
 
     public var errorDescription: String? {
         switch self {
@@ -347,6 +363,12 @@ public enum VecError: Error, LocalizedError {
             return "Vector dimension mismatch: database expects \(expected)-dim vectors but got \(actual)-dim. The embedder wired to this call disagrees with the DB's recorded embedder."
         case .malformedProfileIdentity(let identity):
             return "Indexing profile '\(identity)' in config.json is malformed (expected shape `<alias>@<size>/<overlap>`). Run `vec reset <db>` to rebuild."
+        case .partialChunkOverride:
+            return "Pass both --chunk-chars and --chunk-overlap together, or neither."
+        case .invalidChunkParams(let reason):
+            return "Invalid chunk parameters: \(reason)."
+        case .unknownProfile(let alias):
+            return "Unknown profile '\(alias)'. Known profiles: \(IndexingProfileFactory.knownAliases.joined(separator: ", "))."
         }
     }
 }

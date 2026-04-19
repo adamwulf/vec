@@ -102,3 +102,135 @@ public struct IndexingProfile: Sendable {
         return (alias: alias, chunkSize: size, chunkOverlap: overlap)
     }
 }
+
+/// Resolves CLI aliases and identity strings to live `IndexingProfile`
+/// instances. Coexists with `EmbedderFactory` during the refactor —
+/// production callers flip over in Phase 3d/3e.
+public enum IndexingProfileFactory {
+
+    /// Descriptor for a built-in profile. Static data only — no live
+    /// `Embedder` instance until `make(...)` is called.
+    public struct BuiltIn: Sendable {
+        public let alias: String
+        public let canonicalEmbedderName: String
+        public let canonicalDimension: Int
+        public let defaultChunkSize: Int
+        public let defaultChunkOverlap: Int
+    }
+
+    public static let defaultAlias = "nomic"
+
+    /// Static table. Adding a new embedder means adding one row here
+    /// plus wiring the `make` switch below. Never instantiates an
+    /// embedder — cheap to iterate.
+    public static let builtIns: [BuiltIn] = [
+        BuiltIn(
+            alias: "nomic",
+            canonicalEmbedderName: "nomic-v1.5-768",
+            canonicalDimension: 768,
+            defaultChunkSize: 1200,
+            defaultChunkOverlap: 240
+        ),
+        BuiltIn(
+            alias: "nl",
+            canonicalEmbedderName: "nl-en-512",
+            canonicalDimension: 512,
+            defaultChunkSize: 2000,
+            defaultChunkOverlap: 200
+        ),
+    ]
+
+    public static var knownAliases: [String] { builtIns.map(\.alias) }
+
+    /// Looks up a built-in descriptor by alias. Throws
+    /// `VecError.unknownProfile(alias)` if the alias isn't registered.
+    public static func builtIn(forAlias alias: String) throws -> BuiltIn {
+        guard let entry = builtIns.first(where: { $0.alias == alias }) else {
+            throw VecError.unknownProfile(alias)
+        }
+        return entry
+    }
+
+    /// Constructs a live profile from an alias + either both or
+    /// neither chunk override. Callers MUST pass both `chunkSize` and
+    /// `chunkOverlap` together, or neither. Passing exactly one is a
+    /// programmer error caught by a precondition — the CLI layer is
+    /// responsible for translating a partial-override CLI invocation
+    /// into `VecError.partialChunkOverride` *before* calling `make`.
+    /// `isBuiltIn` is true IFF the effective chunk params equal the
+    /// alias's defaults (regardless of whether the caller passed them
+    /// explicitly or left them nil). This matters because
+    /// `resolve(identity:)` always calls `make` with explicit
+    /// chunk params parsed out of the identity string — a persisted
+    /// alias-default profile like `nomic@1200/240` round-trips through
+    /// `resolve` and must still report `isBuiltIn == true`. Identity
+    /// is always `"<alias>@<chunkSize>/<overlap>"`.
+    public static func make(
+        alias: String,
+        chunkSize: Int? = nil,
+        chunkOverlap: Int? = nil
+    ) throws -> IndexingProfile {
+        precondition(
+            (chunkSize == nil) == (chunkOverlap == nil),
+            "IndexingProfileFactory.make requires both chunk overrides or neither"
+        )
+        let entry = try builtIn(forAlias: alias)
+        let effectiveSize = chunkSize ?? entry.defaultChunkSize
+        let effectiveOverlap = chunkOverlap ?? entry.defaultChunkOverlap
+        try validate(chunkSize: effectiveSize, chunkOverlap: effectiveOverlap)
+
+        let isBuiltIn = (effectiveSize == entry.defaultChunkSize
+                      && effectiveOverlap == entry.defaultChunkOverlap)
+        let identity = "\(alias)@\(effectiveSize)/\(effectiveOverlap)"
+
+        let embedder: any Embedder
+        switch alias {
+        case "nomic": embedder = NomicEmbedder()
+        case "nl":    embedder = NLEmbedder()
+        default:      throw VecError.unknownProfile(alias)
+        }
+
+        let splitter = RecursiveCharacterSplitter(
+            chunkSize: effectiveSize,
+            chunkOverlap: effectiveOverlap
+        )
+
+        return IndexingProfile(
+            identity: identity,
+            embedder: embedder,
+            splitter: splitter,
+            chunkSize: effectiveSize,
+            chunkOverlap: effectiveOverlap,
+            isBuiltIn: isBuiltIn
+        )
+    }
+
+    /// Parses a persisted identity string and returns the matching
+    /// live profile. Delegates the strict-grammar + round-trip parse
+    /// to `IndexingProfile.parseIdentity` — the one parser in the
+    /// tree — then calls `make` with explicit chunk params so that
+    /// `isBuiltIn` is computed from effective values.
+    public static func resolve(identity: String) throws -> IndexingProfile {
+        let parsed = try IndexingProfile.parseIdentity(identity)
+        return try make(
+            alias: parsed.alias,
+            chunkSize: parsed.chunkSize,
+            chunkOverlap: parsed.chunkOverlap
+        )
+    }
+
+    private static func validate(chunkSize: Int, chunkOverlap: Int) throws {
+        guard chunkSize > 0 else {
+            throw VecError.invalidChunkParams(
+                "chunk-chars must be positive (got \(chunkSize))")
+        }
+        guard chunkOverlap >= 0 else {
+            throw VecError.invalidChunkParams(
+                "chunk-overlap cannot be negative (got \(chunkOverlap))")
+        }
+        guard chunkOverlap < chunkSize else {
+            throw VecError.invalidChunkParams(
+                "chunk-overlap (\(chunkOverlap)) must be less than chunk-chars (\(chunkSize))")
+        }
+    }
+}

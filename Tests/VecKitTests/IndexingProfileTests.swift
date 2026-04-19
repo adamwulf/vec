@@ -177,6 +177,177 @@ final class IndexingProfileTests: XCTestCase {
         assertMalformed(" nomic@1200/240")
     }
 
+    // MARK: - IndexingProfileFactory — built-in alias resolution
+
+    func testFactoryResolvesNomicBuiltIn() throws {
+        let profile = try IndexingProfileFactory.make(alias: "nomic")
+        XCTAssertEqual(profile.identity, "nomic@1200/240")
+        XCTAssertEqual(profile.chunkSize, 1200)
+        XCTAssertEqual(profile.chunkOverlap, 240)
+        XCTAssertTrue(profile.isBuiltIn)
+        XCTAssertEqual(profile.embedder.name, "nomic-v1.5-768")
+        XCTAssertEqual(profile.embedder.dimension, 768)
+    }
+
+    func testFactoryResolvesNLBuiltIn() throws {
+        let profile = try IndexingProfileFactory.make(alias: "nl")
+        XCTAssertEqual(profile.identity, "nl@2000/200")
+        XCTAssertEqual(profile.chunkSize, 2000)
+        XCTAssertEqual(profile.chunkOverlap, 200)
+        XCTAssertTrue(profile.isBuiltIn)
+        XCTAssertEqual(profile.embedder.name, "nl-en-512")
+        XCTAssertEqual(profile.embedder.dimension, 512)
+    }
+
+    func testFactoryDefaultAliasIsKnown() {
+        XCTAssertEqual(IndexingProfileFactory.defaultAlias, "nomic")
+        XCTAssertTrue(IndexingProfileFactory.knownAliases.contains(IndexingProfileFactory.defaultAlias))
+    }
+
+    func testFactoryBuiltInForAliasLookup() throws {
+        let entry = try IndexingProfileFactory.builtIn(forAlias: "nomic")
+        XCTAssertEqual(entry.canonicalEmbedderName, "nomic-v1.5-768")
+        XCTAssertEqual(entry.canonicalDimension, 768)
+        XCTAssertEqual(entry.defaultChunkSize, 1200)
+        XCTAssertEqual(entry.defaultChunkOverlap, 240)
+    }
+
+    // MARK: - IndexingProfileFactory — full override composition
+
+    func testFactoryFullOverrideProducesCustomProfile() throws {
+        let profile = try IndexingProfileFactory.make(
+            alias: "nomic",
+            chunkSize: 500,
+            chunkOverlap: 100
+        )
+        XCTAssertEqual(profile.identity, "nomic@500/100")
+        XCTAssertEqual(profile.chunkSize, 500)
+        XCTAssertEqual(profile.chunkOverlap, 100)
+        XCTAssertFalse(profile.isBuiltIn)
+        // The splitter should carry the overridden chunk params.
+        let splitter = profile.splitter as? RecursiveCharacterSplitter
+        XCTAssertEqual(splitter?.chunkSize, 500)
+        XCTAssertEqual(splitter?.chunkOverlap, 100)
+    }
+
+    // MARK: - IndexingProfileFactory — resolve(identity:) round-trip
+
+    func testFactoryResolveAliasDefaultIdentityIsBuiltIn() throws {
+        // Alias-default identity round-trips with isBuiltIn == true
+        // even though `resolve` calls `make` with explicit chunk params.
+        // This is the key invariant — isBuiltIn is computed from
+        // effective chunk params, not from caller arity.
+        let profile = try IndexingProfileFactory.resolve(identity: "nomic@1200/240")
+        XCTAssertEqual(profile.identity, "nomic@1200/240")
+        XCTAssertEqual(profile.chunkSize, 1200)
+        XCTAssertEqual(profile.chunkOverlap, 240)
+        XCTAssertTrue(profile.isBuiltIn)
+        XCTAssertEqual(profile.embedder.name, "nomic-v1.5-768")
+    }
+
+    func testFactoryResolveCustomIdentityIsNotBuiltIn() throws {
+        let profile = try IndexingProfileFactory.resolve(identity: "nomic@500/100")
+        XCTAssertEqual(profile.identity, "nomic@500/100")
+        XCTAssertEqual(profile.chunkSize, 500)
+        XCTAssertEqual(profile.chunkOverlap, 100)
+        XCTAssertFalse(profile.isBuiltIn)
+    }
+
+    func testFactoryResolveUnknownAliasThrowsUnknownProfile() {
+        // Grammar-valid identity with an unregistered alias.
+        XCTAssertThrowsError(try IndexingProfileFactory.resolve(identity: "bogus@1200/240")) { error in
+            guard case VecError.unknownProfile(let reported) = error else {
+                XCTFail("Expected VecError.unknownProfile, got \(error)")
+                return
+            }
+            XCTAssertEqual(reported, "bogus")
+        }
+    }
+
+    func testFactoryResolveMalformedIdentityThrowsMalformed() {
+        // `resolve` delegates to `parseIdentity` — the strict parser
+        // is shared, so malformed input still throws the existing
+        // `malformedProfileIdentity` error.
+        XCTAssertThrowsError(try IndexingProfileFactory.resolve(identity: "garbled")) { error in
+            guard case VecError.malformedProfileIdentity = error else {
+                XCTFail("Expected VecError.malformedProfileIdentity, got \(error)")
+                return
+            }
+        }
+    }
+
+    // MARK: - IndexingProfileFactory — error paths
+
+    func testFactoryMakeUnknownAliasThrowsUnknownProfile() {
+        XCTAssertThrowsError(try IndexingProfileFactory.make(alias: "bogus")) { error in
+            guard case VecError.unknownProfile(let reported) = error else {
+                XCTFail("Expected VecError.unknownProfile, got \(error)")
+                return
+            }
+            XCTAssertEqual(reported, "bogus")
+        }
+    }
+
+    func testFactoryMakeBuiltInForAliasUnknownAliasThrowsUnknownProfile() {
+        XCTAssertThrowsError(try IndexingProfileFactory.builtIn(forAlias: "bogus")) { error in
+            guard case VecError.unknownProfile(let reported) = error else {
+                XCTFail("Expected VecError.unknownProfile, got \(error)")
+                return
+            }
+            XCTAssertEqual(reported, "bogus")
+        }
+    }
+
+    func testFactoryMakeOverlapEqualToSizeThrowsInvalidChunkParams() {
+        // overlap == size violates `overlap < size`.
+        XCTAssertThrowsError(
+            try IndexingProfileFactory.make(alias: "nomic", chunkSize: 100, chunkOverlap: 100)
+        ) { error in
+            guard case VecError.invalidChunkParams = error else {
+                XCTFail("Expected VecError.invalidChunkParams, got \(error)")
+                return
+            }
+        }
+    }
+
+    func testFactoryMakeNegativeOverlapThrowsInvalidChunkParams() {
+        XCTAssertThrowsError(
+            try IndexingProfileFactory.make(alias: "nomic", chunkSize: 100, chunkOverlap: -1)
+        ) { error in
+            guard case VecError.invalidChunkParams = error else {
+                XCTFail("Expected VecError.invalidChunkParams, got \(error)")
+                return
+            }
+        }
+    }
+
+    func testFactoryMakeZeroOverlapSucceeds() throws {
+        // Overlap of 0 is explicitly valid — the validator accepts
+        // `overlap >= 0`.
+        let profile = try IndexingProfileFactory.make(
+            alias: "nomic",
+            chunkSize: 100,
+            chunkOverlap: 0
+        )
+        XCTAssertEqual(profile.chunkSize, 100)
+        XCTAssertEqual(profile.chunkOverlap, 0)
+        XCTAssertFalse(profile.isBuiltIn)
+    }
+
+    // MARK: - Partial-override precondition
+    //
+    // `make(alias:chunkSize:chunkOverlap:)` guards against partial
+    // overrides (one nil, the other not) with a precondition — this
+    // is a programmer-error trap, not a runtime-recoverable error.
+    // Testing a `precondition` failure at runtime requires either a
+    // process-spawning test harness or an unavailable mechanism in
+    // XCTest. We document the contract by signature inspection
+    // instead: the CLI layer is responsible for translating a
+    // partial-override invocation into `VecError.partialChunkOverride`
+    // *before* calling `make` (wired in Phase 3d). The precondition
+    // string is `"IndexingProfileFactory.make requires both chunk
+    // overrides or neither"`.
+
     // MARK: - Helpers
 
     private func assertMalformed(_ identity: String, file: StaticString = #filePath, line: UInt = #line) {
