@@ -17,8 +17,6 @@ import Foundation
 ///   - Separator list includes `". "` between `"\n"` and `" "` so prose
 ///     without paragraph breaks still splits on sentence boundaries.
 public struct RecursiveCharacterSplitter: TextSplitter {
-    public static let defaultChunkSize = 1200
-    public static let defaultChunkOverlap = 240
     public static let defaultSeparators: [String] = ["\n\n", "\n", ". ", " "]
 
     public let chunkSize: Int
@@ -26,8 +24,8 @@ public struct RecursiveCharacterSplitter: TextSplitter {
     public let separators: [String]
     public let keepSeparator: Bool
 
-    public init(chunkSize: Int = RecursiveCharacterSplitter.defaultChunkSize,
-                chunkOverlap: Int = RecursiveCharacterSplitter.defaultChunkOverlap,
+    public init(chunkSize: Int,
+                chunkOverlap: Int,
                 separators: [String] = RecursiveCharacterSplitter.defaultSeparators,
                 keepSeparator: Bool = true) {
         precondition(chunkSize > 0, "chunkSize must be positive")

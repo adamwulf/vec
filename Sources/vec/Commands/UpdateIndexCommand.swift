@@ -266,7 +266,6 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         // need a valid (non-zero) dim for open() to succeed when the DB
         // is already initialized.
         let probeDim = rawConfig.profile?.dimension
-            ?? rawConfig.embedder?.dimension
             ?? Self.defaultBuiltIn.canonicalDimension
         let probe = VectorDatabase(
             databaseDirectory: dbDir,
@@ -300,7 +299,6 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             let updated = DatabaseConfig(
                 sourceDirectory: rawConfig.sourceDirectory,
                 createdAt: rawConfig.createdAt,
-                embedder: rawConfig.embedder,
                 profile: newRecord
             )
             try DatabaseLocator.writeConfig(updated, to: dbDir)

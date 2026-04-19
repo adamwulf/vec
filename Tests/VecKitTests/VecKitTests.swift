@@ -251,8 +251,9 @@ final class TextExtractorTests: XCTestCase {
                              "Oversize single line should split on sentence boundaries")
         // Each sub-chunk should be reasonably sized — no mid-word splits.
         for chunk in lineChunks {
+            let builtIn = try IndexingProfileFactory.builtIn(forAlias: IndexingProfileFactory.defaultAlias)
             XCTAssertLessThanOrEqual(chunk.text.count,
-                                     RecursiveCharacterSplitter.defaultChunkSize + unit.count,
+                                     builtIn.defaultChunkSize + unit.count,
                                      "Chunk should not grossly exceed chunkSize")
         }
     }

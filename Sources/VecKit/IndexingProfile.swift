@@ -104,8 +104,7 @@ public struct IndexingProfile: Sendable {
 }
 
 /// Resolves CLI aliases and identity strings to live `IndexingProfile`
-/// instances. Coexists with `EmbedderFactory` during the refactor —
-/// production callers flip over in Phase 3d/3e.
+/// instances.
 public enum IndexingProfileFactory {
 
     /// Descriptor for a built-in profile. Static data only — no live

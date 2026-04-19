@@ -50,51 +50,35 @@ struct SearchCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        let (dbDir, rawConfig, sourceDir) = try db != nil
+        // Step 1: resolve DB. Open only to count chunks (the chunk
+        // count is needed to distinguish a fresh DB from a pre-profile
+        // DB before any profile resolution).
+        let (dbDir, config, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
-        // Pre-refactor DBs have no embedder record but already contain
-        // nomic-produced vectors — stamp nomic on the config so search
-        // works without a user-visible reindex. Opens the DB at the
-        // pre-refactor dim (768) solely to count chunks.
-        let config: DatabaseConfig
-        do {
-            let probe = VectorDatabase(
-                databaseDirectory: dbDir,
-                sourceDirectory: sourceDir,
-                dimension: rawConfig.embedder?.dimension ?? 0
-            )
-            try await probe.open()
-            let chunkCount = try await probe.totalChunkCount()
-            config = try DatabaseLocator.migratePreRefactorEmbedderRecord(
-                config: rawConfig, chunkCount: chunkCount, dbDir: dbDir
-            )
+        let probeDim = config.profile?.dimension ?? 1
+        let probe = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: probeDim
+        )
+        try await probe.open()
+        let chunkCount = try await probe.totalChunkCount()
+
+        // Step 2: missing-profile split.
+        guard let recorded = config.profile else {
+            if chunkCount > 0 {
+                throw VecError.preProfileDatabase
+            } else {
+                throw VecError.profileNotRecorded
+            }
         }
 
-        // Resolve the embedder from the DB's recorded config. Search
-        // refuses to guess — a silent fallback to the default would
-        // mean building a query vector at the wrong dim for any
-        // DB indexed with a different embedder.
-        guard let recorded = config.embedder else {
-            print("Error: " + VecError.profileNotRecorded.errorDescription!)
-            throw ExitCode.failure
-        }
-        // Refuse if the DB names an embedder this build doesn't know
-        // about. Falling back to the default would build a query vector
-        // at the wrong dim for this DB.
-        guard let embedderAlias = EmbedderFactory.alias(forCanonicalName: recorded.name) else {
-            print("Error: " + VecError.unknownProfile(recorded.name).errorDescription!)
-            throw ExitCode.failure
-        }
-        let embedder: any Embedder
-        do {
-            embedder = try EmbedderFactory.make(alias: embedderAlias)
-        } catch {
-            print("Error: \((error as? LocalizedError)?.errorDescription ?? "\(error)")")
-            throw ExitCode.failure
-        }
+        // Step 3: resolve live profile from the recorded identity.
+        let profile = try IndexingProfileFactory.resolve(identity: recorded.identity)
 
+        // Step 4: open the DB at the recorded dim and run the search.
         let database = VectorDatabase(
             databaseDirectory: dbDir,
             sourceDirectory: sourceDir,
@@ -104,7 +88,7 @@ struct SearchCommand: AsyncParsableCommand {
 
         let queryEmbedding: [Float]
         do {
-            queryEmbedding = try await embedder.embedQuery(query)
+            queryEmbedding = try await profile.embedder.embedQuery(query)
         } catch {
             print("Error: Failed to generate embedding for query: \(error)")
             throw ExitCode.failure

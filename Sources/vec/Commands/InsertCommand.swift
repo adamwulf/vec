@@ -16,26 +16,31 @@ struct InsertCommand: AsyncParsableCommand {
     var path: String
 
     func run() async throws {
-        let (dbDir, rawConfig, sourceDir) = try db != nil
+        // Step 1: resolve DB, open to count chunks.
+        let (dbDir, config, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
-        // Pre-refactor DBs: stamp nomic on the config if vectors exist
-        // but no embedder was recorded — see SearchCommand for the same
-        // migration.
-        let config: DatabaseConfig
-        do {
-            let probe = VectorDatabase(
-                databaseDirectory: dbDir,
-                sourceDirectory: sourceDir,
-                dimension: rawConfig.embedder?.dimension ?? 0
-            )
-            try await probe.open()
-            let chunkCount = try await probe.totalChunkCount()
-            config = try DatabaseLocator.migratePreRefactorEmbedderRecord(
-                config: rawConfig, chunkCount: chunkCount, dbDir: dbDir
-            )
+        let probeDim = config.profile?.dimension ?? 1
+        let probe = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: probeDim
+        )
+        try await probe.open()
+        let chunkCount = try await probe.totalChunkCount()
+
+        // Step 2: missing-profile split.
+        guard let recorded = config.profile else {
+            if chunkCount > 0 {
+                throw VecError.preProfileDatabase
+            } else {
+                throw VecError.profileNotRecorded
+            }
         }
+
+        // Step 3: resolve live profile.
+        let profile = try IndexingProfileFactory.resolve(identity: recorded.identity)
 
         // Resolve path relative to cwd, then validate it falls within sourceDir
         let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
@@ -52,20 +57,11 @@ struct InsertCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        // Insert doesn't take --embedder: it always uses whatever the
-        // DB was indexed with. A fresh DB that has never been indexed
-        // can't be inserted into piecemeal — point the user at
-        // update-index so the embedder choice is explicit.
-        guard let recorded = config.embedder else {
-            print("Error: " + VecError.profileNotRecorded.errorDescription!)
-            throw ExitCode.failure
-        }
-        guard let embedderAlias = EmbedderFactory.alias(forCanonicalName: recorded.name) else {
-            print("Error: " + VecError.unknownProfile(recorded.name).errorDescription!)
-            throw ExitCode.failure
-        }
-        let activeEmbedder = try EmbedderFactory.make(alias: embedderAlias)
-
+        // Step 4: open DB at the recorded dim and run the pipeline with
+        // the profile's splitter so single-file inserts honor the
+        // recorded chunk settings (pre-3e this defaulted to the
+        // splitter's hardcoded defaults regardless of what the DB was
+        // indexed at).
         let database = VectorDatabase(
             databaseDirectory: dbDir,
             sourceDirectory: sourceDir,
@@ -75,12 +71,10 @@ struct InsertCommand: AsyncParsableCommand {
 
         let fileInfo = try FileScanner.fileInfo(for: filePath, relativeTo: sourceDir)
 
-        // Use the pipeline for single-file indexing — still benefits from
-        // parallel chunk embedding for large files.
-        let pipeline = IndexingPipeline(embedder: activeEmbedder)
+        let pipeline = IndexingPipeline(profile: profile)
         let (results, _) = try await pipeline.run(
             workItems: [(file: fileInfo, label: "Updated")],
-            extractor: TextExtractor(),
+            extractor: TextExtractor(splitter: profile.splitter),
             database: database
         )
 

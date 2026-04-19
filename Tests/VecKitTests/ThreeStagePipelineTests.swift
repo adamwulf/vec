@@ -152,8 +152,9 @@ final class ThreeStagePipelineTests: XCTestCase {
         let files = try scanner.scan()
         let workItems = files.map { (file: $0, label: "Added") }
 
-        let extractor = TextExtractor()
-        let pipeline = IndexingPipeline(embedder: NomicEmbedder())  // default concurrency, warmup on
+        let profile = try IndexingProfileFactory.resolve(identity: "nomic@1200/240")
+        let extractor = TextExtractor(splitter: profile.splitter)
+        let pipeline = IndexingPipeline(profile: profile)  // default concurrency, warmup on
 
         // Use a lock-protected box since the progress callback is
         // @Sendable and synchronous.

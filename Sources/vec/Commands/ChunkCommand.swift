@@ -41,7 +41,7 @@ struct ChunkCommand: AsyncParsableCommand {
         let database = VectorDatabase(
             databaseDirectory: dbDir,
             sourceDirectory: sourceDir,
-            dimension: config.embedder?.dimension ?? 0
+            dimension: config.profile?.dimension ?? 1
         )
         try await database.open()
 

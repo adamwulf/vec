@@ -7,10 +7,10 @@ import XCTest
 /// the pluggable-embedders retrieval-rubric sanity sweep it surfaced
 /// as a concrete file that both embedders need to round-trip cleanly.
 ///
-/// The tests confirm that `TextExtractor` splits the transcript into
-/// non-empty chunks (so it never falls into the `.skippedUnreadable`
-/// path in the pipeline) and that every chunk produces a full-length
-/// vector from each shipping embedder.
+/// The tests loop over `IndexingProfileFactory.builtIns` so adding a
+/// new built-in automatically extends coverage — each entry's
+/// `canonicalDimension` is the truth source for the vector width we
+/// expect from every chunk.
 final class TrademarkTranscriptFixtureTests: XCTestCase {
 
     private func fixtureFileInfo() throws -> FileInfo {
@@ -32,41 +32,39 @@ final class TrademarkTranscriptFixtureTests: XCTestCase {
         )
     }
 
-    func testExtractorProducesNonEmptyChunks() throws {
+    /// Every built-in profile must produce non-empty chunks from the
+    /// fixture — empty chunk lists would route to `.skippedUnreadable`
+    /// in the pipeline.
+    func testExtractorProducesNonEmptyChunksForEveryBuiltIn() throws {
         let file = try fixtureFileInfo()
-        let extractor = TextExtractor()
-        let result = try extractor.extract(from: file)
+        for builtIn in IndexingProfileFactory.builtIns {
+            let profile = try IndexingProfileFactory.make(alias: builtIn.alias)
+            let extractor = TextExtractor(splitter: profile.splitter)
+            let result = try extractor.extract(from: file)
 
-        XCTAssertGreaterThan(result.chunks.count, 0,
-            "Extractor must produce at least one chunk — empty would route to .skippedUnreadable")
-        for (i, chunk) in result.chunks.enumerated() {
-            XCTAssertFalse(chunk.text.isEmpty, "Chunk \(i) should not be empty")
+            XCTAssertGreaterThan(result.chunks.count, 0,
+                "[\(builtIn.alias)] Extractor must produce at least one chunk")
+            for (i, chunk) in result.chunks.enumerated() {
+                XCTAssertFalse(chunk.text.isEmpty,
+                    "[\(builtIn.alias)] Chunk \(i) should not be empty")
+            }
         }
     }
 
-    func testNomicEmbedsEveryChunkTo768Dims() async throws {
+    /// Every built-in profile must embed every chunk from the fixture
+    /// at the profile's canonical dimension.
+    func testEveryBuiltInEmbedsEveryChunkToCanonicalDimension() async throws {
         let file = try fixtureFileInfo()
-        let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file).chunks
-        let embedder = NomicEmbedder()
+        for builtIn in IndexingProfileFactory.builtIns {
+            let profile = try IndexingProfileFactory.make(alias: builtIn.alias)
+            let extractor = TextExtractor(splitter: profile.splitter)
+            let chunks = try extractor.extract(from: file).chunks
 
-        for (i, chunk) in chunks.enumerated() {
-            let vec = try await embedder.embedDocument(chunk.text)
-            XCTAssertEqual(vec.count, 768,
-                "Chunk \(i) should embed to 768-dim with nomic, got \(vec.count)")
-        }
-    }
-
-    func testNLEmbedsEveryChunkTo512Dims() async throws {
-        let file = try fixtureFileInfo()
-        let extractor = TextExtractor()
-        let chunks = try extractor.extract(from: file).chunks
-        let embedder = NLEmbedder()
-
-        for (i, chunk) in chunks.enumerated() {
-            let vec = try await embedder.embedDocument(chunk.text)
-            XCTAssertEqual(vec.count, 512,
-                "Chunk \(i) should embed to 512-dim with NL, got \(vec.count)")
+            for (i, chunk) in chunks.enumerated() {
+                let vec = try await profile.embedder.embedDocument(chunk.text)
+                XCTAssertEqual(vec.count, builtIn.canonicalDimension,
+                    "[\(builtIn.alias)] Chunk \(i) should embed to \(builtIn.canonicalDimension)-dim, got \(vec.count)")
+            }
         }
     }
 }

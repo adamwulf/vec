@@ -179,15 +179,6 @@ public final class IndexingPipeline: Sendable {
         self.pool = EmbedderPool(embedder: profile.embedder)
     }
 
-    // Temporary shim — deleted in Phase 3e.
-    public init(
-        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
-        embedder: any Embedder
-    ) {
-        self.workerCount = concurrency
-        self.pool = EmbedderPool(embedder: embedder)
-    }
-
     /// Run the full indexing pipeline for a set of file work items.
     ///
     /// - Parameters:

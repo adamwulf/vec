@@ -6,23 +6,10 @@ public struct DatabaseConfig: Codable {
     public let sourceDirectory: String
     /// When the database was created.
     public let createdAt: Date
-    /// Embedder recorded on first successful index; nil until then (and on pre-refactor DBs).
-    public let embedder: EmbedderRecord?
     /// Resolved indexing profile; nil on freshly `vec init`ed / `vec reset` DBs
-    /// and on pre-profile DBs. Coexists with `embedder` during the 3c→3e refactor;
-    /// the legacy `embedder` field is removed in Phase 3e.
+    /// and on pre-profile DBs. The command layer branches on `profile == nil`
+    /// plus chunk count to distinguish the two.
     public let profile: ProfileRecord?
-
-    /// Persisted embedder identity so reopens can detect a dimension mismatch. See `archived/pluggable-embedders.md`.
-    public struct EmbedderRecord: Codable, Equatable {
-        public let name: String
-        public let dimension: Int
-
-        public init(name: String, dimension: Int) {
-            self.name = name
-            self.dimension = dimension
-        }
-    }
 
     /// Persisted indexing-profile identity so reopens can detect a
     /// profile mismatch without resolving the profile (which can itself
@@ -46,12 +33,10 @@ public struct DatabaseConfig: Codable {
     public init(
         sourceDirectory: String,
         createdAt: Date,
-        embedder: EmbedderRecord? = nil,
         profile: ProfileRecord? = nil
     ) {
         self.sourceDirectory = sourceDirectory
         self.createdAt = createdAt
-        self.embedder = embedder
         self.profile = profile
     }
 
@@ -131,29 +116,6 @@ public struct DatabaseLocator {
         }
 
         return results.sorted { $0.name < $1.name }
-    }
-
-    /// If `config` has no recorded embedder but the database at
-    /// `databaseDirectory` already contains indexed chunks, stamp the
-    /// config with the pre-refactor embedder identity (nomic-v1.5-768,
-    /// the only backend shipped before this refactor) and return the
-    /// updated config. This is a one-way migration: pre-refactor DBs
-    /// have already produced vectors with nomic, so the stamp just
-    /// records reality. Returns the original config unchanged when
-    /// `embedder` is already set or the DB has no chunks yet.
-    public static func migratePreRefactorEmbedderRecord(
-        config: DatabaseConfig,
-        chunkCount: Int,
-        dbDir: URL
-    ) throws -> DatabaseConfig {
-        guard config.embedder == nil, chunkCount > 0 else { return config }
-        let migrated = DatabaseConfig(
-            sourceDirectory: config.sourceDirectory,
-            createdAt: config.createdAt,
-            embedder: .init(name: "nomic-v1.5-768", dimension: 768)
-        )
-        try writeConfig(migrated, to: dbDir)
-        return migrated
     }
 
     /// Writes a `DatabaseConfig` to the config.json file in the given database directory.

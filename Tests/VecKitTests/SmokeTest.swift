@@ -56,10 +56,11 @@ final class SmokeTest: XCTestCase {
         XCTAssertEqual(files.count, 3, "smoke fixture should expose three files to the scanner")
 
         let workItems = files.map { (file: $0, label: "Added") }
-        let pipeline = IndexingPipeline(embedder: NomicEmbedder())
+        let profile = try IndexingProfileFactory.resolve(identity: "nomic@1200/240")
+        let pipeline = IndexingPipeline(profile: profile)
         let (results, _) = try await pipeline.run(
             workItems: workItems,
-            extractor: TextExtractor(),
+            extractor: TextExtractor(splitter: profile.splitter),
             database: database
         )
 

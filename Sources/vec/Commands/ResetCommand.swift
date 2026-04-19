@@ -38,10 +38,14 @@ struct ResetCommand: AsyncParsableCommand {
         // pointed at the same source directory.
         try FileManager.default.removeItem(at: dbDir)
 
-        // Reset wipes the embedder record; dimension is set on next update-index.
+        // Reset wipes the recorded profile; dimension is set on next update-index.
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 0)
         try await database.initialize()
-        let config = DatabaseConfig(sourceDirectory: sourceDir.path, createdAt: Date())
+        let config = DatabaseConfig(
+            sourceDirectory: sourceDir.path,
+            createdAt: Date(),
+            profile: nil
+        )
         try DatabaseLocator.writeConfig(config, to: dbDir)
 
         print("Reset database '\(dbName)' at \(dbDir.path)")

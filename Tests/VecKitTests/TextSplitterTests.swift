@@ -8,7 +8,7 @@ final class RecursiveCharacterSplitterTests: XCTestCase {
     // MARK: - Smoke
 
     func testEmptyTextProducesNoChunks() {
-        let splitter = RecursiveCharacterSplitter()
+        let splitter = RecursiveCharacterSplitter(chunkSize: 1200, chunkOverlap: 240)
         XCTAssertEqual(splitter.split("").count, 0)
         XCTAssertEqual(splitter.split("   \n\n\t  ").count, 0)
     }

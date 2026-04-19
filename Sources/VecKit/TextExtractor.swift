@@ -22,11 +22,24 @@ public final class TextExtractor: @unchecked Sendable {
 
     private let splitter: TextSplitter
 
-    /// Construct with any `TextSplitter`. Defaults to
-    /// `RecursiveCharacterSplitter`, a port of LangChain's recursive
-    /// character splitter tuned for ~2000-char chunks with 10% overlap.
-    public init(splitter: TextSplitter = RecursiveCharacterSplitter()) {
+    /// Construct with any `TextSplitter`. Callers pass the splitter from
+    /// the active `IndexingProfile` so chunk sizing honors the recorded
+    /// profile rather than a hardcoded default.
+    public init(splitter: TextSplitter) {
         self.splitter = splitter
+    }
+
+    /// Convenience init that borrows the default built-in profile's
+    /// splitter. Tests and pipeline-agnostic callers use this when they
+    /// don't have a profile on hand but need sensible chunk defaults.
+    public convenience init() {
+        // The default alias is always present in the built-in table
+        // (covered by IndexingProfileTests); try! is safe.
+        let builtIn = try! IndexingProfileFactory.builtIn(forAlias: IndexingProfileFactory.defaultAlias)
+        self.init(splitter: RecursiveCharacterSplitter(
+            chunkSize: builtIn.defaultChunkSize,
+            chunkOverlap: builtIn.defaultChunkOverlap
+        ))
     }
 
     /// Convenience init for the legacy line-based splitter, kept so existing

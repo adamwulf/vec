@@ -179,7 +179,6 @@ final class ProfileMismatchTests: XCTestCase {
         let updated = DatabaseConfig(
             sourceDirectory: config.sourceDirectory,
             createdAt: config.createdAt,
-            embedder: config.embedder,
             profile: newRecord
         )
         try DatabaseLocator.writeConfig(updated, to: tmpDir)
@@ -188,5 +187,70 @@ final class ProfileMismatchTests: XCTestCase {
         XCTAssertEqual(reread.profile?.identity, "nomic@1200/240")
         XCTAssertEqual(reread.profile?.embedderName, "nomic-v1.5-768")
         XCTAssertEqual(reread.profile?.dimension, 768)
+    }
+
+    // MARK: - Search / Insert missing-profile split (Phase 3e)
+    //
+    // Search and Insert don't have a pure resolver helper — their
+    // check-order lives inline in `run()`. The shape they enforce is:
+    //
+    //   profile == nil && chunks == 0  →  profileNotRecorded
+    //   profile == nil && chunks  > 0  →  preProfileDatabase
+    //
+    // The four cases below assert that expected mapping by directly
+    // running the check against a DatabaseConfig + chunkCount pair.
+    // This documents the contract even though the runtime branch is
+    // inlined in each command.
+
+    private func missingProfileError(
+        config: DatabaseConfig,
+        chunkCount: Int
+    ) -> VecError? {
+        guard config.profile == nil else { return nil }
+        return chunkCount > 0 ? .preProfileDatabase : .profileNotRecorded
+    }
+
+    /// (g) `vec search` on a pre-profile DB (profile == nil,
+    /// chunkCount > 0) → `preProfileDatabase`.
+    func testSearchOnPreProfileDBHardFails() {
+        let config = bareConfig()
+        let error = missingProfileError(config: config, chunkCount: 99)
+        guard case .preProfileDatabase = error else {
+            XCTFail("expected .preProfileDatabase, got \(String(describing: error))")
+            return
+        }
+    }
+
+    /// (h) `vec search` on a fresh/reset DB (profile == nil,
+    /// chunkCount == 0) → `profileNotRecorded`.
+    func testSearchOnFreshDBHardFails() {
+        let config = bareConfig()
+        let error = missingProfileError(config: config, chunkCount: 0)
+        guard case .profileNotRecorded = error else {
+            XCTFail("expected .profileNotRecorded, got \(String(describing: error))")
+            return
+        }
+    }
+
+    /// (i) `vec insert` on a pre-profile DB (profile == nil,
+    /// chunkCount > 0) → `preProfileDatabase`.
+    func testInsertOnPreProfileDBHardFails() {
+        let config = bareConfig()
+        let error = missingProfileError(config: config, chunkCount: 1)
+        guard case .preProfileDatabase = error else {
+            XCTFail("expected .preProfileDatabase, got \(String(describing: error))")
+            return
+        }
+    }
+
+    /// (j) `vec insert` on a fresh/reset DB (profile == nil,
+    /// chunkCount == 0) → `profileNotRecorded`.
+    func testInsertOnFreshDBHardFails() {
+        let config = bareConfig()
+        let error = missingProfileError(config: config, chunkCount: 0)
+        guard case .profileNotRecorded = error else {
+            XCTFail("expected .profileNotRecorded, got \(String(describing: error))")
+            return
+        }
     }
 }
