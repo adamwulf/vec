@@ -293,16 +293,11 @@ public enum VecError: Error, LocalizedError {
     case sourceDirectoryMissing(String)
     case noDatabaseForDirectory(String)
     case multipleDatabasesForDirectory(String, [String])
-    /// The user passed `--embedder <alias>` with a name that isn't in
-    /// `EmbedderFactory.knownAliases`.
-    case unknownEmbedder(String)
-    /// The user passed `--embedder <alias>` that disagrees with the
-    /// embedder recorded in the DB's config. Associated values are
-    /// the recorded canonical name and the user-requested alias.
-    case embedderMismatch(recorded: String, requested: String)
-    /// The DB has no recorded embedder (pre-refactor or freshly
-    /// reset) and the operation can't pick one automatically.
-    case embedderNotRecorded
+    /// The requested indexing profile disagrees with what the DB
+    /// recorded. Associated values carry the persisted and requested
+    /// profile identity strings (e.g. `nomic@1200/240` vs
+    /// `nomic@500/100`).
+    case profileMismatch(recorded: String, requested: String)
     /// A vector handed to `insert` or `search` doesn't match the
     /// database's declared dimension. Belt-and-braces guard: the
     /// CLI already refuses an embedder mismatch at the config layer,
@@ -324,18 +319,14 @@ public enum VecError: Error, LocalizedError {
     case invalidChunkParams(String)
     /// The user passed `--embedder <alias>` with a name that isn't in
     /// `IndexingProfileFactory.knownAliases`, or a persisted identity
-    /// string referenced an alias that isn't registered. Coexists
-    /// with `unknownEmbedder` during the refactor — Phase 3d
-    /// consolidates them.
+    /// string referenced an alias that isn't registered.
     case unknownProfile(String)
     /// The DB has no recorded indexing profile AND has zero chunks
     /// (freshly-`init`ed or freshly-`reset`). Hit by `search` / `insert`
-    /// which cannot bootstrap a profile. Unused in Phase 3c — the CLI
-    /// layer wires this in Phase 3e.
+    /// which cannot bootstrap a profile.
     case profileNotRecorded
     /// The DB has no recorded indexing profile but DOES have chunks,
     /// i.e. a pre-profile DB left over from before this refactor.
-    /// Unused in Phase 3c — the CLI layer wires this in Phase 3d/3e.
     case preProfileDatabase
 
     public var errorDescription: String? {
@@ -360,14 +351,17 @@ public enum VecError: Error, LocalizedError {
             return "No database found for directory '\(path)'. Use -d <name> or run 'vec init <name>' here first."
         case .multipleDatabasesForDirectory(let path, let names):
             return "Multiple databases found for directory '\(path)': \(names.joined(separator: ", ")). Use -d <name> to specify which one."
-        case .unknownEmbedder(let alias):
-            return "Unknown embedder '\(alias)'. Known embedders: \(EmbedderFactory.knownAliases.joined(separator: ", "))."
-        case .embedderMismatch(let recorded, let requested):
-            let aliasHint = EmbedderFactory.alias(forCanonicalName: recorded)
-                .map { " (--embedder \($0))" } ?? ""
-            return "Database was indexed with '\(recorded)'\(aliasHint) but --embedder \(requested) was requested. Either pass the matching embedder or run 'vec reset' to re-index with a different one."
-        case .embedderNotRecorded:
-            return "Database has no recorded embedder. Run 'vec reset' then 'vec update-index --embedder <name>' to rebuild."
+        case .profileMismatch(let recorded, let requested):
+            return """
+                Database was indexed with profile '\(recorded)' but '\(requested)'
+                was requested. Vec will not index or search across profiles because
+                vectors from different profiles are not directly comparable.
+
+                Your options:
+                  1. Re-run the command with flags that resolve to '\(recorded)'
+                     (e.g. `--embedder nomic` with the default chunk settings).
+                  2. Run `vec reset <db>` and re-index with the new profile.
+                """
         case .dimensionMismatch(let expected, let actual):
             return "Vector dimension mismatch: database expects \(expected)-dim vectors but got \(actual)-dim. The embedder wired to this call disagrees with the DB's recorded embedder."
         case .malformedProfileIdentity(let identity):

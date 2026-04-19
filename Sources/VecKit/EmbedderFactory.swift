@@ -24,13 +24,13 @@ public enum EmbedderFactory {
         case "nl":
             return NLEmbedder()
         default:
-            throw VecError.unknownEmbedder(alias)
+            throw VecError.unknownProfile(alias)
         }
     }
 
     public static func canonicalName(forAlias alias: String) throws -> String {
         guard let entry = embedders.first(where: { $0.alias == alias }) else {
-            throw VecError.unknownEmbedder(alias)
+            throw VecError.unknownProfile(alias)
         }
         return entry.canonicalName
     }

@@ -196,10 +196,10 @@ final class IndexingProfileConfigTests: XCTestCase {
         XCTAssertNil(EmbedderFactory.alias(forCanonicalName: "not-a-real-embedder"))
     }
 
-    func testEmbedderFactoryUnknownAliasThrowsUnknownEmbedder() {
+    func testEmbedderFactoryUnknownAliasThrowsUnknownProfile() {
         XCTAssertThrowsError(try EmbedderFactory.make(alias: "does-not-exist")) { error in
-            guard case VecError.unknownEmbedder(let alias) = error else {
-                XCTFail("expected VecError.unknownEmbedder, got \(error)")
+            guard case VecError.unknownProfile(let alias) = error else {
+                XCTFail("expected VecError.unknownProfile, got \(error)")
                 return
             }
             XCTAssertEqual(alias, "does-not-exist")

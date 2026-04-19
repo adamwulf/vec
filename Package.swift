@@ -45,6 +45,7 @@ let package = Package(
             name: "CLITests",
             dependencies: [
                 "vec",
+                "VecKit",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
         )

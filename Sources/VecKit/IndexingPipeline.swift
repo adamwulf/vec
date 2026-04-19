@@ -173,6 +173,15 @@ public final class IndexingPipeline: Sendable {
 
     public init(
         concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
+        profile: IndexingProfile
+    ) {
+        self.workerCount = concurrency
+        self.pool = EmbedderPool(embedder: profile.embedder)
+    }
+
+    // Temporary shim — deleted in Phase 3e.
+    public init(
+        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
         embedder: any Embedder
     ) {
         self.workerCount = concurrency

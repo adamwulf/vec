@@ -57,11 +57,11 @@ struct InsertCommand: AsyncParsableCommand {
         // can't be inserted into piecemeal — point the user at
         // update-index so the embedder choice is explicit.
         guard let recorded = config.embedder else {
-            print("Error: " + VecError.embedderNotRecorded.errorDescription!)
+            print("Error: " + VecError.profileNotRecorded.errorDescription!)
             throw ExitCode.failure
         }
         guard let embedderAlias = EmbedderFactory.alias(forCanonicalName: recorded.name) else {
-            print("Error: " + VecError.unknownEmbedder(recorded.name).errorDescription!)
+            print("Error: " + VecError.unknownProfile(recorded.name).errorDescription!)
             throw ExitCode.failure
         }
         let activeEmbedder = try EmbedderFactory.make(alias: embedderAlias)

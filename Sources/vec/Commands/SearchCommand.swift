@@ -77,14 +77,14 @@ struct SearchCommand: AsyncParsableCommand {
         // mean building a query vector at the wrong dim for any
         // DB indexed with a different embedder.
         guard let recorded = config.embedder else {
-            print("Error: " + VecError.embedderNotRecorded.errorDescription!)
+            print("Error: " + VecError.profileNotRecorded.errorDescription!)
             throw ExitCode.failure
         }
         // Refuse if the DB names an embedder this build doesn't know
         // about. Falling back to the default would build a query vector
         // at the wrong dim for this DB.
         guard let embedderAlias = EmbedderFactory.alias(forCanonicalName: recorded.name) else {
-            print("Error: " + VecError.unknownEmbedder(recorded.name).errorDescription!)
+            print("Error: " + VecError.unknownProfile(recorded.name).errorDescription!)
             throw ExitCode.failure
         }
         let embedder: any Embedder
