@@ -12,8 +12,8 @@ The nomic migration and sweep is **complete and merged** on this branch.
 
 ## Ship gate was NOT hit
 
-The bean-test ship gate is 45/60 AND 7/10 both-target-top-10 queries.
-Actual: 35/60, 3/10. See `nomic-experiment-results.md` for the full
+The retrieval ship gate is 45/60 AND 7/10 both-target-top-10 queries.
+Actual: 35/60, 3/10. See `retrieval-results-nomic.md` for the full
 sweep trajectory and per-query detail.
 
 The binding constraint is the **transcript** (granola 164bf8dc) being
@@ -61,11 +61,12 @@ levers are **not** chunking or embedder tuning.
 If the next task is a follow-up experiment from the "levers" list above,
 point the new agent at:
 
-- `bean-test.md` — 10 queries + scoring rule (do not modify).
-- `bean-test-results.md` — NLEmbedding baseline history (6/60 ceiling).
-- `nomic-experiment-plan.md` — the executed plan (for plan shape and
-  review-cycle discipline; reuse the structure for new experiments).
-- `nomic-experiment-results.md` — detailed sweep data, per-iter tables,
+- `retrieval-rubric.md` — 10 queries + scoring rule (do not modify).
+- `retrieval-results-nl.md` — NLEmbedding baseline history (6/60 ceiling).
+- `archived/nomic-experiment-plan.md` — the executed plan (for plan
+  shape and review-cycle discipline; reuse the structure for new
+  experiments).
+- `retrieval-results-nomic.md` — detailed sweep data, per-iter tables,
   trajectory, and the explicit "what didn't work" section. This should
   be extended (not overwritten) if the next experiment is comparable.
 - This file (`status.md`) — the snapshot you're reading.
@@ -73,7 +74,7 @@ point the new agent at:
 The next experiment should pick ONE lever (don't stack multiple), state
 a measurable ship gate upfront, and follow the same phased structure:
 (1) plan → (2) review-cycle the plan → (3) implement → (4) review-cycle
-the impl → (5) measure against the bean-test.
+the impl → (5) measure against the retrieval rubric.
 
 ## Budget notes
 

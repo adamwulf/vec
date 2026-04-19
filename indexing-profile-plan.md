@@ -97,13 +97,13 @@ or pre-profile DBs.
       test loops over `IndexingProfileFactory.builtIns` and verifies
       extraction + embed for every profile. New profile → new coverage
       for free.
-11. Two bean-test sanity sweeps (Phase 5), matching historical scores:
+11. Two retrieval-rubric sanity sweeps (Phase 5), matching historical scores:
     - `vec reset markdown-memory` → `update-index --embedder nl` →
       score ≈ 6/60 (±1).
     - `vec reset markdown-memory` → `update-index --embedder nomic` →
       score ≈ 35/60 (±2).
 12. Design doc `indexing-profile.md` (200–300 lines) in the same tone
-    as `pluggable-embedders.md`.
+    as `archived/pluggable-embedders.md`.
 
 ## Design
 
@@ -670,7 +670,7 @@ Rationale:
   (`NomicEmbedder.maxInputCharacters = 30_000`, `NLEmbedder.maxInputCharacters = 10_000`).
   A very long doc becomes a truncated-prefix `.whole` vector for
   either backend. That's the existing behavior, documented, and
-  the bean-test scores were measured against it.
+  the retrieval-rubric scores were measured against it.
 - Adding a per-profile "skip whole above N chars" knob changes
   retrieval quality in a way we'd have to re-score both backends
   against — a separate experiment.
@@ -1006,7 +1006,7 @@ the five-case matrix plus partial-override), -2 (the two hardcoded
 fixture tests collapse into one loop), net ~+20. Full `swift test`
 must stay green at every commit.
 
-### Phase 5: real-world bean-test verification
+### Phase 5: real-world retrieval-rubric verification
 
 Run outside the worker sandbox (manager agent or human). For each
 profile:
@@ -1014,7 +1014,7 @@ profile:
 ```
 vec reset markdown-memory --force
 vec update-index --db markdown-memory --embedder <alias>
-# score against bean-test.md using its standard rubric
+# score against retrieval-rubric.md using its standard rubric
 ```
 
 Probe the transcript is present:
@@ -1027,7 +1027,7 @@ sqlite3 ~/.vec/markdown-memory/index.db \
 
 Expect `> 0`.
 
-Expected scores, matching nomic-experiment history:
+Expected scores, matching `retrieval-results-nomic.md` history:
 
 - `nl` profile (2000/200) → ~6/60.
 - `nomic` profile (1200/240) → ~35/60.
@@ -1048,7 +1048,7 @@ After the sweep, leave the DB in whichever state the user prefers
 | 2 | 2 reviewer agents in parallel, up to 3 rounds | Plan review (architecture + correctness) via `review-cycle` skill | 1–2 h |
 | 3 | one impl agent | Code + `indexing-profile.md` design doc | 5–6 h |
 | 4 | 2 reviewer agents in parallel, up to 3 rounds | Code review (architecture + correctness) via `review-cycle` skill | 1–2 h |
-| 5 | manager or human | Bean-test sanity sweeps (both profiles) | 2 h |
+| 5 | manager or human | Retrieval-rubric sanity sweeps (both profiles) | 2 h |
 | 6 | manager | Final commit check + merge to `agent/agent-c54ba5da` | 30 min |
 
 Phase 3 is the single longest chunk. The pluggable-embedders impl
@@ -1133,7 +1133,7 @@ Pre-merge gate (Phase 4):
       `RecursiveCharacterSplitter.defaultChunkSize`, or
       `migratePreRefactorEmbedderRecord` (grep check).
 - [ ] `indexing-profile.md` exists, 200–300 lines, matches the tone
-      of `pluggable-embedders.md`.
+      of `archived/pluggable-embedders.md`.
 
 Post-merge verification (Phase 5):
 
@@ -1287,4 +1287,4 @@ brief. Answers are load-bearing for Phase 3 implementation.
 - Retrieval-quality work (hybrid retrieval, query expansion,
   multi-granularity). Separate lever; see `status.md`.
 - Per-profile whole-doc policy. Uniform today.
-- Changing the `bean-test.md` rubric. Frozen reference.
+- Changing the `retrieval-rubric.md` rubric. Frozen reference.

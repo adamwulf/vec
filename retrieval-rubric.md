@@ -164,7 +164,10 @@ hand you back one tidy score block.
 For each iteration:
 
 1. **Pick a config.** Start small (chunk-chars 400, overlap 80). Later,
-   drive the next config from the trend in `bean-test-results.md`.
+   drive the next config from the trend in the relevant results log
+   (e.g. `retrieval-results-nl.md`, `retrieval-results-nomic.md`, or a
+   new `retrieval-results-<embedder>.md` if you're running a fresh
+   experiment).
 
 2. **Reset the test index:**
    `swift run vec reset --db markdown-memory --force`
@@ -189,7 +192,7 @@ For each iteration:
    Target files:
      - granola/2026-02-26-22-30-164bf8dc/transcript.txt
      - granola/2026-02-26-22-30-164bf8dc/summary.md
-   Queries: [paste the full list of 10 queries from bean-test.md]
+   Queries: [paste the full list of 10 queries from retrieval-rubric.md]
    Return a markdown block like:
      | # | query | T rank | S rank | T score | S score | subtotal |
      plus a final line: TOTAL: X/60, QUERIES_HIT_TOP10: N/10
@@ -202,8 +205,8 @@ For each iteration:
    read its output with `ib look <worker-id>`, extract the score block,
    then `ib kill <worker-id> --force`.
 
-5. **Append to `bean-test-results.md`** (create if missing). One row per
-   iteration:
+5. **Append to the relevant `retrieval-results-<embedder>.md`** (create
+   if missing). One row per iteration:
    `timestamp | config | total_score | queries_hit_top10 | notes`
    Plus the per-query score block from the worker, indented.
 
@@ -220,7 +223,7 @@ At the end (stop condition hit OR search space exhausted):
   case (either updating the `RecursiveCharacterSplitter` default values,
   or changing the `UpdateIndexCommand` default, whichever is more
   appropriate).
-- Write a final summary section in `bean-test-results.md`:
+- Write a final summary section in the results log:
   - Winning config
   - Trajectory (how scores moved across iterations)
   - What didn't work and why

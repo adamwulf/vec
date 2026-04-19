@@ -1,6 +1,6 @@
 import Foundation
 
-/// Maps CLI aliases to `Embedder` instances. See `pluggable-embedders.md`.
+/// Maps CLI aliases to `Embedder` instances. See `archived/pluggable-embedders.md`.
 public enum EmbedderFactory {
 
     private struct Entry {

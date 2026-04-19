@@ -1,5 +1,16 @@
 # Nomic Embedder Migration — Implementation Plan
 
+> **Archived 2026-04-18.** This plan was executed; kept for plan-shape
+> reference only. Several files it references have been renamed or
+> removed:
+> - `bean-test.md` → `retrieval-rubric.md`
+> - `bean-test-results.md` → `retrieval-results-nl.md`
+> - `nomic-experiment-results.md` → `retrieval-results-nomic.md`
+> - `embedder-research.md` — deleted (decisions captured in `status.md`
+>   and `archived/pluggable-embedders.md`)
+>
+> Filenames in the body below are left as written at the time.
+
 > **Audience:** a fresh implementation worker who has read `bean-test.md`,
 > `bean-test-results.md`, `embedder-research.md` (esp. §3.4, §3.13, §4),
 > and this file. The worker should follow the steps in order and tick the

@@ -1,7 +1,7 @@
 import Foundation
 import NaturalLanguage
 
-/// `Embedder` wrapping `NLEmbedding.sentenceEmbedding(for: .english)`. See `pluggable-embedders.md`.
+/// `Embedder` wrapping `NLEmbedding.sentenceEmbedding(for: .english)`. See `archived/pluggable-embedders.md`.
 public actor NLEmbedder: Embedder {
 
     public nonisolated let name = "nl-en-512"

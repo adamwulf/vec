@@ -1,7 +1,7 @@
 import Foundation
 import Embeddings
 
-/// `Embedder` wrapping `swift-embeddings`' NomicBert (`nomic-embed-text-v1.5`). See `pluggable-embedders.md`.
+/// `Embedder` wrapping `swift-embeddings`' NomicBert (`nomic-embed-text-v1.5`). See `archived/pluggable-embedders.md`.
 public actor NomicEmbedder: Embedder {
 
     public nonisolated let name = "nomic-v1.5-768"

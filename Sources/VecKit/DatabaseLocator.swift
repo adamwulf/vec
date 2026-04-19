@@ -9,7 +9,7 @@ public struct DatabaseConfig: Codable {
     /// Embedder recorded on first successful index; nil until then (and on pre-refactor DBs).
     public let embedder: EmbedderRecord?
 
-    /// Persisted embedder identity so reopens can detect a dimension mismatch. See `pluggable-embedders.md`.
+    /// Persisted embedder identity so reopens can detect a dimension mismatch. See `archived/pluggable-embedders.md`.
     public struct EmbedderRecord: Codable, Equatable {
         public let name: String
         public let dimension: Int

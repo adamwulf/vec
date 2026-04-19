@@ -1,6 +1,6 @@
 import Foundation
 
-/// Text-embedding backend. See `pluggable-embedders.md` for the design.
+/// Text-embedding backend. See `archived/pluggable-embedders.md` for the design.
 public protocol Embedder: Sendable {
     nonisolated var name: String { get }
     nonisolated var dimension: Int { get }

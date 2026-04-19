@@ -4,8 +4,8 @@ import XCTest
 /// Fixture-based end-to-end coverage for the
 /// `Fixtures/trademark-transcript.txt` file. The fixture is a real
 /// transcript captured from a user's markdown-memory corpus; during
-/// the pluggable-embedders bean-test sanity sweep it surfaced as a
-/// concrete file that both embedders need to round-trip cleanly.
+/// the pluggable-embedders retrieval-rubric sanity sweep it surfaced
+/// as a concrete file that both embedders need to round-trip cleanly.
 ///
 /// The tests confirm that `TextExtractor` splits the transcript into
 /// non-empty chunks (so it never falls into the `.skippedUnreadable`
