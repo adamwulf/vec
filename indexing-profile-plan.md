@@ -1057,8 +1057,8 @@ Status legend: ✅ DONE · ⏳ NEXT UP · ◻ NOT STARTED.
 | ✅ DONE | 3d | one impl agent | Wire `UpdateIndexCommand` to factory + profile field + full check-order + `ProfileMismatchTests` | 1.5–2 h |
 | ✅ DONE | 3d-r | 2 reviewer agents in parallel | `review-cycle` on Phase 3d → manager approval → next phase | 30–60 min |
 | ✅ DONE | 3e | one impl agent | Wire `InsertCommand` + `SearchCommand` + `InfoCommand` + `ListCommand` + `ResetCommand`; delete `EmbedderFactory`; drop `RecursiveCharacterSplitter` defaults; design doc | 1.5–2 h |
-| ⏳ NEXT UP | 4 | 2 reviewer agents in parallel, up to 3 rounds | Final code review across the whole 3a–3e diff via `review-cycle` skill | 1–2 h |
-| ◻ NOT STARTED | 5 | manager or human | Retrieval-rubric sanity sweeps (both profiles) | 2 h |
+| ✅ DONE | 4 | 2 reviewer agents in parallel, up to 3 rounds | Final code review across the whole 3a–3e diff via `review-cycle` skill | 1–2 h |
+| ⏳ NEXT UP | 5 | manager or human | Retrieval-rubric sanity sweeps (both profiles) | 2 h |
 | ◻ NOT STARTED | 6 | manager | Final commit check + merge to `agent/agent-c54ba5da` | 30 min |
 
 When a phase ships, the implementer (or manager who merges it)
