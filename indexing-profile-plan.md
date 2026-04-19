@@ -1042,65 +1042,506 @@ After the sweep, leave the DB in whichever state the user prefers
 
 ## Phase structure
 
-| Phase | Owner | Deliverable | Budget |
-|------:|-------|-------------|-------:|
-| 1 | this agent (77b5f3be) | `indexing-profile-plan.md` — you're reading it | 45 min |
-| 2 | 2 reviewer agents in parallel, up to 3 rounds | Plan review (architecture + correctness) via `review-cycle` skill | 1–2 h |
-| 3 | one impl agent | Code + `indexing-profile.md` design doc | 5–6 h |
-| 4 | 2 reviewer agents in parallel, up to 3 rounds | Code review (architecture + correctness) via `review-cycle` skill | 1–2 h |
-| 5 | manager or human | Retrieval-rubric sanity sweeps (both profiles) | 2 h |
-| 6 | manager | Final commit check + merge to `agent/agent-c54ba5da` | 30 min |
+Status legend: ✅ DONE · ⏳ NEXT UP · ◻ NOT STARTED.
 
-Phase 3 is the single longest chunk. The pluggable-embedders impl
-ran ~3–4 h for a narrower scope (one factory, one error rename, no
-identity parser, no CLI-flag cross-validation). This refactor is
-wider: three new error variants (`preProfileDatabase`,
-`malformedProfileIdentity`, `partialChunkOverride`) on top of
-`invalidChunkParams`, a strict regex + round-trip parser with a
-negative-test matrix, CLI-layer rejection of partial chunk
-overrides at the top of `update-index`, and the new
-`ProfileMismatchTests` five-case suite on top of the rewritten
-`IndexingProfileConfigTests`. Budget is 5–6 h: roughly 2 h on the
-factory + struct + parser, 2 h on CLI command wiring and check-
-order, 1–2 h on the test suites and the design doc.
+| Status | Phase | Owner | Deliverable | Budget |
+|:------:|------:|-------|-------------|-------:|
+| ✅ DONE | 1 | this agent (77b5f3be) | `indexing-profile-plan.md` — you're reading it | 45 min |
+| ✅ DONE | 2 | 2 reviewer agents in parallel, 3 rounds completed (revisions landed in commits `45aed0c` "indexing-profile-plan: round-3 revisions", `bbfc5ed` round-3 brief, `12d30ed` round-2 revisions; brief files since archived) | Plan review (architecture + correctness) via `review-cycle` skill | 1–2 h |
+| ⏳ NEXT UP | 3a | one impl agent | `IndexingProfile` struct + identity parser + `malformedProfileIdentity` error + `IndexingProfileTests` | 1–1.5 h |
+| ◻ NOT STARTED | 3a-r | 2 reviewer agents in parallel | `review-cycle` on Phase 3a → manager approval → next phase | 30–60 min |
+| ◻ NOT STARTED | 3b | one impl agent | `IndexingProfileFactory` (make/resolve/alias table) + `partialChunkOverride` + `invalidChunkParams` + factory tests | 1–1.5 h |
+| ◻ NOT STARTED | 3b-r | 2 reviewer agents in parallel | `review-cycle` on Phase 3b → manager approval → next phase | 30–60 min |
+| ◻ NOT STARTED | 3c | one impl agent | `DatabaseConfig.profile` field + `profileNotRecorded` + `preProfileDatabase` errors + `IndexingProfileConfigTests` | 1–1.5 h |
+| ◻ NOT STARTED | 3c-r | 2 reviewer agents in parallel | `review-cycle` on Phase 3c → manager approval → next phase | 30–60 min |
+| ◻ NOT STARTED | 3d | one impl agent | Wire `UpdateIndexCommand` to factory + profile field + full check-order + `ProfileMismatchTests` | 1.5–2 h |
+| ◻ NOT STARTED | 3d-r | 2 reviewer agents in parallel | `review-cycle` on Phase 3d → manager approval → next phase | 30–60 min |
+| ◻ NOT STARTED | 3e | one impl agent | Wire `InsertCommand` + `SearchCommand` + `InfoCommand` + `ListCommand` + `ResetCommand`; delete `EmbedderFactory`; drop `RecursiveCharacterSplitter` defaults; design doc | 1.5–2 h |
+| ◻ NOT STARTED | 4 | 2 reviewer agents in parallel, up to 3 rounds | Final code review across the whole 3a–3e diff via `review-cycle` skill | 1–2 h |
+| ◻ NOT STARTED | 5 | manager or human | Retrieval-rubric sanity sweeps (both profiles) | 2 h |
+| ◻ NOT STARTED | 6 | manager | Final commit check + merge to `agent/agent-c54ba5da` | 30 min |
 
-## Rollout sequence (Phase 3 order)
+When a phase ships, the implementer (or manager who merges it)
+flips its row from ⏳/◻ to ✅ in the same commit and marks the
+next phase ⏳ NEXT UP. The status column is the source of truth
+for where the work stands; the per-phase headings below carry
+fuller detail.
 
-Small commits, `swift test` green between each:
+Phase 3 is split into five small, independently reviewable phases
+(3a–3e). Each phase leaves the tree fully compiling with all tests
+green; intermediate phases may carry dead code (a new struct or
+factory with no callers yet) but never half-finished APIs that a
+later phase must complete to compile. Each phase is also followed
+by a mandatory `review-cycle` checkpoint (2 reviewer agents in
+parallel) and an explicit manager approval before the next phase
+starts. No single agent ships two phases without a review gate
+in between.
 
-1. **`IndexingProfile` struct + `IndexingProfileFactory`** —
-   `Sources/VecKit/IndexingProfile.swift`. No callers yet. Add
-   `IndexingProfileTests` with the full strict-parsing matrix
-   (~15 tests). ~179 existing + ~15 new = ~194 pass.
-2. **`VecError` rename + expand wave** — rename `unknownEmbedder` →
-   `unknownProfile`, `embedderMismatch` → `profileMismatch`,
-   `embedderNotRecorded` → `profileNotRecorded`; add
-   `preProfileDatabase`, `malformedProfileIdentity(String)`,
-   `partialChunkOverride`, `invalidChunkParams(String)`.
-   Mechanical; every call-site flips in one commit.
-3. **`DatabaseConfig` shape flip** — `embedder: EmbedderRecord?`
-   → `profile: ProfileRecord?`. Delete
-   `migratePreRefactorEmbedderRecord`. Rewrite `EmbedderConfigTests`
-   → `IndexingProfileConfigTests`.
-4. **`RecursiveCharacterSplitter` default removal** — drop the
-   constants, require explicit params. Fix up any test-only
-   callers that relied on defaults.
-5. **`IndexingPipeline.init(profile:)`** — swap the init signature.
-   `EmbedderPool` unchanged internally.
-6. **CLI commands** — `UpdateIndexCommand`, `SearchCommand`,
-   `InsertCommand`, `ResetCommand`, `InfoCommand` in that order.
-   Each commit is self-contained and keeps `swift test` green.
-7. **`ProfileMismatchTests`** — add
-   `Tests/vecTests/ProfileMismatchTests.swift` covering the five-
-   case matrix + `partialChunkOverride`. Lands after the CLI
-   commands so it has a working surface to invoke.
-8. **`TrademarkTranscriptFixtureTests` loopification** — benefits
-   from the new factory surface.
-9. **Delete `Sources/VecKit/EmbedderFactory.swift`** — verify no
-   remaining references.
-10. **Write `indexing-profile.md`** — the design doc.
+The split largely follows the suggested decomposition. One small
+deviation: `VecError` additions are spread across the phases that
+need them (3a adds `malformedProfileIdentity`; 3b adds
+`partialChunkOverride` + `invalidChunkParams`; 3c adds
+`profileNotRecorded` + `preProfileDatabase`; 3d performs the
+rename of `unknownEmbedder` → `unknownProfile`, `embedderMismatch`
+→ `profileMismatch`, `embedderNotRecorded` → `profileNotRecorded`
+since 3d is the first phase that actually exercises the
+`profileMismatch` path). This keeps each phase's diff small and
+the error variants land alongside the test code that proves them.
 
-No single commit leaves the tree broken.
+## Phase 3a — `IndexingProfile` struct + identity parser
+
+**Status: ⏳ NEXT UP.**
+
+**Goal.** Land the `IndexingProfile` struct and the strict identity
+parser as standalone, fully-tested code. Nothing in the rest of
+the codebase calls it yet — it's dead code on purpose so the
+reviewer can read the diff in isolation.
+
+**Files touched.**
+
+- New: `Sources/VecKit/IndexingProfile.swift` — only the
+  `IndexingProfile` struct (per §"The profile struct") and a
+  static `IndexingProfile.parseIdentity(_:) throws -> (alias:
+  String, chunkSize: Int, chunkOverlap: Int)` helper that runs
+  the strict regex + round-trip check (per §"The factory /
+  registry", `resolve(identity:)`). The `IndexingProfileFactory`
+  enum is NOT in this file yet — Phase 3b adds it.
+- Modified: `Sources/VecKit/FileScanner.swift` (VecError home) —
+  add `malformedProfileIdentity(String)` only. No renames yet.
+- New: `Tests/VecKitTests/IndexingProfileTests.swift` — covers
+  struct construction (full override path: identity string,
+  `chunkSize`/`chunkOverlap` fields, `isBuiltIn` flag set
+  manually via initializer), the precondition guards
+  (`chunkSize > 0`, `chunkOverlap >= 0 && < chunkSize`), and the
+  full strict-parsing negative matrix from §"Test plan" item 1
+  (garbled / whitespace / leading-zero / uppercase / extra-
+  segment / negative inputs all reject with
+  `malformedProfileIdentity`). Use a stub embedder + stub
+  splitter for the construction tests so the suite has no model
+  load and no factory dependency.
+
+**Ship criteria.**
+
+- `swift build` clean.
+- `swift test` exits 0. `IndexingProfileTests` adds ~12–15 tests
+  covering struct init + parser; existing 179 tests stay green.
+- `IndexingProfile` exists with the exact field shape from
+  §"The profile struct" (init signature, preconditions, all
+  six fields including `isBuiltIn`).
+- `IndexingProfile.parseIdentity` rejects every entry in the
+  negative matrix with `VecError.malformedProfileIdentity`.
+
+**Does NOT yet do.**
+
+- No `IndexingProfileFactory`. No `make` or `resolve` factory
+  methods (the parser is a free helper for now; Phase 3b lifts
+  it onto the factory).
+- No `DatabaseConfig.profile` field — config still carries the
+  old `embedder: EmbedderRecord?` field unchanged.
+- No CLI command changes. `UpdateIndexCommand`, `SearchCommand`,
+  `InsertCommand` all run on the existing `EmbedderFactory` /
+  `EmbedderRecord` path.
+- No `IndexingPipeline.init(profile:)` — pipeline still takes
+  `embedder:`.
+- No `partialChunkOverride`, `invalidChunkParams`,
+  `profileNotRecorded`, `preProfileDatabase` errors yet, and no
+  rename of `unknownEmbedder` / `embedderMismatch` /
+  `embedderNotRecorded`.
+- No design doc (`indexing-profile.md`).
+- `RecursiveCharacterSplitter.defaultChunkSize` / `defaultChunkOverlap`
+  constants still present.
+
+Reviewers should NOT file issues for any of the above — they
+belong to a later phase.
+
+**Budget.** 1–1.5 h.
+
+**Checkpoint.** Commit (`feat: add IndexingProfile struct + strict
+identity parser`) → run `review-cycle` skill (2 reviewers) → fix
+any blocking issues → manager approval → only then start Phase 3b.
+
+## Phase 3b — `IndexingProfileFactory`
+
+**Status: ◻ NOT STARTED.**
+
+**Goal.** Land the factory enum that produces live profiles from
+aliases or persisted identity strings. Old `EmbedderFactory` still
+exists alongside; no command wiring changes.
+
+**Files touched.**
+
+- Modified: `Sources/VecKit/IndexingProfile.swift` — add the
+  `IndexingProfileFactory` enum from §"The factory / registry"
+  (the `BuiltIn` descriptor, `defaultAlias`, `builtIns` table,
+  `knownAliases`, `builtIn(forAlias:)`, `make(alias:chunkSize:
+  chunkOverlap:)`, `resolve(identity:)`, `validate`). Move the
+  parser logic from the standalone `IndexingProfile.parseIdentity`
+  helper into `resolve(identity:)` (or have `resolve` call the
+  helper — implementer's choice, but only one parser
+  implementation in the tree). Apply the `partialChunkOverride`
+  precondition guard at the factory's `make` (the precondition
+  fires only on programmer error; the matching CLI-layer
+  `VecError.partialChunkOverride` throw is wired in Phase 3d).
+- Modified: `Sources/VecKit/FileScanner.swift` (VecError home) —
+  add `partialChunkOverride` (no payload) and
+  `invalidChunkParams(String)`. Also add `unknownProfile(String)`
+  as a NEW variant alongside the existing `unknownEmbedder` —
+  no rename yet, both coexist for one phase. `unknownProfile` is
+  what `IndexingProfileFactory.make` / `resolve` throws.
+- Modified: `Tests/VecKitTests/IndexingProfileTests.swift` (extend
+  in-place) — add the factory-side tests from §"Test plan" item 1:
+  built-in alias resolution for `nomic` and `nl`, full override
+  composition (`make(alias: "nomic", chunkSize: 500, chunkOverlap:
+  100)`), `resolve(identity:)` round-trip including the
+  `isBuiltIn` flag check (alias-default identity round-trips to
+  `isBuiltIn == true`; custom identity to `isBuiltIn == false`),
+  unknown-alias error (`make(alias: "bogus")` → `unknownProfile`),
+  invalid chunk-param errors (overlap == size, negative overlap),
+  the partial-override precondition (programmer-error case).
+
+**Ship criteria.**
+
+- `swift build` clean.
+- `swift test` exits 0. `IndexingProfileTests` grows by ~10
+  factory tests (total ~22–25 in the file).
+- `IndexingProfileFactory.make(alias:)` returns a fully-built
+  `IndexingProfile` for both `nomic` and `nl` with the correct
+  identities (`nomic@1200/240`, `nl@2000/200`).
+- `IndexingProfileFactory.resolve(identity:)` round-trips
+  identity strings back to live profiles, including correct
+  `isBuiltIn` computation (effective-chunk-params check, not
+  caller-arity check).
+
+**Does NOT yet do.**
+
+- No `DatabaseConfig.profile` field. Config persistence still
+  uses the old `embedder: EmbedderRecord?` shape.
+- No CLI command rewiring. `UpdateIndexCommand` still calls
+  `EmbedderFactory.make(alias:)` and constructs the splitter
+  directly.
+- `EmbedderFactory.swift` is still present and still called from
+  every command. `IndexingProfileFactory` exists alongside it
+  with no production callers (only test callers).
+- The `unknownEmbedder` / `embedderMismatch` / `embedderNotRecorded`
+  variants are NOT renamed yet — they live alongside the new
+  `unknownProfile` for now. Phase 3d does the rename in the
+  same commit that wires `UpdateIndexCommand` to the new
+  errors.
+- No `migratePreRefactorEmbedderRecord` deletion.
+- No `RecursiveCharacterSplitter` default-constant removal.
+- No `IndexingPipeline.init(profile:)`.
+- No design doc.
+
+**Budget.** 1–1.5 h.
+
+**Checkpoint.** Commit (`feat: add IndexingProfileFactory with
+built-in alias table + resolve`) → `review-cycle` (2 reviewers) →
+manager approval → only then start Phase 3c.
+
+## Phase 3c — `DatabaseConfig.profile` field + new errors
+
+**Status: ◻ NOT STARTED.**
+
+**Goal.** Add the `profile: ProfileRecord?` field to
+`DatabaseConfig`, write/read it atomically, and detect pre-
+profile DBs. Commands still use the old `embedder` field — this
+phase only changes the config shape and adds the detection
+errors.
+
+**Files touched.**
+
+- Modified: `Sources/VecKit/DatabaseLocator.swift` — add the new
+  `profile: ProfileRecord?` field to `DatabaseConfig`
+  (alongside the existing `embedder: EmbedderRecord?` for one
+  phase — both coexist in the struct so callers can flip one
+  command at a time in 3d/3e). Add the nested `ProfileRecord`
+  type (per §"`DatabaseConfig` shape"). `writeConfig` writes
+  both fields (whichever is non-nil; new code paths set
+  `profile`, old code paths still set `embedder`). `readConfig`
+  decodes both and returns the struct unchanged. The
+  `migratePreRefactorEmbedderRecord` helper stays for now —
+  Phase 3e deletes it.
+- Modified: `Sources/VecKit/FileScanner.swift` (VecError home) —
+  add `profileNotRecorded` (no payload) and `preProfileDatabase`
+  (no payload). Both unused for now; commands wire to them in
+  3d/3e.
+- Modified: `Tests/VecKitTests/EmbedderConfigTests.swift` →
+  rename file to `Tests/VecKitTests/IndexingProfileConfigTests.swift`
+  in the same commit. Keep all existing legacy-shape decode
+  tests (the legacy round-trip path is still required since 3c
+  doesn't break it). Add new tests per §"Test plan" item 2:
+  round-trip a `DatabaseConfig` with `ProfileRecord` set;
+  round-trip with `profile: nil`; decode legacy JSON (just
+  `embedder` key, no `profile`) confirming `profile == nil`;
+  decode JSON with both keys and confirm both round-trip;
+  factory alias round trip (write a config from
+  `IndexingProfileFactory.make(alias: "nomic")`, read it back,
+  confirm identity equals the made profile's identity).
+
+**Ship criteria.**
+
+- `swift build` clean.
+- `swift test` exits 0. `IndexingProfileConfigTests` covers
+  both old and new decode paths.
+- A new `DatabaseConfig` written with `profile: ProfileRecord?`
+  set persists to `config.json` and reads back identical.
+- A pre-existing `config.json` with only the `embedder` key
+  decodes to `profile == nil` without throwing.
+- `ProfileRecord` carries `identity`, `embedderName`, and
+  `dimension` per §"`DatabaseConfig` shape".
+
+**Does NOT yet do.**
+
+- No CLI command consumes the new `profile` field. Commands
+  still read `config.embedder` and route on it.
+- No mismatch checks (`profileMismatch`,
+  `preProfileDatabase`, `profileNotRecorded`) actually thrown
+  from any command yet — the variants exist but are dead.
+- No `unknownEmbedder` → `unknownProfile` rename. Both
+  variants coexist (`unknownProfile` already added in 3b).
+- `migratePreRefactorEmbedderRecord` is NOT deleted yet.
+- No `IndexingPipeline.init(profile:)`.
+- No `RecursiveCharacterSplitter` default removal.
+- No `EmbedderFactory.swift` deletion.
+- No design doc.
+
+Reviewers should expect to see the `embedder` field still
+present on `DatabaseConfig` — that is intentional and gets
+removed in 3e.
+
+**Budget.** 1–1.5 h.
+
+**Checkpoint.** Commit (`feat: add DatabaseConfig.profile field +
+profile-state errors`) → `review-cycle` (2 reviewers) → manager
+approval → only then start Phase 3d.
+
+## Phase 3d — Wire `UpdateIndexCommand` to the factory + check-order
+
+**Status: ◻ NOT STARTED.**
+
+**Goal.** Make `update-index` the first command on the new path:
+parse profile flags, run the full check-order, write the
+`ProfileRecord`, drive the pipeline through `IndexingProfile`.
+`InsertCommand`, `SearchCommand`, `InfoCommand`, and `ListCommand`
+remain on the old `EmbedderFactory` / `EmbedderRecord` path —
+they're flipped in 3e.
+
+**Files touched.**
+
+- Modified: `Sources/VecKit/IndexingPipeline.swift` —
+  `init(profile: IndexingProfile)` instead of (or alongside,
+  for one phase) `init(embedder:)`. If kept alongside,
+  `init(embedder:)` becomes a thin shim used only by the
+  un-flipped commands; `init(profile:)` is the canonical path
+  used by `UpdateIndexCommand`. `EmbedderPool` unchanged.
+- Modified: `Sources/vec/Commands/UpdateIndexCommand.swift` —
+  full rewire per §"Ordering of checks inside each command":
+  CLI partial-override hard-fail at step 1 (throws
+  `partialChunkOverride`); chunk-count read at step 3; the
+  three missing-profile branches (pre-profile / fresh /
+  recorded); recorded-path identity construction with alias
+  fall-back to recorded alias and chunk-default fall-back to
+  alias-defaults (NOT recorded chunks — strict no-inheritance);
+  identity-string equality check throwing `profileMismatch` on
+  drift; `ProfileRecord` write at step 6 before the pipeline
+  touches the DB; pipeline construction with
+  `IndexingPipeline(profile:)`; help text sourcing chunk
+  defaults from `IndexingProfileFactory.builtIn(forAlias:
+  defaultAlias)` instead of `RecursiveCharacterSplitter.defaultChunkSize`.
+- Modified: `Sources/VecKit/FileScanner.swift` (VecError home) —
+  rename `unknownEmbedder` → `unknownProfile` (collapse with
+  the variant added in 3b — keep one canonical name),
+  `embedderMismatch` → `profileMismatch`, `embedderNotRecorded`
+  → `profileNotRecorded`. Update the error-text rendering for
+  `profileMismatch` to the exact format from §"The fatal
+  mismatch error text". All call-sites of the renamed variants
+  flip in this commit. Other commands (`InsertCommand`,
+  `SearchCommand`) catch / propagate via the renamed variants.
+- New: `Tests/vecTests/ProfileMismatchTests.swift` — covers the
+  `update-index`-side rows of the five-case matrix from §"Test
+  plan" item 3:
+  - recorded `nomic@1200/240`, request `update-index --embedder nl`
+    → `profileMismatch`.
+  - recorded `nomic@1200/240`, request `update-index --embedder
+    nomic --chunk-chars 500 --chunk-overlap 100` →
+    `profileMismatch`.
+  - recorded `nomic@1200/240`, request `update-index --embedder
+    nomic` (no chunk overrides) → succeeds.
+  - `update-index --chunk-chars 500` (only one chunk flag,
+    fresh DB) → `partialChunkOverride` thrown before any DB
+    work.
+  - pre-profile DB (`profile == nil`, `chunkCount > 0`),
+    request `update-index` → `preProfileDatabase`.
+  - fresh/reset DB (`profile == nil`, `chunkCount == 0`),
+    request `update-index --embedder nomic` → succeeds, writes
+    `ProfileRecord` to config.
+  The `search` and `insert` rows of the matrix are NOT in this
+  phase — they land in 3e once those commands are flipped.
+
+**Ship criteria.**
+
+- `swift build` clean.
+- `swift test` exits 0. `ProfileMismatchTests` covers six
+  `update-index` cases per above.
+- `update-index` on a recorded DB hits the new check-order
+  and surfaces the exact `profileMismatch` text from §"The
+  fatal mismatch error text".
+- `update-index` on a fresh DB writes a `ProfileRecord` to
+  `config.json` before the pipeline runs.
+- `update-index` help text no longer references
+  `RecursiveCharacterSplitter.defaultChunkSize` /
+  `defaultChunkOverlap`; defaults come from
+  `IndexingProfileFactory.builtIn(forAlias: defaultAlias)`.
+
+**Does NOT yet do.**
+
+- `InsertCommand` still uses `EmbedderFactory` and the old
+  `embedder` field. Inserts on a profile-recorded DB use the
+  legacy decode path (which sees `config.embedder` if the old
+  shim wrote it, or treats the DB as missing-embedder
+  otherwise). This is acceptable because `InsertCommand`
+  rarely runs alone — users typically `update-index` first.
+- `SearchCommand` still uses the old path. Same reasoning.
+- `InfoCommand` still renders the old "Embedder:" line. The
+  new four-state `Profile:` rendering lands in 3e.
+- `ListCommand` still prints rows without the profile column.
+- `EmbedderFactory.swift` not deleted.
+- `RecursiveCharacterSplitter.defaultChunkSize` /
+  `defaultChunkOverlap` constants not deleted (still consumed
+  by the un-flipped commands' implicit splitter construction).
+- `migratePreRefactorEmbedderRecord` not deleted.
+- No design doc.
+
+Reviewers should NOT file issues for `Insert`/`Search`/`Info`/
+`List` not using the profile path — that work belongs to 3e.
+
+**Budget.** 1.5–2 h. Largest of the five sub-phases because of
+the check-order plumbing and `ProfileMismatchTests`.
+
+**Checkpoint.** Commit (`feat: wire UpdateIndexCommand to
+IndexingProfileFactory with full check-order`) → `review-cycle`
+(2 reviewers) → manager approval → only then start Phase 3e.
+
+## Phase 3e — Flip remaining commands; delete legacy; design doc
+
+**Status: ◻ NOT STARTED.**
+
+**Goal.** Move `InsertCommand`, `SearchCommand`, `InfoCommand`,
+`ListCommand`, and `ResetCommand` onto the profile path; delete
+`EmbedderFactory` and the legacy `embedder` field on
+`DatabaseConfig`; drop the `RecursiveCharacterSplitter` default
+constants; loopify `TrademarkTranscriptFixtureTests`; write the
+design doc.
+
+**Files touched.**
+
+- Modified: `Sources/vec/Commands/SearchCommand.swift` — adopt
+  the search/insert check-order from §"Ordering of checks
+  inside each command": resolve DB, read chunk count, branch
+  on the missing-profile cases (`profileNotRecorded` /
+  `preProfileDatabase`), `IndexingProfileFactory.resolve(identity:)`,
+  open `VectorDatabase(dimension: recorded.dimension)`, run
+  search.
+- Modified: `Sources/vec/Commands/InsertCommand.swift` — same
+  check-order. Construct `TextExtractor(splitter:
+  profile.splitter)` so single-file inserts honor the
+  recorded profile's chunk settings (fixes the latent bug
+  noted in §"Pipeline wiring").
+- Modified: `Sources/vec/Commands/InfoCommand.swift` — render
+  the four `Profile:` states from §"Open questions (answered)"
+  Q1: built-in identity (`Profile: nomic@1200/240 (768d)`),
+  custom identity (`Profile: nomic@500/100 (custom, based on
+  nomic) (768d)`), fresh/reset (`Profile: (not yet
+  recorded)`), pre-profile (`Profile: (pre-profile database
+  — run 'vec reset <db>' to rebuild)`). Remove the
+  `migratePreRefactorEmbedderRecord` call.
+- Modified: `Sources/vec/Commands/ListCommand.swift` — append
+  the profile identity (or `(not recorded)` / `(pre-profile)`)
+  to each DB row per §"Open questions (answered)" Q4.
+- Modified: `Sources/vec/Commands/ResetCommand.swift` — write
+  config with `profile: nil` (no `embedder` key either, since
+  the legacy field is being deleted in this phase).
+- Modified: `Sources/VecKit/IndexingPipeline.swift` — if
+  `init(embedder:)` was kept as a shim in 3d, delete it now.
+  Only `init(profile:)` remains.
+- Modified: `Sources/VecKit/DatabaseLocator.swift` — remove the
+  legacy `embedder: EmbedderRecord?` field from
+  `DatabaseConfig`. Remove the `EmbedderRecord` struct.
+  Remove `migratePreRefactorEmbedderRecord`.
+- Deleted: `Sources/VecKit/EmbedderFactory.swift` — verify
+  with `grep` that no file references `EmbedderFactory`,
+  `EmbedderRecord`, `unknownEmbedder`, `embedderMismatch`, or
+  `embedderNotRecorded` after this commit.
+- Modified: `Sources/VecKit/RecursiveCharacterSplitter.swift` —
+  drop `defaultChunkSize` and `defaultChunkOverlap` constants;
+  require explicit `chunkSize` and `chunkOverlap` in `init`.
+  `defaultSeparators` stays.
+- Modified: `Tests/VecKitTests/TrademarkTranscriptFixtureTests.swift`
+  — collapse the two hardcoded `testNomic…` / `testNL…`
+  methods into the parameterized loop from §"Test plan"
+  item 4 over `IndexingProfileFactory.builtIns`.
+- Modified: `Tests/vecTests/ProfileMismatchTests.swift`
+  (extend in-place) — add the `search`/`insert` rows of the
+  five-case matrix that were deferred in 3d:
+  - pre-profile DB (`profile == nil`, `chunkCount > 0`),
+    `search "q"` → `preProfileDatabase`.
+  - pre-profile DB, `insert path` → `preProfileDatabase`.
+  - fresh DB (`profile == nil`, `chunkCount == 0`),
+    `search "q"` → `profileNotRecorded`.
+  - fresh DB, `insert path` → `profileNotRecorded`.
+- Modified: any test that previously relied on the
+  `RecursiveCharacterSplitter` default-constant constructor —
+  flip them to pass explicit chunk params (or to obtain a
+  splitter through `IndexingProfileFactory.make`).
+- Modified: `Tests/VecKitTests/IndexingProfileConfigTests.swift`
+  — update the legacy-decode test to confirm a config with
+  ONLY the `embedder` key still decodes to `profile == nil`
+  (the `embedder` field is now an unknown key the decoder
+  ignores), and remove any tests of the old `embedder` field
+  shape since the struct no longer carries it.
+- New: `indexing-profile.md` — design doc, 200–300 lines, in
+  the tone of `archived/pluggable-embedders.md`. Covers the
+  identity grammar, the alias / identity / `BuiltIn`
+  distinction, the check-order, the `partialChunkOverride`
+  rule, the strict no-inheritance rationale, the deferred
+  `--splitter` work, and the open extension points (per-
+  profile whole-doc policy, identity-grammar extension for
+  splitter discriminators).
+
+**Ship criteria.**
+
+- `swift build` clean.
+- `swift test` exits 0. Full `ProfileMismatchTests` matrix
+  (now ten cases) passes. `TrademarkTranscriptFixtureTests`
+  per-profile loop passes for both built-ins.
+- `grep` confirms no references to `EmbedderFactory`,
+  `EmbedderRecord`, `unknownEmbedder`, `embedderMismatch`,
+  `embedderNotRecorded`,
+  `RecursiveCharacterSplitter.defaultChunkSize`,
+  `RecursiveCharacterSplitter.defaultChunkOverlap`, or
+  `migratePreRefactorEmbedderRecord` anywhere in the tree.
+- `vec info` renders all four `Profile:` states correctly
+  against hand-crafted fixtures.
+- `vec list` includes the profile identity column on every
+  row.
+- `indexing-profile.md` exists at the expected path with the
+  expected length and tone.
+
+**Does NOT yet do.**
+
+- No retrieval-rubric scoring — that's Phase 5.
+- No new embedders or splitters land here (deferred per
+  §"Out of scope").
+- No `--splitter` flag (deferred; design doc explains the
+  extension path).
+
+**Budget.** 1.5–2 h.
+
+**Checkpoint.** Commit (`feat: complete IndexingProfile rollout
+— flip remaining commands, delete EmbedderFactory, design doc`)
+→ proceeds straight to Phase 4 (final whole-diff review across
+3a–3e). No mid-phase review-cycle gate after 3e because Phase 4
+IS the cumulative review.
 
 ## Test coverage required before merge
 
@@ -1134,6 +1575,10 @@ Pre-merge gate (Phase 4):
       `migratePreRefactorEmbedderRecord` (grep check).
 - [ ] `indexing-profile.md` exists, 200–300 lines, matches the tone
       of `archived/pluggable-embedders.md`.
+- [ ] Each of the five sub-phases (3a–3e) has its own commit, and
+      each of 3a–3d has a corresponding `review-cycle` artifact
+      (2 reviewer reports + manager approval) recorded before the
+      next sub-phase started.
 
 Post-merge verification (Phase 5):
 
