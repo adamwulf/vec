@@ -392,10 +392,16 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                 } else {
                     added += 1
                 }
-            case .skippedUnreadable:
+            case .skippedUnreadable(let filePath):
                 skippedUnreadable += 1
-            case .skippedEmbedFailure:
+                if verbose {
+                    print("Skipped (no chunks extracted): \(filePath)")
+                }
+            case .skippedEmbedFailure(let filePath):
                 skippedEmbedFailures += 1
+                if verbose {
+                    print("Skipped (all chunks failed to embed): \(filePath)")
+                }
             }
         }
 
