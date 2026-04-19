@@ -308,6 +308,10 @@ public enum VecError: Error, LocalizedError {
     /// CLI already refuses an embedder mismatch at the config layer,
     /// so this should only ever fire on a direct library misuse.
     case dimensionMismatch(expected: Int, actual: Int)
+    /// A persisted indexing profile identity failed the strict
+    /// grammar check or the round-trip equality check — indicates a
+    /// corrupt `config.json`.
+    case malformedProfileIdentity(String)
 
     public var errorDescription: String? {
         switch self {
@@ -341,6 +345,8 @@ public enum VecError: Error, LocalizedError {
             return "Database has no recorded embedder. Run 'vec reset' then 'vec update-index --embedder <name>' to rebuild."
         case .dimensionMismatch(let expected, let actual):
             return "Vector dimension mismatch: database expects \(expected)-dim vectors but got \(actual)-dim. The embedder wired to this call disagrees with the DB's recorded embedder."
+        case .malformedProfileIdentity(let identity):
+            return "Indexing profile '\(identity)' in config.json is malformed (expected shape `<alias>@<size>/<overlap>`). Run `vec reset <db>` to rebuild."
         }
     }
 }
