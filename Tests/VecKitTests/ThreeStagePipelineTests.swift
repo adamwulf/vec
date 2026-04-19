@@ -17,10 +17,10 @@ import Darwin
 /// reported numbers plus an implicit production comparison (from
 /// optimization-plan.md) are the artifacts.
 ///
-/// NOTE: slow (2 timed trials × real NLEmbedding). Skipped by default
-/// under the normal test run; invoke it explicitly, e.g.
+/// NOTE: slow (2 timed trials × real NLEmbedding). Skipped unless
+/// `VEC_PERF_TESTS=1` is set, e.g.
 ///
-///     swift test --filter VecKitTests.ThreeStagePipelineTests/testThreeStage_hugeFirstFile
+///     VEC_PERF_TESTS=1 swift test --filter VecKitTests.ThreeStagePipelineTests/testThreeStage_hugeFirstFile
 final class ThreeStagePipelineTests: XCTestCase {
 
     private var tempDir: URL!
@@ -214,6 +214,10 @@ final class ThreeStagePipelineTests: XCTestCase {
     }
 
     func testThreeStage_hugeFirstFile() async throws {
+        try XCTSkipUnless(
+            ProcessInfo.processInfo.environment["VEC_PERF_TESTS"] != nil,
+            "Perf test — set VEC_PERF_TESTS=1 to run (1 warm-up + 2 timed runs against real NLEmbedding)"
+        )
         logLine("[three-stage] WARNING: this test is slow — 1 warm-up + 2 timed runs against real NLEmbedding")
 
         let (fileCount, totalLines) = try generateCorpus()
