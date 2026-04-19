@@ -328,6 +328,15 @@ public enum VecError: Error, LocalizedError {
     /// with `unknownEmbedder` during the refactor — Phase 3d
     /// consolidates them.
     case unknownProfile(String)
+    /// The DB has no recorded indexing profile AND has zero chunks
+    /// (freshly-`init`ed or freshly-`reset`). Hit by `search` / `insert`
+    /// which cannot bootstrap a profile. Unused in Phase 3c — the CLI
+    /// layer wires this in Phase 3e.
+    case profileNotRecorded
+    /// The DB has no recorded indexing profile but DOES have chunks,
+    /// i.e. a pre-profile DB left over from before this refactor.
+    /// Unused in Phase 3c — the CLI layer wires this in Phase 3d/3e.
+    case preProfileDatabase
 
     public var errorDescription: String? {
         switch self {
@@ -369,6 +378,10 @@ public enum VecError: Error, LocalizedError {
             return "Invalid chunk parameters: \(reason)."
         case .unknownProfile(let alias):
             return "Unknown profile '\(alias)'. Known profiles: \(IndexingProfileFactory.knownAliases.joined(separator: ", "))."
+        case .profileNotRecorded:
+            return "Database has no recorded indexing profile. Run `vec update-index` first to establish a profile."
+        case .preProfileDatabase:
+            return "Database was indexed by an older version of vec with no recorded profile. Run `vec reset <db>` first, then `vec update-index` to rebuild it under a recorded profile."
         }
     }
 }

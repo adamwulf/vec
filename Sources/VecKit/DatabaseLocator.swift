@@ -8,6 +8,10 @@ public struct DatabaseConfig: Codable {
     public let createdAt: Date
     /// Embedder recorded on first successful index; nil until then (and on pre-refactor DBs).
     public let embedder: EmbedderRecord?
+    /// Resolved indexing profile; nil on freshly `vec init`ed / `vec reset` DBs
+    /// and on pre-profile DBs. Coexists with `embedder` during the 3c→3e refactor;
+    /// the legacy `embedder` field is removed in Phase 3e.
+    public let profile: ProfileRecord?
 
     /// Persisted embedder identity so reopens can detect a dimension mismatch. See `archived/pluggable-embedders.md`.
     public struct EmbedderRecord: Codable, Equatable {
@@ -20,10 +24,35 @@ public struct DatabaseConfig: Codable {
         }
     }
 
-    public init(sourceDirectory: String, createdAt: Date, embedder: EmbedderRecord? = nil) {
+    /// Persisted indexing-profile identity so reopens can detect a
+    /// profile mismatch without resolving the profile (which can itself
+    /// throw on unknown aliases). `dimension` is denormalized so the
+    /// command can open `VectorDatabase` before resolving the profile.
+    public struct ProfileRecord: Codable, Equatable {
+        /// Full canonical identity, e.g. "nomic@1200/240".
+        public let identity: String
+        /// Canonical embedder name, e.g. "nomic-v1.5-768".
+        public let embedderName: String
+        /// Embedder dimension, e.g. 768.
+        public let dimension: Int
+
+        public init(identity: String, embedderName: String, dimension: Int) {
+            self.identity = identity
+            self.embedderName = embedderName
+            self.dimension = dimension
+        }
+    }
+
+    public init(
+        sourceDirectory: String,
+        createdAt: Date,
+        embedder: EmbedderRecord? = nil,
+        profile: ProfileRecord? = nil
+    ) {
         self.sourceDirectory = sourceDirectory
         self.createdAt = createdAt
         self.embedder = embedder
+        self.profile = profile
     }
 
     /// The filename used to store the config inside a database directory.
