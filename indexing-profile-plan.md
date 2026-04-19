@@ -47,7 +47,13 @@ or pre-profile DBs.
    mismatch error text"). Both present → derived profile with identity
    `alias@N/M` (e.g. `nomic@500/100`). Neither present → alias-default
    identity (`nomic@1200/240`). No inheritance of a single chunk value
-   from alias-defaults or from the recorded profile.
+   from alias-defaults or from the recorded profile. Strict no-
+   inheritance also means "neither chunk flag present" always resolves
+   to the alias-default chunk params, never to the recorded custom
+   chunk params — so bare `vec update-index` on a recorded custom-chunk
+   DB (e.g. `nomic@500/100`) will hard-fail with `profileMismatch`
+   because the requested identity is `nomic@1200/240` (alias-default)
+   and does not equal the recorded `nomic@500/100`.
 5. `DatabaseConfig.profile` replaces `DatabaseConfig.embedder`. It
    carries the full resolved identity, not just the embedder name +
    dim. Present on every DB past the cutover.
@@ -273,8 +279,14 @@ public enum IndexingProfileFactory {
     /// programmer error caught by a precondition — the CLI layer is
     /// responsible for translating a partial-override CLI invocation
     /// into `VecError.partialChunkOverride` *before* calling `make`.
-    /// `isBuiltIn` is true IFF both overrides are nil. Identity is
-    /// always `"<alias>@<chunkSize>/<overlap>"`.
+    /// `isBuiltIn` is true IFF the effective chunk params equal the
+    /// alias's defaults (regardless of whether the caller passed them
+    /// explicitly or left them nil). This matters because
+    /// `resolve(identity:)` always calls `make` with explicit
+    /// chunk params parsed out of the identity string — a persisted
+    /// alias-default profile like `nomic@1200/240` round-trips through
+    /// `resolve` and must still report `isBuiltIn == true`. Identity
+    /// is always `"<alias>@<chunkSize>/<overlap>"`.
     public static func make(
         alias: String,
         chunkSize: Int? = nil,
@@ -289,7 +301,12 @@ public enum IndexingProfileFactory {
         let effectiveOverlap = chunkOverlap ?? entry.defaultChunkOverlap
         try validate(chunkSize: effectiveSize, chunkOverlap: effectiveOverlap)
 
-        let isBuiltIn = (chunkSize == nil) && (chunkOverlap == nil)
+        // `isBuiltIn` is a property of the resolved (effective) chunk
+        // params, not of how the caller spelled them. This is what
+        // keeps `resolve(identity: "nomic@1200/240")` equivalent to
+        // `make(alias: "nomic")` on the `isBuiltIn` field.
+        let isBuiltIn = (effectiveSize == entry.defaultChunkSize
+                      && effectiveOverlap == entry.defaultChunkOverlap)
         let identity = "\(alias)@\(effectiveSize)/\(effectiveOverlap)"
 
         let embedder: any Embedder
@@ -540,9 +557,19 @@ vec update-index --embedder nomic --chunk-chars 500 --chunk-overlap 100
 # first index: records "nomic@500/100"
 
 vec update-index
-# subsequent index: alias defaults to recorded alias, no chunk
-# overrides → requested identity equals recorded identity → proceeds
-# to index any new/changed files under the same profile.
+# subsequent index on a DB recorded at the alias-default (e.g.
+# "nomic@1200/240"): alias defaults to recorded alias, no chunk
+# overrides → requested identity is "nomic@1200/240" → matches
+# recorded → proceeds to index any new/changed files.
+
+vec update-index
+# subsequent index on a DB recorded at a custom-chunk identity (e.g.
+# "nomic@500/100"): alias defaults to recorded alias ("nomic"), no
+# chunk overrides → requested identity resolves to the alias-default
+# "nomic@1200/240" (NOT the recorded "nomic@500/100") → HARD FAIL
+# with profileMismatch. To re-index under the recorded profile,
+# retype the same flags (`--chunk-chars 500 --chunk-overlap 100`).
+# Or `vec reset` first if you want to switch.
 
 vec update-index --embedder nl
 # recorded is "nomic@1200/240" → HARD FAIL with profileMismatch
@@ -587,11 +614,21 @@ resolved identity visible in the exact command the user typed.
 
 **Alias resolution when `--embedder` is omitted on a recorded DB.**
 `update-index` without `--embedder` on a DB with a recorded profile
-takes the recorded profile's alias as the requested alias. The
-chunk-override half of the requested identity still follows the
-hard-fail rule above (both or neither). This is what lets the user
-re-run `vec update-index` on an already-indexed DB to pick up new
-files without retyping flags.
+takes the recorded profile's alias as the requested alias — **only
+the alias** falls back to the recorded value. The chunk-override
+half of the requested identity still follows the strict no-
+inheritance rule: either both flags are supplied (fully explicit
+derived identity) or neither is supplied, in which case the chunk
+params default to the **alias-default** chunk params (NOT the
+recorded chunk params). So if the recorded profile is the alias-
+default (`nomic@1200/240`), bare `update-index` succeeds — recorded
+and requested identities match. If the recorded profile is a custom
+identity (`nomic@500/100`), bare `update-index` hard-fails with
+`profileMismatch` — the user must retype `--chunk-chars 500
+--chunk-overlap 100` (or `vec reset` first). Re-running bare
+`vec update-index` to pick up new files without retyping flags is
+supported only when the recorded profile happens to be the alias-
+default; otherwise retyping the recorded chunk flags is required.
 
 **`--splitter` flag: deferred.** Today only
 `RecursiveCharacterSplitter` is wired through `TextExtractor`. A
@@ -736,7 +773,14 @@ For `update-index`:
    *alias-default* chunk params (NOT the recorded chunk params) —
    the hard-fail rule from §"Rule on partial overrides" has already
    been enforced at step 1, so by this point chunks are either
-   both-supplied or both-absent. Compare requested identity against
+   both-supplied or both-absent. **This means bare `vec update-index`
+   on a recorded custom-chunk DB will hard-fail** — the requested
+   identity uses the alias-default chunk params, which will not
+   equal the recorded custom chunk params. Design choice: we always
+   reach for the current best default, not the recorded one, so that
+   bare `update-index` surfaces a loud `profileMismatch` rather than
+   silently re-indexing under whatever chunk params happened to be
+   recorded. Compare requested identity against
    `recorded.profile.identity`. Mismatch → `profileMismatch`. Match
    → resolve the profile via `IndexingProfileFactory.resolve(identity:
    recorded.profile.identity)` and jump to step 7.
@@ -866,7 +910,14 @@ New / rewritten:
    - Full override: `make(alias: "nomic", chunkSize: 500, chunkOverlap: 100)`
      → identity `"nomic@500/100"`, `isBuiltIn == false`,
      `splitter.chunkSize == 500`.
-   - `resolve(identity: "nomic@1200/240")` → matches `make(alias: "nomic")`.
+   - `resolve(identity: "nomic@1200/240")` → matches `make(alias: "nomic")`
+     on every field, including `isBuiltIn == true`. (This is the
+     round-trip that forces `isBuiltIn` to be computed from the
+     effective chunk params rather than from whether the caller
+     passed nil — `resolve` always calls `make` with explicit
+     sizes.)
+   - `resolve(identity: "nomic@500/100")` → `isBuiltIn == false` (the
+     effective chunk params don't match nomic's alias-defaults).
    - **Strict parsing — reject all of these with
      `VecError.malformedProfileIdentity`:**
      `"garbled"`, `"nomic"`, `"nomic@1200"`, `"nomic@1200/"`,
