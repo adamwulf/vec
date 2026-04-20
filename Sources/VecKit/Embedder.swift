@@ -6,6 +6,21 @@ public protocol Embedder: Sendable {
     nonisolated var dimension: Int { get }
     func embedDocument(_ text: String) async throws -> [Float]
     func embedQuery(_ text: String) async throws -> [Float]
+    /// Batched document embedding. Output `[i]` corresponds to input `[i]`.
+    /// Whole-batch failure throws; per-item failure may be signalled by
+    /// returning `[]` at that index (the pipeline treats `isEmpty` as failed).
+    func embedDocuments(_ texts: [String]) async throws -> [[Float]]
+}
+
+public extension Embedder {
+    func embedDocuments(_ texts: [String]) async throws -> [[Float]] {
+        var out: [[Float]] = []
+        out.reserveCapacity(texts.count)
+        for t in texts {
+            out.append(try await embedDocument(t))
+        }
+        return out
+    }
 }
 
 /// Errors raised by an `Embedder` implementation.
