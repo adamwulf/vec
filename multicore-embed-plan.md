@@ -59,8 +59,12 @@ Run exactly once at baseline, then once per experiment:
    is an averaged window, not an instantaneous tick. Use `top -l 4
    -s 1 -pid $(pgrep -n vec) -stats cpu,mem,rsize` and **drop the
    first tick** (it's a zero-delta reference frame and unreliable);
-   average the remaining three. Record the `cpu` column (target
-   ≥600% for pass) and peak `rsize`.
+   average the remaining three to produce one CPU% number per
+   window. Record the `cpu` column (target ≥600% for pass) and peak
+   `rsize`. **The pass-gate uses the peak CPU% across windows** (not
+   the mean) — matches the `top-CPU` column in the results table,
+   which is explicitly defined as "peak CPU% from `top` sample during
+   run."
    **GPU/ANE caveat**: on Apple Silicon, MLX work that runs on
    Metal GPU or the ANE does NOT appear in `top`'s per-process CPU%.
    If bge-base inference is GPU/ANE-bound, a perfectly parallel
@@ -243,12 +247,12 @@ If RSS after warmup > 6 GB, back off `concurrency`.
   Keep E1's code; E1+E3 is the design-intent combination.
 - **Insufficient**: `util < 400%` → mailbox wasn't the only
   bottleneck. Proceed to E3 layered on top of E1. **Decision rule
-  (no operator judgment required):** if E1 alone lands `util <
-  400%` AND E1+E3 yields no further wall-clock improvement versus
-  baseline (within the ±10% threshold that E3 requires to ship),
-  revert E1 before moving on to E2 — carrying E1's memory cost with
-  no throughput benefit is pure liability. If E1+E3 *does* improve
-  wall-clock past that threshold, keep E1.
+  (no operator judgment required):** if E1 alone lands `util < 400%`
+  AND E1+E3 fails E3's own ship threshold (the `≥10% wall-clock
+  reduction vs E1 best` defined in E3's Exit criteria below), revert
+  E1 before moving on to E2 — carrying E1's memory cost with no
+  throughput benefit is pure liability. If E1+E3 *does* clear E3's
+  ship threshold, keep E1 (E3 demonstrably added value on top of it).
 - **Back off**: RSS > 6 GB after warmup → reduce `concurrency` and
   retest.
 
