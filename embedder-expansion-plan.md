@@ -221,7 +221,7 @@ Status legend: ✅ DONE · ⏳ NEXT UP · ◻ NOT STARTED.
 | 🚫 BLOCKED | C.2 | impl sub-agent (`arctic-m-47026f1e`) — rolled back, partial commit retained | snowflake-arctic-embed-m-v1.5: **blocked** (see "C.2 blocker" note below); shared `l2Normalize` helper + bge-base concurrency canary landed as consolation | 1-2 h |
 | ✅ DONE | C.3 | impl sub-agent → review-cycle | Apple NLContextualEmbedding wired in with tests (NL framework, requestAssets, mean-pool + L2 norm, 256-token chunking) | 3-5 h |
 | ✅ DONE | D | manager | bge-base sweep (6 configs, winner 1200/240 @ 39/60) + nl-contextual (2 configs, ruled out) | 1 h × n |
-| ⏳ NEXT UP | E | manager | `IndexingProfileFactory.defaultAlias` flip to `bge-base` + tests | 45 min |
+| ✅ DONE | E | manager | `IndexingProfileFactory.defaultAlias` flipped to `bge-base`, tests updated (249/249 pass) | 45 min |
 
 When a phase ships, whoever ships it flips its row from ⏳/◻ to ✅
 in the same commit and marks the next phase ⏳ NEXT UP.
