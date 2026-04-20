@@ -28,6 +28,7 @@ final class IndexingProfileTests: XCTestCase {
         IndexingProfile(
             identity: identity,
             embedder: StubEmbedder(),
+            embedderFactory: { StubEmbedder() },
             splitter: StubSplitter(),
             chunkSize: chunkSize,
             chunkOverlap: chunkOverlap,

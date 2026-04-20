@@ -19,9 +19,20 @@ public struct IndexingProfile: Sendable {
     /// and the numbers are the actual effective chunk params.
     public let identity: String
 
-    /// Embedder instance. Its `name` + `dimension` are the dim source of
-    /// truth for the DB (`VectorDatabase(dimension:)`).
+    /// Canonical exemplar embedder instance. Its `name` + `dimension`
+    /// are the dim source of truth for the DB
+    /// (`VectorDatabase(dimension:)`) and for callers that need a
+    /// single embedder (e.g. query-side search). For the indexing
+    /// pipeline, prefer `embedderFactory` — it mints fresh siblings
+    /// so the pool can hold N of them concurrently.
     public let embedder: any Embedder
+
+    /// Mints fresh sibling embedders of the same type/config as
+    /// `embedder`. The indexing pipeline calls this N times to fill
+    /// `EmbedderPool` — N instances = N actor mailboxes = real
+    /// parallelism. Query-side code keeps using `embedder` directly;
+    /// a single instance is fine for a single query.
+    public let embedderFactory: @Sendable () -> any Embedder
 
     /// Splitter used by `TextExtractor`. Currently always a
     /// `RecursiveCharacterSplitter`; the field is `any TextSplitter` so
@@ -47,6 +58,7 @@ public struct IndexingProfile: Sendable {
     public init(
         identity: String,
         embedder: any Embedder,
+        embedderFactory: @escaping @Sendable () -> any Embedder,
         splitter: any TextSplitter,
         chunkSize: Int,
         chunkOverlap: Int,
@@ -56,6 +68,7 @@ public struct IndexingProfile: Sendable {
         precondition(chunkOverlap >= 0 && chunkOverlap < chunkSize)
         self.identity = identity
         self.embedder = embedder
+        self.embedderFactory = embedderFactory
         self.splitter = splitter
         self.chunkSize = chunkSize
         self.chunkOverlap = chunkOverlap
@@ -200,14 +213,19 @@ public enum IndexingProfileFactory {
                       && effectiveOverlap == entry.defaultChunkOverlap)
         let identity = "\(alias)@\(effectiveSize)/\(effectiveOverlap)"
 
-        let embedder: any Embedder
+        // Alias → factory closure. The closure is `@Sendable` and
+        // captures only the alias string (literal), so the pool can
+        // call it N times from any isolation domain to mint fresh
+        // sibling instances.
+        let factory: @Sendable () -> any Embedder
         switch alias {
-        case "nomic":         embedder = NomicEmbedder()
-        case "nl":            embedder = NLEmbedder()
-        case "bge-base":      embedder = BGEBaseEmbedder()
-        case "nl-contextual": embedder = NLContextualEmbedder()
+        case "nomic":         factory = { NomicEmbedder() }
+        case "nl":            factory = { NLEmbedder() }
+        case "bge-base":      factory = { BGEBaseEmbedder() }
+        case "nl-contextual": factory = { NLContextualEmbedder() }
         default:              throw VecError.unknownProfile(alias)
         }
+        let embedder = factory()
 
         let splitter = RecursiveCharacterSplitter(
             chunkSize: effectiveSize,
@@ -217,6 +235,7 @@ public enum IndexingProfileFactory {
         return IndexingProfile(
             identity: identity,
             embedder: embedder,
+            embedderFactory: factory,
             splitter: splitter,
             chunkSize: effectiveSize,
             chunkOverlap: effectiveOverlap,

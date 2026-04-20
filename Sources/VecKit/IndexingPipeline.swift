@@ -176,7 +176,7 @@ public final class IndexingPipeline: Sendable {
         profile: IndexingProfile
     ) {
         self.workerCount = concurrency
-        self.pool = EmbedderPool(embedder: profile.embedder)
+        self.pool = EmbedderPool(factory: profile.embedderFactory, count: concurrency)
     }
 
     /// Run the full indexing pipeline for a set of file work items.
@@ -654,33 +654,93 @@ actor FileAccumulator {
 /// If a future embedder doesn't serialize internally and doesn't have
 /// C++ thread-safety problems, this type can grow an N-instance free
 /// list — the acquire/release shape already supports it.
+/// Bounded pool of N embedder instances. Each call to `acquire()`
+/// returns a unique, currently-idle instance; `release(_:)` either
+/// hands the just-freed instance to the oldest waiter or marks it
+/// idle. Enforces **one-worker-per-instance**: the pool MUST NOT
+/// hand the same instance to two workers simultaneously, because
+/// each embedder is an `actor` with its own mailbox and letting two
+/// workers land on the same mailbox is exactly the single-instance
+/// bottleneck this pool exists to eliminate.
+///
+/// Pattern mirrors `ExtractBackpressure` below — continuation-based
+/// waiter queue — but the continuation generic is `any Embedder`
+/// (not `Void`), so `release` can resume a waiter directly with the
+/// specific instance that just became available. A "mark available,
+/// let the waiter re-race for it" design is a correctness bug under
+/// this invariant.
 actor EmbedderPool {
-    // Stored nonisolated so the pool's `name`/`dimension` getters —
-    // which just forward to the embedder's own nonisolated properties
-    // — can run without an actor hop.
-    private nonisolated let embedder: any Embedder
+    /// All N instances. Nonisolated because the slice is fixed at
+    /// init and readable by `name`/`dimension` without a hop.
+    private nonisolated let instances: [any Embedder]
 
-    init(embedder: any Embedder) {
-        self.embedder = embedder
+    /// Indices into `instances` that are currently free. We pop the
+    /// last element (LIFO) so the most-recently-used instance gets
+    /// reused first — good for any internal caches the embedder may
+    /// have warmed up.
+    private var freeIndices: [Int]
+
+    /// Waiters are resumed with the specific instance being handed
+    /// off. Carrying the instance here (not a Void permit) is the
+    /// invariant that makes one-worker-per-instance hold without a
+    /// re-race window.
+    private var waiters: [CheckedContinuation<any Embedder, Never>] = []
+
+    init(factory: @Sendable () -> any Embedder, count: Int) {
+        precondition(count >= 1, "EmbedderPool requires count ≥ 1")
+        var made: [any Embedder] = []
+        made.reserveCapacity(count)
+        for _ in 0..<count {
+            made.append(factory())
+        }
+        self.instances = made
+        self.freeIndices = Array(0..<count)
     }
 
-    func acquire() async -> any Embedder { embedder }
+    func acquire() async -> any Embedder {
+        if let idx = freeIndices.popLast() {
+            return instances[idx]
+        }
+        return await withCheckedContinuation { continuation in
+            waiters.append(continuation)
+        }
+    }
 
-    func release(_ embedder: any Embedder) { /* no-op */ }
+    func release(_ embedder: any Embedder) {
+        // Locate the instance by identity — all instances came from
+        // the factory at init so we can trust `ObjectIdentifier`
+        // equality on class/actor references.
+        guard let idx = instances.firstIndex(where: { ObjectIdentifier($0 as AnyObject) == ObjectIdentifier(embedder as AnyObject) }) else {
+            return
+        }
+        if !waiters.isEmpty {
+            let waiter = waiters.removeFirst()
+            waiter.resume(returning: instances[idx])
+            return
+        }
+        freeIndices.append(idx)
+    }
 
-    /// Canonical embedder name surfaced for the DB-writer and CLI.
-    /// Nonisolated so it can be read synchronously.
-    nonisolated var name: String { embedder.name }
-    nonisolated var dimension: Int { embedder.dimension }
+    /// Canonical embedder name/dimension. Every instance shares the
+    /// same type and config, so the first is a safe exemplar.
+    nonisolated var name: String { instances[0].name }
+    nonisolated var dimension: Int { instances[0].dimension }
 
-    /// Force-loads the model and runs one inference so the first real
-    /// chunk doesn't pay cold-start cost. Swallows errors — a warmup
-    /// failure will surface on the first real embed.
+    /// Force-loads every instance's model serially — one `await` per
+    /// instance completes before the next begins. Serial because:
+    /// (a) the first run ever populates the HuggingFace on-disk
+    /// cache, and N parallel cold loaders would all race to write
+    /// the same files; (b) per-instance parallel cold-load
+    /// contends for the same memory bandwidth and gains nothing.
+    /// Swallows errors — a warmup failure will surface on the first
+    /// real embed.
     func warmAll() async {
-        do {
-            _ = try await embedder.embedDocument("warmup")
-        } catch {
-            // swallow — real embed will surface the failure
+        for instance in instances {
+            do {
+                _ = try await instance.embedDocument("warmup")
+            } catch {
+                // swallow — real embed will surface the failure
+            }
         }
     }
 }
