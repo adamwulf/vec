@@ -6,3 +6,5 @@ DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .vec/
 /tmp-logs/
+.reindex-*.log
+.rubric-*/
