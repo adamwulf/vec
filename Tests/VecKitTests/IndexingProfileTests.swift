@@ -200,7 +200,7 @@ final class IndexingProfileTests: XCTestCase {
     }
 
     func testFactoryDefaultAliasIsKnown() {
-        XCTAssertEqual(IndexingProfileFactory.defaultAlias, "nomic")
+        XCTAssertEqual(IndexingProfileFactory.defaultAlias, "bge-base")
         XCTAssertTrue(IndexingProfileFactory.knownAliases.contains(IndexingProfileFactory.defaultAlias))
     }
 

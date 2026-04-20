@@ -117,7 +117,7 @@ public enum IndexingProfileFactory {
         public let defaultChunkOverlap: Int
     }
 
-    public static let defaultAlias = "nomic"
+    public static let defaultAlias = "bge-base"
 
     /// Static table. Adding a new embedder means adding one row here
     /// plus wiring the `make` switch below. Never instantiates an
@@ -137,9 +137,8 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 2000,
             defaultChunkOverlap: 200
         ),
-        // Provisional chunk defaults seeded from `nomic` (same 768 dim,
-        // same BERT architecture via swift-embeddings). Phase D of
-        // `embedder-expansion-plan.md` replaces these with tuned values.
+        // 1200/240 selected by Phase D sweep against bean-counter rubric
+        // (39/60, 9/10 top-10_either on markdown-memory corpus, 2026-04-20).
         BuiltIn(
             alias: "bge-base",
             canonicalEmbedderName: "bge-base-en-v1.5",
