@@ -276,6 +276,19 @@ parallelism). Net throughput may still win.
 secondary consistency check; it can rise without wall dropping if
 tail-latency files still dominate. Require wall-clock win to ship.
 
+**Outcome (2026-04-20).** Investigation found swift-embeddings uses
+Apple `MLTensor` / CoreML (not MLX), so the "MLX thread knob"
+hypothesis doesn't apply. Probe with `withMLTensorComputePolicy
+(.cpuOnly)` wrapped around `bundle.encode` showed **CPU parity** with
+E1's default policy (avg 447 vs 420, peak 504 vs 541 — within
+measurement noise across two runs). No evidence of a ≥10% wall-clock
+win; reverted the patch. The remaining ~11% gap to the 600% pass-gate
+is accepted: on this stack CoreML already picks the right mix of CPU
+and GPU per operation, and forcing CPU-only gives up GPU dispatch for
+no throughput gain. Further throughput work would need architectural
+changes (batched encoding, dropping to raw BNNS, etc.) outside the
+scope of this plan.
+
 ### E2 — Strip actor isolation (complexity-reduction, not throughput fix)
 
 **Hypothesis (corrected).** Actor hops are not global serializers,
@@ -367,7 +380,7 @@ Columns:
 | 0 | baseline fresh bge-base@1200/240 | partial | n/a | n/a | n/a | 137.6% | n/a | 704M | n/a | n/a | n/a | n/a | killed mid-run (~20min in) per tight-loop protocol; peak CPU from top -l 4 window 1 |
 | 0a | E0 diagnostic (instrumented) | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | n/a | n/a | n/a | skipped per user: row 0 peak 137.6% on 10 cores = clear single-actor bottleneck; go straight to E1 |
 | 1 | E1 pool concurrency=activeProcessorCount | partial | n/a | n/a | n/a | 541.1% | n/a | 4.6G | n/a | n/a | n/a | n/a | tight-loop measure; ticks w1 avg 413%/peak 541%, w2 avg 425%/peak 503%; ~3.9x vs row 0 |
-| 2 | E3 MLX threads pinned=1 on E1 best | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | compound with E1; wall-clock is primary |
+| 2 | E3 probe: withMLTensorComputePolicy(.cpuOnly) on bundle.encode | partial | n/a | n/a | n/a | 504% | n/a | 4.6G | n/a | n/a | n/a | n/a | CPU parity with E1 (avg 447 vs 420, peak 504 vs 541 — within noise); reverted. swift-embeddings uses CoreML/MLTensor not MLX, so plan's thread-pin hypothesis doesn't apply. No clear ≥10% wall-clock win probe; fail-fast exit |
 | 3 | E2 struct+lock (if pursued) | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | structural simplification only; must not regress |
 
 ## Out of scope
