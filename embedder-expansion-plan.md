@@ -219,8 +219,8 @@ Status legend: ✅ DONE · ⏳ NEXT UP · ◻ NOT STARTED.
 | ✅ DONE | B | manager + user (picks locked 2026-04-19) | 3 picks written into Phase B above: bge-base, arctic-m-v1.5, NLContextualEmbedding | 15 min |
 | ✅ DONE | C.1 | impl sub-agent (`bge-base-embedde-d9c3a224`) → review-cycle (both APPROVED) | bge-base-en-v1.5 wired in with tests (swift-embeddings `Bert` loader, CLS-pool + L2 norm, no prefix) | 1-2 h |
 | 🚫 BLOCKED | C.2 | impl sub-agent (`arctic-m-47026f1e`) — rolled back, partial commit retained | snowflake-arctic-embed-m-v1.5: **blocked** (see "C.2 blocker" note below); shared `l2Normalize` helper + bge-base concurrency canary landed as consolation | 1-2 h |
-| ⏳ NEXT UP | C.3 | impl sub-agent → review-cycle | Apple NLContextualEmbedding wired in with tests (NL framework, requestAssets, mean-pool + L2 norm, 256-token chunking) | 3-5 h |
-| ◻ NOT STARTED | D | manager | Parameter sweep per embedder, winning defaults committed | 1 h × n |
+| ✅ DONE | C.3 | impl sub-agent → review-cycle | Apple NLContextualEmbedding wired in with tests (NL framework, requestAssets, mean-pool + L2 norm, 256-token chunking) | 3-5 h |
+| ⏳ NEXT UP | D | manager | Parameter sweep per embedder, winning defaults committed | 1 h × n |
 | ◻ NOT STARTED | E | manager | Final compare/contrast report + default alias decision | 45 min |
 
 When a phase ships, whoever ships it flips its row from ⏳/◻ to ✅

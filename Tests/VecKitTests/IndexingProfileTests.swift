@@ -230,6 +230,24 @@ final class IndexingProfileTests: XCTestCase {
         XCTAssertEqual(profile.embedder.dimension, 768)
     }
 
+    func testFactoryBuiltInForAliasLookup_nlContextual() throws {
+        let entry = try IndexingProfileFactory.builtIn(forAlias: "nl-contextual")
+        XCTAssertEqual(entry.canonicalEmbedderName, "nl-contextual-en-512")
+        XCTAssertEqual(entry.canonicalDimension, 512)
+        XCTAssertEqual(entry.defaultChunkSize, 1200)
+        XCTAssertEqual(entry.defaultChunkOverlap, 240)
+    }
+
+    func testFactoryResolveNLContextualDefaultIdentity() throws {
+        let profile = try IndexingProfileFactory.resolve(identity: "nl-contextual@1200/240")
+        XCTAssertEqual(profile.identity, "nl-contextual@1200/240")
+        XCTAssertEqual(profile.chunkSize, 1200)
+        XCTAssertEqual(profile.chunkOverlap, 240)
+        XCTAssertTrue(profile.isBuiltIn)
+        XCTAssertEqual(profile.embedder.name, "nl-contextual-en-512")
+        XCTAssertEqual(profile.embedder.dimension, 512)
+    }
+
     // MARK: - IndexingProfileFactory — full override composition
 
     func testFactoryFullOverrideProducesCustomProfile() throws {

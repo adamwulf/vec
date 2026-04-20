@@ -147,6 +147,15 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 1200,
             defaultChunkOverlap: 240
         ),
+        // Provisional chunk defaults seeded from `nomic`. Phase D of
+        // `embedder-expansion-plan.md` replaces these with tuned values.
+        BuiltIn(
+            alias: "nl-contextual",
+            canonicalEmbedderName: "nl-contextual-en-512",
+            canonicalDimension: 512,
+            defaultChunkSize: 1200,
+            defaultChunkOverlap: 240
+        ),
     ]
 
     public static var knownAliases: [String] { builtIns.map(\.alias) }
@@ -194,10 +203,11 @@ public enum IndexingProfileFactory {
 
         let embedder: any Embedder
         switch alias {
-        case "nomic":    embedder = NomicEmbedder()
-        case "nl":       embedder = NLEmbedder()
-        case "bge-base": embedder = BGEBaseEmbedder()
-        default:         throw VecError.unknownProfile(alias)
+        case "nomic":         embedder = NomicEmbedder()
+        case "nl":            embedder = NLEmbedder()
+        case "bge-base":      embedder = BGEBaseEmbedder()
+        case "nl-contextual": embedder = NLContextualEmbedder()
+        default:              throw VecError.unknownProfile(alias)
         }
 
         let splitter = RecursiveCharacterSplitter(
