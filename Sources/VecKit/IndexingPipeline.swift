@@ -642,18 +642,6 @@ actor FileAccumulator {
 
 // MARK: - Embedder Pool
 
-/// Holds one shared `Embedder` actor. Every current implementation
-/// (`NomicEmbedder`, `NLEmbedder`) is an `actor`, which serializes
-/// embed calls internally — the "pool" is effectively size-1. The
-/// original N-copies design was a workaround for NLEmbedding's C++
-/// runtime crashing under concurrent calls on one instance; actor
-/// serialization solves that, and modern embedders (nomic, llama) are
-/// hundreds of MiB each, so duplicating for parallelism would cost
-/// gigabytes of RAM for little throughput win.
-///
-/// If a future embedder doesn't serialize internally and doesn't have
-/// C++ thread-safety problems, this type can grow an N-instance free
-/// list — the acquire/release shape already supports it.
 /// Bounded pool of N embedder instances. Each call to `acquire()`
 /// returns a unique, currently-idle instance; `release(_:)` either
 /// hands the just-freed instance to the oldest waiter or marks it
