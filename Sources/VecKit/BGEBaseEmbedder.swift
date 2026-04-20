@@ -49,12 +49,4 @@ public actor BGEBaseEmbedder: Embedder {
         self.bundle = loaded
         return loaded
     }
-
-    private func l2Normalize(_ vector: [Float]) -> [Float] {
-        var sumSquares: Float = 0
-        for v in vector { sumSquares += v * v }
-        let norm = sqrt(sumSquares)
-        guard norm > 0 else { return vector }
-        return vector.map { $0 / norm }
-    }
 }
