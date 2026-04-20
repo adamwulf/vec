@@ -168,14 +168,24 @@ public final class IndexingPipeline: Sendable {
     /// can size progress displays against the same value the pool uses.
     public let workerCount: Int
 
+    /// Max number of chunks per batch passed to `Embedder.embedDocuments`.
+    /// The batch-former length-buckets chunks and flushes when a bucket
+    /// reaches this size or the extract stream finishes. Capped at 32 to
+    /// avoid BNNS crashes in `swift-embeddings` (jkrukowski#17).
+    public let batchSize: Int
+
     /// Bounded pool of N embedder instances sized to `workerCount`.
     private let pool: EmbedderPool
 
     public init(
-        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
+        concurrency: Int = 2,
+        batchSize: Int = 16,
         profile: IndexingProfile
     ) {
+        precondition(batchSize >= 1 && batchSize <= 32,
+                     "batchSize must be in 1…32 (BNNS cap per swift-embeddings #17)")
         self.workerCount = concurrency
+        self.batchSize = batchSize
         self.pool = EmbedderPool(factory: profile.embedderFactory, count: concurrency)
     }
 
@@ -205,12 +215,17 @@ public final class IndexingPipeline: Sendable {
         let warmSeconds = Self.elapsed(since: warmStart)
         progress?(.poolWarmed(seconds: warmSeconds))
 
-        // Embed stream: extract task → embed-spawner.
+        // Embed stream: extract task → batch-former.
         // Unbounded buffering: extract should always be faster than embed
-        // (no embed call), so chunks queue here until the pool has
-        // capacity. Pool occupancy (.poolAcquired − .poolReleased) is the
-        // diagnostic signal for "is embed the bottleneck?".
+        // (no embed call), so chunks queue here until the batch-former
+        // drains them.
         let (embedStream, embedContinuation) = AsyncStream<EmbedWork>.makeStream(
+            bufferingPolicy: .unbounded
+        )
+
+        // Batch stream: batch-former → embed-spawner. Carries grouped
+        // chunks so each pool acquisition processes a full batch.
+        let (batchStream, batchContinuation) = AsyncStream<BatchWork>.makeStream(
             bufferingPolicy: .unbounded
         )
 
@@ -227,11 +242,12 @@ public final class IndexingPipeline: Sendable {
         let resultCollector = ResultCollector()
         let statsCollector = StatsCollector()
         let accumulator = FileAccumulator()
-        // Per-chunk backpressure: extract blocks once the embed queue is
-        // roughly two pool-sizes deep. Keeps memory bounded on large
-        // corpora (previously extract would race through all files and
-        // queue tens of thousands of chunks' text before embed caught up).
-        let extractGate = ExtractBackpressure(capacity: workerCount * 2)
+        // Per-chunk backpressure: sized to `workerCount * batchSize * 2`
+        // so extract can queue up to ~2 batches per worker before blocking.
+        // Undersizing this would stall extract immediately once the batched
+        // pipeline starts consuming in batches rather than one-at-a-time.
+        let extractGate = ExtractBackpressure(capacity: workerCount * batchSize * 2)
+        let batchSize = self.batchSize
 
         try await withThrowingTaskGroup(of: Void.self) { group in
 
@@ -343,77 +359,94 @@ public final class IndexingPipeline: Sendable {
                 embedContinuation.finish()
             }
 
-            // Stage 2: Embed-spawner. Drains the embed stream, spawns one
-            // task per chunk inside a TaskGroup. The pool's acquire/release
-            // is the natural concurrency gate — we don't need a separate
-            // semaphore. Tasks are unstructured-per-chunk inside the
-            // group, so a long-running embed doesn't block the next chunk
-            // from being scheduled.
+            // Stage 1.5: Batch-former. Drains embedStream, buckets by
+            // length (chunk.text.count / 500), flushes a bucket when it
+            // hits batchSize or when extract closes embedStream.
+            // Length-bucketing minimizes padding waste in batchEncode —
+            // the tensor is padded to the longest input, so grouping
+            // like-length chunks keeps wasted FLOPs low.
+            group.addTask {
+                var buckets: [Int: [EmbedWork]] = [:]
+                for await work in embedStream {
+                    let bucket = max(0, work.chunk.text.count / 500)
+                    buckets[bucket, default: []].append(work)
+                    if buckets[bucket]!.count >= batchSize {
+                        let flushed = buckets.removeValue(forKey: bucket)!
+                        batchContinuation.yield(BatchWork(items: flushed))
+                    }
+                }
+                // Extract stream closed — flush remaining partial buckets.
+                for (_, items) in buckets where !items.isEmpty {
+                    batchContinuation.yield(BatchWork(items: items))
+                }
+                batchContinuation.finish()
+            }
+
+            // Stage 2: Embed-spawner. Drains the batch stream, spawns one
+            // task per batch inside a TaskGroup. Each task acquires a
+            // pooled embedder, calls `embedDocuments` on the whole batch,
+            // then fans the result rows out as per-chunk events so the
+            // accumulator stage and UI progress semantics are unchanged.
             group.addTask {
                 await withTaskGroup(of: Void.self) { embedGroup in
-                    for await work in embedStream {
+                    for await batch in batchStream {
                         embedGroup.addTask {
-                            let chunk = work.chunk
-
                             let embedder = await pool.acquire()
                             progress?(.poolAcquired)
-                            let chunkStart = DispatchTime.now()
-                            let vector: [Float]?
+                            let batchStart = DispatchTime.now()
+                            let vectors: [[Float]]
                             do {
-                                let v = try await embedder.embedDocument(chunk.text)
-                                vector = v.isEmpty ? nil : v
+                                let texts = batch.items.map { $0.chunk.text }
+                                vectors = try await embedder.embedDocuments(texts)
                             } catch {
-                                vector = nil
+                                // Whole-batch failure → every chunk in the
+                                // batch gets a nil record. Per-item failure
+                                // isolation via retry-with-single-calls is
+                                // intentionally not implemented (would be a
+                                // separate experiment).
+                                vectors = Array(repeating: [], count: batch.items.count)
                             }
-                            let chunkSeconds = Self.elapsed(since: chunkStart)
+                            let batchSeconds = Self.elapsed(since: batchStart)
                             await pool.release(embedder)
                             progress?(.poolReleased)
 
-                            progress?(.chunkEmbedded(seconds: chunkSeconds))
-                            await statsCollector.recordChunkEmbed(seconds: chunkSeconds)
+                            // Amortize the batch-wall across chunks for
+                            // the per-chunk progress event. Keeps the UI
+                            // and stats collector's per-chunk view of
+                            // "how much wall-clock per chunk" continuous
+                            // with the pre-batch pipeline.
+                            let perChunk = batchSeconds / Double(max(batch.items.count, 1))
+                            for (work, vector) in zip(batch.items, vectors) {
+                                progress?(.chunkEmbedded(seconds: perChunk))
+                                await statsCollector.recordChunkEmbed(seconds: perChunk)
 
-                            let record: ChunkRecord?
-                            if let vector = vector {
-                                record = ChunkRecord(
+                                let chunk = work.chunk
+                                let record: ChunkRecord?
+                                if !vector.isEmpty {
+                                    record = ChunkRecord(
+                                        filePath: work.file.relativePath,
+                                        lineStart: chunk.lineStart,
+                                        lineEnd: chunk.lineEnd,
+                                        chunkType: chunk.type,
+                                        pageNumber: chunk.pageNumber,
+                                        fileModifiedAt: work.file.modificationDate,
+                                        contentPreview: String(chunk.text.prefix(200)),
+                                        embedding: vector
+                                    )
+                                } else {
+                                    record = nil
+                                }
+
+                                let emitted = EmbeddedChunk(
                                     filePath: work.file.relativePath,
-                                    lineStart: chunk.lineStart,
-                                    lineEnd: chunk.lineEnd,
-                                    chunkType: chunk.type,
-                                    pageNumber: chunk.pageNumber,
-                                    fileModifiedAt: work.file.modificationDate,
-                                    contentPreview: String(chunk.text.prefix(200)),
-                                    embedding: vector
+                                    ordinal: work.ordinal,
+                                    record: record
                                 )
-                            } else {
-                                // Embed failed for this chunk — still
-                                // contribute to the file's total so the
-                                // accumulator knows when the file is done.
-                                // Failed chunks just don't produce a
-                                // ChunkRecord; the file is recorded with
-                                // whatever subset succeeded.
-                                record = nil
+                                // Release one gate permit per chunk, not
+                                // per batch — extract acquires per-chunk.
+                                await extractGate.release()
+                                accumContinuation.yield(emitted)
                             }
-
-                            let emitted = EmbeddedChunk(
-                                filePath: work.file.relativePath,
-                                ordinal: work.ordinal,
-                                record: record
-                            )
-                            // Release the extract-gate permit BEFORE the
-                            // accumulator handoff. The permit gates "is
-                            // there pool capacity for the next chunk?",
-                            // which was answered the moment pool.release
-                            // ran above. Releasing after accumContinuation
-                            // .yield meant a stalled accumulator (e.g.
-                            // mid-save bookkeeping under the renderer
-                            // lock) would jam every embed task at the
-                            // yield call, so extract permits returned in
-                            // bursts rather than one-at-a-time. Release on
-                            // every path (success or vector == nil failure)
-                            // — if any path stops releasing, extract
-                            // deadlocks on a full gate.
-                            await extractGate.release()
-                            accumContinuation.yield(emitted)
                         }
                     }
                 }
@@ -511,7 +544,7 @@ public final class IndexingPipeline: Sendable {
 
 // MARK: - Stage Payloads
 
-/// One unit of work flowing from extract → embed. Every `EmbedWork`
+/// One unit of work flowing from extract → batch-former. Every `EmbedWork`
 /// carries a real chunk — empty-file sentinels never traverse the embed
 /// stream (the accumulator closes them out directly in extract).
 struct EmbedWork: Sendable {
@@ -522,6 +555,15 @@ struct EmbedWork: Sendable {
     let totalChunks: Int
     let extractSeconds: Double
     let firstChunkAt: DispatchTime?
+}
+
+/// A grouped batch of `EmbedWork`s produced by the batch-former. All items
+/// share a length bucket (roughly similar tokenized length), which keeps
+/// `batchEncode` padding waste low. Per-item ordinals are preserved; the
+/// embed-spawner fans the returned vectors back out to the accumulator in
+/// their original per-file order via `EmbeddedChunk.ordinal`.
+struct BatchWork: Sendable {
+    let items: [EmbedWork]
 }
 
 /// One embedded chunk flowing from embed → accumulator. `record == nil`
