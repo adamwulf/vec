@@ -364,9 +364,9 @@ Columns:
 
 | # | experiment | wall | util | p50 | p95 | top-CPU | GPU% | RSS | qwait | rubric | top-10 | determ | notes |
 |---|------------|------|------|-----|-----|---------|------|-----|-------|--------|--------|--------|-------|
-| 0 | baseline fresh bge-base@1200/240 | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | must re-measure; do not reuse 1200/360 numbers |
-| 0a | E0 diagnostic (instrumented) | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | n/a | n/a | no code commit; patch reverted after measure |
-| 1 | E1 pool concurrency=N (TBD) | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | add one row per concurrency probe; determ on winner only |
+| 0 | baseline fresh bge-base@1200/240 | partial | n/a | n/a | n/a | 137.6% | n/a | 704M | n/a | n/a | n/a | n/a | killed mid-run (~20min in) per tight-loop protocol; peak CPU from top -l 4 window 1 |
+| 0a | E0 diagnostic (instrumented) | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | n/a | n/a | n/a | skipped per user: row 0 peak 137.6% on 10 cores = clear single-actor bottleneck; go straight to E1 |
+| 1 | E1 pool concurrency=activeProcessorCount | partial | n/a | n/a | n/a | 541.1% | n/a | 4.6G | n/a | n/a | n/a | n/a | tight-loop measure; ticks w1 avg 413%/peak 541%, w2 avg 425%/peak 503%; ~3.9x vs row 0 |
 | 2 | E3 MLX threads pinned=1 on E1 best | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | compound with E1; wall-clock is primary |
 | 3 | E2 struct+lock (if pursued) | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | structural simplification only; must not regress |
 
