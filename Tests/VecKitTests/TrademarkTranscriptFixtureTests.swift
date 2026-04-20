@@ -67,4 +67,55 @@ final class TrademarkTranscriptFixtureTests: XCTestCase {
             }
         }
     }
+
+    /// Single-vs-batched parity: `embedDocuments([x, pad])[0]` must
+    /// produce the same vector as `embedDocument(x)` to within fp16
+    /// numerical noise. Locks in the property the E4 batched-embedding
+    /// work depends on — if attention masking, pad-token id, or
+    /// post-processing ever drifts between the two paths, this test
+    /// fails fast.
+    func testBatchedEmbedMatchesSingleEmbedForAllBuiltIns() async throws {
+        let file = try fixtureFileInfo()
+        for builtIn in IndexingProfileFactory.builtIns {
+            let profile = try IndexingProfileFactory.make(alias: builtIn.alias)
+            let extractor = TextExtractor(splitter: profile.splitter)
+            let chunks = try extractor.extract(from: file).chunks
+            guard let first = chunks.first else {
+                XCTFail("[\(builtIn.alias)] extractor returned no chunks")
+                continue
+            }
+
+            let padFiller = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
+                "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " +
+                "Padding filler used to exercise the batch path's attention mask."
+
+            let single = try await profile.embedder.embedDocument(first.text)
+            let batched = try await profile.embedder.embedDocuments([first.text, padFiller])
+            XCTAssertEqual(batched.count, 2,
+                "[\(builtIn.alias)] embedDocuments should return one vector per input")
+            XCTAssertEqual(single.count, batched[0].count,
+                "[\(builtIn.alias)] single and batched vectors must have equal dimension")
+
+            let cos = cosineSimilarity(single, batched[0])
+            XCTAssertGreaterThanOrEqual(cos, 0.9999,
+                "[\(builtIn.alias)] cosine(single, batched[0]) = \(cos); " +
+                "expected ≥ 0.9999. Padding or attention-mask drift between paths.")
+        }
+    }
+
+    private func cosineSimilarity(_ a: [Float], _ b: [Float]) -> Double {
+        precondition(a.count == b.count, "vectors must share dimension")
+        var dot = 0.0
+        var na = 0.0
+        var nb = 0.0
+        for i in 0..<a.count {
+            let ai = Double(a[i])
+            let bi = Double(b[i])
+            dot += ai * bi
+            na += ai * ai
+            nb += bi * bi
+        }
+        guard na > 0, nb > 0 else { return 0 }
+        return dot / (na.squareRoot() * nb.squareRoot())
+    }
 }

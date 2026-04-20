@@ -178,7 +178,7 @@ public final class IndexingPipeline: Sendable {
     private let pool: EmbedderPool
 
     public init(
-        concurrency: Int = 2,
+        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
         batchSize: Int = 16,
         profile: IndexingProfile
     ) {
@@ -390,6 +390,11 @@ public final class IndexingPipeline: Sendable {
                         // No bucket has filled, but we've accumulated a
                         // batch's worth spread across buckets. Flush the
                         // largest bucket to keep the pool fed.
+                        // Tie-break is Dictionary.max's unspecified order —
+                        // non-deterministic across runs. Embeddings are
+                        // unaffected (ordinals preserved); only the padding
+                        // cost of the chosen batch varies, making wall-clock
+                        // a slightly noisy signal on heterogeneous corpora.
                         if let (biggest, _) = buckets.max(by: { $0.value.count < $1.value.count }) {
                             let flushed = buckets.removeValue(forKey: biggest)!
                             totalBuffered -= flushed.count
