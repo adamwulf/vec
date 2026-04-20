@@ -1,7 +1,10 @@
-# Multi-core Embedding — Experiment Plan (v2)
+# Multi-core Embedding — Experiment Plan (v4)
 
-Agent: `agent-c54ba5da` (2026-04-20). v2 addresses review feedback from
-`agent-1425fc4c` (experiment design) and `agent-3d0359b5` (concurrency).
+Agent: `agent-c54ba5da` (2026-04-20). v4 folds in round-3 non-blocking
+refinements from `plan-review-r3-7f3f7973` (8 methodology clarifications)
+and `concurrency-revi-b30fe42b` (1 waiter-queue payload clarification).
+v3 fixed E0 instrumentation point; v2 addressed the round-1 reviewers
+(`agent-1425fc4c` design and `agent-3d0359b5` concurrency).
 
 ## Problem
 
@@ -50,11 +53,14 @@ Run exactly once at baseline, then once per experiment:
    Record if it differs.
 3. `vec reset markdown-memory --force`.
 4. `time vec update-index --verbose 2>&1 | tee .reindex-multicore-<iter>.log`.
-5. **During the run, in a second terminal**, capture ≥5 samples
-   spaced across the run (every ~300 s). Each sample is an averaged
-   3-second window, not an instantaneous tick:
-   `top -l 3 -s 1 -pid $(pgrep -n vec) -stats cpu,mem,rsize`. Record
-   the `cpu` column (target ≥600% for pass) and peak `rsize`.
+5. **During the run, in a second terminal**, capture **≥5 samples OR
+   one every ~10% of wall-clock, whichever yields more samples** (so
+   shorter runs like the E0 subset don't fall below 5). Each sample
+   is an averaged window, not an instantaneous tick. Use `top -l 4
+   -s 1 -pid $(pgrep -n vec) -stats cpu,mem,rsize` and **drop the
+   first tick** (it's a zero-delta reference frame and unreliable);
+   average the remaining three. Record the `cpu` column (target
+   ≥600% for pass) and peak `rsize`.
    **GPU/ANE caveat**: on Apple Silicon, MLX work that runs on
    Metal GPU or the ANE does NOT appear in `top`'s per-process CPU%.
    If bge-base inference is GPU/ANE-bound, a perfectly parallel
@@ -80,8 +86,11 @@ Run exactly once at baseline, then once per experiment:
      first reindex. This is the check that matters for E1 —
      concurrent workers can insert chunks in different orders across
      runs, and cosine-tie-breaking can swap results even when
-     embeddings are identical. Budget: one extra ~40 min reindex per
-     experiment.
+     embeddings are identical. **Run this ONLY on the final chosen
+     configuration of each experiment — not on every sweep point.**
+     For example, if E1 probes `concurrency=4,6,8,10`, only the
+     winner gets the second reindex. Budget: one extra ~40 min
+     reindex per experiment (not per sweep point).
 9. One-line row in the results table below.
 
 Baseline row (row 0) is **required to be re-measured fresh** at
@@ -101,6 +110,13 @@ If E1 plateaus below target, the more likely causes are:
 
 Revised order: **E0 → E1 → E3 → E2** (if still needed). E2 becomes a
 complexity-reduction refactor, not a throughput fix.
+
+**Run order for the first two rows of the results table:** baseline
+(uninstrumented) → E0 (instrumented, reverted) → E1. Baseline and E0
+are separate reindex runs — do not collapse them. The baseline must
+be uninstrumented so its `qwait` is `n/a` and its `wall` does not
+absorb any telemetry overhead from the E0 patch; E0 then runs on the
+same config with the instrumentation applied.
 
 ### E0 — Diagnostic: confirm mailbox contention
 
@@ -128,9 +144,13 @@ encode call). Mailbox queue wait is `t_call_wall - t_encode_wall`.
 **Change (temporary, do NOT commit).**
 1. In `IndexingPipeline`'s per-chunk task, wrap the
    `embedder.embedDocument` call to record `t_call_wall`.
-2. Temporarily add a `embedDocumentTimed` entry point on the
-   embedder that returns `(vector, encodeSeconds)` so we can
-   capture `t_encode_wall` from inside the actor.
+2. Temporarily add an `embedDocumentTimed` entry point on
+   `BGEBaseEmbedder` only (not on the `Embedder` protocol and not on
+   the other conformers) that returns `(vector, encodeSeconds)` so we
+   can capture `t_encode_wall` from inside the actor. E0's corpus is
+   bge-base@1200/240, so the other embedders do not need the shim;
+   keeping the change type-local means `git checkout -- .` reverts
+   cleanly and no protocol surface churns for a diagnostic.
 3. Log `(t_call_wall, t_encode_wall)` per chunk; post-process for
    mean/median queue-wait ratio across all chunks.
 
@@ -146,7 +166,11 @@ encode call). Mailbox queue wait is `t_call_wall - t_encode_wall`.
 
 **Artifacts.** Results row 0a ("E0 diagnostic"). No code commit.
 Patch stays on a scratch branch or just un-committed in the worktree
-for the duration of E0.
+for the duration of E0. **After E0 concludes (pass, reject, or
+ambiguous), run `git checkout -- .` to revert the diagnostic patch
+before starting E1.** The E1 implementation work begins from a clean
+tree so the E1 commit diff is purely the pool-of-N change, not
+pool-of-N plus leftover instrumentation.
 
 ### E1 — Pool of N independent embedder instances
 
@@ -193,6 +217,19 @@ hundreds of ms, so hops will not plateau us below core count.
    instance to two workers simultaneously. A busy-flag array +
    waiter queue, or an `AsyncSemaphore` gating acquire into a
    ring-buffer index, is sufficient. One-line bug otherwise.
+6. **Waiter-queue payload carries the instance, not a permit.**
+   `release(instance)` must directly hand the just-freed embedder to
+   the oldest waiter (if any) and resume them with that instance;
+   otherwise mark the slot idle in the busy-flag array. The existing
+   `ExtractBackpressure` actor at `IndexingPipeline.swift:702` is
+   the right template for the overall permit-queue pattern, BUT its
+   continuation is `CheckedContinuation<Void, Never>` (permit-only)
+   — for the embedder pool, the continuation generic must be
+   `CheckedContinuation<any Embedder, Never>` so the resumed waiter
+   receives the specific instance that just became available. A
+   "mark available, let the waiter re-race for it" design is a
+   correctness bug: two waiters could race through `acquire()` and
+   both grab the same instance before the busy flag is flipped.
 
 **Risk.** Memory. 10× `Bert.ModelBundle` for bge-base ≈ 10 × ~440 MB
 on disk; RAM footprint will be measured from `top`'s `rsize` column.
@@ -204,8 +241,14 @@ If RSS after warmup > 6 GB, back off `concurrency`.
   rubric ≥37/60 AND top-10 ≥8/10 AND both determinism checks pass.
 - **Partial (proceed to E3 as compound)**: `400% ≤ util < 600%`.
   Keep E1's code; E1+E3 is the design-intent combination.
-- **Insufficient (proceed to E3, consider reverting E1)**: `util <
-  400%` → mailbox wasn't the only bottleneck. Try E3 first.
+- **Insufficient**: `util < 400%` → mailbox wasn't the only
+  bottleneck. Proceed to E3 layered on top of E1. **Decision rule
+  (no operator judgment required):** if E1 alone lands `util <
+  400%` AND E1+E3 yields no further wall-clock improvement versus
+  baseline (within the ±10% threshold that E3 requires to ship),
+  revert E1 before moving on to E2 — carrying E1's memory cost with
+  no throughput benefit is pure liability. If E1+E3 *does* improve
+  wall-clock past that threshold, keep E1.
 - **Back off**: RSS > 6 GB after warmup → reduce `concurrency` and
   retest.
 
@@ -319,6 +362,9 @@ Columns:
 |---|------------|------|------|-----|-----|---------|------|-----|-------|--------|--------|--------|-------|
 | 0 | baseline fresh bge-base@1200/240 | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | must re-measure; do not reuse 1200/360 numbers |
 | 0a | E0 diagnostic (instrumented) | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | n/a | n/a | no code commit; patch reverted after measure |
+| 1 | E1 pool concurrency=N (TBD) | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | add one row per concurrency probe; determ on winner only |
+| 2 | E3 MLX threads pinned=1 on E1 best | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | compound with E1; wall-clock is primary |
+| 3 | E2 struct+lock (if pursued) | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | structural simplification only; must not regress |
 
 ## Out of scope
 
