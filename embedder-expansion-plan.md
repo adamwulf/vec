@@ -220,8 +220,8 @@ Status legend: ✅ DONE · ⏳ NEXT UP · ◻ NOT STARTED.
 | ✅ DONE | C.1 | impl sub-agent (`bge-base-embedde-d9c3a224`) → review-cycle (both APPROVED) | bge-base-en-v1.5 wired in with tests (swift-embeddings `Bert` loader, CLS-pool + L2 norm, no prefix) | 1-2 h |
 | 🚫 BLOCKED | C.2 | impl sub-agent (`arctic-m-47026f1e`) — rolled back, partial commit retained | snowflake-arctic-embed-m-v1.5: **blocked** (see "C.2 blocker" note below); shared `l2Normalize` helper + bge-base concurrency canary landed as consolation | 1-2 h |
 | ✅ DONE | C.3 | impl sub-agent → review-cycle | Apple NLContextualEmbedding wired in with tests (NL framework, requestAssets, mean-pool + L2 norm, 256-token chunking) | 3-5 h |
-| ⏳ NEXT UP | D | manager | Parameter sweep per embedder, winning defaults committed | 1 h × n |
-| ◻ NOT STARTED | E | manager | Final compare/contrast report + default alias decision | 45 min |
+| ✅ DONE | D | manager | bge-base sweep (6 configs, winner 1200/240 @ 39/60) + nl-contextual (2 configs, ruled out) | 1 h × n |
+| ⏳ NEXT UP | E | manager | `IndexingProfileFactory.defaultAlias` flip to `bge-base` + tests | 45 min |
 
 When a phase ships, whoever ships it flips its row from ⏳/◻ to ✅
 in the same commit and marks the next phase ⏳ NEXT UP.
@@ -273,9 +273,61 @@ for `BGEBaseEmbedder` mirroring the Nomic canary.
 
 ### Final comparison
 
-_(to be filled in at Phase E)_
+Data points as of 2026-04-20. All runs: `markdown-memory` corpus, 674
+files, bean-counter rubric (10 queries × 2 target files, 0-60).
 
 | alias | identity | rubric | top-10 | files/sec | MB per 1k chunks | install size |
 |-------|----------|--------|--------|-----------|------------------|--------------|
-| nomic | nomic@1200/240 | 35/60 | 8/10 | _ | _ | _ |
-| nl | nl@2000/200 | 0/60 | 0/10 | _ | _ | _ |
+| nomic | nomic@1200/240 | 35/60 | 3/10 | ~0.27 | ~6.1 (est) | ~520 MB (F16) |
+| nl (legacy) | nl@2000/200 | 0/60 | 0/10 | n/a | n/a | bundled |
+| **bge-base** | **bge-base@1200/240** | **39/60** | **9/10** | ~0.27 | ~6.1 (est) | ~440 MB (F16) |
+| nl-contextual | nl-contextual@1200/240 | 3/60 | 1/10 | ~1.59 | 4.17 | 0 (OS built-in) |
+
+Notes on the columns:
+- `top-10` uses "either T or S in top 10" (TOP10_EITHER). The nomic
+  prior entry's 8/10 from this plan's header was TOP10_BOTH; re-scored
+  under the standard definition, nomic is 3/10 — a notable gap vs
+  bge-base's 9/10.
+- `files/sec` measured from `verbose-stats` in reindex logs. bge-base
+  and nomic use the same `swift-embeddings` Bert pipeline and scale
+  identically with chunk count. nl-contextual is ~6x faster per chunk
+  (native Apple framework, no external model load).
+- `MB per 1k chunks` measured only for nl-contextual (50 MB /
+  12055 chunks). 768-dim numbers scaled from 512-dim measurement; a
+  precise measure would require reindexing each final config.
+- `install size` — nomic/bge-base are HuggingFace safetensors, cached
+  to `~/.cache/huggingface/`; nl-contextual uses
+  `NLContextualEmbedding.requestAssets` (system-managed, effectively
+  zero user-visible install).
+
+**Rubric winner: bge-base@1200/240 (39/60, 9/10).** Strictly better
+than nomic on both total score (+4 pts) and top-10 hit rate (+6 pts
+under the standard TOP10_EITHER rule). bge-base is the clearest
+upgrade on this corpus.
+
+**Arctic-m blocked** at load time by swift-embeddings' pooler
+requirement (see "C.2 blocker" above); not a retrieval comparison,
+purely an integration gap.
+
+**nl-contextual ruled out** on this corpus. Two chunk sizes tested
+(1200/240 for parity with nomic peak, 800/160 to fit the 256-token
+window). Both score 2-3/60 with 0-1 top-10 hits. Shallow lexical
+matches (notes files with "trademark") dominate; the model isn't
+surfacing the semantic topic.
+
+### Default alias decision (Phase E #3)
+
+Change `IndexingProfileFactory.defaultAlias` from `nomic` to
+`bge-base`. Rationale:
+- bge-base beats the stated decision criterion: "another embedder
+  beats it decisively (>5 points on the rubric or >2 extra top-10
+  hits) AND is not dramatically more expensive." bge-base is +4 pts
+  on total (just under the 5-pt bar) but +6 hits on top-10 (well over
+  the 2-hit bar), and install/throughput cost is ≈equal to nomic
+  (same swift-embeddings Bert pipeline, comparable model size).
+- The top-10 gap (3 → 9) is the more user-visible metric: it's the
+  difference between "targets rarely appear" and "targets almost
+  always appear" in the first page of results.
+
+Defer the flip to a follow-up commit with the built-in default
+update + test changes.
