@@ -807,10 +807,13 @@ actor EmbedderPool {
 /// Counting semaphore used to gate the extract stage against the embed
 /// stage. Extract acquires one permit per chunk before yielding; embed
 /// releases one permit per chunk once the chunk has been handed off to the
-/// accumulator. Sized to `workerCount * 2` on init — large enough that the
-/// pool never idles waiting for extract (there's always a chunk queued up
-/// behind the one being embedded), small enough that extract blocks before
-/// chunking a second huge file worth of text into memory.
+/// accumulator. Sized to `workerCount * batchSize * 2` on init — large
+/// enough that the batch-former always has ~2 batches' worth of chunks to
+/// group (keeping the pool fed), small enough that extract blocks before
+/// chunking a second huge file worth of text into memory. Pre-E4 the
+/// sizing was `workerCount * 2` (one-chunk-per-acquire); the batched
+/// pipeline multiplies by `batchSize` so the batch-former can fill its
+/// per-bucket targets without starving extract.
 ///
 /// The old extract stage used an unbounded `AsyncStream` buffer, which on
 /// large corpora let extract race ahead of embed by tens of thousands of

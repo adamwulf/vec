@@ -74,6 +74,16 @@ final class TrademarkTranscriptFixtureTests: XCTestCase {
     /// work depends on — if attention masking, pad-token id, or
     /// post-processing ever drifts between the two paths, this test
     /// fails fast.
+    ///
+    /// Two directions are exercised so attention masking is stressed
+    /// on the compared row:
+    ///   1. Long target + short filler — filler is padded; compared
+    ///      row unaffected. Catches slot-ordering and post-processing
+    ///      drift.
+    ///   2. Short target + long filler — target is padded and masked.
+    ///      Catches attention-mask/pad-token drift on the compared row
+    ///      itself (the axis batchEncode most plausibly disagrees with
+    ///      `encode`).
     func testBatchedEmbedMatchesSingleEmbedForAllBuiltIns() async throws {
         let file = try fixtureFileInfo()
         for builtIn in IndexingProfileFactory.builtIns {
@@ -85,21 +95,30 @@ final class TrademarkTranscriptFixtureTests: XCTestCase {
                 continue
             }
 
-            let padFiller = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
+            let shortFiller = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
                 "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " +
                 "Padding filler used to exercise the batch path's attention mask."
+            let shortTarget = "The trademark deal closed at 1.5 million."
+            let longFiller = String(repeating: first.text + " ", count: 2)
 
-            let single = try await profile.embedder.embedDocument(first.text)
-            let batched = try await profile.embedder.embedDocuments([first.text, padFiller])
-            XCTAssertEqual(batched.count, 2,
+            let singleLong = try await profile.embedder.embedDocument(first.text)
+            let batchedLong = try await profile.embedder.embedDocuments([first.text, shortFiller])
+            XCTAssertEqual(batchedLong.count, 2,
                 "[\(builtIn.alias)] embedDocuments should return one vector per input")
-            XCTAssertEqual(single.count, batched[0].count,
+            XCTAssertEqual(singleLong.count, batchedLong[0].count,
                 "[\(builtIn.alias)] single and batched vectors must have equal dimension")
+            let cosLong = cosineSimilarity(singleLong, batchedLong[0])
+            XCTAssertGreaterThanOrEqual(cosLong, 0.9999,
+                "[\(builtIn.alias)] long-target parity: cosine = \(cosLong); expected ≥ 0.9999.")
 
-            let cos = cosineSimilarity(single, batched[0])
-            XCTAssertGreaterThanOrEqual(cos, 0.9999,
-                "[\(builtIn.alias)] cosine(single, batched[0]) = \(cos); " +
-                "expected ≥ 0.9999. Padding or attention-mask drift between paths.")
+            let singleShort = try await profile.embedder.embedDocument(shortTarget)
+            let batchedShort = try await profile.embedder.embedDocuments([shortTarget, longFiller])
+            XCTAssertEqual(batchedShort.count, 2,
+                "[\(builtIn.alias)] embedDocuments should return one vector per input")
+            let cosShort = cosineSimilarity(singleShort, batchedShort[0])
+            XCTAssertGreaterThanOrEqual(cosShort, 0.9999,
+                "[\(builtIn.alias)] short-target parity (padded + masked row): " +
+                "cosine = \(cosShort); expected ≥ 0.9999. Attention-mask or pad-token drift.")
         }
     }
 
