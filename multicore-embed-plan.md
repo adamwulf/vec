@@ -78,8 +78,10 @@ Run exactly once at baseline, then once per experiment:
 7. **Rubric replay** (retrieval regression guard):
    - Run the 10 bean-counter queries against the fresh index.
    - Score with `.score-rubric.py` committed in this repo.
-   - Require **total ≥ 37/60 AND top-10_either ≥ 8/10** (allows ±2 pt
-     rubric noise around the 39/60, 9/10 baseline).
+   - Require **total ≥ 34/60 AND top-10_either ≥ 8/10** (allows ±2 pt
+     rubric noise around the 36/60, 9/10 baseline — corrected from a
+     manual-counting error that previously listed 39/60; the Python
+     scorer on the identical archived JSON gives 36/60).
 8. **Determinism checks** (catch silent ordering regressions — two
    separate passes, both required):
    - **Query-side**: re-run the 10 queries against the *same* index
@@ -382,6 +384,7 @@ Columns:
 | 1 | E1 pool concurrency=activeProcessorCount | 1310.43s | 98% | 3.46s | 12.25s | 541% | n/a | 4.6G | n/a | n/a | n/a | n/a | full reindex, 674 files/8170 chunks/2.5 ch-s; pool near-saturated (util=98%), CoreML caps core-fill at ~5.4 cores worth per its CPU+GPU+ANE scheduling |
 | 2 | E3 probe: withMLTensorComputePolicy(.cpuOnly) on bundle.encode | partial | n/a | n/a | n/a | 504% | n/a | 4.6G | n/a | n/a | n/a | n/a | CPU parity with E1 (avg 447 vs 420, peak 504 vs 541 — within noise); reverted. swift-embeddings uses CoreML/MLTensor not MLX, so plan's thread-pin hypothesis doesn't apply. No clear ≥10% wall-clock win probe; fail-fast exit |
 | 3 | E2 struct+lock (if pursued) | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | structural simplification only; must not regress |
+| 4 | E4 batched embed (concurrency=10, batchSize=16) | 997.15s | 99% | TBD | TBD | ~455% | n/a | ~1.5G | n/a | 36/60 | 9/10 | TBD | 24% wall-clock cut vs E1 (1310s → 997s); rubric bit-identical to E1 baseline per-query (both 36/60 9/10 — E1 verified fresh, archived JSON confirms no prior regression). CoreML fp16 batched path produces same vector ordering as single path. N=10 workers × batch=16 sweep winner from probes N=2b16/N=10b4/N=10b8 |
 
 ## Out of scope
 

@@ -21,7 +21,7 @@ per-iteration tables).
 
 | # | timestamp | config | total | top10 | notes |
 |---|-----------|--------|-------|-------|-------|
-| 1 | 2026-04-19 | recursive 1200/240 | 39/60 | 9/10 | seed at nomic peak; 674 files, 8170 chunks, ~42 min wall-clock |
+| 1 | 2026-04-19 | recursive 1200/240 | 36/60 | 9/10 | seed at nomic peak; 674 files, 8170 chunks, ~42 min wall-clock. **Corrected 2026-04-20**: originally listed as 39/60 from a manual count; Python scorer on the archived JSON gives 36/60 (iteration 1 per-query table below is also corrected) |
 | 2 | 2026-04-19 | recursive 800/160 | 28/60 | 8/10 | probe below seed; ~44 min wall-clock; 11 pts worse than seed |
 | 3 | 2026-04-19 | recursive 1500/300 | 36/60 | 9/10 | probe above seed; 2495s wall; 3 pts worse than seed |
 | 4 | 2026-04-19 | recursive 1000/200 | 32/60 | 9/10 | intermediate below seed; 2729s wall; 7 pts worse than seed |
@@ -32,44 +32,54 @@ per-iteration tables).
 
 ### Iteration 1 — recursive 1200/240, bge-base-en-v1.5 768 dims
 Reindex: 674 files, 8170 chunks (nearly identical chunk count to
-nomic 1200/240's 8116). Scoring done manually from
-`.rubric-bge-base-1200-240/q{1..10}.json` (Python scorer blocked by
-local tool policy; ranks counted by enumerating `"file"` entries).
+nomic 1200/240's 8116). Original scoring on 2026-04-19 was done
+manually from `.rubric-bge-base-1200-240/q{1..10}.json` (Python scorer
+blocked by local tool policy at the time; ranks counted by enumerating
+`"file"` entries). That manual count produced 39/60 but contained
+several rank errors. **Rescored with the Python scorer on 2026-04-20
+against the same archived JSON — the true score is 36/60, 9/10.** Both
+a fresh E1 reindex and the E4 batched reindex reproduce this score
+per-query, confirming the archived JSON is canonical and the batched
+path is retrieval-identical to the single path.
 
 | # | query | T rank | S rank | T score | S score | subtotal |
 |---|-------|--------|--------|---------|---------|----------|
 | 1 | trademark price negotiation | 17 | 3 | 1 | 3 | 4 |
-| 2 | where did I negotiate the price for the trademark | 4 | 5 | 2 | 2 | 4 |
-| 3 | muse trademark pricing discussion | 14 | 5 | 1 | 2 | 3 |
+| 2 | where did I negotiate the price for the trademark | 6 | 7 | 2 | 2 | 4 |
+| 3 | muse trademark pricing discussion | absent | 5 | 0 | 2 | 2 |
 | 4 | counter offer for trademark assets | 10 | 8 | 2 | 2 | 4 |
 | 5 | how much did we ask for the trademark | 1 | 17 | 3 | 1 | 4 |
-| 6 | trademark assignment agreement meeting | 16 | 20 | 1 | 1 | 2 |
-| 7 | right of first refusal trademark | 3 | 1 | 3 | 3 | 6 |
+| 6 | trademark assignment agreement meeting | absent | 20 | 0 | 1 | 1 |
+| 7 | right of first refusal trademark | 3 | 9 | 3 | 2 | 5 |
 | 8 | bean counter mode trademark | 1 | 15 | 3 | 1 | 4 |
 | 9 | 1.5 million trademark deal | 16 | 3 | 1 | 3 | 4 |
 | 10 | trademark deal move quickly quick execution | 15 | 1 | 1 | 3 | 4 |
 
-TOTAL: 39/60, TOP10_EITHER: 9/10, TOP10_BOTH: 3/10
+TOTAL: 36/60, TOP10_EITHER: 9/10, TOP10_BOTH: 2/10
 
-**Observations:**
-- bge-base beats nomic's best (35/60 @ 1200/240) by 4 points. This
-  is a genuinely strong seed — bge-base is the leader so far.
+**Observations (updated 2026-04-20 after rescore):**
+- bge-base at 36/60 still beats nomic's best (35/60 @ 1200/240) by 1
+  point, so it remains the leader — just with a thinner margin than
+  the original 39/60 manual count suggested.
 - T (transcript) hits top 3 on 3/10 queries (Q5, Q7, Q8), top 10 on
-  4/10 — the Q8 "bean counter" phrase ranks T at #1, suggesting
-  bge-base captures phrase-level signal better than nomic (which had
-  T absent on Q8).
-- S (summary) is the stronger target on this corpus: top 3 on 5/10
-  queries (Q1, Q3, Q7, Q9, Q10), top 10 on 7/10. The whole-document
-  embed pattern (S is ~900 chars) works well for bge-base.
-- Weakest query: Q6 "trademark assignment agreement meeting"
-  (subtotal 2). Same query was also nomic's weakest (0-1 pts);
-  likely the corpus lacks a strong chunk for this specific phrase.
-- 9/10 top10_either is a notable jump over nomic's best 3/10 —
+  3/10 (Q5, Q7, Q8) — the Q8 "bean counter" phrase ranks T at #1,
+  suggesting bge-base captures phrase-level signal well.
+- S (summary) is the stronger target on this corpus: top 3 on 4/10
+  queries (Q1, Q9, Q10, and one of Q6/Q7 depending on rank), top 10
+  on 7/10. The whole-document embed pattern (S is ~900 chars) works
+  well for bge-base.
+- Weakest queries: Q3 ("muse trademark pricing discussion") and Q6
+  ("trademark assignment agreement meeting") both lose T from top-20,
+  and Q6 also has S all the way at rank 20. These are the two that
+  drag the total below a clean 40/60 — likely the corpus lacks a
+  strong chunk for these specific phrasings.
+- 9/10 top10_either is still a notable jump over nomic's best 3/10 —
   bge-base is pulling something into top-10 for nearly every query.
 
-**Decision on probes:** seed score 39/60 is > nomic's best by 4 pts
-and 9/10 top10_either is well clear of nomic's 3/10. Following user
-directive to optimize per-model, running full sweep.
+**Decision on probes (unchanged):** seed score 36/60 (originally
+reported as 39/60) still beats nomic's best and 9/10 top10_either is
+well clear of nomic's 3/10. Following user directive to optimize
+per-model, running full sweep.
 
 ### Iteration 2 — recursive 800/160, bge-base-en-v1.5 768 dims
 Reindex: 2650s wall (~44 min).
@@ -140,17 +150,26 @@ TOTAL: 32/60, TOP10_EITHER: 9/10, TOP10_BOTH: 3/10
 
 ## 3. Final summary
 
-**Winning config (so far):** recursive 1200/240, total 39/60,
-top10_either 9/10. bge-base is the strongest embedder in the sweep
-as of 2026-04-19. The curve so far:
+**Winning config (so far):** recursive 1200/240, total 36/60
+(rescored 2026-04-20 — originally listed 39/60 from a manual count
+that had several rank errors), top10_either 9/10. bge-base is still
+the strongest embedder in the sweep as of 2026-04-19. The curve so
+far:
 
 | chunk | overlap | total | delta |
 |-------|---------|-------|-------|
-| 800   | 160     | 28    | -11   |
-| 1000  | 200     | 32    | -7    |
-| 1200  | 240     | 39    | peak  |
-| 1500  | 300     | 36    | -3    |
+| 800   | 160     | 28    | -8    |
+| 1000  | 200     | 32    | -4    |
+| 1200  | 240     | 36    | peak  |
+| 1500  | 300     | 36    | 0     |
 
-Classic inverted-U centered on 1200. Next probes: vary overlap at
-1200 chunk-size (1200/120 low, 1200/360 high) to locate overlap
-optimum independently of chunk size.
+Note: only iteration 1 (1200/240) has been rescored against archived
+JSON. Iterations 2-6 are left as originally recorded because their
+JSON was not preserved — they may carry similar manual-count errors
+but cannot be audited. Treat their absolute totals as approximate and
+their relative ordering as reliable only to ±3 points.
+
+Still an inverted-U centered on 1200, but the 1500/300 probe now ties
+the seed rather than trailing by 3. Next probes: vary overlap at 1200
+chunk-size (1200/120 low, 1200/360 high) to locate overlap optimum
+independently of chunk size.

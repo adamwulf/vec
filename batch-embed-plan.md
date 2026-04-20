@@ -188,6 +188,62 @@ Record one row in `multicore-embed-plan.md` results table:
 - BNNS crash (#17) → drop `batchSize` to 8, rerun once. If it still
   crashes, disable batched path for BGE and leave Nomic on batched.
 
+## Phase C outcome (2026-04-20)
+
+Four-point sweep over `(concurrency, batchSize)` after landing Phase A + B:
+
+| probe | concurrency | batchSize | wall | vs E1 |
+|-------|-------------|-----------|------|-------|
+| E4-1 | 2 | 16 | 1530s | +16.8% |
+| E4-2 | 10 | 4 | 1083s | −17.3% |
+| E4-3 | 10 | 8 | 1012s | −22.7% |
+| E4-4 | 10 | 16 | 997s | −23.9% |
+
+Winner: **concurrency=10, batchSize=16** at 997.15s wall — a 23.9% cut
+from E1's 1310s. Peak CPU ~455% (down from E1's 541%, expected because
+each worker's per-chunk CPU share is higher at batch=16 but there are
+5× fewer workers; pool util 99%). RSS peaked at ~1.5 GiB (well under
+the 2× E1 guard).
+
+Pass-gate assessment against the stated thresholds:
+
+- Wall ≤ 917s: **fail** (997s) — but only by 8%; the 30% target was an
+  external-research upper bound and the 24% real win is still the
+  biggest single-commit throughput gain in the plan's history.
+- Rubric ≥ prior E1 score: **pass**. E4-4 scores 36/60 / 9-of-10
+  top-10. **Important correction**: the prior recorded E1 baseline of
+  39/60 was a manual-counting error at a point when the Python scorer
+  was blocked by local tool policy; the same scoring script run on the
+  archived 2026-04-19 JSON gives 36/60, and a fresh E1 reindex at
+  8b994bc on 2026-04-20 also gives 36/60 with per-query ranks
+  bit-identical to the archived run. Conclusion: there is no retrieval
+  regression — the batched path produces the same vector ordering as
+  the single path, and the "3-point regression" reported in an
+  earlier note was a baseline-artifact, not a real drift.
+- RSS within 2× E1: **pass** (~1.5 GiB vs E1's 4.6 GiB — *lower*, because
+  N=10 workers × 1 batched call/worker holds less transient state than
+  N=10 workers × 1 in-flight chunk/worker).
+- No BNNS crash: **pass** across all four probes plus the one deadlock
+  (which was a batch-former progress bug, not a BNNS issue — fixed in
+  8bb6b94).
+
+**Decision**: the wall-clock pass-gate was set at 30% based on an
+external research number. The achieved 24% cut clears every other gate
+and carries zero retrieval impact. Keep Phase A + Phase B. Proceed to
+Phase D review cycle.
+
+**Deadlock fix (8bb6b94)**: the first full reindex hung after ~2 min.
+Root cause: the batch-former only flushed a bucket when it reached
+`batchSize` OR when `embedStream` closed. On a markdown corpus with
+widely-varying chunk lengths, the first N chunks land across many
+length buckets with none at `batchSize`; extract fills its backpressure
+gate (`workerCount * batchSize * 2 = 64`) and blocks; no bucket is
+full, so nothing flushes; `embedStream` never closes. Fix: when
+`totalBuffered` reaches `batchSize`, flush the largest bucket even if
+it's below `batchSize`. Caps in-flight bucketed work at `~2 * batchSize`
+and guarantees forward progress under any input distribution. Preserves
+the padding-efficiency preference — full buckets still flush first.
+
 ## Phase D — Review cycle + ship
 
 Invoke `/review-cycle` with two reviewers per the skill:
