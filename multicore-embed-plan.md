@@ -379,7 +379,7 @@ Columns:
 |---|------------|------|------|-----|-----|---------|------|-----|-------|--------|--------|--------|-------|
 | 0 | baseline fresh bge-base@1200/240 | partial | n/a | n/a | n/a | 137.6% | n/a | 704M | n/a | n/a | n/a | n/a | killed mid-run (~20min in) per tight-loop protocol; peak CPU from top -l 4 window 1 |
 | 0a | E0 diagnostic (instrumented) | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | n/a | n/a | n/a | skipped per user: row 0 peak 137.6% on 10 cores = clear single-actor bottleneck; go straight to E1 |
-| 1 | E1 pool concurrency=activeProcessorCount | partial | n/a | n/a | n/a | 541.1% | n/a | 4.6G | n/a | n/a | n/a | n/a | tight-loop measure; ticks w1 avg 413%/peak 541%, w2 avg 425%/peak 503%; ~3.9x vs row 0 |
+| 1 | E1 pool concurrency=activeProcessorCount | 1310.43s | 98% | 3.46s | 12.25s | 541% | n/a | 4.6G | n/a | n/a | n/a | n/a | full reindex, 674 files/8170 chunks/2.5 ch-s; pool near-saturated (util=98%), CoreML caps core-fill at ~5.4 cores worth per its CPU+GPU+ANE scheduling |
 | 2 | E3 probe: withMLTensorComputePolicy(.cpuOnly) on bundle.encode | partial | n/a | n/a | n/a | 504% | n/a | 4.6G | n/a | n/a | n/a | n/a | CPU parity with E1 (avg 447 vs 420, peak 504 vs 541 — within noise); reverted. swift-embeddings uses CoreML/MLTensor not MLX, so plan's thread-pin hypothesis doesn't apply. No clear ≥10% wall-clock win probe; fail-fast exit |
 | 3 | E2 struct+lock (if pursued) | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | structural simplification only; must not regress |
 
