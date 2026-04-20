@@ -188,8 +188,8 @@ Status legend: ✅ DONE · ⏳ NEXT UP · ◻ NOT STARTED.
 
 | Status | Phase | Owner | Deliverable | Budget |
 |:------:|------:|-------|-------------|-------:|
-| ⏳ NEXT UP | A | researcher sub-agent | `embedder-research.md` survey + ranked shortlist | 1-2 h |
-| ◻ NOT STARTED | B | user + manager | 2-3 picks written into Phase B of this doc | 15 min |
+| ✅ DONE | A | researcher sub-agent (`embedder-researc-76b59360`) | `embedder-research.md` survey + ranked shortlist | 1-2 h |
+| ⏳ NEXT UP | B | user + manager | 2-3 picks written into Phase B of this doc | 15 min |
 | ◻ NOT STARTED | C.1 | impl sub-agent → review-cycle | First new embedder wired in with tests | 1.5 h |
 | ◻ NOT STARTED | C.2 | impl sub-agent → review-cycle | Second new embedder wired in with tests | 1.5 h |
 | ◻ NOT STARTED | C.3 | impl sub-agent → review-cycle | Third new embedder wired in with tests (stretch) | 1.5 h |
