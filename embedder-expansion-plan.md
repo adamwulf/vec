@@ -115,10 +115,37 @@ Pick 2-3 candidates from Phase A output to actually implement.
 Smallest / easiest first. Write the picks inline at the bottom of
 this phase block (in this doc) with a one-line rationale each.
 
-Shortlist placeholder (fill in after Phase A):
-- [ ] Candidate 1: ...
-- [ ] Candidate 2: ...
-- [ ] Candidate 3 (stretch): ...
+Picks (locked in 2026-04-19 after Phase A):
+
+- [x] **Candidate 1 — bge-base-en-v1.5** (MIT, 768-dim, MTEB retrieval 53.25).
+  Simplest to land — no query/doc prefix branching (v1.5 trained to work
+  without the optional `"Represent this sentence for searching relevant passages: "`
+  prefix). Proves the factory extension path for a second HuggingFace
+  model loaded through the existing `swift-embeddings` dependency.
+- [x] **Candidate 2 — snowflake-arctic-embed-m-v1.5** (Apache 2.0, 768-dim,
+  MTEB retrieval 55.14). Best quality-per-MB of anything in the survey.
+  Requires query-side prefix `"Represent this sentence for searching relevant passages: "`;
+  documents get no prefix. Same BERT architecture → same swift-embeddings
+  loader.
+- [x] **Candidate 3 — Apple NLContextualEmbedding** (zero install, 512-dim,
+  macOS 14+, iOS 17+). Only candidate with no download cost. Quality is
+  speculative — no public MTEB number. Upgrade path for today's poor
+  `nl-en-512`.
+
+**Key integration finding (not in research doc):** The existing
+`NomicEmbedder` already uses `swift-embeddings`' `NomicBert` loader,
+NOT llama.cpp. BGE-base and Arctic-m-v1.5 are standard BERT-architecture
+models and load via the **same** library's `Bert.loadModelBundle(from:)`
+HuggingFace-hub helper — no new Swift-package dependency needed. The
+research doc assumed a llama.cpp/GGUF path; in reality both top picks
+reuse the existing HuggingFace-safetensors download path. Estimated
+effort drops from 3-6 h per embedder to 1-2 h.
+
+Key implementation note: `Bert.ModelBundle.encode(_,maxLength:)` returns
+the CLS-token output (no `postProcess` param like NomicBert). BGE and
+Arctic both use CLS-pooling by convention — this is exactly what we
+want. But `Bert.encode` does NOT L2-normalize, so the new embedders
+must normalize the returned vector themselves before returning.
 
 ## Phase C — per-embedder landing
 
@@ -189,10 +216,10 @@ Status legend: ✅ DONE · ⏳ NEXT UP · ◻ NOT STARTED.
 | Status | Phase | Owner | Deliverable | Budget |
 |:------:|------:|-------|-------------|-------:|
 | ✅ DONE | A | researcher sub-agent (`embedder-researc-76b59360`) | `embedder-research.md` survey + ranked shortlist | 1-2 h |
-| ⏳ NEXT UP | B | user + manager | 2-3 picks written into Phase B of this doc | 15 min |
-| ◻ NOT STARTED | C.1 | impl sub-agent → review-cycle | First new embedder wired in with tests | 1.5 h |
-| ◻ NOT STARTED | C.2 | impl sub-agent → review-cycle | Second new embedder wired in with tests | 1.5 h |
-| ◻ NOT STARTED | C.3 | impl sub-agent → review-cycle | Third new embedder wired in with tests (stretch) | 1.5 h |
+| ✅ DONE | B | manager + user (picks locked 2026-04-19) | 3 picks written into Phase B above: bge-base, arctic-m-v1.5, NLContextualEmbedding | 15 min |
+| ⏳ NEXT UP | C.1 | impl sub-agent → review-cycle | bge-base-en-v1.5 wired in with tests (swift-embeddings `Bert` loader, CLS-pool + L2 norm, no prefix) | 1-2 h |
+| ◻ NOT STARTED | C.2 | impl sub-agent → review-cycle | snowflake-arctic-embed-m-v1.5 wired in with tests (swift-embeddings `Bert` loader, CLS-pool + L2 norm, BGE-style query prefix) | 1-2 h |
+| ◻ NOT STARTED | C.3 | impl sub-agent → review-cycle | Apple NLContextualEmbedding wired in with tests (NL framework, requestAssets, mean-pool + L2 norm, 256-token chunking) | 3-5 h |
 | ◻ NOT STARTED | D | manager | Parameter sweep per embedder, winning defaults committed | 1 h × n |
 | ◻ NOT STARTED | E | manager | Final compare/contrast report + default alias decision | 45 min |
 
