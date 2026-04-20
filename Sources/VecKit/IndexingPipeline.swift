@@ -359,20 +359,42 @@ public final class IndexingPipeline: Sendable {
                 embedContinuation.finish()
             }
 
-            // Stage 1.5: Batch-former. Drains embedStream, buckets by
-            // length (chunk.text.count / 500), flushes a bucket when it
-            // hits batchSize or when extract closes embedStream.
-            // Length-bucketing minimizes padding waste in batchEncode —
-            // the tensor is padded to the longest input, so grouping
-            // like-length chunks keeps wasted FLOPs low.
+            // Stage 1.5: Batch-former. Drains embedStream, length-buckets
+            // by chunk.text.count / 500 (minimizes batchEncode padding
+            // waste). Flush rules, in order:
+            //   1. If any bucket hits batchSize, flush it (preferred: full
+            //      batch = best pool utilization, minimal padding).
+            //   2. Else, if total buffered items reaches batchSize, flush
+            //      the largest bucket. Needed to guarantee forward
+            //      progress — without this, pathological inputs where
+            //      every few chunks go to a different bucket would stall
+            //      extract behind its backpressure gate forever (no
+            //      bucket ever reaches batchSize; stream-close never fires).
+            //   3. On embed-stream close, flush every remaining partial
+            //      bucket so the run finishes cleanly.
+            // Rule 2 caps the amount of work sitting in buckets at
+            // roughly 2*batchSize at any moment — guarantees bounded
+            // memory under any input distribution.
             group.addTask {
                 var buckets: [Int: [EmbedWork]] = [:]
+                var totalBuffered = 0
                 for await work in embedStream {
                     let bucket = max(0, work.chunk.text.count / 500)
                     buckets[bucket, default: []].append(work)
+                    totalBuffered += 1
                     if buckets[bucket]!.count >= batchSize {
                         let flushed = buckets.removeValue(forKey: bucket)!
+                        totalBuffered -= flushed.count
                         batchContinuation.yield(BatchWork(items: flushed))
+                    } else if totalBuffered >= batchSize {
+                        // No bucket has filled, but we've accumulated a
+                        // batch's worth spread across buckets. Flush the
+                        // largest bucket to keep the pool fed.
+                        if let (biggest, _) = buckets.max(by: { $0.value.count < $1.value.count }) {
+                            let flushed = buckets.removeValue(forKey: biggest)!
+                            totalBuffered -= flushed.count
+                            batchContinuation.yield(BatchWork(items: flushed))
+                        }
                     }
                 }
                 // Extract stream closed — flush remaining partial buckets.
