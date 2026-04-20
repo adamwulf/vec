@@ -168,7 +168,7 @@ public final class IndexingPipeline: Sendable {
     /// can size progress displays against the same value the pool uses.
     public let workerCount: Int
 
-    /// Pool holding the shared embedder actor instance.
+    /// Bounded pool of N embedder instances sized to `workerCount`.
     private let pool: EmbedderPool
 
     public init(
