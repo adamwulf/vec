@@ -212,6 +212,24 @@ final class IndexingProfileTests: XCTestCase {
         XCTAssertEqual(entry.defaultChunkOverlap, 240)
     }
 
+    func testFactoryBuiltInForAliasLookup_bgeBase() throws {
+        let entry = try IndexingProfileFactory.builtIn(forAlias: "bge-base")
+        XCTAssertEqual(entry.canonicalEmbedderName, "bge-base-en-v1.5")
+        XCTAssertEqual(entry.canonicalDimension, 768)
+        XCTAssertEqual(entry.defaultChunkSize, 1200)
+        XCTAssertEqual(entry.defaultChunkOverlap, 240)
+    }
+
+    func testFactoryResolveBGEBaseDefaultIdentity() throws {
+        let profile = try IndexingProfileFactory.resolve(identity: "bge-base@1200/240")
+        XCTAssertEqual(profile.identity, "bge-base@1200/240")
+        XCTAssertEqual(profile.chunkSize, 1200)
+        XCTAssertEqual(profile.chunkOverlap, 240)
+        XCTAssertTrue(profile.isBuiltIn)
+        XCTAssertEqual(profile.embedder.name, "bge-base-en-v1.5")
+        XCTAssertEqual(profile.embedder.dimension, 768)
+    }
+
     // MARK: - IndexingProfileFactory — full override composition
 
     func testFactoryFullOverrideProducesCustomProfile() throws {

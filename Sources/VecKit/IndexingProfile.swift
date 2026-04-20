@@ -137,6 +137,16 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 2000,
             defaultChunkOverlap: 200
         ),
+        // Provisional chunk defaults seeded from `nomic` (same 768 dim,
+        // same BERT architecture via swift-embeddings). Phase D of
+        // `embedder-expansion-plan.md` replaces these with tuned values.
+        BuiltIn(
+            alias: "bge-base",
+            canonicalEmbedderName: "bge-base-en-v1.5",
+            canonicalDimension: 768,
+            defaultChunkSize: 1200,
+            defaultChunkOverlap: 240
+        ),
     ]
 
     public static var knownAliases: [String] { builtIns.map(\.alias) }
@@ -184,9 +194,10 @@ public enum IndexingProfileFactory {
 
         let embedder: any Embedder
         switch alias {
-        case "nomic": embedder = NomicEmbedder()
-        case "nl":    embedder = NLEmbedder()
-        default:      throw VecError.unknownProfile(alias)
+        case "nomic":    embedder = NomicEmbedder()
+        case "nl":       embedder = NLEmbedder()
+        case "bge-base": embedder = BGEBaseEmbedder()
+        default:         throw VecError.unknownProfile(alias)
         }
 
         let splitter = RecursiveCharacterSplitter(
