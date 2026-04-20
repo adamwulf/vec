@@ -50,9 +50,19 @@ Run exactly once at baseline, then once per experiment:
    Record if it differs.
 3. `vec reset markdown-memory --force`.
 4. `time vec update-index --verbose 2>&1 | tee .reindex-multicore-<iter>.log`.
-5. **During the run, in a second terminal**, capture three samples
-   of `top -l 1 -pid $(pgrep -n vec) -stats cpu,mem,rsize` spaced
-   ~30 s apart. Record the `cpu` column values (>600% target).
+5. **During the run, in a second terminal**, capture ≥5 samples
+   spaced across the run (every ~300 s). Each sample is an averaged
+   3-second window, not an instantaneous tick:
+   `top -l 3 -s 1 -pid $(pgrep -n vec) -stats cpu,mem,rsize`. Record
+   the `cpu` column (target ≥600% for pass) and peak `rsize`.
+   **GPU/ANE caveat**: on Apple Silicon, MLX work that runs on
+   Metal GPU or the ANE does NOT appear in `top`'s per-process CPU%.
+   If bge-base inference is GPU/ANE-bound, a perfectly parallel
+   workload could read low on CPU% while running at full throughput.
+   For runs where `top` CPU% looks low but wall-clock improved, also
+   capture `sudo powermetrics --samplers cpu_power,gpu_power -n 5 -i
+   1000` windows to see GPU activity. (Note the MLX backend the
+   embedder uses in the log — it determines which tool to trust.)
 6. Parse the `[verbose-stats]` line: `wall, embed, util, p50_embed,
    p95_embed`. Also record `time`'s real wall-clock.
 7. **Rubric replay** (retrieval regression guard):
@@ -60,11 +70,18 @@ Run exactly once at baseline, then once per experiment:
    - Score with `.score-rubric.py` committed in this repo.
    - Require **total ≥ 37/60 AND top-10_either ≥ 8/10** (allows ±2 pt
      rubric noise around the 39/60, 9/10 baseline).
-8. **Determinism check** (catch silent ordering regressions):
-   - Re-run the 10 queries against the same index without reindexing.
-   - Diff top-20 `"file"` entries between the two runs. Any diff =
-     non-determinism bug; surface before declaring the experiment
-     complete.
+8. **Determinism checks** (catch silent ordering regressions — two
+   separate passes, both required):
+   - **Query-side**: re-run the 10 queries against the *same* index
+     without reindexing. Diff top-20 `"file"` entries between the
+     two runs. Any diff = query non-determinism bug.
+   - **Indexing-side**: reindex the corpus a second time with the
+     same config, then run the 10 queries. Diff top-20 against the
+     first reindex. This is the check that matters for E1 —
+     concurrent workers can insert chunks in different orders across
+     runs, and cosine-tie-breaking can swap results even when
+     embeddings are identical. Budget: one extra ~40 min reindex per
+     experiment.
 9. One-line row in the results table below.
 
 Baseline row (row 0) is **required to be re-measured fresh** at
@@ -93,17 +110,39 @@ complexity-reduction refactor, not a throughput fix.
 actor's mailbox, not some downstream issue (MLX lock, memory BW, or
 already-saturated cores masked by a broken stat).
 
-**Change (temporary, do NOT commit).** Patch `EmbedderPool.acquire`
-to log each waiter's queue-wait time and log the count of in-flight
-calls. Rerun one reindex, parse the log, compute mean queue-wait per
-worker.
+**Instrumentation point (must be at the embedder, not the pool).**
+Today's `EmbedderPool.acquire()` (`IndexingPipeline.swift:667`) is a
+no-op that returns the singleton embedder immediately — no queueing
+happens inside the pool. The actual serialization point is the
+**embedder actor's own mailbox**: when a worker calls
+`embedder.embedDocument(…)`, the compiler inserts an implicit hop
+onto the `BGEBaseEmbedder` actor; if another worker already holds
+the actor, this call waits. Patching `EmbedderPool.acquire` to
+measure queue-wait would therefore return ~0% and falsely reject
+the mailbox hypothesis. The correct place to measure is at the
+**callsite in the pipeline**, spanning the `await
+embedder.embedDocument(…)` call — `t_call_wall`. Also capture
+`t_encode_wall` from inside the embedder (before/after the tensor
+encode call). Mailbox queue wait is `t_call_wall - t_encode_wall`.
 
-**Signal we're looking for.**
-- Queue-wait >50% of per-call wall → actor mailbox IS the bottleneck;
-  proceed with E1.
-- Queue-wait <10% of per-call wall → mailbox is NOT the bottleneck;
-  E1 won't help. Re-plan (likely E3 first, or investigate MLX).
-- In between → run E1 anyway but temper expectations.
+**Change (temporary, do NOT commit).**
+1. In `IndexingPipeline`'s per-chunk task, wrap the
+   `embedder.embedDocument` call to record `t_call_wall`.
+2. Temporarily add a `embedDocumentTimed` entry point on the
+   embedder that returns `(vector, encodeSeconds)` so we can
+   capture `t_encode_wall` from inside the actor.
+3. Log `(t_call_wall, t_encode_wall)` per chunk; post-process for
+   mean/median queue-wait ratio across all chunks.
+
+**Signal we're looking for (thresholds tightened per observed util).**
+- If all 10 workers queue on one mailbox, prediction is queue-wait
+  ≈ (N-1)/N × per-call ≈ 90% of per-call wall. Observed util=199%
+  (≈2 effective workers) implies actual queue-wait ≈ 80%.
+- **Pass (proceed with E1)**: queue-wait ≥ 70% of `t_call_wall`.
+- **Reject (mailbox not the bottleneck)**: queue-wait ≤ 30%. Investigate
+  MLX internal locking / memory BW instead; likely skip E1 and run E3.
+- **Ambiguous (30-70%)**: run E1 but note the measurement; partial
+  result expected.
 
 **Artifacts.** Results row 0a ("E0 diagnostic"). No code commit.
 Patch stays on a scratch branch or just un-committed in the worktree
@@ -140,11 +179,16 @@ hundreds of ms, so hops will not plateau us below core count.
    embedders today — we extend that to mint N).
 3. `IndexingProfile` gains either `makeSibling()` or a `factory`
    closure accessible from the pipeline.
-4. **Critical: update `warmAll()` to iterate all N instances**, in
-   serial. This preserves the H5 invariant (no parallel cold-load
+4. **Critical: update `warmAll()` to iterate all N instances**,
+   strictly serially (`for instance in pool { await
+   instance.warmup() }` — each `await` completes before the next
+   starts). This preserves the H5 invariant (no parallel cold-load
    memory-bandwidth contention) AND serially populates the
    HuggingFace on-disk cache, which prevents N-way concurrent cache
-   writes on first-run-ever machines.
+   writes on first-run-ever machines. The pipeline's `run()` already
+   awaits `pool.warmAll()` before the first worker dispatches
+   (`IndexingPipeline.swift:204`), so there's no acquire-before-warmup
+   race to design around.
 5. Enforce one-worker-per-instance: the pool MUST NOT hand the same
    instance to two workers simultaneously. A busy-flag array +
    waiter queue, or an `AsyncSemaphore` gating acquire into a
@@ -154,11 +198,16 @@ hundreds of ms, so hops will not plateau us below core count.
 on disk; RAM footprint will be measured from `top`'s `rsize` column.
 If RSS after warmup > 6 GB, back off `concurrency`.
 
-**Exit criteria (tightened).**
-- **Pass**: `util ≥ 600%` AND per-thread CPU sample confirms ≥6
-  cores active AND rubric holds AND determinism check passes.
-- **Insufficient**: `util < 400%` after E1 → proceed to E3.
-- **Back off**: RSS > 6 GB → reduce `concurrency` to fit.
+**Exit criteria (tightened, no gaps).**
+- **Pass (ship E1, stop)**: `util ≥ 600%` AND (per-thread CPU ≥6
+  cores OR GPU activity ≥60% via `powermetrics` if GPU-bound) AND
+  rubric ≥37/60 AND top-10 ≥8/10 AND both determinism checks pass.
+- **Partial (proceed to E3 as compound)**: `400% ≤ util < 600%`.
+  Keep E1's code; E1+E3 is the design-intent combination.
+- **Insufficient (proceed to E3, consider reverting E1)**: `util <
+  400%` → mailbox wasn't the only bottleneck. Try E3 first.
+- **Back off**: RSS > 6 GB after warmup → reduce `concurrency` and
+  retest.
 
 ### E3 — MLX internal thread pinning (run before E2 per review)
 
@@ -175,8 +224,10 @@ purely worker-count-driven. Compare vs E1 best.
 **Risk.** Per-call latency could rise (each inference loses internal
 parallelism). Net throughput may still win.
 
-**Exit criteria.** Wall-clock reduction ≥10% vs E1 best OR util
-≥800%.
+**Exit criteria.** Wall-clock reduction ≥10% vs E1 best is the
+**primary** signal — throughput is the goal. `util` climbing is a
+secondary consistency check; it can rise without wall dropping if
+tail-latency files still dominate. Require wall-clock win to ship.
 
 ### E2 — Strip actor isolation (complexity-reduction, not throughput fix)
 
@@ -209,7 +260,9 @@ on the same bundle:**
   swift-embeddings' `BertModel.swift:371`).
 - `encode(_:maxLength:)` is non-mutating; it reads the model weights
   and tokenizer state only.
-- `TextTokenizer` protocol requires `Sendable`.
+- `TextTokenizer` protocol is declared `public protocol
+  TextTokenizer: Sendable` (verified at
+  swift-embeddings' `TextTokenizer.swift:4`).
 - So one bundle shared across N callers is safe; E2 eliminates the
   need for N bundles, reducing RAM.
 
@@ -250,9 +303,22 @@ just a sanity-check of the diagnostic conclusion.
 
 One row per iteration; append as we go. Baseline is the first real row.
 
-| # | experiment | wall (s) | util | p50 | p95 | top-CPU | RSS | rubric | top-10 | determ | notes |
-|---|------------|----------|------|-----|-----|---------|-----|--------|--------|--------|-------|
-| _ | baseline (fresh, 1200/240) | TBD | TBD | TBD | TBD | TBD | TBD | ≥37/60 | ≥8/10 | pass | required before E0 |
+Columns:
+- `wall` — `[verbose-stats] wall=` in seconds.
+- `util` — `[verbose-stats] util=` (pool occupancy, not CPU%).
+- `p50`/`p95` — per-chunk embed wall-clock.
+- `top-CPU` — peak CPU% from `top` sample during run.
+- `GPU%` — peak GPU from `powermetrics` (blank if CPU-bound).
+- `RSS` — peak resident-size from `top -stats rsize`.
+- `qwait` — E0 only; mean `(t_call_wall - t_encode_wall) /
+  t_call_wall`, expressed as %.
+- `rubric`/`top-10` — bean-counter score (must be ≥37/60 and ≥8/10).
+- `determ` — pass/fail across both determinism checks.
+
+| # | experiment | wall | util | p50 | p95 | top-CPU | GPU% | RSS | qwait | rubric | top-10 | determ | notes |
+|---|------------|------|------|-----|-----|---------|------|-----|-------|--------|--------|--------|-------|
+| 0 | baseline fresh bge-base@1200/240 | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | TBD | TBD | TBD | must re-measure; do not reuse 1200/360 numbers |
+| 0a | E0 diagnostic (instrumented) | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | n/a | n/a | n/a | no code commit; patch reverted after measure |
 
 ## Out of scope
 
