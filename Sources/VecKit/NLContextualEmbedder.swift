@@ -3,6 +3,12 @@ import NaturalLanguage
 
 /// `Embedder` wrapping Apple's `NLContextualEmbedding` for English.
 ///
+/// Distinct from `NLEmbedder`, which wraps the older
+/// `NLEmbedding.sentenceEmbedding` API (static word-piece model shipped
+/// in-bundle). `NLContextualEmbedding` is the newer transformer-based
+/// family that produces per-token contextual vectors; this actor
+/// mean-pools them and L2-normalizes to yield a single sentence vector.
+///
 /// The model is provided by the OS (macOS 14+ / iOS 17+) — nothing ships
 /// in the app bundle, but the OS may download assets on first use via
 /// `requestAssets()`. Output is 512-dim per-token vectors; this embedder
@@ -88,20 +94,19 @@ public actor NLContextualEmbedder: Embedder {
         }
 
         if !embedding.hasAvailableAssets {
+            let result: NLContextualEmbedding.AssetsResult
             do {
-                let result = try await embedding.requestAssets()
-                guard result == .available else {
-                    throw EmbedderError.modelUnavailable(
-                        embedder: name,
-                        detail: "requestAssets() returned \(result); assets are not available locally and could not be downloaded"
-                    )
-                }
-            } catch let error as EmbedderError {
-                throw error
+                result = try await embedding.requestAssets()
             } catch {
                 throw EmbedderError.modelUnavailable(
                     embedder: name,
                     detail: "requestAssets() threw: \(error.localizedDescription)"
+                )
+            }
+            guard result == .available else {
+                throw EmbedderError.modelUnavailable(
+                    embedder: name,
+                    detail: "requestAssets() returned \(result); assets are not available locally and could not be downloaded"
                 )
             }
         }
