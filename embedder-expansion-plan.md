@@ -220,7 +220,7 @@ Status legend: ✅ DONE · ⏳ NEXT UP · ◻ NOT STARTED.
 | ✅ DONE | C.1 | impl sub-agent (`bge-base-embedde-d9c3a224`) → review-cycle (both APPROVED) | bge-base-en-v1.5 wired in with tests (swift-embeddings `Bert` loader, CLS-pool + L2 norm, no prefix) | 1-2 h |
 | 🚫 BLOCKED | C.2 | impl sub-agent (`arctic-m-47026f1e`) — rolled back, partial commit retained | snowflake-arctic-embed-m-v1.5: **blocked** (see "C.2 blocker" note below); shared `l2Normalize` helper + bge-base concurrency canary landed as consolation | 1-2 h |
 | ✅ DONE | C.3 | impl sub-agent → review-cycle | Apple NLContextualEmbedding wired in with tests (NL framework, requestAssets, mean-pool + L2 norm, 256-token chunking) | 3-5 h |
-| ✅ DONE | D | manager | bge-base sweep (6 configs, winner 1200/240 @ 39/60) + nl-contextual (2 configs, ruled out) | 1 h × n |
+| ✅ DONE | D | manager | bge-base sweep (6 configs, winner 1200/240 @ 36/60) + nl-contextual (2 configs, ruled out) | 1 h × n |
 | ✅ DONE | E | manager | `IndexingProfileFactory.defaultAlias` flipped to `bge-base`, tests updated (249/249 pass) | 45 min |
 
 When a phase ships, whoever ships it flips its row from ⏳/◻ to ✅
@@ -280,7 +280,7 @@ files, bean-counter rubric (10 queries × 2 target files, 0-60).
 |-------|----------|--------|--------|-----------|------------------|--------------|
 | nomic | nomic@1200/240 | 35/60 | 3/10 | ~0.27 | ~6.1 (est) | ~520 MB (F16) |
 | nl (legacy) | nl@2000/200 | 0/60 | 0/10 | n/a | n/a | bundled |
-| **bge-base** | **bge-base@1200/240** | **39/60** | **9/10** | ~0.27 | ~6.1 (est) | ~440 MB (F16) |
+| **bge-base** | **bge-base@1200/240** | **36/60** | **9/10** | ~0.27 | ~6.1 (est) | ~440 MB (F16) |
 | nl-contextual | nl-contextual@1200/240 | 3/60 | 1/10 | ~1.59 | 4.17 | 0 (OS built-in) |
 
 Notes on the columns:
@@ -300,10 +300,15 @@ Notes on the columns:
   `NLContextualEmbedding.requestAssets` (system-managed, effectively
   zero user-visible install).
 
-**Rubric winner: bge-base@1200/240 (39/60, 9/10).** Strictly better
-than nomic on both total score (+4 pts) and top-10 hit rate (+6 pts
-under the standard TOP10_EITHER rule). bge-base is the clearest
-upgrade on this corpus.
+**Rubric winner: bge-base@1200/240 (36/60, 9/10).** Beats nomic on
+both total score (+1 pt) and top-10 hit rate (+6 pts under the
+standard TOP10_EITHER rule). The +1 pt total is within rubric noise,
+but the +6 top-10 gap is the load-bearing differentiator: bge-base
+is the clearest upgrade on this corpus on the user-visible metric.
+
+(The earlier 39/60 figure cited in commits before 2026-04-20 was a
+manual-tally error; rescoring from the archived JSON gives 36/60.
+See `e4-next-steps-report.md` §4a for the rescore audit.)
 
 **Arctic-m blocked** at load time by swift-embeddings' pooler
 requirement (see "C.2 blocker" above); not a retrieval comparison,
@@ -321,10 +326,12 @@ Change `IndexingProfileFactory.defaultAlias` from `nomic` to
 `bge-base`. Rationale:
 - bge-base beats the stated decision criterion: "another embedder
   beats it decisively (>5 points on the rubric or >2 extra top-10
-  hits) AND is not dramatically more expensive." bge-base is +4 pts
-  on total (just under the 5-pt bar) but +6 hits on top-10 (well over
-  the 2-hit bar), and install/throughput cost is ≈equal to nomic
-  (same swift-embeddings Bert pipeline, comparable model size).
+  hits) AND is not dramatically more expensive." bge-base is +1 pt
+  on total (well under the 5-pt bar — within rubric noise) but +6
+  hits on top-10 (well over the 2-hit bar), and install/throughput
+  cost is ≈equal to nomic (same swift-embeddings Bert pipeline,
+  comparable model size). The top-10 criterion is what's load-bearing
+  here, not the total-points delta.
 - The top-10 gap (3 → 9) is the more user-visible metric: it's the
   difference between "targets rarely appear" and "targets almost
   always appear" in the first page of results.

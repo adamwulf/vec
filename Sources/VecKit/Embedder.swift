@@ -13,11 +13,22 @@ public protocol Embedder: Sendable {
 }
 
 public extension Embedder {
+    /// Per-item isolation: a single chunk's `embedDocument` throw must not
+    /// fail the whole batch. Without this, a batched NL/NL-contextual run
+    /// would mark every neighboring chunk in the batch as `.skippedEmbedFailure`
+    /// just because one chunk produced a nil vector — pre-batched behavior
+    /// only skipped the offending chunk. The pipeline's embed-spawner already
+    /// treats `[]` at a slot as "this chunk failed", so swallowing the throw
+    /// and returning `[]` matches the protocol contract on `embedDocuments`.
     func embedDocuments(_ texts: [String]) async throws -> [[Float]] {
         var out: [[Float]] = []
         out.reserveCapacity(texts.count)
         for t in texts {
-            out.append(try await embedDocument(t))
+            do {
+                out.append(try await embedDocument(t))
+            } catch {
+                out.append([])
+            }
         }
         return out
     }

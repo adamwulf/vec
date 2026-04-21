@@ -151,7 +151,9 @@ public enum IndexingProfileFactory {
             defaultChunkOverlap: 200
         ),
         // 1200/240 selected by Phase D sweep against bean-counter rubric
-        // (39/60, 9/10 top-10_either on markdown-memory corpus, 2026-04-20).
+        // (36/60, 9/10 top-10_either on markdown-memory corpus,
+        // rescored 2026-04-20 from archived JSON; the 2026-04-19 manual
+        // count of 39/60 was off by 3 — see e4-next-steps-report §4a).
         BuiltIn(
             alias: "bge-base",
             canonicalEmbedderName: "bge-base-en-v1.5",

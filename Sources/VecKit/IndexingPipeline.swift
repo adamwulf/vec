@@ -235,6 +235,13 @@ public final class IndexingPipeline: Sendable {
         )
 
         // Save stream: per-file accumulator → DB writer (single consumer).
+        // Unbounded by design — gated indirectly by the accumulator
+        // completion rate, which itself is gated by extract throughput
+        // via `extractGate`. SaveWork instances carry chunk records (~3 KB
+        // per record); realistic save-queue depth stays in single digits
+        // because sqlite writes are O(10 MB/s) on this stack. If a future
+        // model produces wide vectors and a slow DB stage, this is the
+        // first stream to add an explicit bound on.
         let (saveStream, saveContinuation) = AsyncStream<SaveWork>.makeStream(
             bufferingPolicy: .unbounded
         )
@@ -373,13 +380,20 @@ public final class IndexingPipeline: Sendable {
             //   3. On embed-stream close, flush every remaining partial
             //      bucket so the run finishes cleanly.
             // Rule 2 caps the amount of work sitting in buckets at
-            // roughly 2*batchSize at any moment — guarantees bounded
-            // memory under any input distribution.
+            // 2*batchSize − 1 worst case (totalBuffered hits batchSize
+            // pre-flush, Rule 2 drops the largest bucket of ≥1 item) —
+            // guarantees bounded memory under any input distribution.
             group.addTask {
                 var buckets: [Int: [EmbedWork]] = [:]
                 var totalBuffered = 0
                 for await work in embedStream {
-                    let bucket = max(0, work.chunk.text.count / 500)
+                    // Each loop iteration appends exactly one chunk, so at
+                    // most one bucket's count increments per pass. Rule 1
+                    // (full-bucket flush) and Rule 2 (largest-bucket flush)
+                    // are mutually exclusive via `else if`, so at most one
+                    // flush fires per iteration. This is what keeps the
+                    // 2*batchSize − 1 worst-case `totalBuffered` bound.
+                    let bucket = work.chunk.text.count / 500
                     buckets[bucket, default: []].append(work)
                     totalBuffered += 1
                     if buckets[bucket]!.count >= batchSize {
@@ -766,8 +780,21 @@ actor EmbedderPool {
     func release(_ embedder: any Embedder) {
         // Locate the instance by identity — all instances came from
         // the factory at init so we can trust `ObjectIdentifier`
-        // equality on class/actor references.
+        // equality on class/actor references. **Caveat**: every current
+        // conformer (BGE, Nomic, NL, NLContextual) is an `actor`, so the
+        // `as AnyObject` bridge resolves to the same heap reference on
+        // both sides of the comparison. A future `struct` conformer
+        // would box on each cast and identity comparison would fail
+        // silently, hanging acquire() waiters. If that ever changes,
+        // tighten `Embedder` to `Embedder: AnyObject` (or use a UUID).
         guard let idx = instances.firstIndex(where: { ObjectIdentifier($0 as AnyObject) == ObjectIdentifier(embedder as AnyObject) }) else {
+            // Programmer error: caller passed an instance that did not
+            // come from this pool's factory. The only legitimate caller
+            // (the embed-spawner) round-trips the exact reference from
+            // acquire(), so this is unreachable today. assertionFailure
+            // surfaces it in debug builds; the silent return preserves
+            // release semantics in production rather than crashing.
+            assertionFailure("EmbedderPool.release called with an instance that did not come from this pool")
             return
         }
         if !waiters.isEmpty {
@@ -791,6 +818,12 @@ actor EmbedderPool {
     /// contends for the same memory bandwidth and gains nothing.
     /// Swallows errors — a warmup failure will surface on the first
     /// real embed.
+    ///
+    /// **Per-embedder cost**: BGE/Nomic/NLContextual lazy-load on first
+    /// call, so the warmup embed materializes the model bundle (the
+    /// expensive thing). NLEmbedder loads at `init()`, so its warmup
+    /// runs a real embed for no load-amortization benefit — small,
+    /// but the `poolWarmed(seconds:)` event conflates the two cases.
     func warmAll() async {
         for instance in instances {
             do {

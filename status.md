@@ -1,5 +1,18 @@
 # vec — retrieval quality status (2026-04-18)
 
+> **⚠ SUPERSEDED — 2026-04-20.** This snapshot reflects the state
+> *before* the Phase D embedder expansion (bge-base, nl-contextual)
+> and the E4 batched-embedding work. The current default is
+> **`bge-base@1200/240`** (rubric **36/60, 9/10 top-10**), not
+> nomic. For the live picture see:
+> - `embedder-expansion-plan.md` §"Final comparison" — current
+>   per-model rubric/throughput numbers
+> - `e4-next-steps-report.md` — batched-embedding outcome and
+>   wallclock data
+> - `indexing-profile.md` — the four built-in profiles that ship today
+>
+> Below preserved as historical context for the nomic-only era.
+
 ## Where things stand
 
 **Retrieval ceiling raised from 6/60 → 35/60** (5.8×) by replacing Apple's
