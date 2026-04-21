@@ -161,6 +161,17 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 1200,
             defaultChunkOverlap: 240
         ),
+        // bge-large-en-v1.5 added under E5.3. Seeded with the same
+        // 1200/240 chunk defaults as `bge-base` so the two are directly
+        // comparable at matching chunk geometry; 1024-dim, 24-layer
+        // model, ships as the "max quality" tier if rubric >= 40/60.
+        BuiltIn(
+            alias: "bge-large",
+            canonicalEmbedderName: "bge-large-en-v1.5",
+            canonicalDimension: 1024,
+            defaultChunkSize: 1200,
+            defaultChunkOverlap: 240
+        ),
         // Provisional chunk defaults seeded from `nomic`. Phase D of
         // `embedder-expansion-plan.md` replaces these with tuned values.
         BuiltIn(
@@ -224,6 +235,7 @@ public enum IndexingProfileFactory {
         case "nomic":         factory = { NomicEmbedder() }
         case "nl":            factory = { NLEmbedder() }
         case "bge-base":      factory = { BGEBaseEmbedder() }
+        case "bge-large":     factory = { BGELargeEmbedder() }
         case "nl-contextual": factory = { NLContextualEmbedder() }
         default:              throw VecError.unknownProfile(alias)
         }
