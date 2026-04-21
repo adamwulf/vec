@@ -46,10 +46,21 @@ public actor NomicEmbedder: Embedder {
         }
 
         let bundle = try await loadBundleIfNeeded()
+        // computePolicy must be .cpuOnly. The batched path feeds an
+        // attention mask into the graph and, on macOS 26.3.1+, CoreML
+        // tries to compile that graph for ANE and fails with
+        // "Incompatible element type for ANE: expected fp16, si8, or ui8".
+        // Neither the default nor an explicit .cpuAndGPU prevents this
+        // (both were observed to fail — zero chunks indexed, and
+        // segfaulting at the tokenizer's default maxLength of 2048).
+        // The single-text encode() path is unaffected because it runs
+        // with uniform sequence length and no attention mask, so we
+        // only override the policy on the batched call.
         let tensor = try bundle.batchEncode(
             liveInputs,
             padTokenId: 0,
-            postProcess: .meanPoolAndNormalize)
+            postProcess: .meanPoolAndNormalize,
+            computePolicy: .cpuOnly)
         let scalars = await tensor.cast(to: Float.self).shapedArray(of: Float.self).scalars
 
         let batch = liveInputs.count
