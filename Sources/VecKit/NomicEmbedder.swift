@@ -23,58 +23,38 @@ public actor NomicEmbedder: Embedder {
     }
 
     public func embedDocuments(_ texts: [String]) async throws -> [[Float]] {
-        // Normalize inputs the same way `embed(prefix:text:)` does, then
-        // exclude empty slots from the model call and re-interleave `[]`
-        // back at their original indices.
-        var normalized: [String?] = []
-        normalized.reserveCapacity(texts.count)
-        for t in texts {
-            var trimmed = t.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmed.isEmpty {
-                normalized.append(nil)
-                continue
-            }
-            if trimmed.count > Self.maxInputCharacters {
-                trimmed = String(trimmed.prefix(Self.maxInputCharacters))
-            }
-            normalized.append("search_document: " + trimmed)
-        }
-
-        let liveInputs = normalized.compactMap { $0 }
-        guard !liveInputs.isEmpty else {
+        // Nomic requires the "search_document: " prefix on indexed text.
+        // `postProcess: .meanPoolAndNormalize` below handles L2-normalization
+        // inside the model graph, so the per-row normalizer is a no-op.
+        let inputs = normalizeBertInputs(texts, prefix: "search_document: ", maxChars: Self.maxInputCharacters)
+        guard !inputs.liveInputs.isEmpty else {
             return Array(repeating: [], count: texts.count)
         }
 
         let bundle = try await loadBundleIfNeeded()
+        // computePolicy must be .cpuOnly. The batched path feeds an
+        // attention mask into the graph and, on macOS 26.3.1+, CoreML
+        // tries to compile that graph for ANE and fails with
+        // "Incompatible element type for ANE: expected fp16, si8, or ui8".
+        // Neither the default nor an explicit .cpuAndGPU prevents this
+        // (both were observed to fail — zero chunks indexed, and
+        // segfaulting at the tokenizer's default maxLength of 2048).
+        // The single-text encode() path is unaffected because it runs
+        // with uniform sequence length and no attention mask, so we
+        // only override the policy on the batched call.
         let tensor = try bundle.batchEncode(
-            liveInputs,
+            inputs.liveInputs,
             padTokenId: 0,
-            postProcess: .meanPoolAndNormalize)
+            postProcess: .meanPoolAndNormalize,
+            computePolicy: .cpuOnly)
         let scalars = await tensor.cast(to: Float.self).shapedArray(of: Float.self).scalars
 
-        let batch = liveInputs.count
-        let dim = dimension
-        precondition(scalars.count == batch * dim,
-                     "Nomic batchEncode returned \(scalars.count) scalars, expected \(batch * dim)")
-
-        var rows: [[Float]] = []
-        rows.reserveCapacity(batch)
-        for i in 0..<batch {
-            rows.append(Array(scalars[(i * dim)..<((i + 1) * dim)]))
-        }
-
-        var out: [[Float]] = []
-        out.reserveCapacity(texts.count)
-        var liveIdx = 0
-        for slot in normalized {
-            if slot == nil {
-                out.append([])
-            } else {
-                out.append(rows[liveIdx])
-                liveIdx += 1
-            }
-        }
-        return out
+        return unpackAndReinterleave(
+            scalars: scalars,
+            slots: inputs.slots,
+            dim: dimension,
+            embedderName: "Nomic",
+            normalizer: { $0 })
     }
 
     private func embed(prefix: String, text: String) async throws -> [Float] {

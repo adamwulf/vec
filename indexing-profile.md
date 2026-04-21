@@ -19,12 +19,28 @@ can match against on every open.
 
 Four built-in profiles ship today:
 
-| Alias            | Canonical identity         | Embedder                | Dim | Chunk size | Chunk overlap | Rubric score |
-| ---------------- | -------------------------- | ----------------------- | --- | ---------- | ------------- | ------------ |
-| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      | 768 | 1200 chars | 240 chars     | **36/60**, 2/10 both-top10 |
-| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        | 768 | 1200 chars | 240 chars     | 35/60, 3/10 both-top10 |
-| `nl`             | `nl@2000/200`              | `nl-en-512`             | 512 | 2000 chars | 200 chars     | 6/60, 0/10 both-top10 |
-| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  | 512 | 1200 chars | 240 chars     | 3/60, 0/10 both-top10 |
+| Alias            | Canonical identity         | Embedder                | Dim | Chunk size | Chunk overlap | Rubric score | Index wall¹ | ch/s¹ |
+| ---------------- | -------------------------- | ----------------------- | --- | ---------- | ------------- | ------------ | ----------- | ----- |
+| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      | 768 | 1200 chars | 240 chars     | **36/60**, 2/10 both-top10 | 1028 s | 7.9 |
+| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        | 768 | 1200 chars | 240 chars     | 35/60, 3/10 both-top10 | 1417 s² | 5.8² |
+| `nl`             | `nl@2000/200`              | `nl-en-512`             | 512 | 2000 chars | 200 chars     | 6/60, 0/10 both-top10 | 138 s | 35.0 |
+| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  | 512 | 1200 chars | 240 chars     | 3/60, 0/10 both-top10 | 52 s | 157.1 |
+
+¹ Wall-clock and chunks-per-second for a full reindex of the
+`markdown-memory` corpus (674 files; 8170 chunks at 1200/240 for the
+Bert-family and nl-contextual rows, 4828 chunks for `nl` at its
+2000/200 default), 10-core Apple Silicon, pool=10, batch=16, release
+build at the E4 batched commit. `ch/s` is `chunks ÷ wall`. Full
+per-stage breakdown in `data/wallclock-e4-per-model.md`.
+
+² `nomic` is pinned to `computePolicy: .cpuOnly` to work around a
+CoreML/ANE compile failure ("Incompatible element type for ANE") on
+macOS 26.3.1+. The 1417 s wallclock is therefore CPU-only and not
+directly comparable to the other rows, which leave placement to the
+compiler. Historical wallclock at the same config on the pre-E4 code
+path (with ANE) was ~2940 s. See
+`NomicEmbedder.batchEncode` and
+`data/wallclock-e4-per-model.md` for detail.
 
 `bge-base` is the default. (Originally `nomic`; flipped 2026-04-19
 after the Phase D sweep — see `experiments/PhaseD-embedder-expansion/plan.md` §"Default

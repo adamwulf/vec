@@ -32,11 +32,14 @@ profile grammar and [`README.md`](./README.md#built-in-embedders)
 for the comparison table.
 
 **Known issues**:
-- `nomic` currently fails to load on the test machine's macOS /
-  ANE combination (CoreML FP32 error). The pipeline exits 0 anyway
-  and leaves the DB with 0 chunks. Both the underlying load
-  failure and the silent-failure observability gap are open.
-  Detail in [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md#nomic-fails-to-load-on-the-current-macos--ane-configuration).
+- The silent-failure observability gap is still open: the indexing
+  pipeline exits 0 with "Update complete" even when zero chunks
+  land in the DB. This is what hid nomic's load failure for a
+  release cycle. Fix in the E5 list below. The underlying nomic
+  load failure was resolved by commit `7182920` (pin
+  `computePolicy: .cpuOnly` in `NomicEmbedder.batchEncode`) —
+  nomic now indexes the markdown-memory corpus end-to-end at
+  ~1417 s (CPU-only). Detail in [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md#nomic-load-failure--diagnosed-and-fixed-historical).
 
 ---
 
@@ -159,10 +162,12 @@ Priority order, each item independent:
    `bge-large@1200/240` and document as "max quality" (default
    stays bge-base).
 
-3. **Fix nomic load failure** — pin a working CoreML conversion, or
-   remove `nomic` from the alias table to stop advertising a broken
-   option. See [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md#nomic-fails-to-load-on-the-current-macos--ane-configuration)
-   for the failure signature.
+3. ~~**Fix nomic load failure**~~ — **resolved 2026-04-21** (commit
+   `7182920`). `NomicEmbedder.batchEncode` now forces
+   `computePolicy: .cpuOnly`, sidestepping the macOS 26.3.1+ ANE
+   compile error on FP32 weights. Post-fix wallclock on
+   markdown-memory: 1417 s / 8170 chunks, pool util 98 %. See
+   [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md#nomic-load-failure--diagnosed-and-fixed-historical).
 
 4. **Fix the silent-failure observability gap** — the pipeline
    reported "Update complete: 674 added, 0 updated" with exit 0
