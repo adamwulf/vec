@@ -72,8 +72,19 @@ the config generalizes across phrasings.
 
 ## Scoring rule
 
+**Canonical sources of truth:**
+
+- `scripts/rubric-queries.json` — the 10 queries, the 2 target files,
+  and the rank-bracket → points mapping. Edit this file to change the
+  rubric; nothing else hard-codes the numbers.
+- `scripts/score-rubric.py` — the scorer. Reads the manifest above,
+  consumes a directory of `q01.json` … `q10.json`, emits the rank
+  table and the `TOTAL: X/60, TOP10_EITHER: N/10, TOP10_BOTH: M/10`
+  line. If a human count disagrees with the script, the script is
+  right.
+
 For each query, run `vec search --db markdown-memory --format json
---limit 20 "<query>"` and inspect the resulting JSON. Per query:
+--limit 20 "<query>"` and save the JSON. Per query:
 
 - **+3 points** if `granola/2026-02-26-22-30-164bf8dc/transcript.txt`
   appears in positions 1–3
@@ -276,15 +287,16 @@ The deliverable is one `retrieval-results-<alias>.md` file (create if
 missing) plus an archived JSON dump of the scored search runs. Both go
 in the repo root next to the existing rubric files.
 
-### 1. Reindex against a temporary DB
+### 1. Reindex markdown-memory with the target embedder
 
-Use a per-experiment DB name so you don't clobber the user's working
-`~/.vec/markdown-memory` index:
+`markdown-memory` is a test DB — Adam has OK'd wiping it at any
+time and leaving it in whatever embedder/chunk configuration the
+last sweep landed on. No `cd` needed (see CLAUDE.md "DO NOT cd"):
 
 ```bash
-swift run vec reset --db markdown-memory-perf-<alias> --force
+swift run vec reset --db markdown-memory --force
 time swift run vec update-index \
-  --db markdown-memory-perf-<alias> \
+  --db markdown-memory \
   --embedder <alias> \
   --chunk-chars <N> --chunk-overlap <M> \
   --verbose
@@ -304,32 +316,42 @@ The `[verbose-stats]` line is grep-friendly on purpose; copy it
 verbatim into the results log so future readers can reparse it
 without rerunning.
 
-### 2. Score the 10-query rubric
+### 2. Capture the 10-query JSON to the benchmarks archive
 
-Run each of the 10 rubric queries (see "## The queries" above) through
-`vec search` against the new DB and capture the JSON:
+All 10 query texts live in `scripts/rubric-queries.json` — the single
+source of truth. Use the manifest rather than copying the queries
+into a shell loop by hand (drift kills reproducibility):
 
 ```bash
-swift run vec search \
-  --db markdown-memory-perf-<alias> \
-  --format json --limit 20 \
-  "<query text>" \
-  > /tmp/baseline-<alias>-q<NN>.json
+mkdir -p benchmarks/<alias>-<N>-<M>
+for i in $(seq 1 10); do
+  n=$(printf "%02d" $i)
+  text=$(jq -r ".queries[$((i-1))].text" scripts/rubric-queries.json)
+  swift run vec search \
+    --db markdown-memory \
+    --format json --limit 20 \
+    "$text" \
+    > benchmarks/<alias>-<N>-<M>/q${n}.json
+done
 ```
 
-Score each result against the rubric using the procedure in
-"## The scoring procedure" above (manual tally of the top-10 against
-the two target files per query). Archive the 10 JSON dumps under
-`benchmarks/<alias>-<chunkChars>-<overlap>/` (create the directory; it's
-intentionally untracked-by-default — add a one-line README in the
-directory if you want to commit it for posterity).
+The archived JSONs are committed — see `benchmarks/README.md`. This
+is what lets a future reader rescore a historical sweep when the
+scoring rule or the scorer itself evolves (exactly what happened to
+bge-base on 2026-04-20 — a 2026-04-19 manual count was off by 3
+points; the archive let us fix the record).
 
-The archived JSON convention closes the gap that there was no committed
-scorer invocation anywhere in the repo (phase-1 N8). If you script the
-scoring, drop the script into `scripts/` and reference it from the
-results-log entry so the next person can replay.
+### 3. Score
 
-### 3. Append to `retrieval-results-<alias>.md`
+```bash
+python3 scripts/score-rubric.py benchmarks/<alias>-<N>-<M>/
+```
+
+The script prints the rank table and the canonical TOTAL line. Copy
+both verbatim into `data/retrieval-<alias>.md`. The script's output
+is the authoritative score — do not hand-edit it.
+
+### 4. Append to `data/retrieval-<alias>.md`
 
 Every results log row MUST carry these columns so cross-embedder
 comparison is mechanical, not eyeballed (closes phase-2 docs NB14):
@@ -352,14 +374,14 @@ comparison is mechanical, not eyeballed (closes phase-2 docs NB14):
 Below the table row, paste the per-query score block and the verbatim
 `[verbose-stats]` line. One block per iteration.
 
-### 4. Mark the new high-water mark (if any)
+### 5. Mark the new high-water mark (if any)
 
 If the run beat the previous best on `queries_hit_top10` (primary) or
 `total_score` (tiebreak), note it as the new winner for that alias.
 Cross-alias winners are decided in `experiments/PhaseD-embedder-expansion/plan.md`'s
 "Final comparison" table, not here.
 
-### 5. Commit the results log + archived JSONs
+### 6. Commit the results log + archived JSONs
 
 One commit per baseline run, message format:
 

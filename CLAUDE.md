@@ -53,6 +53,30 @@ to reindex it back to `bge-base` (or any other specific profile) as
 a courtesy step. Whatever embedder the last run used is fine — the
 next sweep will reset it again anyway.
 
+### Rubric scoring — one script, one manifest, one archive
+
+- **`scripts/rubric-queries.json`** — canonical manifest: the 10
+  queries, the 2 target files, the rank-bracket → points mapping.
+  Agents building a sweep must source queries from this file, not
+  from `retrieval-rubric.md`'s prose (the prose exists for humans;
+  the manifest is for scripts).
+- **`scripts/score-rubric.py`** — the scorer. Reads the manifest and
+  a directory of `q01.json` … `q10.json`, prints the rank table +
+  canonical TOTAL line. This is the authoritative score. If a human
+  count disagrees, the script wins.
+- **`benchmarks/<alias>-<chunkChars>-<overlap>/`** — per-sweep JSON
+  archive, committed. Lets future readers rescore historical sweeps
+  when the rubric evolves. See `benchmarks/README.md`.
+
+Exact scorer invocation:
+
+```bash
+python3 scripts/score-rubric.py benchmarks/<alias>-<N>-<M>/
+```
+
+See `retrieval-rubric.md` §"Running a baseline" for the full
+reindex → capture → score → append-to-results-log recipe.
+
 ### When you really do need a brand-new DB
 
 If you need a new throwaway DB name (not a clone/reset of an existing
