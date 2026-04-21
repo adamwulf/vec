@@ -19,7 +19,8 @@ struct Vec: AsyncParsableCommand {
             ListCommand.self,
             InfoCommand.self,
             ChunkCommand.self,
-            ResetCommand.self
+            ResetCommand.self,
+            SweepCommand.self
         ],
         defaultSubcommand: SearchCommand.self
     )
