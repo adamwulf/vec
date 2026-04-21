@@ -19,12 +19,22 @@ can match against on every open.
 
 Four built-in profiles ship today:
 
-| Alias            | Canonical identity         | Embedder                | Dim | Chunk size | Chunk overlap | Rubric score |
-| ---------------- | -------------------------- | ----------------------- | --- | ---------- | ------------- | ------------ |
-| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      | 768 | 1200 chars | 240 chars     | **36/60**, 2/10 both-top10 |
-| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        | 768 | 1200 chars | 240 chars     | 35/60, 3/10 both-top10 |
-| `nl`             | `nl@2000/200`              | `nl-en-512`             | 512 | 2000 chars | 200 chars     | 6/60, 0/10 both-top10 |
-| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  | 512 | 1200 chars | 240 chars     | 3/60, 0/10 both-top10 |
+| Alias            | Canonical identity         | Embedder                | Dim | Chunk size | Chunk overlap | Rubric score | Index wall¹ |
+| ---------------- | -------------------------- | ----------------------- | --- | ---------- | ------------- | ------------ | ----------- |
+| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      | 768 | 1200 chars | 240 chars     | **36/60**, 2/10 both-top10 | 1028 s |
+| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        | 768 | 1200 chars | 240 chars     | 35/60, 3/10 both-top10 | n/a² |
+| `nl`             | `nl@2000/200`              | `nl-en-512`             | 512 | 2000 chars | 200 chars     | 6/60, 0/10 both-top10 | 138 s |
+| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  | 512 | 1200 chars | 240 chars     | 3/60, 0/10 both-top10 | 52 s |
+
+¹ Wall-clock for a full reindex of the `markdown-memory` corpus
+(674 files, 8170 chunks at 1200/240; `nl` produces 4828 chunks at
+its 2000/200 default), 10-core Apple Silicon, pool=10, batch=16,
+release build at the E4 batched commit. Full per-stage breakdown
+in `data/wallclock-e4-per-model.md`.
+
+² `nomic` currently fails to load on the test machine's macOS / ANE
+configuration (CoreML FP32 error). Historical wallclock at the same
+config on the pre-E4 code path was ~2940 s.
 
 `bge-base` is the default. (Originally `nomic`; flipped 2026-04-19
 after the Phase D sweep — see `experiments/PhaseD-embedder-expansion/plan.md` §"Default
