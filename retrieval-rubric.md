@@ -264,3 +264,108 @@ Concrete commands:
 - The `transcript.txt` target file is LONG and will produce many chunks
   under small configs. Its retrieval should improve dramatically as
   chunks shrink.
+
+## Running a baseline
+
+This section is the recipe for producing a fresh per-embedder baseline
+on the markdown-memory corpus. Every new embedder, default-flip, or
+chunking change should generate one of these so retrieval-quality and
+wallclock numbers stay comparable across rounds.
+
+The deliverable is one `retrieval-results-<alias>.md` file (create if
+missing) plus an archived JSON dump of the scored search runs. Both go
+in the repo root next to the existing rubric files.
+
+### 1. Reindex against a temporary DB
+
+Use a per-experiment DB name so you don't clobber the user's working
+`~/.vec/markdown-memory` index:
+
+```bash
+swift run vec reset --db markdown-memory-perf-<alias> --force
+time swift run vec update-index \
+  --db markdown-memory-perf-<alias> \
+  --embedder <alias> \
+  --chunk-chars <N> --chunk-overlap <M> \
+  --verbose
+```
+
+Capture from `time`:
+- `real` wallclock (the headline number for the results log)
+
+Capture from the trailing `[verbose-stats]` one-liner:
+- `files`, `chunks`, `batches`
+- `extract_ms`, `embed_ms`, `save_ms` (per-stage totals)
+- `pool_util` (target ≥ 0.95 — sub-0.9 is the canary that something is
+  starving the pool, see `batch-embed-plan.md` §"Pool-util accounting")
+- `chunks_per_sec`, `batches_per_sec`
+
+The `[verbose-stats]` line is grep-friendly on purpose; copy it
+verbatim into the results log so future readers can reparse it
+without rerunning.
+
+### 2. Score the 10-query rubric
+
+Run each of the 10 rubric queries (see "## The queries" above) through
+`vec search` against the new DB and capture the JSON:
+
+```bash
+swift run vec search \
+  --db markdown-memory-perf-<alias> \
+  --format json --limit 20 \
+  "<query text>" \
+  > /tmp/baseline-<alias>-q<NN>.json
+```
+
+Score each result against the rubric using the procedure in
+"## The scoring procedure" above (manual tally of the top-10 against
+the two target files per query). Archive the 10 JSON dumps under
+`benchmarks/<alias>-<chunkChars>-<overlap>/` (create the directory; it's
+intentionally untracked-by-default — add a one-line README in the
+directory if you want to commit it for posterity).
+
+The archived JSON convention closes the gap that there was no committed
+scorer invocation anywhere in the repo (phase-1 N8). If you script the
+scoring, drop the script into `scripts/` and reference it from the
+results-log entry so the next person can replay.
+
+### 3. Append to `retrieval-results-<alias>.md`
+
+Every results log row MUST carry these columns so cross-embedder
+comparison is mechanical, not eyeballed (closes phase-2 docs NB14):
+
+| Column | Source | Notes |
+| --- | --- | --- |
+| `timestamp` | run-time UTC | ISO 8601 |
+| `commit` | `git rev-parse --short HEAD` | so the row is replayable |
+| `alias` | the `--embedder` value | e.g. `bge-base` |
+| `chunk_chars` / `overlap` | the flags passed | the other half of the profile identity |
+| `corpus_files` / `corpus_chunks` | from `[verbose-stats]` | corpus-shape sanity check |
+| `wallclock_real_s` | `time` output | end-to-end index time |
+| `extract_ms` / `embed_ms` / `save_ms` | `[verbose-stats]` | per-stage breakdown |
+| `pool_util` | `[verbose-stats]` | < 0.9 = investigate before trusting wallclock |
+| `chunks_per_sec` | `[verbose-stats]` | apples-to-apples throughput |
+| `total_score` | rubric tally | out of 60 |
+| `queries_hit_top10` | rubric tally | out of 10 — the load-bearing criterion |
+| `notes` | freeform | hardware, thermal state, any caveats |
+
+Below the table row, paste the per-query score block and the verbatim
+`[verbose-stats]` line. One block per iteration.
+
+### 4. Mark the new high-water mark (if any)
+
+If the run beat the previous best on `queries_hit_top10` (primary) or
+`total_score` (tiebreak), note it as the new winner for that alias.
+Cross-alias winners are decided in `embedder-expansion-plan.md`'s
+"Final comparison" table, not here.
+
+### 5. Commit the results log + archived JSONs
+
+One commit per baseline run, message format:
+
+```
+baseline: <alias>@<chunkChars>/<overlap> — <total_score>/60, <hits>/10 top-10
+```
+
+Body: paste the table row plus a one-line summary of what was novel
+about this run (new embedder? swept chunk size? cold vs warm cache?).

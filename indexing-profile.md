@@ -17,14 +17,19 @@ return nonsense. The profile identity is what prevents that: it
 commits the full parameter bundle to a single string the database
 can match against on every open.
 
-Two built-in profiles ship today:
+Four built-in profiles ship today:
 
-| Alias   | Canonical identity    | Embedder         | Dim | Chunk size | Chunk overlap |
-| ------- | --------------------- | ---------------- | --- | ---------- | ------------- |
-| `nomic` | `nomic@1200/240`      | `nomic-v1.5-768` | 768 | 1200 chars | 240 chars     |
-| `nl`    | `nl@2000/200`         | `nl-en-512`      | 512 | 2000 chars | 200 chars     |
+| Alias            | Canonical identity         | Embedder                | Dim | Chunk size | Chunk overlap |
+| ---------------- | -------------------------- | ----------------------- | --- | ---------- | ------------- |
+| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      | 768 | 1200 chars | 240 chars     |
+| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        | 768 | 1200 chars | 240 chars     |
+| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  | 512 | 1200 chars | 240 chars     |
+| `nl`             | `nl@2000/200`              | `nl-en-512`             | 512 | 2000 chars | 200 chars     |
 
-`nomic` is the default.
+`bge-base` is the default. (Originally `nomic`; flipped 2026-04-19
+after the Phase D sweep — see `embedder-expansion-plan.md` §"Default
+alias decision".) Source of truth is
+`IndexingProfileFactory.builtIns` in `Sources/VecKit/IndexingProfile.swift`.
 
 ## CLI surface
 
@@ -66,15 +71,18 @@ A profile identity is one string, always of the form:
 ```
 
 - `alias` is the short string the user typed on `--embedder` — one
-  of `IndexingProfileFactory.knownAliases` (today: `nomic`, `nl`).
+  of `IndexingProfileFactory.knownAliases`. The currently-registered
+  aliases are listed in the table at the top of this file.
 - `chunkSize` and `chunkOverlap` are the literal character counts
   the splitter runs with.
 
 Examples:
 
+- `bge-base@1200/240` — bge-base's built-in default (current default
+  alias).
 - `nomic@1200/240` — nomic's built-in default.
 - `nl@2000/200` — nl's built-in default.
-- `nomic@500/100` — nomic with user-supplied chunk overrides.
+- `bge-base@500/100` — bge-base with user-supplied chunk overrides.
 
 The identity is parsed with `IndexingProfileFactory.parseIdentity(_:)`.
 Any deviation from the grammar (wrong separator, non-numeric chunk
@@ -146,11 +154,12 @@ public struct DatabaseConfig: Codable {
 `profile` is optional so four states decode and render cleanly:
 
 - **Built-in indexed DBs** — `profile` carries a record whose
-  identity matches a built-in (`nomic@1200/240` / `nl@2000/200`).
-  `vec info` prints `nomic@1200/240 (768d)`.
+  identity matches a built-in (e.g. `bge-base@1200/240`,
+  `nomic@1200/240`, `nl@2000/200`). `vec info` prints
+  `bge-base@1200/240 (768d)`.
 - **Custom indexed DBs** — `profile` carries a record whose chunk
-  params differ from the alias's defaults (e.g. `nomic@500/100`).
-  `vec info` prints `nomic@500/100 (custom, based on nomic) (768d)`
+  params differ from the alias's defaults (e.g. `bge-base@500/100`).
+  `vec info` prints `bge-base@500/100 (custom, based on bge-base) (768d)`
   to make the deviation visible.
 - **Freshly initialized or reset DBs** — `profile == nil` *and*
   `chunks.count == 0`. `vec init` and `vec reset` both write this
@@ -242,7 +251,7 @@ based matching.
 `IndexingPipeline` takes a profile, not a raw embedder:
 
 ```swift
-let profile = try IndexingProfileFactory.make(alias: "nomic")
+let profile = try IndexingProfileFactory.make(alias: IndexingProfileFactory.defaultAlias)
 let pipeline = IndexingPipeline(profile: profile)
 let extractor = TextExtractor(splitter: profile.splitter)
 try await pipeline.run(workItems: ..., extractor: extractor, database: db)

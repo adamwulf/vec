@@ -58,7 +58,13 @@ fused-attention cap on this stack is 32. Untested points:
 
 Guardrail: if pool utilization starts dropping below 95 % as b
 grows, the batch-former is starving on heterogeneous length buckets
-— revisit bucket width (§2b) before pushing further.
+— revisit bucket width (§2b) before pushing further. (95 % is the
+empirical "fully-fed" mark from the Phase C sweep, where E4-3 and
+E4-4 both ran at 99 %; a step down to ~80–90 % indicates the batch
+former is being held off chunks. Comparison ground rules: see
+`batch-embed-plan.md` §"Pool-util accounting" lines 145-150 — util
+is only comparable across runs that share `workerCount`, so the
+verbose-stats line prints both.)
 
 ### 2b. Tune the length-bucket width
 
