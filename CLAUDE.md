@@ -46,6 +46,13 @@ already initialized against Adam's corpus at
 existing DB is the canonical way to run a fresh rubric sweep with a
 different embedder.
 
+**The `markdown-memory` DB is a test index, not a production one.**
+Adam has explicitly OK'd wiping it at any time and leaving it in any
+embedder/chunk configuration when a sweep finishes. You do NOT need
+to reindex it back to `bge-base` (or any other specific profile) as
+a courtesy step. Whatever embedder the last run used is fine — the
+next sweep will reset it again anyway.
+
 ### When you really do need a brand-new DB
 
 If you need a new throwaway DB name (not a clone/reset of an existing
