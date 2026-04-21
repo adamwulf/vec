@@ -235,13 +235,17 @@ public final class IndexingPipeline: Sendable {
         )
 
         // Save stream: per-file accumulator → DB writer (single consumer).
-        // Unbounded by design — gated indirectly by the accumulator
-        // completion rate, which itself is gated by extract throughput
-        // via `extractGate`. SaveWork instances carry chunk records (~3 KB
-        // per record); realistic save-queue depth stays in single digits
-        // because sqlite writes are O(10 MB/s) on this stack. If a future
-        // model produces wide vectors and a slow DB stage, this is the
-        // first stream to add an explicit bound on.
+        // Unbounded by design — there is **no** upstream backpressure on
+        // this stream: `extractGate` releases its permit (line ~488)
+        // *before* the accumulator yields a `SaveWork`, so save-queue
+        // depth depends entirely on the DB writer keeping up with the
+        // file-completion rate. SaveWork instances carry chunk records
+        // (~3 KB per record); realistic depth stays in single digits
+        // because sqlite writes are O(10 MB/s) on this stack and
+        // file-completion is paced by chunk extraction. If a future
+        // embedder pairs wide vectors with a slow DB stage, this is the
+        // first stream to add an explicit bound on (e.g. switch
+        // bufferingPolicy to `.bufferingNewest(workerCount * 4)`).
         let (saveStream, saveContinuation) = AsyncStream<SaveWork>.makeStream(
             bufferingPolicy: .unbounded
         )
@@ -347,7 +351,7 @@ public final class IndexingPipeline: Sendable {
                         // released in the embed task after handoff to the
                         // accumulator. Keeps extract from running ahead
                         // of embed on large corpora.
-                        await extractGate.acquire()
+                        try await extractGate.acquire()
                         let work = EmbedWork(
                             file: item.file,
                             label: item.label,
@@ -429,16 +433,34 @@ public final class IndexingPipeline: Sendable {
             // then fans the result rows out as per-chunk events so the
             // accumulator stage and UI progress semantics are unchanged.
             group.addTask {
-                await withTaskGroup(of: Void.self) { embedGroup in
+                // Throwing inner group: pool.acquire() and
+                // extractGate.acquire() are now cancellation-aware and
+                // can throw CancellationError when the outer group
+                // unwinds (e.g. DB writer failure → throwingTaskGroup
+                // cancels siblings). Propagating that throw here lets
+                // the inner group tear down promptly instead of
+                // dead-locking. The `defer` ensures the accumulator
+                // stream is closed on both success and throw paths so
+                // the accumulator stage can drain and exit cleanly.
+                defer { accumContinuation.finish() }
+                try await withThrowingTaskGroup(of: Void.self) { embedGroup in
                     for await batch in batchStream {
                         embedGroup.addTask {
-                            let embedder = await pool.acquire()
+                            let embedder = try await pool.acquire()
                             progress?(.poolAcquired)
                             let batchStart = DispatchTime.now()
                             let vectors: [[Float]]
                             do {
                                 let texts = batch.items.map { $0.chunk.text }
                                 vectors = try await embedder.embedDocuments(texts)
+                            } catch is CancellationError {
+                                // Cancellation: return the embedder and
+                                // re-throw so the inner group tears down.
+                                // Distinct from whole-batch model failure
+                                // (caught below) — that one's a per-batch
+                                // recoverable failure mode.
+                                await pool.release(embedder)
+                                throw CancellationError()
                             } catch {
                                 // Whole-batch failure → every chunk in the
                                 // batch gets a nil record. Per-item failure
@@ -490,9 +512,15 @@ public final class IndexingPipeline: Sendable {
                             }
                         }
                     }
+                    // Explicit waitForAll to surface the first child
+                    // throw. Without this, withThrowingTaskGroup's
+                    // closure body never `try`s and the rethrows
+                    // attribute fires no propagation — child errors
+                    // get silently dropped at scope exit.
+                    try await embedGroup.waitForAll()
                 }
-                // All embed tasks done; close the accumulator stream.
-                accumContinuation.finish()
+                // accumContinuation.finish() runs via the `defer`
+                // above so it executes on both success and throw paths.
             }
 
             // Stage 3a: Per-file accumulator. Groups by file path, emits
@@ -754,8 +782,15 @@ actor EmbedderPool {
     /// Waiters are resumed with the specific instance being handed
     /// off. Carrying the instance here (not a Void permit) is the
     /// invariant that makes one-worker-per-instance hold without a
-    /// re-race window.
-    private var waiters: [CheckedContinuation<any Embedder, Never>] = []
+    /// re-race window. Each waiter gets a monotonic id so the
+    /// cancellation handler can locate and remove its own entry
+    /// without racing other waiters.
+    private struct WaiterEntry {
+        let id: UInt64
+        let continuation: CheckedContinuation<any Embedder, any Error>
+    }
+    private var waiters: [WaiterEntry] = []
+    private var nextWaiterID: UInt64 = 0
 
     init(factory: @Sendable () -> any Embedder, count: Int) {
         precondition(count >= 1, "EmbedderPool requires count ≥ 1")
@@ -768,13 +803,44 @@ actor EmbedderPool {
         self.freeIndices = Array(0..<count)
     }
 
-    func acquire() async -> any Embedder {
+    /// Acquire an embedder. **Cancellable.** If the surrounding task is
+    /// cancelled while parked on the waiter list, the continuation is
+    /// removed and resumed with `CancellationError` — the caller throws
+    /// instead of holding a permit it would never release. The
+    /// non-cancellable variant we shipped earlier deadlocked the entire
+    /// `withThrowingTaskGroup` if any throwing sibling tripped: cancelled
+    /// peers parked on `withCheckedContinuation` (Never-throwing) never
+    /// woke up. See `e4-review-phase2-arch.md` finding B1.
+    func acquire() async throws -> any Embedder {
+        try Task.checkCancellation()
         if let idx = freeIndices.popLast() {
             return instances[idx]
         }
-        return await withCheckedContinuation { continuation in
-            waiters.append(continuation)
+        // Mint the waiter id outside the continuation closure so the
+        // cancellation handler below can capture exactly the entry this
+        // call enqueued — not whichever happens to be at the tail when
+        // cancellation arrives.
+        let myID = nextWaiterID
+        nextWaiterID &+= 1
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                waiters.append(WaiterEntry(id: myID, continuation: continuation))
+            }
+        } onCancel: {
+            Task { await self.cancelWaiter(id: myID) }
         }
+    }
+
+    /// Removes the waiter with the given id (if still parked) and
+    /// resumes it with `CancellationError`. Best-effort: if the waiter
+    /// has already been resumed by `release` racing in first, the entry
+    /// is no longer present and this is a no-op.
+    private func cancelWaiter(id: UInt64) {
+        guard let idx = waiters.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+        let entry = waiters.remove(at: idx)
+        entry.continuation.resume(throwing: CancellationError())
     }
 
     func release(_ embedder: any Embedder) {
@@ -799,7 +865,7 @@ actor EmbedderPool {
         }
         if !waiters.isEmpty {
             let waiter = waiters.removeFirst()
-            waiter.resume(returning: instances[idx])
+            waiter.continuation.resume(returning: instances[idx])
             return
         }
         freeIndices.append(idx)
@@ -848,6 +914,16 @@ actor EmbedderPool {
 /// pipeline multiplies by `batchSize` so the batch-former can fill its
 /// per-bucket targets without starving extract.
 ///
+/// **Cancellation note**: under cancellation cascade, an embed-spawner
+/// child task may throw out of `pool.acquire` or `embedDocuments` before
+/// reaching the per-chunk `extractGate.release()` loop. The remaining
+/// chunks in that batch never get their permits returned. This is
+/// acceptable in practice because each `IndexingPipeline.run(...)` call
+/// builds a fresh `ExtractBackpressure` actor (the function exit reaps
+/// the entire instance), so the leak does not persist across runs. If
+/// the pipeline ever supports in-process restart without recreating the
+/// gate, this needs a per-batch-acquire/release scheme (not per-chunk).
+///
 /// The old extract stage used an unbounded `AsyncStream` buffer, which on
 /// large corpora let extract race ahead of embed by tens of thousands of
 /// chunks — each carrying the chunk's text plus metadata. This actor
@@ -855,7 +931,14 @@ actor EmbedderPool {
 actor ExtractBackpressure {
     private let capacity: Int
     private var available: Int
-    private var waiters: [CheckedContinuation<Void, Never>] = []
+    /// Per-waiter id so the cancellation handler can locate exactly the
+    /// entry it parked. See `EmbedderPool.acquire` for the same shape.
+    private struct WaiterEntry {
+        let id: UInt64
+        let continuation: CheckedContinuation<Void, any Error>
+    }
+    private var waiters: [WaiterEntry] = []
+    private var nextWaiterID: UInt64 = 0
 
     init(capacity: Int) {
         self.capacity = capacity
@@ -863,21 +946,43 @@ actor ExtractBackpressure {
     }
 
     /// Block until a permit is available, then consume one.
-    func acquire() async {
+    /// **Cancellable.** If the surrounding task is cancelled while
+    /// parked, the continuation is removed and resumed with
+    /// `CancellationError`. Caller throws and the gate's permit budget
+    /// stays self-consistent (no permit was consumed). Without this,
+    /// the throwing-task-group cancellation cascade from a DB writer
+    /// failure would deadlock at `group.waitForAll()`. See
+    /// `e4-review-phase2-arch.md` finding B1.
+    func acquire() async throws {
+        try Task.checkCancellation()
         if available > 0 {
             available -= 1
             return
         }
-        await withCheckedContinuation { continuation in
-            waiters.append(continuation)
+        let myID = nextWaiterID
+        nextWaiterID &+= 1
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                waiters.append(WaiterEntry(id: myID, continuation: continuation))
+            }
+        } onCancel: {
+            Task { await self.cancelWaiter(id: myID) }
         }
+    }
+
+    private func cancelWaiter(id: UInt64) {
+        guard let idx = waiters.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+        let entry = waiters.remove(at: idx)
+        entry.continuation.resume(throwing: CancellationError())
     }
 
     /// Return one permit. Resumes the oldest waiter if any.
     func release() {
         if let waiter = waiters.first {
             waiters.removeFirst()
-            waiter.resume()
+            waiter.continuation.resume()
         } else {
             available += 1
         }
