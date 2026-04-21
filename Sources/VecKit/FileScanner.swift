@@ -394,8 +394,10 @@ public enum VecError: Error, LocalizedError {
                   - Every embed call errored or returned an empty vector.
 
                 Your options:
-                  1. Re-run with `--verbose` to see which files skipped and why.
-                  2. Fix the underlying embedder failure, then re-run `vec update-index`.
+                  1. Re-run `vec update-index --verbose` to see per-file skip detail.
+                     (Single-file `vec insert` already prints the failing path to
+                     stderr above.)
+                  2. Fix the underlying embedder failure, then re-run the command.
                 """
         }
     }
