@@ -139,15 +139,16 @@ final class ConcurrencySweepTests: XCTestCase {
     /// returns the wall-clock seconds and the pipeline's stats.
     private func runOnce(concurrency: Int, runTag: String) async throws -> (wallSeconds: Double, stats: IndexingStats) {
         let dbDir = tempDir.appendingPathComponent("db-\(runTag)")
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         try await db.initialize()
 
         let scanner = FileScanner(directory: sourceDir)
         let files = try scanner.scan()
         let workItems = files.map { (file: $0, label: "Added") }
 
-        let extractor = TextExtractor()
-        let pipeline = IndexingPipeline(concurrency: concurrency)
+        let profile = try IndexingProfileFactory.resolve(identity: "nomic@1200/240")
+        let extractor = TextExtractor(splitter: profile.splitter)
+        let pipeline = IndexingPipeline(concurrency: concurrency, profile: profile)
 
         let start = DispatchTime.now()
         let (_, stats) = try await pipeline.run(

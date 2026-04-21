@@ -43,7 +43,7 @@ public struct IndexingStats: Sendable {
     public var p95EmbedSeconds: Double = 0
     /// File that produced the most chunks, if any files were indexed.
     public var largestFile: FileTiming?
-    /// Summed wall-clock seconds spent in `EmbeddingService.embed()` across
+    /// Summed wall-clock seconds spent in `Embedder.embedDocument()` across
     /// every per-chunk embed task — pool waits excluded, overlaps across
     /// concurrent workers preserved. Strictly bounded by
     /// `wallSeconds * workerCount`, so this is the correct numerator for
@@ -85,20 +85,20 @@ public enum ProgressEvent: Sendable {
     case fileSkipped
     case nonEnglishDetected(filePath: String, language: String)
     /// One chunk finished embedding. `seconds` is the wall-clock spent in
-    /// this single `EmbeddingService.embed` call (pool wait excluded).
+    /// this single `Embedder.embedDocument` call (pool wait excluded).
     case chunkEmbedded(seconds: Double)
     /// File handed off from the per-file accumulator to the DB-writer save
     /// stream. Paired with `.saveDequeued` from the DB writer so renderers
     /// can show live save-queue depth as a bottleneck signal.
     case saveEnqueued
     case saveDequeued
-    /// An embed child task has acquired an `EmbeddingService` from the
+    /// An embed child task has acquired an `Embedder` from the
     /// pool and is about to start embedding. Paired with `.poolReleased`.
     /// Difference is the true pool-occupancy gauge: it pins at pool size
     /// under saturation.
     case poolAcquired
-    /// An embed child task has released its `EmbeddingService` back to
-    /// the pool after the `embed()` call returned.
+    /// An embed child task has released its `Embedder` back to
+    /// the pool after the `embedDocument()` call returned.
     case poolReleased
     /// Pool warmup completed. Emitted once per `run()` after every pooled
     /// embedder has been pre-touched serially, before any worker task starts.
@@ -168,14 +168,25 @@ public final class IndexingPipeline: Sendable {
     /// can size progress displays against the same value the pool uses.
     public let workerCount: Int
 
-    /// Pool of pre-created EmbeddingService instances.
+    /// Max number of chunks per batch passed to `Embedder.embedDocuments`.
+    /// The batch-former length-buckets chunks and flushes when a bucket
+    /// reaches this size or the extract stream finishes. Capped at 32 to
+    /// avoid BNNS crashes in `swift-embeddings` (jkrukowski#17).
+    public let batchSize: Int
+
+    /// Bounded pool of N embedder instances sized to `workerCount`.
     private let pool: EmbedderPool
 
     public init(
-        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2)
+        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
+        batchSize: Int = 16,
+        profile: IndexingProfile
     ) {
+        precondition(batchSize >= 1 && batchSize <= 32,
+                     "batchSize must be in 1…32 (BNNS cap per swift-embeddings #17)")
         self.workerCount = concurrency
-        self.pool = EmbedderPool(count: concurrency)
+        self.batchSize = batchSize
+        self.pool = EmbedderPool(factory: profile.embedderFactory, count: concurrency)
     }
 
     /// Run the full indexing pipeline for a set of file work items.
@@ -204,12 +215,17 @@ public final class IndexingPipeline: Sendable {
         let warmSeconds = Self.elapsed(since: warmStart)
         progress?(.poolWarmed(seconds: warmSeconds))
 
-        // Embed stream: extract task → embed-spawner.
+        // Embed stream: extract task → batch-former.
         // Unbounded buffering: extract should always be faster than embed
-        // (no embed call), so chunks queue here until the pool has
-        // capacity. Pool occupancy (.poolAcquired − .poolReleased) is the
-        // diagnostic signal for "is embed the bottleneck?".
+        // (no embed call), so chunks queue here until the batch-former
+        // drains them.
         let (embedStream, embedContinuation) = AsyncStream<EmbedWork>.makeStream(
+            bufferingPolicy: .unbounded
+        )
+
+        // Batch stream: batch-former → embed-spawner. Carries grouped
+        // chunks so each pool acquisition processes a full batch.
+        let (batchStream, batchContinuation) = AsyncStream<BatchWork>.makeStream(
             bufferingPolicy: .unbounded
         )
 
@@ -226,11 +242,12 @@ public final class IndexingPipeline: Sendable {
         let resultCollector = ResultCollector()
         let statsCollector = StatsCollector()
         let accumulator = FileAccumulator()
-        // Per-chunk backpressure: extract blocks once the embed queue is
-        // roughly two pool-sizes deep. Keeps memory bounded on large
-        // corpora (previously extract would race through all files and
-        // queue tens of thousands of chunks' text before embed caught up).
-        let extractGate = ExtractBackpressure(capacity: workerCount * 2)
+        // Per-chunk backpressure: sized to `workerCount * batchSize * 2`
+        // so extract can queue up to ~2 batches per worker before blocking.
+        // Undersizing this would stall extract immediately once the batched
+        // pipeline starts consuming in batches rather than one-at-a-time.
+        let extractGate = ExtractBackpressure(capacity: workerCount * batchSize * 2)
+        let batchSize = self.batchSize
 
         try await withThrowingTaskGroup(of: Void.self) { group in
 
@@ -342,71 +359,121 @@ public final class IndexingPipeline: Sendable {
                 embedContinuation.finish()
             }
 
-            // Stage 2: Embed-spawner. Drains the embed stream, spawns one
-            // task per chunk inside a TaskGroup. The pool's acquire/release
-            // is the natural concurrency gate — we don't need a separate
-            // semaphore. Tasks are unstructured-per-chunk inside the
-            // group, so a long-running embed doesn't block the next chunk
-            // from being scheduled.
+            // Stage 1.5: Batch-former. Drains embedStream, length-buckets
+            // by chunk.text.count / 500 (minimizes batchEncode padding
+            // waste). Flush rules, in order:
+            //   1. If any bucket hits batchSize, flush it (preferred: full
+            //      batch = best pool utilization, minimal padding).
+            //   2. Else, if total buffered items reaches batchSize, flush
+            //      the largest bucket. Needed to guarantee forward
+            //      progress — without this, pathological inputs where
+            //      every few chunks go to a different bucket would stall
+            //      extract behind its backpressure gate forever (no
+            //      bucket ever reaches batchSize; stream-close never fires).
+            //   3. On embed-stream close, flush every remaining partial
+            //      bucket so the run finishes cleanly.
+            // Rule 2 caps the amount of work sitting in buckets at
+            // roughly 2*batchSize at any moment — guarantees bounded
+            // memory under any input distribution.
+            group.addTask {
+                var buckets: [Int: [EmbedWork]] = [:]
+                var totalBuffered = 0
+                for await work in embedStream {
+                    let bucket = max(0, work.chunk.text.count / 500)
+                    buckets[bucket, default: []].append(work)
+                    totalBuffered += 1
+                    if buckets[bucket]!.count >= batchSize {
+                        let flushed = buckets.removeValue(forKey: bucket)!
+                        totalBuffered -= flushed.count
+                        batchContinuation.yield(BatchWork(items: flushed))
+                    } else if totalBuffered >= batchSize {
+                        // No bucket has filled, but we've accumulated a
+                        // batch's worth spread across buckets. Flush the
+                        // largest bucket to keep the pool fed.
+                        // Tie-break is Dictionary.max's unspecified order —
+                        // non-deterministic across runs. Embeddings are
+                        // unaffected (ordinals preserved); only the padding
+                        // cost of the chosen batch varies, making wall-clock
+                        // a slightly noisy signal on heterogeneous corpora.
+                        if let (biggest, _) = buckets.max(by: { $0.value.count < $1.value.count }) {
+                            let flushed = buckets.removeValue(forKey: biggest)!
+                            totalBuffered -= flushed.count
+                            batchContinuation.yield(BatchWork(items: flushed))
+                        }
+                    }
+                }
+                // Extract stream closed — flush remaining partial buckets.
+                for (_, items) in buckets where !items.isEmpty {
+                    batchContinuation.yield(BatchWork(items: items))
+                }
+                batchContinuation.finish()
+            }
+
+            // Stage 2: Embed-spawner. Drains the batch stream, spawns one
+            // task per batch inside a TaskGroup. Each task acquires a
+            // pooled embedder, calls `embedDocuments` on the whole batch,
+            // then fans the result rows out as per-chunk events so the
+            // accumulator stage and UI progress semantics are unchanged.
             group.addTask {
                 await withTaskGroup(of: Void.self) { embedGroup in
-                    for await work in embedStream {
+                    for await batch in batchStream {
                         embedGroup.addTask {
-                            let chunk = work.chunk
-
                             let embedder = await pool.acquire()
                             progress?(.poolAcquired)
-                            let chunkStart = DispatchTime.now()
-                            let vector = embedder.embed(chunk.text)
-                            let chunkSeconds = Self.elapsed(since: chunkStart)
+                            let batchStart = DispatchTime.now()
+                            let vectors: [[Float]]
+                            do {
+                                let texts = batch.items.map { $0.chunk.text }
+                                vectors = try await embedder.embedDocuments(texts)
+                            } catch {
+                                // Whole-batch failure → every chunk in the
+                                // batch gets a nil record. Per-item failure
+                                // isolation via retry-with-single-calls is
+                                // intentionally not implemented (would be a
+                                // separate experiment).
+                                vectors = Array(repeating: [], count: batch.items.count)
+                            }
+                            let batchSeconds = Self.elapsed(since: batchStart)
                             await pool.release(embedder)
                             progress?(.poolReleased)
 
-                            progress?(.chunkEmbedded(seconds: chunkSeconds))
-                            await statsCollector.recordChunkEmbed(seconds: chunkSeconds)
+                            // Amortize the batch-wall across chunks for
+                            // the per-chunk progress event. Keeps the UI
+                            // and stats collector's per-chunk view of
+                            // "how much wall-clock per chunk" continuous
+                            // with the pre-batch pipeline.
+                            let perChunk = batchSeconds / Double(max(batch.items.count, 1))
+                            for (work, vector) in zip(batch.items, vectors) {
+                                progress?(.chunkEmbedded(seconds: perChunk))
+                                await statsCollector.recordChunkEmbed(seconds: perChunk)
 
-                            let record: ChunkRecord?
-                            if let vector = vector {
-                                record = ChunkRecord(
+                                let chunk = work.chunk
+                                let record: ChunkRecord?
+                                if !vector.isEmpty {
+                                    record = ChunkRecord(
+                                        filePath: work.file.relativePath,
+                                        lineStart: chunk.lineStart,
+                                        lineEnd: chunk.lineEnd,
+                                        chunkType: chunk.type,
+                                        pageNumber: chunk.pageNumber,
+                                        fileModifiedAt: work.file.modificationDate,
+                                        contentPreview: String(chunk.text.prefix(200)),
+                                        embedding: vector
+                                    )
+                                } else {
+                                    record = nil
+                                }
+
+                                let emitted = EmbeddedChunk(
                                     filePath: work.file.relativePath,
-                                    lineStart: chunk.lineStart,
-                                    lineEnd: chunk.lineEnd,
-                                    chunkType: chunk.type,
-                                    pageNumber: chunk.pageNumber,
-                                    fileModifiedAt: work.file.modificationDate,
-                                    contentPreview: String(chunk.text.prefix(200)),
-                                    embedding: vector
+                                    ordinal: work.ordinal,
+                                    record: record
                                 )
-                            } else {
-                                // Embed failed for this chunk — still
-                                // contribute to the file's total so the
-                                // accumulator knows when the file is done.
-                                // Failed chunks just don't produce a
-                                // ChunkRecord; the file is recorded with
-                                // whatever subset succeeded.
-                                record = nil
+                                // Release one gate permit per chunk, not
+                                // per batch — extract acquires per-chunk.
+                                await extractGate.release()
+                                accumContinuation.yield(emitted)
                             }
-
-                            let emitted = EmbeddedChunk(
-                                filePath: work.file.relativePath,
-                                ordinal: work.ordinal,
-                                record: record
-                            )
-                            // Release the extract-gate permit BEFORE the
-                            // accumulator handoff. The permit gates "is
-                            // there pool capacity for the next chunk?",
-                            // which was answered the moment pool.release
-                            // ran above. Releasing after accumContinuation
-                            // .yield meant a stalled accumulator (e.g.
-                            // mid-save bookkeeping under the renderer
-                            // lock) would jam every embed task at the
-                            // yield call, so extract permits returned in
-                            // bursts rather than one-at-a-time. Release on
-                            // every path (success or vector == nil failure)
-                            // — if any path stops releasing, extract
-                            // deadlocks on a full gate.
-                            await extractGate.release()
-                            accumContinuation.yield(emitted)
                         }
                     }
                 }
@@ -504,7 +571,7 @@ public final class IndexingPipeline: Sendable {
 
 // MARK: - Stage Payloads
 
-/// One unit of work flowing from extract → embed. Every `EmbedWork`
+/// One unit of work flowing from extract → batch-former. Every `EmbedWork`
 /// carries a real chunk — empty-file sentinels never traverse the embed
 /// stream (the accumulator closes them out directly in extract).
 struct EmbedWork: Sendable {
@@ -515,6 +582,15 @@ struct EmbedWork: Sendable {
     let totalChunks: Int
     let extractSeconds: Double
     let firstChunkAt: DispatchTime?
+}
+
+/// A grouped batch of `EmbedWork`s produced by the batch-former. All items
+/// share a length bucket (roughly similar tokenized length), which keeps
+/// `batchEncode` padding waste low. Per-item ordinals are preserved; the
+/// embed-spawner fans the returned vectors back out to the accumulator in
+/// their original per-file order via `EmbeddedChunk.ordinal`.
+struct BatchWork: Sendable {
+    let items: [EmbedWork]
 }
 
 /// One embedded chunk flowing from embed → accumulator. `record == nil`
@@ -635,42 +711,93 @@ actor FileAccumulator {
 
 // MARK: - Embedder Pool
 
-/// Actor-based pool of pre-created `EmbeddingService` instances.
-/// Vends instances on demand and accepts them back when done.
-/// Limits concurrent embedding to the pool size.
+/// Bounded pool of N embedder instances. Each call to `acquire()`
+/// returns a unique, currently-idle instance; `release(_:)` either
+/// hands the just-freed instance to the oldest waiter or marks it
+/// idle. Enforces **one-worker-per-instance**: the pool MUST NOT
+/// hand the same instance to two workers simultaneously, because
+/// each embedder is an `actor` with its own mailbox and letting two
+/// workers land on the same mailbox is exactly the single-instance
+/// bottleneck this pool exists to eliminate.
+///
+/// Pattern mirrors `ExtractBackpressure` below — continuation-based
+/// waiter queue — but the continuation generic is `any Embedder`
+/// (not `Void`), so `release` can resume a waiter directly with the
+/// specific instance that just became available. A "mark available,
+/// let the waiter re-race for it" design is a correctness bug under
+/// this invariant.
 actor EmbedderPool {
-    private var available: [EmbeddingService]
-    private var waiters: [CheckedContinuation<EmbeddingService, Never>] = []
+    /// All N instances. Nonisolated because the slice is fixed at
+    /// init and readable by `name`/`dimension` without a hop.
+    private nonisolated let instances: [any Embedder]
 
-    init(count: Int) {
-        self.available = (0..<count).map { _ in EmbeddingService() }
+    /// Indices into `instances` that are currently free. We pop the
+    /// last element (LIFO) so the most-recently-used instance gets
+    /// reused first — good for any internal caches the embedder may
+    /// have warmed up.
+    private var freeIndices: [Int]
+
+    /// Waiters are resumed with the specific instance being handed
+    /// off. Carrying the instance here (not a Void permit) is the
+    /// invariant that makes one-worker-per-instance hold without a
+    /// re-race window.
+    private var waiters: [CheckedContinuation<any Embedder, Never>] = []
+
+    init(factory: @Sendable () -> any Embedder, count: Int) {
+        precondition(count >= 1, "EmbedderPool requires count ≥ 1")
+        var made: [any Embedder] = []
+        made.reserveCapacity(count)
+        for _ in 0..<count {
+            made.append(factory())
+        }
+        self.instances = made
+        self.freeIndices = Array(0..<count)
     }
 
-    func acquire() async -> EmbeddingService {
-        if let embedder = available.popLast() {
-            return embedder
+    func acquire() async -> any Embedder {
+        if let idx = freeIndices.popLast() {
+            return instances[idx]
         }
         return await withCheckedContinuation { continuation in
             waiters.append(continuation)
         }
     }
 
-    func release(_ embedder: EmbeddingService) {
-        if let waiter = waiters.first {
-            waiters.removeFirst()
-            waiter.resume(returning: embedder)
-        } else {
-            available.append(embedder)
+    func release(_ embedder: any Embedder) {
+        // Locate the instance by identity — all instances came from
+        // the factory at init so we can trust `ObjectIdentifier`
+        // equality on class/actor references.
+        guard let idx = instances.firstIndex(where: { ObjectIdentifier($0 as AnyObject) == ObjectIdentifier(embedder as AnyObject) }) else {
+            return
         }
+        if !waiters.isEmpty {
+            let waiter = waiters.removeFirst()
+            waiter.resume(returning: instances[idx])
+            return
+        }
+        freeIndices.append(idx)
     }
 
-    /// Pre-touches every pooled embedder with one throwaway `embed` call.
-    /// Done **serially** on purpose: the goal is to avoid N parallel cold
-    /// model loads contending for memory bandwidth on the first batch.
-    /// Safe to call before any acquire — operates on `available` directly.
+    /// Canonical embedder name/dimension. Every instance shares the
+    /// same type and config, so the first is a safe exemplar.
+    nonisolated var name: String { instances[0].name }
+    nonisolated var dimension: Int { instances[0].dimension }
+
+    /// Force-loads every instance's model serially — one `await` per
+    /// instance completes before the next begins. Serial because:
+    /// (a) the first run ever populates the HuggingFace on-disk
+    /// cache, and N parallel cold loaders would all race to write
+    /// the same files; (b) per-instance parallel cold-load
+    /// contends for the same memory bandwidth and gains nothing.
+    /// Swallows errors — a warmup failure will surface on the first
+    /// real embed.
     func warmAll() async {
-        for embedder in available {
-            _ = embedder.embed("warmup text")
+        for instance in instances {
+            do {
+                _ = try await instance.embedDocument("warmup")
+            } catch {
+                // swallow — real embed will surface the failure
+            }
         }
     }
 }
@@ -680,10 +807,13 @@ actor EmbedderPool {
 /// Counting semaphore used to gate the extract stage against the embed
 /// stage. Extract acquires one permit per chunk before yielding; embed
 /// releases one permit per chunk once the chunk has been handed off to the
-/// accumulator. Sized to `workerCount * 2` on init — large enough that the
-/// pool never idles waiting for extract (there's always a chunk queued up
-/// behind the one being embedded), small enough that extract blocks before
-/// chunking a second huge file worth of text into memory.
+/// accumulator. Sized to `workerCount * batchSize * 2` on init — large
+/// enough that the batch-former always has ~2 batches' worth of chunks to
+/// group (keeping the pool fed), small enough that extract blocks before
+/// chunking a second huge file worth of text into memory. Pre-E4 the
+/// sizing was `workerCount * 2` (one-chunk-per-acquire); the batched
+/// pipeline multiplies by `batchSize` so the batch-former can fill its
+/// per-bucket targets without starving extract.
 ///
 /// The old extract stage used an unbounded `AsyncStream` buffer, which on
 /// large corpora let extract race ahead of embed by tens of thousands of
@@ -764,7 +894,7 @@ private actor StatsCollector {
         stats.extractSeconds += extractSeconds
     }
 
-    /// Record one per-chunk `EmbeddingService.embed()` call's wall-clock.
+    /// Record one per-chunk `Embedder.embedDocument()` call's wall-clock.
     /// Summed into `totalEmbedCallSeconds`, which is bounded by
     /// `wallSeconds * workerCount` and is the correct input for pool
     /// utilization.

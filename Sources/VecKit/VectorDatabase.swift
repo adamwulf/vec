@@ -2,6 +2,23 @@ import Foundation
 import CSQLiteVec
 import Accelerate
 
+/// Wraps a sqlite3 connection so that its `deinit` runs on whatever thread
+/// happens to release the last reference. The pointer is trivial and only
+/// needs to be closed once, so no actor hop is required.
+private final class SQLiteHandle: @unchecked Sendable {
+    var db: OpaquePointer?
+
+    init(_ db: OpaquePointer?) {
+        self.db = db
+    }
+
+    deinit {
+        if let db = db {
+            sqlite3_close(db)
+        }
+    }
+}
+
 /// A record to insert into the chunks table, used by batch operations.
 public struct ChunkRecord: Sendable {
     public let filePath: String
@@ -45,18 +62,23 @@ public actor VectorDatabase {
     public let sourceDirectory: URL
 
     private let dbPath: String
-    private var db: OpaquePointer?
+    private var handle: SQLiteHandle?
+    private var db: OpaquePointer? {
+        get { handle?.db }
+        set {
+            if let handle {
+                handle.db = newValue
+            } else if let newValue {
+                handle = SQLiteHandle(newValue)
+            }
+        }
+    }
 
     /// The dimension of vectors stored in this database.
     public let dimension: Int
 
-    /// Primary initializer for centralized storage.
-    ///
-    /// - Parameters:
-    ///   - databaseDirectory: The directory containing `index.db` (e.g. `~/.vec/<db-name>/`).
-    ///   - sourceDirectory: The directory being indexed.
-    ///   - dimension: The embedding vector dimension (default 512).
-    public init(databaseDirectory: URL, sourceDirectory: URL, dimension: Int = 512) {
+    /// Primary initializer for centralized storage. `dimension` must match the embedder's dimension.
+    public init(databaseDirectory: URL, sourceDirectory: URL, dimension: Int) {
         self.databaseDirectory = databaseDirectory
         self.sourceDirectory = sourceDirectory
         self.dbPath = databaseDirectory
@@ -82,12 +104,6 @@ public actor VectorDatabase {
         }
         try openDatabase()
         try verifySchema()
-    }
-
-    deinit {
-        if let db = db {
-            sqlite3_close(db)
-        }
     }
 
     // MARK: - Insert
@@ -171,6 +187,9 @@ public actor VectorDatabase {
 
     /// Search for similar embeddings.
     public func search(embedding: [Float], limit: Int) throws -> [SearchResult] {
+        guard embedding.count == dimension else {
+            throw VecError.dimensionMismatch(expected: dimension, actual: embedding.count)
+        }
         // Load all embeddings and compute cosine distance in Swift.
         let sql = """
             SELECT id, file_path, line_start, line_end, chunk_type, page_number, content_preview, embedding
@@ -501,6 +520,9 @@ public actor VectorDatabase {
         contentPreview: String,
         embedding: [Float]
     ) throws -> Int64 {
+        guard embedding.count == dimension else {
+            throw VecError.dimensionMismatch(expected: dimension, actual: embedding.count)
+        }
         let sql = """
             INSERT INTO chunks (file_path, line_start, line_end, chunk_type, page_number, file_modified_at, content_preview, embedding)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -574,9 +596,11 @@ public actor VectorDatabase {
     }
 
     private func openDatabase() throws {
-        guard sqlite3_open(dbPath, &db) == SQLITE_OK else {
+        var opened: OpaquePointer?
+        guard sqlite3_open(dbPath, &opened) == SQLITE_OK else {
             throw sqlError("Failed to open database at \(dbPath)")
         }
+        handle = SQLiteHandle(opened)
     }
 
     private func createSchema() throws {

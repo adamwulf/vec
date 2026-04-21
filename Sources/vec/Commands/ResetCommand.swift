@@ -4,7 +4,7 @@ import VecKit
 
 struct ResetCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "reset",
         abstract: "Delete and recreate an empty database, preserving its source directory"
     )
@@ -38,9 +38,14 @@ struct ResetCommand: AsyncParsableCommand {
         // pointed at the same source directory.
         try FileManager.default.removeItem(at: dbDir)
 
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        // Reset wipes the recorded profile; dimension is set on next update-index.
+        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 0)
         try await database.initialize()
-        let config = DatabaseConfig(sourceDirectory: sourceDir.path, createdAt: Date())
+        let config = DatabaseConfig(
+            sourceDirectory: sourceDir.path,
+            createdAt: Date(),
+            profile: nil
+        )
         try DatabaseLocator.writeConfig(config, to: dbDir)
 
         print("Reset database '\(dbName)' at \(dbDir.path)")

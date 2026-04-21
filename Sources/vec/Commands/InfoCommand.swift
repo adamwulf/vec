@@ -4,7 +4,7 @@ import VecKit
 
 struct InfoCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "info",
         abstract: "Show metadata about a specific database"
     )
@@ -17,7 +17,16 @@ struct InfoCommand: AsyncParsableCommand {
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        // Dimension is only needed for open() to succeed when the DB
+        // already has rows. The recorded profile carries the real dim;
+        // on a fresh/reset/pre-profile DB we pass any non-zero dim as a
+        // placeholder since open() won't read vectors here.
+        let probeDim = config.profile?.dimension ?? 1
+        let database = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: probeDim
+        )
         try await database.open()
 
         let fileCount = try await database.allIndexedFiles().count
@@ -41,11 +50,45 @@ struct InfoCommand: AsyncParsableCommand {
             sizeString = "unknown"
         }
 
+        let profileString = try Self.renderProfileLine(
+            profile: config.profile,
+            chunkCount: chunkCount
+        )
+
         print("Database:     \(dbDir.lastPathComponent)")
         print("Source:       \(sourceDir.path)")
         print("Created:      \(createdString)")
+        print("Profile:      \(profileString)")
         print("Files:        \(fileCount)")
         print("Chunks:       \(chunkCount)")
         print("DB size:      \(sizeString)")
+    }
+
+    /// Renders the `Profile:` line body per §"Open questions (answered)" Q1.
+    /// Split out so future testing can assert the exact strings without
+    /// spinning up an on-disk DB.
+    static func renderProfileLine(
+        profile: DatabaseConfig.ProfileRecord?,
+        chunkCount: Int
+    ) throws -> String {
+        guard let recorded = profile else {
+            if chunkCount > 0 {
+                return "(pre-profile database — run `vec reset <db>` to rebuild)"
+            } else {
+                return "(not yet recorded)"
+            }
+        }
+        // Resolve identity through the factory so `isBuiltIn` reflects
+        // whether the recorded chunk params match the alias defaults.
+        // Per plan Q1: on unknown-alias or malformed identity the resolve
+        // error propagates so `info` surfaces the standard
+        // `unknownProfile` / `malformedProfileIdentity` message.
+        let live = try IndexingProfileFactory.resolve(identity: recorded.identity)
+        if live.isBuiltIn {
+            return "\(live.identity) (\(live.embedder.dimension)d)"
+        } else {
+            let parsed = try IndexingProfile.parseIdentity(live.identity)
+            return "\(live.identity) (custom, based on \(parsed.alias)) (\(live.embedder.dimension)d)"
+        }
     }
 }

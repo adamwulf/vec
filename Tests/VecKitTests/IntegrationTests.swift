@@ -6,7 +6,7 @@ final class IntegrationTests: XCTestCase {
     private var tempDir: URL!
     private var dbDir: URL!
     private var sourceDir: URL!
-    private var embeddingService: EmbeddingService!
+    private var embeddingService: NomicEmbedder!
 
     override func setUp() {
         super.setUp()
@@ -22,7 +22,7 @@ final class IntegrationTests: XCTestCase {
         sourceDir = tempDir.appendingPathComponent("source")
         try! FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
         dbDir = tempDir.appendingPathComponent("db")
-        embeddingService = EmbeddingService()
+        embeddingService = NomicEmbedder()
     }
 
     override func tearDown() {
@@ -34,13 +34,11 @@ final class IntegrationTests: XCTestCase {
 
     // MARK: - Helpers
 
-    /// Embed a string using the real EmbeddingService. Fails the test if embedding returns nil.
-    private func embed(_ text: String, file: StaticString = #file, line: UInt = #line) throws -> [Float] {
-        let vector = try XCTUnwrap(
-            embeddingService.embed(text),
-            "EmbeddingService returned nil for: \(text)",
-            file: file, line: line
-        )
+    /// Embed a query string using the real NomicEmbedder. Fails
+    /// the test if embedding returns an empty vector.
+    private func embed(_ text: String, file: StaticString = #file, line: UInt = #line) async throws -> [Float] {
+        let vector = try await embeddingService.embedQuery(text)
+        XCTAssertFalse(vector.isEmpty, "NomicEmbedder returned empty vector for: \(text)", file: file, line: line)
         return vector
     }
 
@@ -56,7 +54,7 @@ final class IntegrationTests: XCTestCase {
 
     /// Create an initialized VectorDatabase using dbDir and sourceDir.
     private func makeInitializedDB() async throws -> VectorDatabase {
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         try await db.initialize()
         return db
     }
@@ -67,7 +65,8 @@ final class IntegrationTests: XCTestCase {
     private func indexFile(_ file: FileInfo, into db: VectorDatabase, extractor: TextExtractor) async throws {
         let chunks = try extractor.extract(from: file).chunks
         for chunk in chunks {
-            guard let embedding = embeddingService.embed(chunk.text) else { continue }
+            let embedding = try await embeddingService.embedDocument(chunk.text)
+            guard !embedding.isEmpty else { continue }
             try await db.insert(
                 filePath: file.relativePath,
                 lineStart: chunk.lineStart,
@@ -104,21 +103,21 @@ final class IntegrationTests: XCTestCase {
         }
 
         // Search for cooking-related content
-        let cookingQuery = try embed("baking a cake with chocolate")
+        let cookingQuery = try await embed("baking a cake with chocolate")
         let cookingResults = try await db.search(embedding: cookingQuery, limit: 3)
         XCTAssertEqual(cookingResults.count, 3)
         XCTAssertEqual(cookingResults[0].filePath, "cooking.txt",
                        "Cooking file should be the top result for a baking query")
 
         // Search for programming-related content
-        let programmingQuery = try embed("sorting algorithm implementation")
+        let programmingQuery = try await embed("sorting algorithm implementation")
         let programmingResults = try await db.search(embedding: programmingQuery, limit: 3)
         XCTAssertEqual(programmingResults.count, 3)
         XCTAssertEqual(programmingResults[0].filePath, "programming.swift",
                        "Programming file should be the top result for an algorithm query")
 
         // Search for astronomy-related content
-        let astronomyQuery = try embed("stars and galaxies in space")
+        let astronomyQuery = try await embed("stars and galaxies in space")
         let astronomyResults = try await db.search(embedding: astronomyQuery, limit: 3)
         XCTAssertEqual(astronomyResults.count, 3)
         XCTAssertEqual(astronomyResults[0].filePath, "astronomy.md",
@@ -143,7 +142,7 @@ final class IntegrationTests: XCTestCase {
         }
 
         // Verify initial content is searchable
-        let oceanQuery = try embed("marine life in the sea")
+        let oceanQuery = try await embed("marine life in the sea")
         let initialResults = try await db.search(embedding: oceanQuery, limit: 1)
         XCTAssertEqual(initialResults.count, 1)
         XCTAssertEqual(initialResults[0].filePath, "notes.txt")
@@ -167,7 +166,7 @@ final class IntegrationTests: XCTestCase {
         }
 
         // Search for new content — should find it
-        let quantumQuery = try embed("quantum computing qubits")
+        let quantumQuery = try await embed("quantum computing qubits")
         let newResults = try await db.search(embedding: quantumQuery, limit: 1)
         XCTAssertEqual(newResults.count, 1)
         XCTAssertEqual(newResults[0].filePath, "notes.txt")
@@ -225,13 +224,13 @@ final class IntegrationTests: XCTestCase {
         XCTAssertNil(indexedAfter["delete_me.txt"])
 
         // Search for gardening content — should only return keep.txt
-        let gardenQuery = try embed("growing vegetables in a garden")
+        let gardenQuery = try await embed("growing vegetables in a garden")
         let results = try await db.search(embedding: gardenQuery, limit: 5)
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results[0].filePath, "keep.txt")
 
         // Search for math content — should find keep.txt
-        let mathQuery = try embed("mathematical equations and proofs")
+        let mathQuery = try await embed("mathematical equations and proofs")
         let mathResults = try await db.search(embedding: mathQuery, limit: 5)
         XCTAssertEqual(mathResults.count, 1)
         XCTAssertEqual(mathResults[0].filePath, "keep.txt")
@@ -278,14 +277,14 @@ final class IntegrationTests: XCTestCase {
         XCTAssertNotNil(indexedAfter["added.txt"])
 
         // Search for machine learning content — new file should rank first
-        let mlQuery = try embed("deep learning and neural network training")
+        let mlQuery = try await embed("deep learning and neural network training")
         let mlResults = try await db.search(embedding: mlQuery, limit: 2)
         XCTAssertEqual(mlResults.count, 2)
         XCTAssertEqual(mlResults[0].filePath, "added.txt",
                        "The newly added ML file should be the top result for an ML query")
 
         // Search for history content — original file should rank first
-        let historyQuery = try embed("ancient Roman history and empire")
+        let historyQuery = try await embed("ancient Roman history and empire")
         let historyResults = try await db.search(embedding: historyQuery, limit: 2)
         XCTAssertEqual(historyResults.count, 2)
         XCTAssertEqual(historyResults[0].filePath, "original.txt",
@@ -313,7 +312,7 @@ final class IntegrationTests: XCTestCase {
         XCTAssertNotNil(indexedFiles["physics.swift"])
 
         // Search for physics-related content
-        let query = try embed("gravitational force calculation")
+        let query = try await embed("gravitational force calculation")
         let results = try await db.search(embedding: query, limit: 5)
         XCTAssertGreaterThan(results.count, 0)
         XCTAssertEqual(results[0].filePath, "physics.swift")
@@ -353,7 +352,7 @@ final class IntegrationTests: XCTestCase {
         XCTAssertNotNil(remainingFiles["science.txt"])
 
         // Search for music content — should NOT return music.txt
-        let musicQuery = try embed("guitar and piano music")
+        let musicQuery = try await embed("guitar and piano music")
         let musicResults = try await db.search(embedding: musicQuery, limit: 5)
         for result in musicResults {
             XCTAssertNotEqual(result.filePath, "music.txt",
@@ -361,7 +360,7 @@ final class IntegrationTests: XCTestCase {
         }
 
         // The remaining files should still be searchable
-        let sportsQuery = try embed("basketball game on the court")
+        let sportsQuery = try await embed("basketball game on the court")
         let sportsResults = try await db.search(embedding: sportsQuery, limit: 2)
         XCTAssertEqual(sportsResults.count, 2)
         XCTAssertEqual(sportsResults[0].filePath, "sports.txt",

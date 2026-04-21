@@ -6,10 +6,38 @@ public struct DatabaseConfig: Codable {
     public let sourceDirectory: String
     /// When the database was created.
     public let createdAt: Date
+    /// Resolved indexing profile; nil on freshly `vec init`ed / `vec reset` DBs
+    /// and on pre-profile DBs. The command layer branches on `profile == nil`
+    /// plus chunk count to distinguish the two.
+    public let profile: ProfileRecord?
 
-    public init(sourceDirectory: String, createdAt: Date) {
+    /// Persisted indexing-profile identity so reopens can detect a
+    /// profile mismatch without resolving the profile (which can itself
+    /// throw on unknown aliases). `dimension` is denormalized so the
+    /// command can open `VectorDatabase` before resolving the profile.
+    public struct ProfileRecord: Codable, Equatable {
+        /// Full canonical identity, e.g. "nomic@1200/240".
+        public let identity: String
+        /// Canonical embedder name, e.g. "nomic-v1.5-768".
+        public let embedderName: String
+        /// Embedder dimension, e.g. 768.
+        public let dimension: Int
+
+        public init(identity: String, embedderName: String, dimension: Int) {
+            self.identity = identity
+            self.embedderName = embedderName
+            self.dimension = dimension
+        }
+    }
+
+    public init(
+        sourceDirectory: String,
+        createdAt: Date,
+        profile: ProfileRecord? = nil
+    ) {
         self.sourceDirectory = sourceDirectory
         self.createdAt = createdAt
+        self.profile = profile
     }
 
     /// The filename used to store the config inside a database directory.
@@ -98,7 +126,7 @@ public struct DatabaseLocator {
 
         let data = try encoder.encode(config)
         let configURL = databaseDirectory.appendingPathComponent(DatabaseConfig.filename)
-        try data.write(to: configURL)
+        try data.write(to: configURL, options: .atomic)
     }
 
     /// Reads a `DatabaseConfig` from the config.json file in the given database directory.

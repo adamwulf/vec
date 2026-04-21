@@ -145,15 +145,16 @@ final class ThreeStagePipelineTests: XCTestCase {
     /// completion" separately from total wall.
     private func runOnce(runTag: String) async throws -> RunResult {
         let dbDir = tempDir.appendingPathComponent("db-\(runTag)")
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         try await db.initialize()
 
         let scanner = FileScanner(directory: sourceDir)
         let files = try scanner.scan()
         let workItems = files.map { (file: $0, label: "Added") }
 
-        let extractor = TextExtractor()
-        let pipeline = IndexingPipeline()  // default concurrency, warmup on
+        let profile = try IndexingProfileFactory.resolve(identity: "nomic@1200/240")
+        let extractor = TextExtractor(splitter: profile.splitter)
+        let pipeline = IndexingPipeline(profile: profile)  // default concurrency, warmup on
 
         // Use a lock-protected box since the progress callback is
         // @Sendable and synchronous.

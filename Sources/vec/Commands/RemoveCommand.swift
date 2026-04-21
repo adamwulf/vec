@@ -4,7 +4,7 @@ import VecKit
 
 struct RemoveCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "remove",
         abstract: "Remove a file from the vector index"
     )
@@ -16,7 +16,7 @@ struct RemoveCommand: AsyncParsableCommand {
     var path: String
 
     func run() async throws {
-        let (dbDir, _, sourceDir) = try db != nil
+        let (dbDir, config, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
@@ -30,7 +30,11 @@ struct RemoveCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let database = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: config.profile?.dimension ?? 1
+        )
         try await database.open()
 
         let relativePath = PathUtilities.relativePath(of: filePath.path, in: sourceDir.path)

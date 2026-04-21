@@ -4,7 +4,7 @@ import VecKit
 
 struct InitCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "init",
         abstract: "Initialize a vector database for the current directory"
     )
@@ -29,7 +29,8 @@ struct InitCommand: AsyncParsableCommand {
             try FileManager.default.removeItem(at: dbDir)
         }
 
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        // Dimension is set on first update-index when an embedder is chosen.
+        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 0)
         try await database.initialize()
         let config = DatabaseConfig(sourceDirectory: sourceDir.path, createdAt: Date())
         try DatabaseLocator.writeConfig(config, to: dbDir)

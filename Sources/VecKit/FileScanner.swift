@@ -293,6 +293,41 @@ public enum VecError: Error, LocalizedError {
     case sourceDirectoryMissing(String)
     case noDatabaseForDirectory(String)
     case multipleDatabasesForDirectory(String, [String])
+    /// The requested indexing profile disagrees with what the DB
+    /// recorded. Associated values carry the persisted and requested
+    /// profile identity strings (e.g. `nomic@1200/240` vs
+    /// `nomic@500/100`).
+    case profileMismatch(recorded: String, requested: String)
+    /// A vector handed to `insert` or `search` doesn't match the
+    /// database's declared dimension. Belt-and-braces guard: the
+    /// CLI already refuses an embedder mismatch at the config layer,
+    /// so this should only ever fire on a direct library misuse.
+    case dimensionMismatch(expected: Int, actual: Int)
+    /// A persisted indexing profile identity failed the strict
+    /// grammar check or the round-trip equality check — indicates a
+    /// corrupt `config.json`.
+    case malformedProfileIdentity(String)
+    /// The user passed exactly one of `--chunk-chars` / `--chunk-overlap`.
+    /// Both must be provided together, or neither. Thrown at the CLI
+    /// layer before `IndexingProfileFactory.make` is called — the
+    /// factory itself traps this case with a precondition since it's
+    /// a programmer error to reach the factory with a partial override.
+    case partialChunkOverride
+    /// Chunk parameters failed validation (non-positive size,
+    /// negative overlap, or overlap >= size). The associated string
+    /// carries the human-readable reason from the factory.
+    case invalidChunkParams(String)
+    /// The user passed `--embedder <alias>` with a name that isn't in
+    /// `IndexingProfileFactory.knownAliases`, or a persisted identity
+    /// string referenced an alias that isn't registered.
+    case unknownProfile(String)
+    /// The DB has no recorded indexing profile AND has zero chunks
+    /// (freshly-`init`ed or freshly-`reset`). Hit by `search` / `insert`
+    /// which cannot bootstrap a profile.
+    case profileNotRecorded
+    /// The DB has no recorded indexing profile but DOES have chunks,
+    /// i.e. a pre-profile DB left over from before this refactor.
+    case preProfileDatabase
 
     public var errorDescription: String? {
         switch self {
@@ -316,6 +351,31 @@ public enum VecError: Error, LocalizedError {
             return "No database found for directory '\(path)'. Use -d <name> or run 'vec init <name>' here first."
         case .multipleDatabasesForDirectory(let path, let names):
             return "Multiple databases found for directory '\(path)': \(names.joined(separator: ", ")). Use -d <name> to specify which one."
+        case .profileMismatch(let recorded, let requested):
+            return """
+                Database was indexed with profile '\(recorded)' but '\(requested)'
+                was requested. Vec will not index or search across profiles because
+                vectors from different profiles are not directly comparable.
+
+                Your options:
+                  1. Re-run the command with flags that resolve to '\(recorded)'
+                     (e.g. `--embedder nomic` with the default chunk settings).
+                  2. Run `vec reset <db>` and re-index with the new profile.
+                """
+        case .dimensionMismatch(let expected, let actual):
+            return "Vector dimension mismatch: database expects \(expected)-dim vectors but got \(actual)-dim. The embedder wired to this call disagrees with the DB's recorded embedder."
+        case .malformedProfileIdentity(let identity):
+            return "Indexing profile '\(identity)' in config.json is malformed (expected shape `<alias>@<size>/<overlap>`). Run `vec reset <db>` to rebuild."
+        case .partialChunkOverride:
+            return "Pass both --chunk-chars and --chunk-overlap together, or neither."
+        case .invalidChunkParams(let reason):
+            return "Invalid chunk parameters: \(reason)."
+        case .unknownProfile(let alias):
+            return "Unknown profile '\(alias)'. Known profiles: \(IndexingProfileFactory.knownAliases.joined(separator: ", "))."
+        case .profileNotRecorded:
+            return "Database has no recorded indexing profile. Run `vec update-index` first to establish a profile."
+        case .preProfileDatabase:
+            return "Database was indexed by an older version of vec with no recorded profile. Run `vec reset <db>` first, then `vec update-index` to rebuild it under a recorded profile."
         }
     }
 }

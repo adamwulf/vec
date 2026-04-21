@@ -7,7 +7,7 @@ final class VectorDatabaseTests: XCTestCase {
     private var tempDir: URL!
     private var dbDir: URL!
     private var sourceDir: URL!
-    private var embeddingService: EmbeddingService!
+    private var embeddingService: NomicEmbedder!
 
     override func setUp() {
         super.setUp()
@@ -22,7 +22,7 @@ final class VectorDatabaseTests: XCTestCase {
         dbDir = tempDir.appendingPathComponent("db")
         sourceDir = tempDir.appendingPathComponent("source")
         try! FileManager.default.createDirectory(at: sourceDir, withIntermediateDirectories: true)
-        embeddingService = EmbeddingService()
+        embeddingService = NomicEmbedder()
     }
 
     override func tearDown() {
@@ -34,19 +34,18 @@ final class VectorDatabaseTests: XCTestCase {
 
     // MARK: - Helpers
 
-    /// Embed a string using the real EmbeddingService. Fails the test if embedding returns nil.
-    private func embed(_ text: String, file: StaticString = #file, line: UInt = #line) throws -> [Float] {
-        let vector = try XCTUnwrap(
-            embeddingService.embed(text),
-            "EmbeddingService returned nil for: \(text)",
-            file: file, line: line
-        )
+    /// Embed a string using the real NomicEmbedder (document
+    /// prefix, since these helpers build index entries). Fails the
+    /// test if the embedding comes back empty.
+    private func embed(_ text: String, file: StaticString = #file, line: UInt = #line) async throws -> [Float] {
+        let vector = try await embeddingService.embedDocument(text)
+        XCTAssertFalse(vector.isEmpty, "NomicEmbedder returned empty vector for: \(text)", file: file, line: line)
         return vector
     }
 
     /// Create an initialized VectorDatabase using dbDir and sourceDir.
     private func makeInitializedDB() async throws -> VectorDatabase {
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         try await db.initialize()
         return db
     }
@@ -54,7 +53,7 @@ final class VectorDatabaseTests: XCTestCase {
     // MARK: - 1. initialize() creates database dir and index.db
 
     func testInitializeCreatesDatabaseDirAndDatabase() async throws {
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         try await db.initialize()
 
         let dbFile = dbDir.appendingPathComponent("index.db")
@@ -68,7 +67,7 @@ final class VectorDatabaseTests: XCTestCase {
     // MARK: - 2. open() on non-existent DB throws databaseNotInitialized
 
     func testOpenOnNonExistentDBThrowsDatabaseNotInitialized() async {
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
 
         do {
             try await db.open()
@@ -89,12 +88,12 @@ final class VectorDatabaseTests: XCTestCase {
     func testOpenOnInitializedDBSucceeds() async throws {
         // Initialize first, then drop the reference so deinit closes the connection
         do {
-            let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+            let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
             try await db.initialize()
         }
 
         // Now open with a fresh instance
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         try await db.open()
     }
 
@@ -102,7 +101,7 @@ final class VectorDatabaseTests: XCTestCase {
 
     func testInsertReturnsValidRowID() async throws {
         let db = try await makeInitializedDB()
-        let embedding = try embed("The quick brown fox jumps over the lazy dog")
+        let embedding = try await embed("The quick brown fox jumps over the lazy dog")
 
         let rowID = try await db.insert(
             filePath: "test.swift",
@@ -122,7 +121,7 @@ final class VectorDatabaseTests: XCTestCase {
 
     func testInsertWithNilOptionalFields() async throws {
         let db = try await makeInitializedDB()
-        let embedding = try embed("Some test content for nil fields")
+        let embedding = try await embed("Some test content for nil fields")
 
         let rowID = try await db.insert(
             filePath: "document.pdf",
@@ -151,7 +150,7 @@ final class VectorDatabaseTests: XCTestCase {
         ]
 
         for (i, text) in texts.enumerated() {
-            let emb = try embed(text)
+            let emb = try await embed(text)
             try await db.insert(
                 filePath: "file\(i).txt",
                 lineStart: nil,
@@ -164,7 +163,7 @@ final class VectorDatabaseTests: XCTestCase {
             )
         }
 
-        let queryEmbedding = try embed("Swift programming language")
+        let queryEmbedding = try await embed("Swift programming language")
         let results = try await db.search(embedding: queryEmbedding, limit: 4)
 
         XCTAssertEqual(results.count, 4)
@@ -186,8 +185,8 @@ final class VectorDatabaseTests: XCTestCase {
         let similarText = "Swift is a programming language for iOS and macOS development"
         let dissimilarText = "The recipe calls for two cups of flour and one egg"
 
-        let similarEmb = try embed(similarText)
-        let dissimilarEmb = try embed(dissimilarText)
+        let similarEmb = try await embed(similarText)
+        let dissimilarEmb = try await embed(dissimilarText)
 
         try await db.insert(
             filePath: "similar.swift",
@@ -211,7 +210,7 @@ final class VectorDatabaseTests: XCTestCase {
             embedding: dissimilarEmb
         )
 
-        let queryEmb = try embed("Swift programming for Apple platforms")
+        let queryEmb = try await embed("Swift programming for Apple platforms")
         let results = try await db.search(embedding: queryEmb, limit: 2)
 
         XCTAssertEqual(results.count, 2)
@@ -224,7 +223,7 @@ final class VectorDatabaseTests: XCTestCase {
 
     func testSearchOnEmptyDBReturnsEmptyArray() async throws {
         let db = try await makeInitializedDB()
-        let queryEmb = try embed("test query")
+        let queryEmb = try await embed("test query")
         let results = try await db.search(embedding: queryEmb, limit: 10)
 
         XCTAssertTrue(results.isEmpty)
@@ -245,7 +244,7 @@ final class VectorDatabaseTests: XCTestCase {
         ]
 
         for (i, text) in sentences.enumerated() {
-            let emb = try embed(text)
+            let emb = try await embed(text)
             try await db.insert(
                 filePath: "file\(i).txt",
                 lineStart: nil,
@@ -258,7 +257,7 @@ final class VectorDatabaseTests: XCTestCase {
             )
         }
 
-        let queryEmb = try embed("algorithm design")
+        let queryEmb = try await embed("algorithm design")
 
         let results2 = try await db.search(embedding: queryEmb, limit: 2)
         XCTAssertEqual(results2.count, 2)
@@ -275,7 +274,7 @@ final class VectorDatabaseTests: XCTestCase {
     func testSearchResultFieldsMapCorrectly() async throws {
         let db = try await makeInitializedDB()
         let text = "Function to calculate fibonacci numbers"
-        let emb = try embed(text)
+        let emb = try await embed(text)
 
         try await db.insert(
             filePath: "src/math/fibonacci.swift",
@@ -304,7 +303,7 @@ final class VectorDatabaseTests: XCTestCase {
     func testSearchResultFieldsWithPDFPage() async throws {
         let db = try await makeInitializedDB()
         let text = "Introduction to machine learning concepts"
-        let emb = try embed(text)
+        let emb = try await embed(text)
 
         try await db.insert(
             filePath: "docs/ml-guide.pdf",
@@ -337,9 +336,9 @@ final class VectorDatabaseTests: XCTestCase {
         let earlyDate = Date(timeIntervalSince1970: 1000000)
         let lateDate = Date(timeIntervalSince1970: 2000000)
 
-        let emb1 = try embed("First chunk of the readme file")
-        let emb2 = try embed("Second chunk of the readme file")
-        let emb3 = try embed("Main swift source file content")
+        let emb1 = try await embed("First chunk of the readme file")
+        let emb2 = try await embed("Second chunk of the readme file")
+        let emb3 = try await embed("Main swift source file content")
 
         // Two entries for the same file with different dates
         try await db.insert(
@@ -404,8 +403,8 @@ final class VectorDatabaseTests: XCTestCase {
         let db = try await makeInitializedDB()
 
         let modDate = Date()
-        let emb1 = try embed("First chunk for removal test")
-        let emb2 = try embed("Second chunk for removal test")
+        let emb1 = try await embed("First chunk for removal test")
+        let emb2 = try await embed("Second chunk for removal test")
 
         try await db.insert(
             filePath: "toremove.swift",
@@ -453,8 +452,8 @@ final class VectorDatabaseTests: XCTestCase {
         let db = try await makeInitializedDB()
 
         let modDate = Date()
-        let emb1 = try embed("Content of file alpha for multi-file test")
-        let emb2 = try embed("Content of file beta for multi-file test")
+        let emb1 = try await embed("Content of file alpha for multi-file test")
+        let emb2 = try await embed("Content of file beta for multi-file test")
 
         try await db.insert(
             filePath: "alpha.swift",
@@ -502,8 +501,8 @@ final class VectorDatabaseTests: XCTestCase {
         let db = try await makeInitializedDB()
 
         let modDate = Date()
-        let emb1 = try embed("First chunk of a partially indexed file")
-        let emb2 = try embed("Second chunk of a partially indexed file")
+        let emb1 = try await embed("First chunk of a partially indexed file")
+        let emb2 = try await embed("Second chunk of a partially indexed file")
 
         // Insert chunks but do NOT call markFileIndexed — simulates interruption
         try await db.insert(
@@ -542,7 +541,7 @@ final class VectorDatabaseTests: XCTestCase {
         let db = try await makeInitializedDB()
 
         let modDate = Date()
-        let emb = try embed("Content for unmark test")
+        let emb = try await embed("Content for unmark test")
 
         try await db.insert(
             filePath: "test.swift",
@@ -584,9 +583,9 @@ final class VectorDatabaseTests: XCTestCase {
     func testTotalChunkCountWithMultipleFilesAndChunks() async throws {
         let db = try await makeInitializedDB()
 
-        let emb1 = try embed("First chunk of the readme file")
-        let emb2 = try embed("Second chunk of the readme file")
-        let emb3 = try embed("Main swift source file content")
+        let emb1 = try await embed("First chunk of the readme file")
+        let emb2 = try await embed("Second chunk of the readme file")
+        let emb3 = try await embed("Main swift source file content")
 
         // Two chunks for one file
         try await db.insert(
@@ -645,7 +644,7 @@ final class VectorDatabaseTests: XCTestCase {
         ]
 
         for doc in docs {
-            let emb = try embed(doc.content)
+            let emb = try await embed(doc.content)
             try await db.insert(
                 filePath: doc.path,
                 lineStart: nil,
@@ -659,49 +658,49 @@ final class VectorDatabaseTests: XCTestCase {
         }
 
         // Query: baking — expect cooking #1
-        let bakingEmb = try embed("baking a chocolate dessert in the kitchen")
+        let bakingEmb = try await embed("baking a chocolate dessert in the kitchen")
         let bakingResults = try await db.search(embedding: bakingEmb, limit: 8)
         XCTAssertEqual(bakingResults[0].filePath, "cooking.txt",
                        "Cooking doc should rank #1 for a baking query")
 
         // Query: outer space — expect astronomy #1
-        let spaceEmb = try embed("stars and galaxies in outer space")
+        let spaceEmb = try await embed("stars and galaxies in outer space")
         let spaceResults = try await db.search(embedding: spaceEmb, limit: 8)
         XCTAssertEqual(spaceResults[0].filePath, "astronomy.txt",
                        "Astronomy doc should rank #1 for a space query")
 
         // Query: iOS development — expect programming #1
-        let devEmb = try embed("building apps for iOS with Swift")
+        let devEmb = try await embed("building apps for iOS with Swift")
         let devResults = try await db.search(embedding: devEmb, limit: 8)
         XCTAssertEqual(devResults[0].filePath, "programming.txt",
                        "Programming doc should rank #1 for an iOS dev query")
 
         // Query: basketball — expect sports #1
-        let sportsEmb = try embed("shooting hoops in a basketball game")
+        let sportsEmb = try await embed("shooting hoops in a basketball game")
         let sportsResults = try await db.search(embedding: sportsEmb, limit: 8)
         XCTAssertEqual(sportsResults[0].filePath, "sports.txt",
                        "Sports doc should rank #1 for a basketball query")
 
         // Query: jazz — expect music #1
-        let jazzEmb = try embed("jazz piano and guitar melodies")
+        let jazzEmb = try await embed("jazz piano and guitar melodies")
         let jazzResults = try await db.search(embedding: jazzEmb, limit: 8)
         XCTAssertEqual(jazzResults[0].filePath, "music.txt",
                        "Music doc should rank #1 for a jazz query")
 
         // Query: treating infections — expect medicine #1
-        let medEmb = try embed("treating bacterial infections with medicine")
+        let medEmb = try await embed("treating bacterial infections with medicine")
         let medResults = try await db.search(embedding: medEmb, limit: 8)
         XCTAssertEqual(medResults[0].filePath, "medicine.txt",
                        "Medicine doc should rank #1 for an infections query")
 
         // Query: Roman Empire — expect history #1
-        let histEmb = try embed("the ancient Roman Empire and its soldiers")
+        let histEmb = try await embed("the ancient Roman Empire and its soldiers")
         let histResults = try await db.search(embedding: histEmb, limit: 8)
         XCTAssertEqual(histResults[0].filePath, "history.txt",
                        "History doc should rank #1 for a Roman Empire query")
 
         // Query: growing vegetables — expect gardening #1
-        let gardenEmb = try embed("growing vegetables in the garden with sunlight")
+        let gardenEmb = try await embed("growing vegetables in the garden with sunlight")
         let gardenResults = try await db.search(embedding: gardenEmb, limit: 8)
         XCTAssertEqual(gardenResults[0].filePath, "gardening.txt",
                        "Gardening doc should rank #1 for a vegetables query")
@@ -721,7 +720,7 @@ final class VectorDatabaseTests: XCTestCase {
         ]
 
         for doc in docs {
-            let emb = try embed(doc.content)
+            let emb = try await embed(doc.content)
             try await db.insert(
                 filePath: doc.path,
                 lineStart: nil,
@@ -735,25 +734,25 @@ final class VectorDatabaseTests: XCTestCase {
         }
 
         // Query about pet health — veterinary should rank #1
-        let petEmb = try embed("treating sick pets at the animal clinic")
+        let petEmb = try await embed("treating sick pets at the animal clinic")
         let petResults = try await db.search(embedding: petEmb, limit: 4)
         XCTAssertEqual(petResults[0].filePath, "veterinary.txt",
                        "Veterinary doc should rank #1 for a pet health query")
 
         // Query about teeth — dentistry should rank #1
-        let teethEmb = try embed("filling cavities and cleaning teeth at the dental office")
+        let teethEmb = try await embed("filling cavities and cleaning teeth at the dental office")
         let teethResults = try await db.search(embedding: teethEmb, limit: 4)
         XCTAssertEqual(teethResults[0].filePath, "dentistry.txt",
                        "Dentistry doc should rank #1 for a teeth query")
 
         // Query about flying — aviation should rank #1
-        let flyEmb = try embed("flying airplanes and communicating with control towers")
+        let flyEmb = try await embed("flying airplanes and communicating with control towers")
         let flyResults = try await db.search(embedding: flyEmb, limit: 4)
         XCTAssertEqual(flyResults[0].filePath, "aviation.txt",
                        "Aviation doc should rank #1 for a flying query")
 
         // Query about baking — cooking should rank #1
-        let bakeEmb = try embed("making bread with flour and yeast")
+        let bakeEmb = try await embed("making bread with flour and yeast")
         let bakeResults = try await db.search(embedding: bakeEmb, limit: 4)
         XCTAssertEqual(bakeResults[0].filePath, "cooking.txt",
                        "Cooking doc should rank #1 for a baking query")
@@ -774,7 +773,7 @@ final class VectorDatabaseTests: XCTestCase {
         ]
 
         for doc in docs {
-            let emb = try embed(doc.content)
+            let emb = try await embed(doc.content)
             try await db.insert(
                 filePath: doc.path,
                 lineStart: nil,
@@ -787,7 +786,7 @@ final class VectorDatabaseTests: XCTestCase {
             )
         }
 
-        let queryEmb = try embed("making Italian pasta with eggs and cheese")
+        let queryEmb = try await embed("making Italian pasta with eggs and cheese")
         let results = try await db.search(embedding: queryEmb, limit: 4)
 
         XCTAssertEqual(results.count, 4)
@@ -827,7 +826,7 @@ final class VectorDatabaseTests: XCTestCase {
         ]
 
         for doc in docs {
-            let emb = try embed(doc.content)
+            let emb = try await embed(doc.content)
             try await db.insert(
                 filePath: doc.path,
                 lineStart: nil,
@@ -841,37 +840,37 @@ final class VectorDatabaseTests: XCTestCase {
         }
 
         // Query about atomic bonding — chemistry should be #1
-        let chemEmb = try embed("atoms bonding in chemical reactions with electrons")
+        let chemEmb = try await embed("atoms bonding in chemical reactions with electrons")
         let chemResults = try await db.search(embedding: chemEmb, limit: 12)
         XCTAssertEqual(chemResults[0].filePath, "chemistry.txt",
                        "Chemistry doc should rank #1 for atomic bonding query")
 
         // Query about Shakespeare — literature should be #1
-        let litEmb = try embed("Shakespeare plays about love and tragedy")
+        let litEmb = try await embed("Shakespeare plays about love and tragedy")
         let litResults = try await db.search(embedding: litEmb, limit: 12)
         XCTAssertEqual(litResults[0].filePath, "literature.txt",
                        "Literature doc should rank #1 for Shakespeare query")
 
         // Query about market economics — economics should be #1
-        let econEmb = try embed("market prices set by supply and demand")
+        let econEmb = try await embed("market prices set by supply and demand")
         let econResults = try await db.search(embedding: econEmb, limit: 12)
         XCTAssertEqual(econResults[0].filePath, "economics.txt",
                        "Economics doc should rank #1 for market prices query")
 
         // Query about ocean weather — oceanography should be #1
-        let oceanEmb = try embed("ocean currents affecting global weather and climate")
+        let oceanEmb = try await embed("ocean currents affecting global weather and climate")
         let oceanResults = try await db.search(embedding: oceanEmb, limit: 12)
         XCTAssertEqual(oceanResults[0].filePath, "oceanography.txt",
                        "Oceanography doc should rank #1 for ocean weather query")
 
         // Query about therapy — psychology should be #1
-        let psychEmb = try embed("cognitive therapy for changing negative thoughts")
+        let psychEmb = try await embed("cognitive therapy for changing negative thoughts")
         let psychResults = try await db.search(embedding: psychEmb, limit: 12)
         XCTAssertEqual(psychResults[0].filePath, "psychology.txt",
                        "Psychology doc should rank #1 for therapy query")
 
         // Query about earthquakes — geography should be #1
-        let geoEmb = try embed("earthquakes and volcanic eruptions from tectonic plates")
+        let geoEmb = try await embed("earthquakes and volcanic eruptions from tectonic plates")
         let geoResults = try await db.search(embedding: geoEmb, limit: 12)
         XCTAssertEqual(geoResults[0].filePath, "geography.txt",
                        "Geography doc should rank #1 for earthquake query")
@@ -889,7 +888,7 @@ final class VectorDatabaseTests: XCTestCase {
         ]
 
         for doc in docs {
-            let emb = try embed(doc.content)
+            let emb = try await embed(doc.content)
             try await db.insert(
                 filePath: doc.path,
                 lineStart: nil,
@@ -902,7 +901,7 @@ final class VectorDatabaseTests: XCTestCase {
             )
         }
 
-        let queryEmb = try embed("exploring underwater coral reefs")
+        let queryEmb = try await embed("exploring underwater coral reefs")
 
         // Run the same search 5 times and verify identical ordering
         var firstOrder: [String]?
@@ -925,7 +924,7 @@ final class VectorDatabaseTests: XCTestCase {
     func testOpenOnCorruptedDBThrowsDatabaseCorrupted() async throws {
         // Initialize a valid database
         do {
-            let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+            let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
             try await db.initialize()
         }
 
@@ -950,7 +949,7 @@ final class VectorDatabaseTests: XCTestCase {
         rawDB = nil
 
         // Now open() should detect the missing table
-        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let db = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
         do {
             try await db.open()
             XCTFail("Expected VecError.databaseCorrupted")

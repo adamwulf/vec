@@ -4,7 +4,7 @@ import VecKit
 
 struct DeinitCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "deinit",
         abstract: "Remove a vector database"
     )

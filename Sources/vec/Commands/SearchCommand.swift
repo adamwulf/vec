@@ -5,7 +5,7 @@ import VecKit
 
 struct SearchCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "search",
         abstract: "Search the vector database for semantically similar content"
     )
@@ -50,16 +50,48 @@ struct SearchCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        let (dbDir, _, sourceDir) = try db != nil
+        // Step 1: resolve DB. Open only to count chunks (the chunk
+        // count is needed to distinguish a fresh DB from a pre-profile
+        // DB before any profile resolution).
+        let (dbDir, config, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        let probeDim = config.profile?.dimension ?? 1
+        let probe = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: probeDim
+        )
+        try await probe.open()
+        let chunkCount = try await probe.totalChunkCount()
+
+        // Step 2: missing-profile split.
+        let recorded = try ProfileChecks.requireRecordedProfile(
+            config: config,
+            chunkCount: chunkCount
+        )
+
+        // Step 3: resolve live profile from the recorded identity.
+        let profile = try IndexingProfileFactory.resolve(identity: recorded.identity)
+
+        // Step 4: open the DB at the recorded dim and run the search.
+        let database = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: recorded.dimension
+        )
         try await database.open()
 
-        let embedder = EmbeddingService()
-        guard let queryEmbedding = embedder.embed(query) else {
-            print("Error: Failed to generate embedding for query.")
+        let queryEmbedding: [Float]
+        do {
+            queryEmbedding = try await profile.embedder.embedQuery(query)
+        } catch {
+            print("Error: Failed to generate embedding for query: \(error)")
+            throw ExitCode.failure
+        }
+        guard !queryEmbedding.isEmpty else {
+            print("Error: Empty embedding for query.")
             throw ExitCode.failure
         }
 

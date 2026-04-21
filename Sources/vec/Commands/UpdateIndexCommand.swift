@@ -217,10 +217,19 @@ private final class ProgressRenderer: @unchecked Sendable {
 
 struct UpdateIndexCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "update-index",
         abstract: "Update the vector index with new or modified files"
     )
+
+    /// Default alias's built-in descriptor. `defaultAlias` is guaranteed
+    /// to be in `builtIns` by construction of `IndexingProfileFactory`,
+    /// so the force-unwrap is safe.
+    private static let defaultBuiltIn: IndexingProfileFactory.BuiltIn = {
+        IndexingProfileFactory.builtIns.first {
+            $0.alias == IndexingProfileFactory.defaultAlias
+        }!
+    }()
 
     @Option(name: .shortAndLong, help: "Name of the database (stored in ~/.vec/<name>/). Omit to resolve from current directory.")
     var db: String?
@@ -231,12 +240,76 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Flag(name: .shortAndLong, help: "Show a rolling stats line while indexing")
     var verbose: Bool = false
 
+    @Option(name: .long, help: "Max chunk size in characters. Pass together with --chunk-overlap (or neither). Default is the selected profile's alias-default (e.g. \(Self.defaultBuiltIn.defaultChunkSize) for \(IndexingProfileFactory.defaultAlias)).")
+    var chunkChars: Int?
+
+    @Option(name: .long, help: "Chunk overlap in characters. Must be less than --chunk-chars. Pass together with --chunk-chars (or neither). Default is the selected profile's alias-default (e.g. \(Self.defaultBuiltIn.defaultChunkOverlap) for \(IndexingProfileFactory.defaultAlias)).")
+    var chunkOverlap: Int?
+
+    @Option(name: .long, help: "Indexing profile alias (\(IndexingProfileFactory.knownAliases.joined(separator: ", "))). Default is \(IndexingProfileFactory.defaultAlias) on first index; must match the recorded profile on subsequent runs (or omit to reuse the recorded alias with its alias-default chunk params).")
+    var embedder: String?
+
     func run() async throws {
-        let (dbDir, _, sourceDir) = try db != nil
+        // Step 1: CLI partial-override hard-fail — before any DB work.
+        if (chunkChars == nil) != (chunkOverlap == nil) {
+            throw VecError.partialChunkOverride
+        }
+
+        // Step 2: resolve DB.
+        let (dbDir, rawConfig, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        // Step 3: open DB only to count chunks. The three missing-profile
+        // branches split on chunk count; the probe dimension doesn't
+        // matter because we only read the chunk count, but we still
+        // need a valid (non-zero) dim for open() to succeed when the DB
+        // is already initialized.
+        let probeDim = rawConfig.profile?.dimension
+            ?? Self.defaultBuiltIn.canonicalDimension
+        let probe = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: probeDim
+        )
+        try await probe.open()
+        let chunkCount = try await probe.totalChunkCount()
+
+        // Steps 4–6: resolve requested profile against recorded state.
+        // Pure logic lives in a testable helper.
+        let resolution = try Self.resolveRequestedProfile(
+            config: rawConfig,
+            chunkCount: chunkCount,
+            cliEmbedder: embedder,
+            cliChunkChars: chunkChars,
+            cliChunkOverlap: chunkOverlap
+        )
+        let activeProfile = resolution.profile
+
+        // Step 6 persist: write ProfileRecord to config.json BEFORE the
+        // pipeline touches the DB. Runs only on the first-index path —
+        // the recorded path by definition already has a profile and the
+        // identity just proved equal.
+        if resolution.writeProfileRecord {
+            let newRecord = DatabaseConfig.ProfileRecord(
+                identity: activeProfile.identity,
+                embedderName: activeProfile.embedder.name,
+                dimension: activeProfile.embedder.dimension
+            )
+            let updated = DatabaseConfig(
+                sourceDirectory: rawConfig.sourceDirectory,
+                createdAt: rawConfig.createdAt,
+                profile: newRecord
+            )
+            try DatabaseLocator.writeConfig(updated, to: dbDir)
+        }
+
+        // Step 7: build the real DB + pipeline from the resolved profile.
+        let database = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: activeProfile.embedder.dimension
+        )
         try await database.open()
 
         let scanner = FileScanner(directory: sourceDir, includeHiddenFiles: allowHidden)
@@ -262,7 +335,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         // Source worker count from the pipeline so the rolling line's
         // "N/M" denominator can't silently desync from the actual pool size
         // if the default ever changes.
-        let pipeline = IndexingPipeline()
+        let pipeline = IndexingPipeline(profile: activeProfile)
         let workerCount = pipeline.workerCount
 
         // Wire up the rolling progress renderer when verbose and attached to a TTY.
@@ -294,7 +367,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         do {
             (results, stats) = try await pipeline.run(
                 workItems: workItems,
-                extractor: TextExtractor(),
+                extractor: TextExtractor(splitter: activeProfile.splitter),
                 database: database,
                 progress: progress
             )
@@ -319,10 +392,16 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                 } else {
                     added += 1
                 }
-            case .skippedUnreadable:
+            case .skippedUnreadable(let filePath):
                 skippedUnreadable += 1
-            case .skippedEmbedFailure:
+                if verbose {
+                    print("Skipped (no chunks extracted): \(filePath)")
+                }
+            case .skippedEmbedFailure(let filePath):
                 skippedEmbedFailures += 1
+                if verbose {
+                    print("Skipped (all chunks failed to embed): \(filePath)")
+                }
             }
         }
 
@@ -359,6 +438,88 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         if verbose && !workItems.isEmpty {
             printTimingFooter(stats: stats, wallSeconds: wallSeconds, workerCount: workerCount, filesIndexed: added + updated)
         }
+    }
+
+    /// Outcome of profile resolution on a given DB state. Lives as a
+    /// small enum+struct so tests can assert both the chosen identity
+    /// and whether the command is expected to write a new
+    /// `ProfileRecord` to config.json.
+    struct ProfileResolution {
+        let profile: IndexingProfile
+        /// True on the first-index path (no `profile` recorded yet) —
+        /// the command must persist the resolved `ProfileRecord` before
+        /// running the pipeline. False on the recorded path — the
+        /// already-persisted record matches the resolved identity, so no
+        /// write is needed.
+        let writeProfileRecord: Bool
+    }
+
+    /// Pure check-order logic for steps 1–5 of the spec, minus the
+    /// partial-override guard (which the caller runs before any DB
+    /// work) and the config write (which the caller performs based on
+    /// `writeProfileRecord`). Factored out so `ProfileMismatchTests`
+    /// can exercise each branch without spinning up a real DB on disk.
+    static func resolveRequestedProfile(
+        config: DatabaseConfig,
+        chunkCount: Int,
+        cliEmbedder: String?,
+        cliChunkChars: Int?,
+        cliChunkOverlap: Int?
+    ) throws -> ProfileResolution {
+        // The caller must have already rejected partial overrides. Trap
+        // any slip through so tests catch a regression in the check
+        // order rather than silently succeeding.
+        precondition(
+            (cliChunkChars == nil) == (cliChunkOverlap == nil),
+            "resolveRequestedProfile requires both chunk overrides or neither"
+        )
+
+        if let recorded = config.profile {
+            // Step 4: recorded-profile path. Alias falls back to the
+            // recorded alias when --embedder is omitted; chunk params
+            // default to the *alias-default* chunk params (NOT the
+            // recorded chunk params — strict no-inheritance).
+            let recordedParsed = try IndexingProfile.parseIdentity(recorded.identity)
+            let requestedAlias = cliEmbedder ?? recordedParsed.alias
+            let requestedIdentity: String
+            if let size = cliChunkChars, let overlap = cliChunkOverlap {
+                requestedIdentity = "\(requestedAlias)@\(size)/\(overlap)"
+            } else {
+                // No chunk overrides → alias-default chunk params.
+                // Resolve the alias through the factory so an unknown
+                // alias surfaces as `unknownProfile` rather than a
+                // mysterious mismatch.
+                let builtIn = try IndexingProfileFactory.builtIn(forAlias: requestedAlias)
+                requestedIdentity = "\(requestedAlias)@\(builtIn.defaultChunkSize)/\(builtIn.defaultChunkOverlap)"
+            }
+            guard requestedIdentity == recorded.identity else {
+                throw VecError.profileMismatch(
+                    recorded: recorded.identity,
+                    requested: requestedIdentity
+                )
+            }
+            // Match. Resolve the persisted identity through the
+            // factory — `resolve` re-parses the identity (no shortcut
+            // via `make`) so a corrupt `config.json` with a malformed
+            // identity fails as `malformedProfileIdentity`.
+            let profile = try IndexingProfileFactory.resolve(identity: recorded.identity)
+            return ProfileResolution(profile: profile, writeProfileRecord: false)
+        }
+
+        // Steps 3–5: no recorded profile. Split on chunk count.
+        if chunkCount > 0 {
+            throw VecError.preProfileDatabase
+        }
+
+        // Step 5: fresh/reset DB — first-index path. Build the profile
+        // from CLI flags, defaulting alias to `defaultAlias`.
+        let alias = cliEmbedder ?? IndexingProfileFactory.defaultAlias
+        let profile = try IndexingProfileFactory.make(
+            alias: alias,
+            chunkSize: cliChunkChars,
+            chunkOverlap: cliChunkOverlap
+        )
+        return ProfileResolution(profile: profile, writeProfileRecord: true)
     }
 
     /// Per-stage totals are summed across N concurrent workers, so they can

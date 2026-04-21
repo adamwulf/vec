@@ -4,7 +4,7 @@ import VecKit
 
 struct InsertCommand: AsyncParsableCommand {
 
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "insert",
         abstract: "Add or update a specific file in the vector index"
     )
@@ -16,9 +16,28 @@ struct InsertCommand: AsyncParsableCommand {
     var path: String
 
     func run() async throws {
-        let (dbDir, _, sourceDir) = try db != nil
+        // Step 1: resolve DB, open to count chunks.
+        let (dbDir, config, sourceDir) = try db != nil
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
+
+        let probeDim = config.profile?.dimension ?? 1
+        let probe = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: probeDim
+        )
+        try await probe.open()
+        let chunkCount = try await probe.totalChunkCount()
+
+        // Step 2: missing-profile split.
+        let recorded = try ProfileChecks.requireRecordedProfile(
+            config: config,
+            chunkCount: chunkCount
+        )
+
+        // Step 3: resolve live profile.
+        let profile = try IndexingProfileFactory.resolve(identity: recorded.identity)
 
         // Resolve path relative to cwd, then validate it falls within sourceDir
         let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
@@ -35,17 +54,24 @@ struct InsertCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir)
+        // Step 4: open DB at the recorded dim and run the pipeline with
+        // the profile's splitter so single-file inserts honor the
+        // recorded chunk settings (pre-3e this defaulted to the
+        // splitter's hardcoded defaults regardless of what the DB was
+        // indexed at).
+        let database = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: recorded.dimension
+        )
         try await database.open()
 
         let fileInfo = try FileScanner.fileInfo(for: filePath, relativeTo: sourceDir)
 
-        // Use the pipeline for single-file indexing — still benefits from
-        // parallel chunk embedding for large files.
-        let pipeline = IndexingPipeline()
+        let pipeline = IndexingPipeline(profile: profile)
         let (results, _) = try await pipeline.run(
             workItems: [(file: fileInfo, label: "Updated")],
-            extractor: TextExtractor(),
+            extractor: TextExtractor(splitter: profile.splitter),
             database: database
         )
 

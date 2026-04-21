@@ -22,11 +22,24 @@ public final class TextExtractor: @unchecked Sendable {
 
     private let splitter: TextSplitter
 
-    /// Construct with any `TextSplitter`. Defaults to
-    /// `RecursiveCharacterSplitter`, a port of LangChain's recursive
-    /// character splitter tuned for ~2000-char chunks with 10% overlap.
-    public init(splitter: TextSplitter = RecursiveCharacterSplitter()) {
+    /// Construct with any `TextSplitter`. Callers pass the splitter from
+    /// the active `IndexingProfile` so chunk sizing honors the recorded
+    /// profile rather than a hardcoded default.
+    public init(splitter: TextSplitter) {
         self.splitter = splitter
+    }
+
+    /// Convenience init that borrows the default built-in profile's
+    /// splitter. Tests and pipeline-agnostic callers use this when they
+    /// don't have a profile on hand but need sensible chunk defaults.
+    public convenience init() {
+        // The default alias is always present in the built-in table
+        // (covered by IndexingProfileTests); try! is safe.
+        let builtIn = try! IndexingProfileFactory.builtIn(forAlias: IndexingProfileFactory.defaultAlias)
+        self.init(splitter: RecursiveCharacterSplitter(
+            chunkSize: builtIn.defaultChunkSize,
+            chunkOverlap: builtIn.defaultChunkOverlap
+        ))
     }
 
     /// Convenience init for the legacy line-based splitter, kept so existing
@@ -63,12 +76,7 @@ public final class TextExtractor: @unchecked Sendable {
 
         var chunks: [TextChunk] = []
 
-        // Only add a whole-document embedding when the full text fits inside
-        // the embedding limit. Otherwise NLEmbedding would silently truncate
-        // to the first ~10 KB and produce a misleading "whole" vector.
-        if trimmed.count <= EmbeddingService.maxEmbeddingTextLength {
-            chunks.append(TextChunk(text: trimmed, type: .whole))
-        }
+        chunks.append(TextChunk(text: trimmed, type: .whole))
 
         chunks.append(contentsOf: splitter.split(content))
 
@@ -110,10 +118,8 @@ public final class TextExtractor: @unchecked Sendable {
             allText += text + "\n"
         }
 
-        // Add whole-document embedding only if the concatenated text fits
-        // inside the embedding limit. See `extract(from:)` for the reasoning.
         let trimmedAll = allText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !trimmedAll.isEmpty && trimmedAll.count <= EmbeddingService.maxEmbeddingTextLength {
+        if !trimmedAll.isEmpty {
             chunks.insert(TextChunk(text: trimmedAll, type: .whole), at: 0)
         }
 
