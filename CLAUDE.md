@@ -77,6 +77,30 @@ python3 scripts/score-rubric.py benchmarks/<alias>-<N>-<M>/
 See `retrieval-rubric.md` §"Running a baseline" for the full
 reindex → capture → score → append-to-results-log recipe.
 
+## Long-running commands and sub-agents: wait, don't poll
+
+Two mechanisms already notify you when long work finishes — use
+them instead of polling or sleeping:
+
+- **`run_in_background: true`** on the Bash tool returns immediately
+  and the runtime will notify you when the command exits. You do
+  NOT need to sleep, tail the log, or otherwise watch for it. Good
+  fit for multi-minute reindexes (`vec update-index` against
+  markdown-memory runs ~10-40 min depending on the model) and any
+  long build.
+
+- **Spawned sub-agents** (`ib new-agent --worker …`) fire a
+  notification when they complete or need input. Do NOT call
+  `ib list` in a loop to check on them — just enter WAITING and
+  the watchdog will ping you. Polling burns context on
+  already-cached output you've seen.
+
+When either completes you get a message that looks like
+`[hook]: Your subtask agent-XXXX just completed` or a stream of
+stdout/stderr from the backgrounded command. Pick it up from
+there. Only break the wait if you have genuinely independent
+work to do in parallel.
+
 ### When you really do need a brand-new DB
 
 If you need a new throwaway DB name (not a clone/reset of an existing
