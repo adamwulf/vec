@@ -10,7 +10,7 @@ Once indexed, you can perform semantic search across your files to find relevant
 
 ## Features
 
-- **On-device embeddings** — Choose from four built-in embedders (see below); all run locally with no network round-trip at query time.
+- **On-device embeddings** — Choose from six built-in embedders (see below); all run locally with no network round-trip at query time.
 - **Pluggable embedder profiles** — `--embedder <alias>` selects the model. The model + chunking parameters are recorded as a profile identity on the DB and re-used on every subsequent command, so a database always re-uses the same embedder it was built with. See `indexing-profile.md` for the grammar.
 - **Batched embedding** — The indexing pipeline batches chunks for the BERT-family embedders (BGE, Nomic) via `swift-embeddings` `batchEncode`, with an `EmbedderPool` actor that holds N model instances for real parallel inference.
 - **Chunked indexing** — Text is split into overlapping character-bounded chunks via `RecursiveCharacterSplitter` (a port of LangChain's recursive character splitter).
@@ -21,12 +21,19 @@ Once indexed, you can perform semantic search across your files to find relevant
 
 ## Built-in embedders
 
-| Alias            | Embedder                | Dim | Chunk default | Notes                                           |
-| ---------------- | ----------------------- | --- | ------------- | ----------------------------------------------- |
-| `bge-base`       | `bge-base-en-v1.5`      | 768 | 1200 / 240    | **Default.** ~440 MB safetensors via swift-embeddings. Best rubric (36/60, 9/10 top-10) on the markdown-memory benchmark — see `experiments/PhaseD-embedder-expansion/plan.md`. |
-| `nomic`          | `nomic-v1.5-768`        | 768 | 1200 / 240    | ~520 MB safetensors. Comparable per-chunk throughput to bge-base; trails on top-10 hit rate. |
-| `nl-contextual`  | `nl-contextual-en-512`  | 512 | 1200 / 240    | Apple `NLContextualEmbedding`. Zero install size (system-managed via `requestAssets`); ~6× faster per chunk than bge-base/nomic, but rubric is shallow on the test corpus. |
-| `nl`             | `nl-en-512`             | 512 | 2000 / 200    | Apple `NLEmbedding.sentenceEmbedding`. Bundled with the OS; useful as a no-install fallback but the weakest on retrieval quality. |
+| Alias            | Embedder                | Dim  | Chunk default  | Notes                                           |
+| ---------------- | ----------------------- | ---- | -------------- | ----------------------------------------------- |
+| `bge-base`       | `bge-base-en-v1.5`      |  768 | 1200 / 240     | **Default.** ~440 MB safetensors via swift-embeddings. Best rubric (36/60, 9/10 top-10) on the markdown-memory benchmark — see `experiments/PhaseD-embedder-expansion/plan.md`. |
+| `bge-small`      | `bge-small-en-v1.5`     |  384 | 1200 / 240 †   | ~130 MB safetensors. Fastest of the BGE family per chunk (~1.5× bge-base on the same corpus). Single-point rubric at 1200/240: 25/60 — but the chunk geometry is not tuned yet (E5.4). |
+| `bge-large`      | `bge-large-en-v1.5`     | 1024 | 1200 / 240 †   | ~1.3 GB safetensors. Deepest BGE available; ~5× slower than bge-base per chunk. Single-point rubric at 1200/240: 31/60 — also not tuned yet (E5.4). |
+| `nomic`          | `nomic-v1.5-768`        |  768 | 1200 / 240     | ~520 MB safetensors. Comparable per-chunk throughput to bge-base; trails on top-10 hit rate. |
+| `nl-contextual`  | `nl-contextual-en-512`  |  512 | 1200 / 240     | Apple `NLContextualEmbedding`. Zero install size (system-managed via `requestAssets`); ~6× faster per chunk than bge-base/nomic, but rubric is shallow on the test corpus. |
+| `nl`             | `nl-en-512`             |  512 | 2000 / 200     | Apple `NLEmbedding.sentenceEmbedding`. Bundled with the OS; useful as a no-install fallback but the weakest on retrieval quality. |
+
+† `bge-small` and `bge-large` defaults are seeded from `bge-base` for
+direct rubric comparability. Their real chunk peaks have not yet been
+measured; the E5.4 parameter sweep (in progress) will replace these
+with tuned values.
 
 Detailed per-model rubric / throughput / install-size table lives in `experiments/PhaseD-embedder-expansion/plan.md` §"Final comparison".
 

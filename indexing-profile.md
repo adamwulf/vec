@@ -17,14 +17,16 @@ return nonsense. The profile identity is what prevents that: it
 commits the full parameter bundle to a single string the database
 can match against on every open.
 
-Four built-in profiles ship today:
+Six built-in profiles ship today:
 
-| Alias            | Canonical identity         | Embedder                | Dim | Chunk size | Chunk overlap | Rubric score | Index wall¹ | ch/s¹ |
-| ---------------- | -------------------------- | ----------------------- | --- | ---------- | ------------- | ------------ | ----------- | ----- |
-| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      | 768 | 1200 chars | 240 chars     | **36/60**, 2/10 both-top10 | 1028 s | 7.9 |
-| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        | 768 | 1200 chars | 240 chars     | 35/60, 3/10 both-top10 | 1417 s² | 5.8² |
-| `nl`             | `nl@2000/200`              | `nl-en-512`             | 512 | 2000 chars | 200 chars     | 6/60, 0/10 both-top10 | 138 s | 35.0 |
-| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  | 512 | 1200 chars | 240 chars     | 3/60, 0/10 both-top10 | 52 s | 157.1 |
+| Alias            | Canonical identity         | Embedder                | Dim  | Chunk size | Chunk overlap | Rubric score              | Index wall¹ | ch/s¹  |
+| ---------------- | -------------------------- | ----------------------- | ---- | ---------- | ------------- | ------------------------- | ----------- | ------ |
+| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      |  768 | 1200 chars | 240 chars     | **36/60**, 2/10 both-top10 | 1028 s      | 7.9    |
+| `bge-small`      | `bge-small@1200/240`³      | `bge-small-en-v1.5`     |  384 | 1200 chars | 240 chars     | 25/60, 2/10 both-top10    | 692 s       | 11.8   |
+| `bge-large`      | `bge-large@1200/240`³      | `bge-large-en-v1.5`     | 1024 | 1200 chars | 240 chars     | 31/60, 2/10 both-top10    | 4891 s      | 1.7    |
+| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        |  768 | 1200 chars | 240 chars     | 35/60, 3/10 both-top10    | 1417 s²     | 5.8²   |
+| `nl`             | `nl@2000/200`              | `nl-en-512`             |  512 | 2000 chars | 200 chars     | 6/60, 0/10 both-top10     | 138 s       | 35.0   |
+| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  |  512 | 1200 chars | 240 chars     | 3/60, 0/10 both-top10     | 52 s        | 157.1  |
 
 ¹ Wall-clock and chunks-per-second for a full reindex of the
 `markdown-memory` corpus (674 files; 8170 chunks at 1200/240 for the
@@ -41,6 +43,16 @@ compiler. Historical wallclock at the same config on the pre-E4 code
 path (with ANE) was ~2940 s. See
 `NomicEmbedder.batchEncode` and
 `data/wallclock-e4-per-model.md` for detail.
+
+³ `bge-small` and `bge-large` default chunk geometries (1200/240) are
+**provisional**, seeded from `bge-base` for direct rubric comparability.
+Neither model has had a proper chunk sweep yet — E5.4 (in progress)
+will establish each model's rubric peak and update these defaults
+accordingly. The rubric scores above are single-point measurements at
+the seeded geometry; do not treat them as each model's quality
+ceiling on this corpus. See
+[`data/retrieval-bge-small.md`](./data/retrieval-bge-small.md) and
+[`data/retrieval-bge-large.md`](./data/retrieval-bge-large.md).
 
 `bge-base` is the default. (Originally `nomic`; flipped 2026-04-19
 after the Phase D sweep — see `experiments/PhaseD-embedder-expansion/plan.md` §"Default
