@@ -30,6 +30,9 @@ struct SweepCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Path to rubric manifest JSON (default: scripts/rubric-queries.json)")
     var rubric: String = "scripts/rubric-queries.json"
 
+    @Flag(name: .long, help: "Skip the destructive-wipe confirmation prompt. Sweeps delete the database's `index.db` and rebuild it from scratch for every grid point; this flag is required in non-interactive contexts.")
+    var force: Bool = false
+
     @Flag(name: .shortAndLong, help: "Print progress line per grid point")
     var verbose: Bool = false
 
@@ -61,6 +64,19 @@ struct SweepCommand: AsyncParsableCommand {
         // Step 3: resolve DB.
         let (dbDir, _, sourceDir) = try DatabaseLocator.resolve(db)
 
+        // Step 3a: Every grid point wipes `dbDir` and rebuilds the index
+        // from scratch. Mirror ResetCommand's confirmation pattern so a
+        // misdirected `--db` can't silently destroy production data.
+        let dbName = dbDir.lastPathComponent
+        if !force {
+            print("This sweep will repeatedly delete and re-index '\(dbName)' at \(dbDir.path) (\(grid.count) grid points).")
+            print("Type the database name to confirm: ", terminator: "")
+            guard let confirmation = readLine(), confirmation == dbName else {
+                print("Aborted.")
+                throw ExitCode.failure
+            }
+        }
+
         // Step 4: determine + create output directory.
         let outDir: URL
         if let out {
@@ -87,6 +103,17 @@ struct SweepCommand: AsyncParsableCommand {
         }
 
         // Step 6: iterate grid points.
+        //
+        // Each iteration body runs in `runGridPoint`, a helper function
+        // (not an inlined for-body block). This is load-bearing: the
+        // `VectorDatabase` actor is a reference type whose underlying
+        // sqlite3 handle is only closed when the last ARC reference
+        // drops, and the *next* iteration's `resetDatabase` call deletes
+        // the on-disk DB directory. A for-loop `let database` would let
+        // the previous iteration's actor live until ARC happens to
+        // reclaim it — confining it to a helper function guarantees all
+        // local references (database, pipeline, stats) are released
+        // before `resetDatabase` runs next.
         var bestTotal = -1
         var bestPoint: String = ""
 
@@ -97,7 +124,7 @@ struct SweepCommand: AsyncParsableCommand {
             // --skip-existing: an archive is "complete" when q01…q10.json
             // all exist AND the summary row for this chunk_size/overlap
             // pair is already present.
-            if skipExisting && archiveIsComplete(pointDir: pointDir, queryCount: manifest.queries.count)
+            if skipExisting && archiveIsComplete(pointDir: pointDir, manifest: manifest)
                 && summaryHasRow(summaryURL: summaryURL, size: point.size, overlap: point.overlap) {
                 if verbose {
                     print("point \(i + 1)/\(grid.count) \(embedder)@\(point.size)/\(point.overlap): skipped (already complete)")
@@ -105,85 +132,16 @@ struct SweepCommand: AsyncParsableCommand {
                 continue
             }
 
-            // Step 6a/b: fresh per-point archive directory.
-            try? FileManager.default.removeItem(at: pointDir)
-            try FileManager.default.createDirectory(at: pointDir, withIntermediateDirectories: true)
-
-            // Step 6c: reset the DB.
-            try await resetDatabase(dbDir: dbDir, sourceDir: sourceDir)
-
-            // Step 6d/e: build profile, persist record, open DB.
-            let profile = try IndexingProfileFactory.make(
-                alias: embedder,
-                chunkSize: point.size,
-                chunkOverlap: point.overlap
-            )
-            let record = DatabaseConfig.ProfileRecord(
-                identity: profile.identity,
-                embedderName: profile.embedder.name,
-                dimension: profile.embedder.dimension
-            )
-            let updatedConfig = DatabaseConfig(
-                sourceDirectory: sourceDir.path,
-                createdAt: Date(),
-                profile: record
-            )
-            try DatabaseLocator.writeConfig(updatedConfig, to: dbDir)
-
-            let database = VectorDatabase(
-                databaseDirectory: dbDir,
-                sourceDirectory: sourceDir,
-                dimension: profile.embedder.dimension
-            )
-            try await database.open()
-
-            // Step 6f/g: scan, build work items (all fresh → "Added"), run pipeline.
-            let scanner = FileScanner(directory: sourceDir, includeHiddenFiles: false)
-            let files = try scanner.scan()
-            let workItems: [(file: FileInfo, label: String)] = files.map { (file: $0, label: "Added") }
-
-            let pipeline = IndexingPipeline(profile: profile)
-            let pipelineStart = Date()
-            let (_, stats) = try await pipeline.run(
-                workItems: workItems,
-                extractor: TextExtractor(splitter: profile.splitter),
-                database: database,
-                progress: nil
-            )
-            let wallSeconds = Date().timeIntervalSince(pipelineStart)
-            let chunkCount = stats.totalChunksEmbedded
-
-            // Step 6h: run the 10 rubric queries, write q<NN>.json per point.
-            try await runRubricQueries(
-                profile: profile,
-                database: database,
+            let scored = try await runGridPoint(
+                index: i,
+                point: point,
+                pointDir: pointDir,
+                dbDir: dbDir,
+                sourceDir: sourceDir,
                 manifest: manifest,
-                outDir: pointDir
+                summaryURL: summaryURL,
+                gridCount: grid.count
             )
-
-            // Step 6i: score in-process.
-            let scored = try scoreArchive(manifest: manifest, pointDir: pointDir)
-
-            // Step 6j: append summary row.
-            let chps = wallSeconds > 0 ? Double(chunkCount) / wallSeconds : 0
-            let overlapPct = point.size > 0 ? Int((Double(point.overlap) / Double(point.size) * 100).rounded()) : 0
-            let row = String(
-                format: "| %d | %d | %d | %d | %.1f | %.1f | %d | %d | %d |\n",
-                point.size,
-                point.overlap,
-                overlapPct,
-                chunkCount,
-                wallSeconds,
-                chps,
-                scored.total,
-                scored.top10Either,
-                scored.top10Both
-            )
-            try appendToFile(url: summaryURL, text: row)
-
-            if verbose {
-                print("point \(i + 1)/\(grid.count) \(embedder)@\(point.size)/\(point.overlap): total=\(scored.total)/\(manifest.scoring.max_total) top10_either=\(scored.top10Either)/\(manifest.queries.count) wall=\(String(format: "%.1f", wallSeconds))s")
-            }
 
             if scored.total > bestTotal {
                 bestTotal = scored.total
@@ -198,11 +156,114 @@ struct SweepCommand: AsyncParsableCommand {
         }
     }
 
+    // MARK: - Per-grid-point execution
+
+    /// Executes one grid point: reset → index → query → score → append
+    /// summary row. See the call site in `run()` for why this is a
+    /// separate function (it confines the `VectorDatabase` actor
+    /// binding's lifetime to the function scope so ARC releases the
+    /// sqlite handle before the next iteration's `resetDatabase`).
+    private func runGridPoint(
+        index: Int,
+        point: (size: Int, overlap: Int),
+        pointDir: URL,
+        dbDir: URL,
+        sourceDir: URL,
+        manifest: RubricManifest,
+        summaryURL: URL,
+        gridCount: Int
+    ) async throws -> ScoredResult {
+        // Step 6a/b: fresh per-point archive directory.
+        try? FileManager.default.removeItem(at: pointDir)
+        try FileManager.default.createDirectory(at: pointDir, withIntermediateDirectories: true)
+
+        // Step 6c: reset the DB.
+        try await resetDatabase(dbDir: dbDir, sourceDir: sourceDir)
+
+        // Step 6d/e: build profile, persist record, open DB.
+        let profile = try IndexingProfileFactory.make(
+            alias: embedder,
+            chunkSize: point.size,
+            chunkOverlap: point.overlap
+        )
+        let record = DatabaseConfig.ProfileRecord(
+            identity: profile.identity,
+            embedderName: profile.embedder.name,
+            dimension: profile.embedder.dimension
+        )
+        let updatedConfig = DatabaseConfig(
+            sourceDirectory: sourceDir.path,
+            createdAt: Date(),
+            profile: record
+        )
+        try DatabaseLocator.writeConfig(updatedConfig, to: dbDir)
+
+        let database = VectorDatabase(
+            databaseDirectory: dbDir,
+            sourceDirectory: sourceDir,
+            dimension: profile.embedder.dimension
+        )
+        try await database.open()
+
+        // Step 6f/g: scan, build work items (all fresh → "Added"), run pipeline.
+        let scanner = FileScanner(directory: sourceDir, includeHiddenFiles: false)
+        let files = try scanner.scan()
+        let workItems: [(file: FileInfo, label: String)] = files.map { (file: $0, label: "Added") }
+
+        let pipeline = IndexingPipeline(profile: profile)
+        let pipelineStart = Date()
+        let (_, stats) = try await pipeline.run(
+            workItems: workItems,
+            extractor: TextExtractor(splitter: profile.splitter),
+            database: database,
+            progress: nil
+        )
+        let wallSeconds = Date().timeIntervalSince(pipelineStart)
+        let chunkCount = stats.totalChunksEmbedded
+
+        // Step 6h: run the 10 rubric queries, write q<NN>.json per point.
+        try await runRubricQueries(
+            profile: profile,
+            database: database,
+            manifest: manifest,
+            outDir: pointDir
+        )
+
+        // Step 6i: score in-process.
+        let scored = try scoreArchive(manifest: manifest, pointDir: pointDir)
+
+        // Step 6j: append summary row.
+        let chps = wallSeconds > 0 ? Double(chunkCount) / wallSeconds : 0
+        let overlapPct = point.size > 0 ? Int((Double(point.overlap) / Double(point.size) * 100).rounded()) : 0
+        let row = String(
+            format: "| %d | %d | %d | %d | %.1f | %.1f | %d | %d | %d |\n",
+            point.size,
+            point.overlap,
+            overlapPct,
+            chunkCount,
+            wallSeconds,
+            chps,
+            scored.total,
+            scored.top10Either,
+            scored.top10Both
+        )
+        try appendToFile(url: summaryURL, text: row)
+
+        if verbose {
+            print("point \(index + 1)/\(gridCount) \(embedder)@\(point.size)/\(point.overlap): total=\(scored.total)/\(manifest.scoring.max_total) top10_either=\(scored.top10Either)/\(manifest.queries.count) wall=\(String(format: "%.1f", wallSeconds))s")
+        }
+
+        return scored
+    }
+
     // MARK: - Grid parsing
 
     /// Parses CSV sizes + overlap percentages into a grid. Overlap per
     /// grid point = round(size * pct / 100). Rejects empty inputs and
-    /// any overlap that would be >= its size.
+    /// any overlap that would be >= its size. Dedupes (size, overlap)
+    /// pairs preserving first-seen order — e.g. small sizes with
+    /// differing percentages can round to the same overlap, and the
+    /// sweep workflow treats a point directory as a single unit.
     static func parseGrid(sizes: String, overlapPcts: String) throws -> [(size: Int, overlap: Int)] {
         let sizeList = try parseCSVInts(sizes, label: "--sizes")
         let pctList = try parseCSVInts(overlapPcts, label: "--overlap-pcts")
@@ -213,6 +274,7 @@ struct SweepCommand: AsyncParsableCommand {
             throw ValidationError("--overlap-pcts must contain at least one value")
         }
         var grid: [(size: Int, overlap: Int)] = []
+        var seen = Set<String>()
         for size in sizeList {
             guard size > 0 else {
                 throw ValidationError("--sizes values must be positive (got \(size))")
@@ -225,7 +287,10 @@ struct SweepCommand: AsyncParsableCommand {
                 guard overlap < size else {
                     throw ValidationError("grid point size=\(size) pct=\(pct) produces overlap=\(overlap) which is >= size")
                 }
-                grid.append((size: size, overlap: overlap))
+                let key = "\(size):\(overlap)"
+                if seen.insert(key).inserted {
+                    grid.append((size: size, overlap: overlap))
+                }
             }
         }
         return grid
@@ -252,8 +317,11 @@ struct SweepCommand: AsyncParsableCommand {
     /// source, and write a profile-less config. The subsequent
     /// `update-index`-equivalent steps in `run()` will write a real
     /// `ProfileRecord` before touching the DB, just like `UpdateIndexCommand`.
+    ///
+    /// Uses `try?` on `removeItem` because the directory may legitimately
+    /// not exist yet on the first iteration, and the next step creates it.
     func resetDatabase(dbDir: URL, sourceDir: URL) async throws {
-        try FileManager.default.removeItem(at: dbDir)
+        try? FileManager.default.removeItem(at: dbDir)
         let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 0)
         try await database.initialize()
         let config = DatabaseConfig(
@@ -415,12 +483,14 @@ struct SweepCommand: AsyncParsableCommand {
 
     /// "Complete" means every `q<NN>.json` for the rubric's queries
     /// exists in the point dir. Summary-row presence is checked
-    /// separately by `summaryHasRow`.
-    func archiveIsComplete(pointDir: URL, queryCount: Int) -> Bool {
+    /// separately by `summaryHasRow`. Iterates the manifest's actual
+    /// query numbers (not `1…count`) so a non-sequential manifest is
+    /// handled correctly.
+    func archiveIsComplete(pointDir: URL, manifest: RubricManifest) -> Bool {
         let fm = FileManager.default
         guard fm.fileExists(atPath: pointDir.path) else { return false }
-        for n in 1...queryCount {
-            let p = pointDir.appendingPathComponent(String(format: "q%02d.json", n))
+        for query in manifest.queries {
+            let p = pointDir.appendingPathComponent(String(format: "q%02d.json", query.n))
             if !fm.fileExists(atPath: p.path) { return false }
         }
         return true

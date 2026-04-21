@@ -42,6 +42,15 @@ final class SweepCommandTests: XCTestCase {
         XCTAssertEqual(grid[1].overlap, 240)
     }
 
+    func testParseGrid_dedupesRoundedOverlaps() throws {
+        // 1% of 10 = 0.1 → rounds to 0; 2% of 10 = 0.2 → also rounds to 0.
+        // Both collapse to (10, 0) and should produce exactly one grid point.
+        let grid = try SweepCommand.parseGrid(sizes: "10", overlapPcts: "0,1,2")
+        XCTAssertEqual(grid.count, 1)
+        XCTAssertEqual(grid[0].size, 10)
+        XCTAssertEqual(grid[0].overlap, 0)
+    }
+
     // MARK: - scoreArchive
 
     /// Builds a synthetic q<NN>.json whose results array places
