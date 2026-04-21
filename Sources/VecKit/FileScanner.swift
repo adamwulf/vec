@@ -328,12 +328,11 @@ public enum VecError: Error, LocalizedError {
     /// The DB has no recorded indexing profile but DOES have chunks,
     /// i.e. a pre-profile DB left over from before this refactor.
     case preProfileDatabase
-    /// Every indexed file produced chunks during extract but zero
-    /// chunks survived embedding — the pipeline ran to completion with
-    /// an empty DB. Hit by `update-index` (0 added / 0 updated with
-    /// ≥1 embed-failure skip) and `insert` (single-file embed
-    /// failure). Prevents the silent-failure mode that hid nomic's
-    /// CoreML/ANE load error for a release cycle.
+    /// Indexing produced zero vectors: every attempted file extracted
+    /// chunks but every embed call returned an empty vector. The DB
+    /// contains no new embeddings. `filesAttempted` is the number of
+    /// files passed to the pipeline; `filesFailed` is the subset that
+    /// hit this specific failure mode.
     case indexingProducedNoVectors(filesAttempted: Int, filesFailed: Int)
 
     public var errorDescription: String? {
@@ -386,11 +385,17 @@ public enum VecError: Error, LocalizedError {
         case .indexingProducedNoVectors(let filesAttempted, let filesFailed):
             return """
                 Indexing produced no vectors: attempted \(filesAttempted) file(s), \
-                \(filesFailed) failed to embed after extracting chunks. The database \
-                contains no new embeddings, so retrieval would return nothing. This \
-                usually means the embedder's model failed to load (check stderr for \
-                a CoreML/ANE or swift-embeddings error) or every embed call \
-                errored. Fix the underlying embedder failure before re-running.
+                \(filesFailed) failed to embed after extracting chunks. The \
+                database received no new embeddings.
+
+                Likely causes:
+                  - The embedder's model failed to load (check stderr above for a
+                    CoreML/ANE or swift-embeddings error).
+                  - Every embed call errored or returned an empty vector.
+
+                Your options:
+                  1. Re-run with `--verbose` to see which files skipped and why.
+                  2. Fix the underlying embedder failure, then re-run `vec update-index`.
                 """
         }
     }

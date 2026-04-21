@@ -415,8 +415,26 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             }
         }
 
+        // Silent-failure detection — computed before the summary so the
+        // human-readable headline matches the exit status. Fires when the
+        // pipeline attempted ≥1 file and every attempt fell into
+        // `.skippedEmbedFailure` (chunks extracted, zero survived
+        // embedding). `.skippedUnreadable` alone is a legitimate outcome
+        // (non-text files in the corpus) so it does not trip the guard.
+        // The guard lives at the CLI layer rather than inside
+        // `IndexingPipeline` because it needs `workItems.count` (a CLI
+        // concept — filtered input after modification-date triage) and
+        // the per-outcome tally (pipeline returns `[IndexResult]`, not
+        // pre-bucketed counts).
+        let silentFailure = !workItems.isEmpty
+            && added == 0 && updated == 0
+            && skippedEmbedFailures > 0
+
         let skipped = skippedUnreadable + skippedEmbedFailures
-        var summary = "Update complete: \(added) added, \(updated) updated, \(removed) removed"
+        let headline = silentFailure
+            ? "Indexing finished with no vectors written"
+            : "Update complete"
+        var summary = "\(headline): \(added) added, \(updated) updated, \(removed) removed"
         if verbose {
             summary += ", \(unchanged) unchanged"
         }
@@ -435,22 +453,15 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         }
         print(summary + ".")
 
-        if verbose && !workItems.isEmpty {
+        // Timing footer is meaningful only when some files actually made it
+        // through embed → DB. Under the silent-failure path, `filesIndexed`
+        // is zero and the footer would print all-zero throughput rows that
+        // add noise to the thrown error. Skip it.
+        if verbose && !workItems.isEmpty && !silentFailure {
             printTimingFooter(stats: stats, wallSeconds: wallSeconds, workerCount: workerCount, filesIndexed: added + updated)
         }
 
-        // Silent-failure guard. If the pipeline attempted ≥1 file and
-        // every attempt fell into `.skippedEmbedFailure` (chunks
-        // extracted but zero survived embedding), exit non-zero. The
-        // "Update complete" summary already printed, but ArgumentParser
-        // will surface the thrown error on stderr and return a non-zero
-        // status — this is the observability gap that hid nomic's
-        // CoreML/ANE load failure for a release cycle. `.skippedUnreadable`
-        // alone is a legitimate outcome (non-text files in the corpus),
-        // so only fire when embed failures are present.
-        if !workItems.isEmpty
-            && added == 0 && updated == 0
-            && skippedEmbedFailures > 0 {
+        if silentFailure {
             throw VecError.indexingProducedNoVectors(
                 filesAttempted: workItems.count,
                 filesFailed: skippedEmbedFailures
