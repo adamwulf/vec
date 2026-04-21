@@ -161,6 +161,17 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 1200,
             defaultChunkOverlap: 240
         ),
+        // bge-small-en-v1.5 added under E5.2. Seeded with the same
+        // 1200/240 chunk defaults as `bge-base` so the two are directly
+        // comparable at matching chunk geometry; if a rubric sweep
+        // finds a better operating point, those defaults move.
+        BuiltIn(
+            alias: "bge-small",
+            canonicalEmbedderName: "bge-small-en-v1.5",
+            canonicalDimension: 384,
+            defaultChunkSize: 1200,
+            defaultChunkOverlap: 240
+        ),
         // Provisional chunk defaults seeded from `nomic`. Phase D of
         // `embedder-expansion-plan.md` replaces these with tuned values.
         BuiltIn(
@@ -224,6 +235,7 @@ public enum IndexingProfileFactory {
         case "nomic":         factory = { NomicEmbedder() }
         case "nl":            factory = { NLEmbedder() }
         case "bge-base":      factory = { BGEBaseEmbedder() }
+        case "bge-small":     factory = { BGESmallEmbedder() }
         case "nl-contextual": factory = { NLContextualEmbedder() }
         default:              throw VecError.unknownProfile(alias)
         }
