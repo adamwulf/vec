@@ -92,42 +92,51 @@ dominant cost: the larger model takes ~7× longer per chunk.)
   corpus. Larger batches don't amortise; the per-chunk inference
   cost is dominating, not pipeline overhead.
 
-**Decision:**
-- **Rubric: 31/60** — fails the 40/60 ship gate by 9 points, and
-  also fails the 36/60 bge-base "borderline" floor by 5 points.
-  This is a decisive miss, not borderline.
-- **Throughput: 0.21×** bge-base per wall-second (1.67 vs 7.95
-  chunks/s). Strictly worse on both axes — rubric *and* speed.
-- **Verdict: DROPPED.** Remove the `bge-large` `BuiltIn` row from
-  `IndexingProfileFactory.builtIns` and the `"bge-large"` case from
-  the `make(...)` switch. Keep `BGELargeEmbedder.swift` in-tree — the
-  code works correctly; the model just doesn't earn a registration
-  slot on this corpus. Also remove the `bge-large` reference from
-  `plan.md` E5 item 3 when it's rewritten for E5.5.
-- This aligns with plan.md E5's stated rationale for the "max
-  quality" tier: bge-large was expected to beat bge-base by a
-  meaningful margin. It lost by 5 points while taking 4.76× longer.
-  The right move is to keep shipping bge-base as the default tier
-  and not offer a "max quality" built-in until a model tested on
-  this corpus actually delivers one.
+**Single-grid-point verdict (superseded):**
+An earlier version of this doc drew a DROP verdict from the
+31/60 result at 1200/240 alone. That was reversed on 2026-04-21
+after a policy change: a single chunk-geometry measurement is
+not sufficient evidence to remove a model from the registry.
+bge-large's 24-layer, 1024-dim architecture has a meaningfully
+larger receptive field than bge-base and may well prefer a
+different chunk geometry — the 1200/240 defaults were seeded
+from bge-base for comparability, not because they are optimal.
+
+**Current verdict: RETAINED (pending parameter sweep).**
+bge-large stays registered as a built-in alias. Its 1200/240
+score is kept here as a data point, not as a go/no-go decision.
+The real decision is deferred to a proper chunk sweep (E5.4) —
+varying `chunk-chars` across e.g. 800 / 1200 / 1600 / 2000 and
+`chunk-overlap` across 0-25% of chunk size to establish the
+shape of bge-large's parameter space.
+
+**Rubric at default geometry (1200/240): 31/60, 8/10 top-10.**
+**Throughput at 1200/240: 0.21× bge-base** (1.67 vs 7.95
+chunks/s per wall-second). The throughput cost is real and
+model-intrinsic — bge-large is always going to be ~5× slower
+than bge-base on like-for-like hardware. Whether the quality
+payoff is also there depends on the parameter sweep's outcome.
 
 ## 3. Final summary
 
-**Winning config:** N/A — bge-large is dropped. Registry reverts to
-the E5-original four built-ins (`nomic`, `nl`, `bge-base`,
-`nl-contextual`). `bge-base@1200/240` remains the default and, as of
-E5.3, also the empirical ceiling on this corpus.
+**Tested config:** `bge-large@1200/240` — 31/60. Seeded defaults
+match bge-base for comparability; not claimed to be optimal.
 
-**Follow-up candidates** per plan.md E5:
-- E5.4 (expand rubric corpus) becomes more interesting after this
-  result. bge-large underperforming on markdown-memory could be a
-  markdown-memory-specific quirk — the corpus is conversational /
-  note-like, not the benchmark-style prose bge-large-en-v1.5 was
-  tuned against. Testing against a second corpus would tell us
-  whether the quality regression is intrinsic or corpus-specific.
-  If the second corpus also regresses, the "max quality tier" slot
-  stays empty. If it improves, revisit shipping under a corpus-tag
-  guideline.
-- Do not revisit bge-large on markdown-memory without a specific
-  hypothesis (e.g. different pooling, different prefix scheme).
-  The 31/60 here is a clear signal for this corpus.
+**Registry status:** RETAINED. See
+`Sources/VecKit/IndexingProfile.swift` — bge-large is a built-in
+alias with defaults 1200/240 (provisional). Default chunk
+parameters will be revised when the E5.4 parameter sweep
+identifies bge-large's actual optimum.
+
+**Follow-up work:**
+- E5.4: parameter sweep for bge-large on markdown-memory,
+  varying chunk_size ∈ {800, 1200, 1600, 2000} and
+  chunk_overlap ∈ {0%, 10%, 20%} of size. Goal: find the
+  rubric peak for bge-large and update its `defaultChunkSize`
+  / `defaultChunkOverlap` in `IndexingProfileFactory.builtIns`.
+  Each sweep point is ~82 min at 1200/240; a 12-point sweep is
+  a ~16-hour background run.
+- E5.4 (corpus): after the in-corpus sweep, rerun the winning
+  config against a second corpus class. bge-large's training
+  distribution is benchmark-style prose, which may or may not
+  match markdown-memory's conversational notes.

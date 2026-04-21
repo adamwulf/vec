@@ -94,41 +94,47 @@ summary table cites.)
   and Q7 (where bge-base had T at rank 3, S at 9; bge-small has
   T at 13, S absent).
 
-**Decision:**
-- **Rubric: 25/60** — fails the 32/60 ship gate by 7 points. This
-  is a decisive miss, not borderline; the gate's debate-zone
-  ("borderline, e.g. 30/60 with 2× bge-base throughput") does not
-  apply here because 25/60 is well below the threshold.
-- **Throughput: 1.49×** bge-base per wall-second (11.81 vs 7.95
-  chunks/s). The gate required *≥* bge-base's throughput; that
-  part passes cleanly. But the rubric gate is hard, so the
-  throughput win is moot.
-- **Verdict: DROPPED.** Remove the `bge-small` `BuiltIn` row from
-  `IndexingProfileFactory.builtIns` and the `"bge-small"` case
-  from the `make(...)` switch. Keep `BGESmallEmbedder.swift`
-  in-tree — the code works correctly; it's just not worth
-  registering when the quality regression is this large for only
-  a 1.5× speed bump on a corpus this size.
-- This aligns with plan.md E5's stated rationale: the smaller
-  model was expected to land "within 2-3 rubric points" of
-  bge-base to justify shipping as a "small / fast" tier. Landing
-  11 points below fails that criterion by a wide margin — the
-  right move per the plan is to keep optimization budget on
-  bge-base rather than ship a meaningfully-worse small tier.
+**Single-grid-point verdict (superseded):**
+An earlier version of this doc drew a DROP verdict from the
+25/60 result at 1200/240 alone. That was reversed on 2026-04-21
+after a policy change: a single chunk-geometry measurement is
+not sufficient evidence to remove a model from the registry.
+bge-small's optimal chunk geometry is almost certainly *not*
+1200/240 (that number was seeded from bge-base for
+comparability). A smaller model with a narrower receptive
+field typically wants smaller chunks.
+
+**Current verdict: RETAINED (pending parameter sweep).**
+bge-small stays registered as a built-in alias. Its 1200/240
+score is kept here as a data point, not as a go/no-go
+decision. The real decision is deferred to a proper chunk
+sweep (E5.4) — varying `chunk-chars` across e.g. 400 / 600 /
+800 / 1200 / 1600 and `chunk-overlap` across 0-25% of chunk
+size to establish the shape of bge-small's parameter space.
+
+**Rubric at default geometry (1200/240): 25/60, 7/10 top-10.**
+**Throughput at 1200/240: 1.49× bge-base** (11.81 vs 7.95
+chunks/s per wall-second). The throughput win is real and
+model-intrinsic; the rubric gap may be largely an artefact
+of the mismatched chunk geometry. Parameter sweep will tell.
 
 ## 3. Final summary
 
-**Winning config:** N/A — bge-small is dropped. Registry reverts to
-the E5-original four built-ins (`nomic`, `nl`, `bge-base`,
-`nl-contextual`). `bge-base@1200/240` remains the default.
+**Tested config:** `bge-small@1200/240` — 25/60. Seeded defaults
+match bge-base for comparability; not claimed to be optimal.
 
-**Follow-up candidates** per plan.md E5:
-- bge-large is next up (~670 MB, expected ~38-42/60). That is the
-  model expansion worth pursuing — bge-small's retrieval gap
-  suggests the quality-per-byte curve is steep enough that the
-  interesting moves are *up* the size ladder, not down.
-- If a future corpus class (code-heavy, short-form chat, etc.)
-  needs a fast tier, revisit bge-small against that corpus
-  specifically — the mini-model literature shows these vary a lot
-  by domain. Don't reshop on markdown-memory; 25/60 here is a
-  clear signal for this corpus.
+**Registry status:** RETAINED. See
+`Sources/VecKit/IndexingProfile.swift` — bge-small is a built-in
+alias with defaults 1200/240 (provisional). Default chunk
+parameters will be revised when the E5.4 parameter sweep
+identifies bge-small's actual optimum.
+
+**Follow-up work:**
+- E5.4: parameter sweep for bge-small on markdown-memory,
+  varying chunk_size ∈ {400, 600, 800, 1200, 1600} and
+  chunk_overlap ∈ {0%, 10%, 20%} of size. Goal: find the
+  rubric peak for bge-small and update its `defaultChunkSize`
+  / `defaultChunkOverlap` in `IndexingProfileFactory.builtIns`.
+- E5.4 (corpus): after the in-corpus sweep, rerun the winning
+  config against a second corpus class (code-heavy, short-form
+  chat) to check whether the tuned geometry generalises.

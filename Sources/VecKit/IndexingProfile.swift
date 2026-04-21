@@ -161,6 +161,33 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 1200,
             defaultChunkOverlap: 240
         ),
+        // bge-small-en-v1.5 — 384-dim, "fast tier" option. Single-point
+        // E5.2 rubric at 1200/240 scored 25/60 (vs bge-base's 36/60),
+        // but defaults are seeded from bge-base for direct comparability
+        // until a proper parameter sweep establishes bge-small's optimal
+        // chunk geometry. Kept registered because one grid point is not
+        // enough evidence to remove a tier — see E5.4 (corpus expansion
+        // + parameter sweep).
+        BuiltIn(
+            alias: "bge-small",
+            canonicalEmbedderName: "bge-small-en-v1.5",
+            canonicalDimension: 384,
+            defaultChunkSize: 1200,
+            defaultChunkOverlap: 240
+        ),
+        // bge-large-en-v1.5 — 1024-dim, "max quality" option. Single-point
+        // E5.3 rubric at 1200/240 scored 31/60, but parameter space is
+        // unexplored; deeper 24-layer models often have a different chunk
+        // sweet spot than their smaller siblings. Registered for users who
+        // want to trade wallclock for depth; pending a full parameter
+        // sweep in E5.4, defaults match bge-base for comparability.
+        BuiltIn(
+            alias: "bge-large",
+            canonicalEmbedderName: "bge-large-en-v1.5",
+            canonicalDimension: 1024,
+            defaultChunkSize: 1200,
+            defaultChunkOverlap: 240
+        ),
         // Provisional chunk defaults seeded from `nomic`. Phase D of
         // `embedder-expansion-plan.md` replaces these with tuned values.
         BuiltIn(
@@ -224,6 +251,8 @@ public enum IndexingProfileFactory {
         case "nomic":         factory = { NomicEmbedder() }
         case "nl":            factory = { NLEmbedder() }
         case "bge-base":      factory = { BGEBaseEmbedder() }
+        case "bge-small":     factory = { BGESmallEmbedder() }
+        case "bge-large":     factory = { BGELargeEmbedder() }
         case "nl-contextual": factory = { NLContextualEmbedder() }
         default:              throw VecError.unknownProfile(alias)
         }
