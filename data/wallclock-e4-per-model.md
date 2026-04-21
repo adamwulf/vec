@@ -57,7 +57,7 @@ Normalising on bge-base = 1.0×:
 
 ### nl-contextual is unexpectedly fast
 
-The previous baseline (`retrieval-results-nl-contextual.md`)
+The previous baseline (`retrieval-nl-contextual.md`)
 reported 424 s wall at the same 1200/240 config. The fresh E4 run
 clocks 52 s, **8.2× faster**. Two explanations are plausible and
 both probably contribute:
@@ -108,7 +108,7 @@ the underlying error rather than reporting "Update complete: 674
 added, 0 updated".
 
 The nomic retrieval row in the comparison table above is the
-historical 35/60, 3/10 result from `retrieval-results-nomic.md`. It
+historical 35/60, 3/10 result from `retrieval-nomic.md`. It
 remains the documented score because the model used to load on
 earlier macOS builds — the regression is an environment problem,
 not a recall regression.

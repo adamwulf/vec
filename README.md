@@ -23,12 +23,12 @@ Once indexed, you can perform semantic search across your files to find relevant
 
 | Alias            | Embedder                | Dim | Chunk default | Notes                                           |
 | ---------------- | ----------------------- | --- | ------------- | ----------------------------------------------- |
-| `bge-base`       | `bge-base-en-v1.5`      | 768 | 1200 / 240    | **Default.** ~440 MB safetensors via swift-embeddings. Best rubric (36/60, 9/10 top-10) on the markdown-memory benchmark — see `embedder-expansion-plan.md`. |
+| `bge-base`       | `bge-base-en-v1.5`      | 768 | 1200 / 240    | **Default.** ~440 MB safetensors via swift-embeddings. Best rubric (36/60, 9/10 top-10) on the markdown-memory benchmark — see `experiments/PhaseD-embedder-expansion/plan.md`. |
 | `nomic`          | `nomic-v1.5-768`        | 768 | 1200 / 240    | ~520 MB safetensors. Comparable per-chunk throughput to bge-base; trails on top-10 hit rate. |
 | `nl-contextual`  | `nl-contextual-en-512`  | 512 | 1200 / 240    | Apple `NLContextualEmbedding`. Zero install size (system-managed via `requestAssets`); ~6× faster per chunk than bge-base/nomic, but rubric is shallow on the test corpus. |
 | `nl`             | `nl-en-512`             | 512 | 2000 / 200    | Apple `NLEmbedding.sentenceEmbedding`. Bundled with the OS; useful as a no-install fallback but the weakest on retrieval quality. |
 
-Detailed per-model rubric / throughput / install-size table lives in `embedder-expansion-plan.md` §"Final comparison".
+Detailed per-model rubric / throughput / install-size table lives in `experiments/PhaseD-embedder-expansion/plan.md` §"Final comparison".
 
 ## Installation
 

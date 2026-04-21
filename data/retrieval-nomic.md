@@ -348,7 +348,7 @@ Score: **35/60, 3/10 queries with both T and S in top 10.**
 
 Below the §6.1 ship gate (≥45/60 AND ≥7/10) but well above the §6.2 kill gate (all 12 configs ≥15/60) and above the §6.3 "interesting" threshold of 30/60. Per §6.3: commit best-config defaults and document.
 
-**Big-picture delta vs NLEmbedding baseline** (from `retrieval-results-nl.md`):
+**Big-picture delta vs NLEmbedding baseline** (from `retrieval-nl.md`):
 
 | | Best score | Both-top-10 |
 |---|------------|-------------|
@@ -400,7 +400,7 @@ The peak at 35/60, 3/10 is meaningfully below the ship target. Inspecting the pe
 
 Three levers remain, all out of this experiment's scope per §3 constraints:
 
-1. **Hybrid retrieval (BM25 + vector)** — let a lexical signal reward exact "bean counter" phrase matches. Outside this plan, but flagged in `retrieval-results-nl.md` §5.
+1. **Hybrid retrieval (BM25 + vector)** — let a lexical signal reward exact "bean counter" phrase matches. Outside this plan, but flagged in `retrieval-nl.md` §5.
 2. **Query expansion** — generate 2-3 paraphrases per query and aggregate. Outside the index.
 3. **Per-file-type tuning / document-priority boosts** — weight recent meeting transcripts higher than static reference docs. Changes retrieval semantics, not chunking.
 

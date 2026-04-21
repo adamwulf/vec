@@ -27,7 +27,7 @@ Four built-in profiles ship today:
 | `nl`             | `nl@2000/200`              | `nl-en-512`             | 512 | 2000 chars | 200 chars     |
 
 `bge-base` is the default. (Originally `nomic`; flipped 2026-04-19
-after the Phase D sweep — see `embedder-expansion-plan.md` §"Default
+after the Phase D sweep — see `experiments/PhaseD-embedder-expansion/plan.md` §"Default
 alias decision".) Source of truth is
 `IndexingProfileFactory.builtIns` in `Sources/VecKit/IndexingProfile.swift`.
 
