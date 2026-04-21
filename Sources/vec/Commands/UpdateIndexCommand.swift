@@ -438,6 +438,24 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         if verbose && !workItems.isEmpty {
             printTimingFooter(stats: stats, wallSeconds: wallSeconds, workerCount: workerCount, filesIndexed: added + updated)
         }
+
+        // Silent-failure guard. If the pipeline attempted ≥1 file and
+        // every attempt fell into `.skippedEmbedFailure` (chunks
+        // extracted but zero survived embedding), exit non-zero. The
+        // "Update complete" summary already printed, but ArgumentParser
+        // will surface the thrown error on stderr and return a non-zero
+        // status — this is the observability gap that hid nomic's
+        // CoreML/ANE load failure for a release cycle. `.skippedUnreadable`
+        // alone is a legitimate outcome (non-text files in the corpus),
+        // so only fire when embed failures are present.
+        if !workItems.isEmpty
+            && added == 0 && updated == 0
+            && skippedEmbedFailures > 0 {
+            throw VecError.indexingProducedNoVectors(
+                filesAttempted: workItems.count,
+                filesFailed: skippedEmbedFailures
+            )
+        }
     }
 
     /// Outcome of profile resolution on a given DB state. Lives as a

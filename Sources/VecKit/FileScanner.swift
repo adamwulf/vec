@@ -328,6 +328,13 @@ public enum VecError: Error, LocalizedError {
     /// The DB has no recorded indexing profile but DOES have chunks,
     /// i.e. a pre-profile DB left over from before this refactor.
     case preProfileDatabase
+    /// Every indexed file produced chunks during extract but zero
+    /// chunks survived embedding — the pipeline ran to completion with
+    /// an empty DB. Hit by `update-index` (0 added / 0 updated with
+    /// ≥1 embed-failure skip) and `insert` (single-file embed
+    /// failure). Prevents the silent-failure mode that hid nomic's
+    /// CoreML/ANE load error for a release cycle.
+    case indexingProducedNoVectors(filesAttempted: Int, filesFailed: Int)
 
     public var errorDescription: String? {
         switch self {
@@ -376,6 +383,15 @@ public enum VecError: Error, LocalizedError {
             return "Database has no recorded indexing profile. Run `vec update-index` first to establish a profile."
         case .preProfileDatabase:
             return "Database was indexed by an older version of vec with no recorded profile. Run `vec reset <db>` first, then `vec update-index` to rebuild it under a recorded profile."
+        case .indexingProducedNoVectors(let filesAttempted, let filesFailed):
+            return """
+                Indexing produced no vectors: attempted \(filesAttempted) file(s), \
+                \(filesFailed) failed to embed after extracting chunks. The database \
+                contains no new embeddings, so retrieval would return nothing. This \
+                usually means the embedder's model failed to load (check stderr for \
+                a CoreML/ANE or swift-embeddings error) or every embed call \
+                errored. Fix the underlying embedder failure before re-running.
+                """
         }
     }
 }
