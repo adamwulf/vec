@@ -44,8 +44,8 @@ narrative was wrong on both numbers:
   large improvement on the user-visible top-10 metric, not a
   regression.
 
-`embedder-expansion-plan.md` §"Final comparison" carries the corrected
-table. `e4-next-steps-report.md` §4a documents the rescore audit. The
+`../PhaseD-embedder-expansion/plan.md` §"Final comparison" carries the corrected
+table. `./report.md` §"Manual rubric counting is silently unreliable" documents the rescore audit. The
 batched-vs-single per-vector diff (originally proposed step 2 below)
 is no longer needed: `TrademarkTranscriptFixtureTests` already pins
 batch ≡ single parity at the embedder level, and the rubric numbers

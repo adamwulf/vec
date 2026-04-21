@@ -165,8 +165,8 @@ For each iteration:
 
 1. **Pick a config.** Start small (chunk-chars 400, overlap 80). Later,
    drive the next config from the trend in the relevant results log
-   (e.g. `retrieval-results-nl.md`, `retrieval-results-nomic.md`, or a
-   new `retrieval-results-<embedder>.md` if you're running a fresh
+   (e.g. `data/retrieval-nl.md`, `data/retrieval-nomic.md`, or a
+   new `data/retrieval-<embedder>.md` if you're running a fresh
    experiment).
 
 2. **Reset the test index:**
@@ -297,7 +297,7 @@ Capture from the trailing `[verbose-stats]` one-liner:
 - `files`, `chunks`, `batches`
 - `extract_ms`, `embed_ms`, `save_ms` (per-stage totals)
 - `pool_util` (target ≥ 0.95 — sub-0.9 is the canary that something is
-  starving the pool, see `batch-embed-plan.md` §"Pool-util accounting")
+  starving the pool, see `experiments/E4-batched-embed/plan.md` §"Pool-util accounting")
 - `chunks_per_sec`, `batches_per_sec`
 
 The `[verbose-stats]` line is grep-friendly on purpose; copy it
@@ -356,7 +356,7 @@ Below the table row, paste the per-query score block and the verbatim
 
 If the run beat the previous best on `queries_hit_top10` (primary) or
 `total_score` (tiebreak), note it as the new winner for that alias.
-Cross-alias winners are decided in `embedder-expansion-plan.md`'s
+Cross-alias winners are decided in `experiments/PhaseD-embedder-expansion/plan.md`'s
 "Final comparison" table, not here.
 
 ### 5. Commit the results log + archived JSONs

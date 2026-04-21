@@ -6,7 +6,7 @@ pooled + explicit L2 normalization). Same 10 queries + scoring rule
 as `retrieval-rubric.md`.
 
 **Scope note** — Phase D ran a reduced sweep against bge-base. The
-nomic sweep (`retrieval-results-nomic.md`) established the shape of
+nomic sweep (`retrieval-nomic.md`) established the shape of
 the response curve on this corpus: a peak near 1200/240 with sharp
 degradation outside the 800-1500 range and an inverted-U on overlap
 centered at 20%. Rather than re-deriving that shape for bge-base from

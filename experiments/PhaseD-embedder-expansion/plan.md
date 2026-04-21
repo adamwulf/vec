@@ -42,8 +42,8 @@ Non-goals:
 2. Each new embedder has a per-alias default `chunkSize / chunkOverlap`
    selected by parameter sweep against `retrieval-rubric.md`, not
    copy-pasted from another alias.
-3. A `retrieval-results-<alias>.md` file exists for each new embedder,
-   following the same format as `retrieval-results-nomic.md` — one row
+3. A `data/retrieval-<alias>.md` file exists for each new embedder,
+   following the same format as `data/retrieval-nomic.md` — one row
    per sweep iteration, final row marked as the selected default.
 4. A final compare/contrast section in this doc records: alias,
    final identity (`alias@N/M`), rubric score (x/60), top-10 hit
@@ -86,7 +86,7 @@ than that.
 
 **Owner**: one researcher sub-agent via `research-pi`.
 
-**Deliverable**: a `embedder-research.md` file listing 4-8 candidate
+**Deliverable**: a `research/embedder-survey.md` file listing 4-8 candidate
 on-device embedders. For each: name, canonical dim, integration
 cost (Apple framework / CoreML ml package / llama.cpp GGUF /
 other), approximate install size, license, rough retrieval quality
@@ -185,8 +185,8 @@ Process per embedder:
    --chunk-overlap M`, run all 10 bean-counter queries, score
    against the rubric.
 3. Record one row per iteration in
-   `retrieval-results-<alias>.md` (same format as
-   `retrieval-results-nomic.md`).
+   `data/retrieval-<alias>.md` (same format as
+   `data/retrieval-nomic.md`).
 4. Pick the best-scoring `alias@N/M` as the new default, update
    the `builtIns` row, commit.
 
@@ -215,7 +215,7 @@ Status legend: ✅ DONE · ⏳ NEXT UP · ◻ NOT STARTED.
 
 | Status | Phase | Owner | Deliverable | Budget |
 |:------:|------:|-------|-------------|-------:|
-| ✅ DONE | A | researcher sub-agent (`embedder-researc-76b59360`) | `embedder-research.md` survey + ranked shortlist | 1-2 h |
+| ✅ DONE | A | researcher sub-agent (`embedder-researc-76b59360`) | `research/embedder-survey.md` survey + ranked shortlist | 1-2 h |
 | ✅ DONE | B | manager + user (picks locked 2026-04-19) | 3 picks written into Phase B above: bge-base, arctic-m-v1.5, NLContextualEmbedding | 15 min |
 | ✅ DONE | C.1 | impl sub-agent (`bge-base-embedde-d9c3a224`) → review-cycle (both APPROVED) | bge-base-en-v1.5 wired in with tests (swift-embeddings `Bert` loader, CLS-pool + L2 norm, no prefix) | 1-2 h |
 | 🚫 BLOCKED | C.2 | impl sub-agent (`arctic-m-47026f1e`) — rolled back, partial commit retained | snowflake-arctic-embed-m-v1.5: **blocked** (see "C.2 blocker" note below); shared `l2Normalize` helper + bge-base concurrency canary landed as consolation | 1-2 h |
@@ -250,7 +250,7 @@ Paths forward (not taken now, recorded for future revisit):
   the same model). Adds a new dependency.
 
 For now: skip arctic-m, proceed to C.3 (NLContextualEmbedding,
-independent integration path). Arctic stays in `embedder-research.md`
+independent integration path). Arctic stays in `research/embedder-survey.md`
 as a candidate to revisit when swift-embeddings exposes a
 pooler-optional loader.
 
@@ -268,7 +268,7 @@ for `BGEBaseEmbedder` mirroring the Nomic canary.
 - `Sources/VecKit/NomicEmbedder.swift`,
   `Sources/VecKit/NLEmbedder.swift` — reference implementations.
 - `retrieval-rubric.md` — the 10 queries and their 2 target files.
-- `retrieval-results-nomic.md`, `retrieval-results-nl.md` — prior
+- `data/retrieval-nomic.md`, `data/retrieval-nl.md` — prior
   sweep data. Follow their format when writing new results.
 
 ### Final comparison
@@ -308,7 +308,7 @@ is the clearest upgrade on this corpus on the user-visible metric.
 
 (The earlier 39/60 figure cited in commits before 2026-04-20 was a
 manual-tally error; rescoring from the archived JSON gives 36/60.
-See `e4-next-steps-report.md` §4a for the rescore audit.)
+See `experiments/E4-batched-embed/report.md` §"Manual rubric counting is silently unreliable" for the rescore audit.)
 
 **Arctic-m blocked** at load time by swift-embeddings' pooler
 requirement (see "C.2 blocker" above); not a retrieval comparison,

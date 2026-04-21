@@ -162,7 +162,7 @@ behavior change (per-item failure isolation) worth its own experiment.
 
 ## Phase C — Measurement
 
-Reuse the E1 verification protocol (`multicore-embed-plan.md`).
+Reuse the E1 verification protocol (`../E1-multicore/plan.md`).
 
 1. Idle cool-down ≥2 min.
 2. `vec reset markdown-memory --force`.
@@ -172,7 +172,7 @@ Reuse the E1 verification protocol (`multicore-embed-plan.md`).
 6. **Rubric replay**: 10 bean-counter queries; score unchanged vs E1
    (regression guard — batching must not change vectors).
 
-Record one row in `multicore-embed-plan.md` results table:
+Record one row in `../E1-multicore/plan.md` results table:
 `E4 | concurrency=<N> | batchSize=<B> | wall | util | p50 | p95 | top-CPU`.
 
 **Pass gates** (all must hold):
@@ -274,7 +274,7 @@ E1 row in the results table to confirm no post-merge regression.
   new batch-former task, rewired embed-spawner, back-pressure sizing,
   `init` gains `batchSize` param (default 16).
 - `Sources/VecKit/IndexingProfile.swift` — no change.
-- `multicore-embed-plan.md` — append E4 row to results table.
+- `../E1-multicore/plan.md` — append E4 row to results table.
 
 ## Critical files to read before starting
 
@@ -283,7 +283,7 @@ E1 row in the results table to confirm no post-merge regression.
   (bundle API).
 - `swift-embeddings` package source for `Bert.ModelBundle.batchEncode`
   signature + pad-token handling. Confirm return shape `[batch, dim]`.
-- `multicore-embed-plan.md` for verification protocol + prior rows.
+- `../E1-multicore/plan.md` for verification protocol + prior rows.
 
 ## Risks and invariants
 
