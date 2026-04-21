@@ -19,25 +19,24 @@ can match against on every open.
 
 Four built-in profiles ship today:
 
-| Alias            | Canonical identity         | Embedder                | Dim | Chunk size | Chunk overlap | Rubric best |
-| ---------------- | -------------------------- | ----------------------- | --- | ---------- | ------------- | ----------- |
-| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      | 768 | 1200 chars | 240 chars     | **36/60** (9/10 top10_either) |
-| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        | 768 | 1200 chars | 240 chars     | 35/60 (3/10 both-top10) |
-| `nl`             | `nl@2000/200`              | `nl-en-512`             | 512 | 2000 chars | 200 chars     | 6/60 (0/10) |
-| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  | 512 | 1200 chars | 240 chars     | 3/60 (0/10 both-top10) |
+| Alias            | Canonical identity         | Embedder                | Dim | Chunk size | Chunk overlap | Rubric score |
+| ---------------- | -------------------------- | ----------------------- | --- | ---------- | ------------- | ------------ |
+| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      | 768 | 1200 chars | 240 chars     | **36/60**, 2/10 both-top10 |
+| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        | 768 | 1200 chars | 240 chars     | 35/60, 3/10 both-top10 |
+| `nl`             | `nl@2000/200`              | `nl-en-512`             | 512 | 2000 chars | 200 chars     | 6/60, 0/10 both-top10 |
+| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  | 512 | 1200 chars | 240 chars     | 3/60, 0/10 both-top10 |
 
 `bge-base` is the default. (Originally `nomic`; flipped 2026-04-19
 after the Phase D sweep — see `experiments/PhaseD-embedder-expansion/plan.md` §"Default
 alias decision".) Source of truth is
 `IndexingProfileFactory.builtIns` in `Sources/VecKit/IndexingProfile.swift`.
 
-"Rubric best" is the best total across all chunk/overlap configs each
-embedder was swept over on the markdown-memory corpus, scored per
-`retrieval-rubric.md` (10 queries, 60 max). Both-top10 columns use the
-stricter "T AND S in top 10" count; top10_either uses "T OR S in top
-10" — the bge-base sweep switched to the less strict metric partway
-through and its raw data doesn't preserve the both-top10 number for
-every iteration. Full sweep data: `data/retrieval-<alias>.md`.
+Rubric scores are each embedder running at its own built-in chunk/
+overlap (the identity above), scored against the markdown-memory
+corpus using `retrieval-rubric.md` — 10 queries, 60 max on the weighted
+total, and the canonical stop-condition metric "both T and S in top 10"
+out of 10. Full per-iteration sweeps (other chunk/overlap combos)
+live in `data/retrieval-<alias>.md`.
 
 ## CLI surface
 
