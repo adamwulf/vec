@@ -4,6 +4,57 @@
 `Sources/` and `Tests/`; everything else at the root or under the
 top-level doc folders is documentation about the project.
 
+## READ FIRST: Running `vec` commands — DO NOT `cd`
+
+**You almost never need to change directories to run `vec`. Pass
+`--db <name>` and stay where you are.** Every `vec` DB lives at
+`~/.vec/<name>/` with its source directory recorded in `config.json`.
+The CLI resolves both from `--db` alone.
+
+This trips up new agents repeatedly. The rule is simple:
+
+- `vec init <name>` — the ONLY subcommand that reads the current
+  working directory (it records cwd as the new DB's source dir). If a
+  DB you want to use is already initialized, you do NOT need to run
+  `init` again, and you do NOT need to `cd` anywhere.
+
+- **Every other subcommand** — `update-index`, `search`, `insert`,
+  `remove`, `info`, `reset`, `deinit`, `list`, `chunk` — works from
+  any working directory. Just pass `--db <name>`.
+
+### Concrete examples
+
+From your worktree root, `/tmp`, or anywhere else:
+
+```bash
+# Reindex the existing markdown-memory corpus with a new embedder:
+swift run vec reset --db markdown-memory --force
+swift run vec update-index --db markdown-memory --embedder bge-small
+
+# Score a rubric query:
+swift run vec search --db markdown-memory --format json --limit 20 "trademark price negotiation"
+
+# Inspect an existing DB:
+swift run vec info --db markdown-memory
+swift run vec list
+```
+
+No `cd` involved in any of the above. The `markdown-memory` DB is
+already initialized against Adam's corpus at
+`/Users/adamwulf/Library/Containers/com.milestonemade.EssentialMCP/Data/Documents/tools/markdown-memory`
+— `reset` preserves that source path, so a reset+reindex against an
+existing DB is the canonical way to run a fresh rubric sweep with a
+different embedder.
+
+### When you really do need a brand-new DB
+
+If you need a new throwaway DB name (not a clone/reset of an existing
+one), `vec init <name>` is the only step that needs cwd. In an
+ittybitty worktree where the path-isolation hook blocks external `cd`,
+delegate that one step to a worker sub-agent — but prefer `reset` on
+an existing DB whenever possible. Resets are cheaper than inits for
+the typical "try a new embedder against the same corpus" workflow.
+
 ## Where docs live
 
 - **[`README.md`](./README.md)** — user-facing docs for the CLI.
@@ -50,33 +101,3 @@ top-level doc folders is documentation about the project.
 - **Superseded doc**: move to `archived/YYYY-MM/` (current month).
   Don't edit once archived.
 
-## Running the CLI against a named DB
-
-`vec` databases live under `~/.vec/<name>/` and each one has a
-`config.json` stamped with the absolute path of its source directory.
-Because of this split, only ONE command cares about your current
-working directory — the rest resolve everything from `--db <name>`.
-
-- **`vec init <name>`** — the ONLY command that uses
-  `FileManager.default.currentDirectoryPath`. It records cwd as the
-  DB's source directory. Run this once from inside the corpus you
-  want to index; after that, cwd no longer matters for that DB.
-
-- **Every other command** (`update-index`, `search`, `insert`,
-  `remove`, `info`, `reset`, `deinit`, `list`, `chunk`) — pass
-  `--db <name>` and the command resolves both the DB directory and
-  the source directory from the recorded config. Run from anywhere
-  — your own worktree, `/tmp`, the project root, whatever.
-
-### Running rubric sweeps
-
-The existing `markdown-memory` DB is already initialized against
-Adam's corpus at
-`/Users/adamwulf/Library/Containers/com.milestonemade.EssentialMCP/Data/Documents/tools/markdown-memory`.
-For a fresh per-embedder sweep you need a throwaway DB name (so you
-don't clobber the working index) — that one `init` call must cd into
-the corpus, but every subsequent `update-index` / `search` stays in
-whatever cwd you're already in. Within an ittybitty worktree where
-the path-isolation hook blocks `cd` into external paths, delegate
-the one-shot `init` to a worker sub-agent; the manager can run the
-rest from its own worktree via `--db`.
