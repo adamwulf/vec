@@ -29,7 +29,7 @@ From your worktree root, `/tmp`, or anywhere else:
 ```bash
 # Reindex the existing markdown-memory corpus with a new embedder:
 swift run vec reset --db markdown-memory --force
-swift run vec update-index --db markdown-memory --embedder bge-small
+swift run vec update-index --db markdown-memory --embedder nomic
 
 # Score a rubric query:
 swift run vec search --db markdown-memory --format json --limit 20 "trademark price negotiation"
