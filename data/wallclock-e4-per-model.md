@@ -23,7 +23,7 @@ columns below are comparable head-to-head.
 | alias            | wall (s) | chunks | pool util | extract (s) | embed (s, total CPU) | save (s) | chunks/sec | p50 embed (s) | p95 embed (s) | rubric |
 |------------------|----------|--------|-----------|-------------|----------------------|----------|------------|---------------|---------------|--------|
 | **bge-base**     | **1028** | 8170   | 98 %      | 27.4        | 40516                | 1.1      | 0.2*       | 40.0          | 106.7         | **36/60, 9/10** |
-| nomic            | n/a — load failed | n/a | n/a | n/a         | n/a                  | n/a      | n/a        | n/a           | n/a           | 35/60, 3/10 (prior) |
+| nomic‡           | 1417     | 8170   | 98 %      | 30.8        | 55524                | 1.8      | 0.1*       | 55.3          | 121.3         | 35/60, 3/10 (prior) |
 | nl-contextual    | 52       | 8170   | 83 %      | 28.8        | 1826                 | 0.9      | 4.5        | 1.7           | 3.8           | 3/60, 1/10 |
 | nl               | 138      | 4828†  | 98 %      | 20.3        | 7467                 | 1.3      | 0.6*       | 8.6           | 15.6          | 6/60, 0/10 |
 
@@ -36,6 +36,13 @@ columns below are comparable head-to-head.
   many chunks as the BERT-family configuration. Wallclock is therefore
   not comparable per-chunk to the others without normalising.
 
+‡ nomic is pinned to `computePolicy: .cpuOnly` post-fix (commit
+  `7182920`) to dodge a macOS 26.3.1+ CoreML/ANE compile error. The
+  other three rows let the compiler pick placement; nomic's 1417 s
+  is pure CPU. A like-for-like ANE comparison is not available on
+  this machine, and the pre-E4 historical number at the same config
+  was ~2940 s. Captured 2026-04-21.
+
 ## Speed ratios (lower-is-faster)
 
 Normalising on bge-base = 1.0×:
@@ -45,7 +52,7 @@ Normalising on bge-base = 1.0×:
 | bge-base         | 1.0×        | 1.0×                   |
 | nl-contextual    | **19.7×**   | **22.5×**              |
 | nl               | 7.5×        | **3.1×**¹              |
-| nomic            | n/a         | n/a                    |
+| nomic‡           | 0.73×       | 0.73×                  |
 
 ¹ Per-chunk normalised: `nl_wall / nl_chunks` vs `bge_wall / bge_chunks` —
   138/4828 = 0.0286 s/chunk vs 1028/8170 = 0.126 s/chunk → 4.4× per
@@ -89,29 +96,42 @@ larger default chunks. Per-chunk it's only ~4.4× faster than bge-base.
 nl-contextual's per-chunk speed (~22×) is the more honest speed signal
 because it indexes the same 8170 chunks as bge-base.
 
-### nomic fails to load on the current macOS / ANE configuration
+### nomic load failure — diagnosed and fixed (historical)
 
-Both attempts to reindex with nomic crashed at model load with:
+Initial E4 runs of nomic crashed at model load with:
 
 ```
 <unknown>:0: error: Incompatible element type for ANE: expected fp16, si8, or ui8
 ```
 
-This is a CoreML/ANE-side error — the model's FP32 weights aren't
-acceptable to the Apple Neural Engine compiler on this build of
-macOS / on this device. **The pipeline returned exit 0 anyway and
-left the DB with 0 chunks**, which is the exact failure mode that
-phase-2 architecture review NB4 ("observability of swallowed
-errors") warned about. Filed as a follow-up: the pipeline should
-detect zero-chunk completion when chunks were extracted and surface
-the underlying error rather than reporting "Update complete: 674
-added, 0 updated".
+The CoreML/ANE compiler on macOS 26.3.1+ rejects nomic's FP32
+weights when the compute policy is left to the default (the
+compiler chooses ANE and then refuses the conversion). The pipeline
+nevertheless returned exit 0 with zero chunks written, matching the
+observability gap phase-2 review NB4 ("observability of swallowed
+errors") flagged — that remains an open follow-up in `plan.md`.
 
-The nomic retrieval row in the comparison table above is the
-historical 35/60, 3/10 result from `retrieval-nomic.md`. It
-remains the documented score because the model used to load on
-earlier macOS builds — the regression is an environment problem,
-not a recall regression.
+**Fix landed** in commit `7182920` ("NomicEmbedder: force .cpuOnly
+compute policy in batchEncode"), which pins the batched call to CPU
+and sidesteps the ANE path entirely. The nomic row in the headline
+table above is the post-fix measurement (2026-04-21, same machine
+and commit as the other three rows + the NomicEmbedder fix on top).
+
+Implications for reading the table:
+
+- The 1417 s wallclock is CPU-only; the other three rows let CoreML
+  place ops wherever the compiler chose. A same-machine ANE number
+  for nomic isn't available on this macOS build.
+- The pre-E4 pre-fix historical number at the same config (with ANE
+  available) was ~2940 s, so even CPU-only-E4 is ~2× faster than
+  pre-E4-with-ANE — the batched path dominates the placement
+  difference.
+- The 35/60 rubric score quoted in the table is the historical
+  result from `retrieval-nomic.md` (pre-fix ANE path on an earlier
+  macOS build). Re-scoring the rubric against the post-fix
+  CPU-only vectors is deferred — whether `.cpuOnly` produces
+  numerically identical outputs vs the compiler's default placement
+  hasn't been re-verified on this branch.
 
 ## How to reproduce
 
