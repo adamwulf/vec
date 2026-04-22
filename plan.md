@@ -13,7 +13,7 @@ Last updated: 2026-04-21.
 
 ---
 
-## Current state (as of 2026-04-21)
+## Current state (as of 2026-04-22)
 
 **Default embedder**: `bge-base@1200/240` (BGE-base-en-v1.5, 768-dim).
 
@@ -30,18 +30,28 @@ comparison in [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.m
 `nomic`, `nl-contextual`, `nl`. See
 [`indexing-profile.md`](./indexing-profile.md) for the profile grammar
 and [`README.md`](./README.md#built-in-embedders) for the comparison
-table. `bge-small` and `bge-large` were added in E5.2/E5.3; their
-default chunk geometries (1200/240) are provisional pending the E5.4
-parameter sweep.
+table. As of E5.4, the BGE tier defaults are sweep-tuned on
+markdown-memory rather than seeded:
+
+| alias      | default       | rubric | sweep file |
+|------------|--------------|--------|------------|
+| bge-small  | `1200/0`     | 30/60  | `data/retrieval-bge-small-sweep.md` |
+| bge-base   | `1200/240`   | 36/60  | `data/retrieval-bge-base-sweep.md`  |
+| bge-large  | `1200/0`     | 34/60  | `data/retrieval-bge-large-sweep.md` |
+
+Cross-model finding (E5.4): bge-small and bge-large both peak at
+1200/0 — overlap is *harmful* for them at size 1200. bge-base
+uniquely benefits from overlap at 1200 (1200/240, 36/60). Plausible
+reading: bge-base's distillation training smooths the embedding
+space in a way the undistilled tiers don't share.
 
 **Known issues**:
-- Chunk-geometry defaults for `bge-small` and `bge-large` are seeded
-  from `bge-base` for comparability rather than tuned for each
-  model's architecture. The E5.4 sweep replaces these with measured
-  peaks.
-- The silent-failure observability gap (was open pre-E5) is now
-  closed — `vec update-index` exits non-zero when every embed
-  attempt failed. See E5.1 in the Done section.
+- None outstanding in the E5.4 scope. The silent-failure observability
+  gap (open pre-E5) is now closed — `vec update-index` exits non-zero
+  when every embed attempt failed. See E5.1 in the Done section.
+- Corpus-generalization of the per-model peaks is still unverified.
+  E5.4e (deferred) would rerun winners against a second corpus; see
+  "Next" below.
 
 ---
 
@@ -137,85 +147,124 @@ rubric peak via a full chunk sweep is the first task in E5.4.
 - Raw data: [`data/retrieval-bge-small.md`](./data/retrieval-bge-small.md) •
   [`data/retrieval-bge-large.md`](./data/retrieval-bge-large.md)
 
+### E5.4a-d — Chunk-geometry sweeps for all three BGE tiers (2026-04-21 → 2026-04-22)
+
+Four sub-deliverables closed. Replaces the seeded-from-bge-base
+defaults for bge-small/bge-large with measured peaks, confirms
+bge-base@1200/240, and surfaces a non-obvious cross-model finding.
+
+**E5.4a — `vec sweep` subcommand** (commits `e82720b` + `197424c`).
+Single Swift process: reset → reindex → 10 rubric queries →
+in-process scorer → per-point q01..q10.json archive + summary.md
+row. Scorer is byte-for-byte parity with
+`scripts/score-rubric.py`. Two-round code review; round 2 APPROVED
+by both reviewers. Added `--force` confirmation, per-iteration
+`VectorDatabase` actor scoping via `runGridPoint` helper, and
+parseGrid dedupe + non-sequential-n support.
+
+**E5.4b — bge-small chunk sweep** (commit `b05cf47`). 15 points
+(sizes ∈ {400,600,800,1200,1600}, overlap_pcts ∈ {0,10,20}) over
+~3 h 40 min wallclock. **Peak: `bge-small@1200/0` → 30/60**, up
+from 25/60 at the seeded 1200/240 (+5 pts). Overlap is harmful at
+size ≥ 1200 for this 384-dim model, helpful at size ≤ 800. Default
+updated. Raw data in
+[`data/retrieval-bge-small-sweep.md`](./data/retrieval-bge-small-sweep.md).
+
+**E5.4c — bge-large chunk sweep** (commit `44e5e09`). 12 points
+(sizes ∈ {800,1200,1600,2000}, overlap_pcts ∈ {0,10,20}) over
+~9 h 42 min wallclock. **Peak: `bge-large@1200/0` → 34/60**, up
+from 31/60 at the seeded 1200/240 (+3 pts). Dramatic `2000/0`
+cliff at 17/60 — biggest chunks with no overlap lose 11 pts vs
+neighboring configs; overlap restores them. Default updated. Raw
+data in
+[`data/retrieval-bge-large-sweep.md`](./data/retrieval-bge-large-sweep.md).
+
+**E5.4d — bge-base chunk sweep** (commit `12152b9`). 12 points,
+~3 h 3 min wallclock. **Two-way tie at 36/60**: `1200/240`
+(existing default, 3/10 top10_both) and `800/80` (5/10
+top10_both). Primary metrics tied; default kept as 1200/240 rather
+than churn the historical default on a softer secondary signal.
+Both co-peak configs documented in
+[`data/retrieval-bge-base-sweep.md`](./data/retrieval-bge-base-sweep.md)
+for the E5.4e tie-breaker.
+
+**Cross-model lesson.** bge-small and bge-large both peak at
+`1200/0` — overlap is harmful at size 1200 for them. bge-base
+uniquely benefits from overlap at 1200 (its peak is 1200/240). The
+pattern is NOT monotone in embedding dimension (384 < 768 > 1024
+on "tolerates overlap"); plausibly related to bge-base being a
+distilled model. Worth carrying forward as a Phase E lesson.
+
+**Scope cut for E5.4e.** Corpus-generalization (rerunning the
+per-model peaks against a second corpus) was deferred. Building a
+code-corpus rubric that probes semantic understanding beyond
+filenames needs domain input; attempting it synthetically risks
+fabricating queries that every config aces. See "Next" below.
+
 ---
 
 ## In progress
 
-**E5.4 — Parameter sweeps + rubric-corpus expansion.** Active on
-branch `agent/agent-26abd616`. See [Next — E5.4](#next--e54-parameter-sweeps--rubric-corpus-expansion) below.
+None. Branch `agent/agent-26abd616` is idle after shipping E5.4a-d.
 
 ---
 
-## Next — E5.4: Parameter sweeps + rubric-corpus expansion
+## Next — E5.4e: Corpus-generalization of per-model peaks
 
-**The single-point rubric scores from E5.2/E5.3 don't justify a
-ship/drop decision on their own.** Both bge-small and bge-large were
-tested at 1200/240 (seeded from bge-base for comparability). 1200/240
-is demonstrably bge-base's peak, but smaller and deeper models almost
-certainly want different chunk geometries. E5.4 closes that gap.
+**Deferred pending a domain-expert-designed rubric.** The three
+BGE sweeps (E5.4b/c/d) established peaks on markdown-memory:
 
-### Why parameter sweeps now
+- `bge-small@1200/0` → 30/60
+- `bge-base@1200/240` → 36/60 (co-tied with `bge-base@800/80`)
+- `bge-large@1200/0` → 34/60
 
-1. **We bought an expensive data point and got a cheap answer.** E5.3
-   cost ~82 min wallclock for a single measurement that ended in a
-   drop → un-drop policy reversal. We need the shape of the parameter
-   space, not one grid intersection. An honest grid (4 sizes × 3
-   overlap percentages per model) also tells us where bge-base sits
-   on its own curve — whether 1200/240 is a true peak or a lucky
-   first guess.
-2. **Default chunk parameters are registered per alias.** Today every
-   alias other than `bge-base` has defaults seeded from another model.
-   Updating `defaultChunkSize` / `defaultChunkOverlap` in
-   `IndexingProfileFactory.builtIns` based on each model's rubric peak
-   is a one-line registry change per alias, with outsized UX impact —
-   `vec update-index --embedder bge-small` picks the right geometry
-   without the user having to know it.
-3. **Corpus-dependence is still an open question.** Carries over from
-   E5's "open question" section: does the ranking generalize beyond
-   markdown-memory? E5.4 pins this down by re-running the per-model
-   winner against a second corpus.
+Whether these rankings hold on a second corpus is still an open
+question. The obvious second corpus is vec's own Swift source
+tree, but building a useful rubric against a code corpus needs
+domain knowledge: the queries have to probe semantic understanding
+*beyond* the filename (otherwise BGE will trivially ace them and
+the rubric won't distinguish the configs).
 
-### Concrete E5.4 recipe
+### Concrete E5.4e recipe (when resuming)
 
-1. **Build `vec sweep` subcommand.** Single Swift process, no
-   external subprocesses: reset → reindex → 10 rubric queries →
-   in-process scoring → JSON archive per point + summary.md row.
-   Lives in `Sources/vec/Commands/SweepCommand.swift`. Matches the
-   `scripts/score-rubric.py` algorithm byte-for-byte on totals (tested
-   via `SweepCommandTests`). Writes under `benchmarks/<out-dir>/`
-   following the existing archive convention so future rescores work.
-2. **Sweep bge-small on markdown-memory.** Grid: sizes ∈ {400, 600,
-   800, 1200, 1600}, overlap_pcts ∈ {0, 10, 20} = 15 points,
-   ~12 min/point → ~3 hr wallclock. Record the peak (total, top10)
-   and update `bge-small`'s defaults to the peak config.
-3. **Sweep bge-large on markdown-memory.** Grid: sizes ∈ {800, 1200,
-   1600, 2000}, overlap_pcts ∈ {0, 10, 20} = 12 points,
-   ~82 min/point → ~16 hr wallclock. Same update.
-4. **Bonus: sweep bge-base on markdown-memory.** 12 points,
-   ~17 min/point → ~3 hr. Confirms whether 1200/240 is truly the
-   peak or a local best. Might surface an un-tested geometry worth
-   adopting as the new default.
-5. **Corpus expansion.** Pick a second corpus — `vec`'s own source
-   tree is the easiest candidate. Init a second DB
-   (`markdown-memory-2` is taken; use something like `vec-source`).
-   Re-run the per-model winners from steps 2-4 against the second
-   corpus. Two outcomes:
+1. **Design ~10 queries with 2 target files each.** Queries should
+   NOT be answerable by filename alone. E.g. "how does the
+   indexing pipeline handle slow files" (targets:
+   `IndexingPipeline.swift` + `FileAccumulator` related code) is a
+   useful query; "how does the indexing pipeline work" (targets:
+   `IndexingPipeline.swift` alone) is not — the filename gives it
+   away.
+2. **Write the rubric manifest** at `scripts/rubric-vec-source.json`,
+   matching the shape of `scripts/rubric-queries.json`.
+3. **Init `vec-source` DB** (one-time `vec init` in the repo root).
+4. **Run winners against the new corpus** via:
+   ```
+   vec sweep --db vec-source --embedder bge-small --sizes 1200 --overlap-pcts 0 --out benchmarks/corpus-cross/bge-small --rubric scripts/rubric-vec-source.json --force
+   vec sweep --db vec-source --embedder bge-base  --sizes 1200,800 --overlap-pcts 20,10 --out benchmarks/corpus-cross/bge-base --rubric scripts/rubric-vec-source.json --force
+   vec sweep --db vec-source --embedder bge-large --sizes 1200 --overlap-pcts 0 --out benchmarks/corpus-cross/bge-large --rubric scripts/rubric-vec-source.json --force
+   ```
+   (bge-base runs the two co-peak geometries — 1200/240 and 800/80
+   — to break the tie on this corpus.)
+5. **Outcomes to document:**
    - **Same ranking**: publish with confidence that the defaults
-     generalize. Move on to E5.5 doc updates.
-   - **Different ranking**: document the corpus-dependence, flag
-     `bge-base@1200/240` as the markdown-memory winner specifically,
-     and defer per-corpus default selection to E6.
+     generalize. Update the per-model data files with the
+     second-corpus scores.
+   - **Different ranking**: flag the current defaults as
+     markdown-memory-specific and defer per-corpus default
+     selection to E6.
 
 ### What's deliberately out of scope for E5.4
 
-- Other models beyond the three registered BGE variants. bge-base /
-  bge-small / bge-large bracket the dim×depth curve cleanly; adding
-  gte/e5/mxbai at the same dim doesn't learn anything new without
-  the corpus-expansion data point first.
-- N × batch_size concurrency sweeps — that's E6 optimization work.
-- Retrieval-strategy changes (hybrid BM25, query expansion, re-ranker)
-  — those are quality levers orthogonal to chunk geometry, pushed to
-  post-E6.
+- Other models beyond the three registered BGE variants. E5.4b/c/d
+  already exercised the dim×depth curve (384 / 768 / 1024).
+- N × batch_size concurrency sweeps — E6 optimization work.
+- Retrieval-strategy changes (hybrid BM25, query expansion,
+  re-ranker) — those are quality levers orthogonal to chunk
+  geometry, pushed to post-E6.
+- A vec-source rubric written without domain input. The meta-risk
+  is writing "easy" queries that every config aces, yielding no
+  signal to distinguish the configs. Pausing here until a
+  human-designed rubric is available is the honest call.
 
 ---
 
