@@ -174,18 +174,20 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 1200,
             defaultChunkOverlap: 0
         ),
-        // bge-large-en-v1.5 — 1024-dim, "max quality" option. Single-point
-        // E5.3 rubric at 1200/240 scored 31/60, but parameter space is
-        // unexplored; deeper 24-layer models often have a different chunk
-        // sweet spot than their smaller siblings. Registered for users who
-        // want to trade wallclock for depth; pending a full parameter
-        // sweep in E5.4, defaults match bge-base for comparability.
+        // bge-large-en-v1.5 — 1024-dim, "max quality" option. The E5.4
+        // chunk-geometry sweep (12 points: {800,1200,1600,2000} ×
+        // {0%,10%,20%}) identified 1200/0 as the rubric peak (34/60,
+        // 9/10 top10_either, 3/10 top10_both). Beats the seeded
+        // 1200/240 single-point result (31/60) by 3 points. Like
+        // bge-small, bge-large prefers 1200 chunks with no overlap;
+        // unlike bge-small, bge-large's peak closes most of the gap
+        // to bge-base (34 vs 36). See `data/retrieval-bge-large-sweep.md`.
         BuiltIn(
             alias: "bge-large",
             canonicalEmbedderName: "bge-large-en-v1.5",
             canonicalDimension: 1024,
             defaultChunkSize: 1200,
-            defaultChunkOverlap: 240
+            defaultChunkOverlap: 0
         ),
         // Provisional chunk defaults seeded from `nomic`. Phase D of
         // `embedder-expansion-plan.md` replaces these with tuned values.
