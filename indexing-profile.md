@@ -17,21 +17,27 @@ return nonsense. The profile identity is what prevents that: it
 commits the full parameter bundle to a single string the database
 can match against on every open.
 
-Four built-in profiles ship today:
+Six built-in profiles ship today:
 
-| Alias            | Canonical identity         | Embedder                | Dim | Chunk size | Chunk overlap | Rubric score | Index wall¹ | ch/s¹ |
-| ---------------- | -------------------------- | ----------------------- | --- | ---------- | ------------- | ------------ | ----------- | ----- |
-| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      | 768 | 1200 chars | 240 chars     | **36/60**, 2/10 both-top10 | 1028 s | 7.9 |
-| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        | 768 | 1200 chars | 240 chars     | 35/60, 3/10 both-top10 | 1417 s² | 5.8² |
-| `nl`             | `nl@2000/200`              | `nl-en-512`             | 512 | 2000 chars | 200 chars     | 6/60, 0/10 both-top10 | 138 s | 35.0 |
-| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  | 512 | 1200 chars | 240 chars     | 3/60, 0/10 both-top10 | 52 s | 157.1 |
+| Alias            | Canonical identity         | Embedder                | Dim  | Chunk size | Chunk overlap | Rubric score              | Index wall¹ | ch/s¹  |
+| ---------------- | -------------------------- | ----------------------- | ---- | ---------- | ------------- | ------------------------- | ----------- | ------ |
+| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      |  768 | 1200 chars | 240 chars     | **36/60**, 3/10 both-top10 | 1003 s      | 8.1    |
+| `bge-small`      | `bge-small@1200/0`³        | `bge-small-en-v1.5`     |  384 | 1200 chars | 0 chars       | 30/60, 2/10 both-top10    | 610 s       | 12.3   |
+| `bge-large`      | `bge-large@1200/0`³        | `bge-large-en-v1.5`     | 1024 | 1200 chars | 0 chars       | 34/60, 3/10 both-top10    | 3220 s      | 2.3    |
+| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        |  768 | 1200 chars | 240 chars     | 35/60, 3/10 both-top10    | 1417 s²     | 5.8²   |
+| `nl`             | `nl@2000/200`              | `nl-en-512`             |  512 | 2000 chars | 200 chars     | 6/60, 0/10 both-top10     | 138 s       | 35.0   |
+| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  |  512 | 1200 chars | 240 chars     | 3/60, 0/10 both-top10     | 52 s        | 157.1  |
 
 ¹ Wall-clock and chunks-per-second for a full reindex of the
-`markdown-memory` corpus (674 files; 8170 chunks at 1200/240 for the
-Bert-family and nl-contextual rows, 4828 chunks for `nl` at its
-2000/200 default), 10-core Apple Silicon, pool=10, batch=16, release
-build at the E4 batched commit. `ch/s` is `chunks ÷ wall`. Full
-per-stage breakdown in `data/wallclock-e4-per-model.md`.
+`markdown-memory` corpus (674 files; chunk counts vary with the
+profile's chunk geometry — 8170 chunks at 1200/240, 7528 chunks at
+1200/0, 4828 chunks for `nl` at 2000/200), 10-core Apple Silicon,
+pool=10, batch=16, release build. `bge-base` row is from the E4
+batched commit; `bge-small` / `bge-large` rows are from the E5.4
+sweep peaks (`data/retrieval-bge-small-sweep.md` /
+`data/retrieval-bge-large-sweep.md`). `ch/s` is `chunks ÷ wall`. Full
+per-stage breakdown for the E4 baseline in
+`data/wallclock-e4-per-model.md`.
 
 ² `nomic` is pinned to `computePolicy: .cpuOnly` to work around a
 CoreML/ANE compile failure ("Incompatible element type for ANE") on
@@ -41,6 +47,24 @@ compiler. Historical wallclock at the same config on the pre-E4 code
 path (with ANE) was ~2940 s. See
 `NomicEmbedder.batchEncode` and
 `data/wallclock-e4-per-model.md` for detail.
+
+³ `bge-small` and `bge-large` defaults were tuned by full 12-to-15-point
+chunk×overlap sweeps (E5.4b / E5.4c). Both peak at **1200/0** — overlap
+is harmful at size 1200 for these undistilled BGE tiers on the
+markdown-memory corpus. `bge-base` uniquely benefits from overlap at
+1200 (peak `1200/240`, 36/60); its E5.4d sweep produced a two-way tie
+at 36/60 with `bge-base@800/80` (5/10 both-top10 vs 1200/240's 3/10),
+kept at 1200/240 to match the historical default. Cross-model finding
+(non-monotone in embedding dimension) is documented in
+[`plan.md`](./plan.md) "Current state". Per-model sweep data:
+[`data/retrieval-bge-small-sweep.md`](./data/retrieval-bge-small-sweep.md),
+[`data/retrieval-bge-base-sweep.md`](./data/retrieval-bge-base-sweep.md),
+[`data/retrieval-bge-large-sweep.md`](./data/retrieval-bge-large-sweep.md).
+The original single-point E5.2/E5.3 measurements at the seeded 1200/240
+geometry are preserved in
+[`data/retrieval-bge-small.md`](./data/retrieval-bge-small.md) and
+[`data/retrieval-bge-large.md`](./data/retrieval-bge-large.md) as
+historical data points.
 
 `bge-base` is the default. (Originally `nomic`; flipped 2026-04-19
 after the Phase D sweep — see `experiments/PhaseD-embedder-expansion/plan.md` §"Default

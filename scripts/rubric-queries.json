@@ -1,0 +1,39 @@
+{
+  "description": "Canonical bean-counter retrieval rubric. Consumed by scripts/score-rubric.py and by sweep-running agents. Edit with care — changing this file changes every historical score's meaning. If you need a different corpus/rubric, create a sibling file (rubric-<name>.json) and reference it explicitly.",
+  "corpus": "markdown-memory",
+  "target_files": [
+    {
+      "key": "T",
+      "path": "granola/2026-02-26-22-30-164bf8dc/transcript.txt",
+      "label": "transcript"
+    },
+    {
+      "key": "S",
+      "path": "granola/2026-02-26-22-30-164bf8dc/summary.md",
+      "label": "summary"
+    }
+  ],
+  "scoring": {
+    "rank_brackets": [
+      { "min": 1,  "max": 3,  "points": 3 },
+      { "min": 4,  "max": 10, "points": 2 },
+      { "min": 11, "max": 20, "points": 1 }
+    ],
+    "absent_points": 0,
+    "max_per_query": 6,
+    "max_total": 60,
+    "top10_threshold": 10
+  },
+  "queries": [
+    { "n":  1, "text": "trademark price negotiation" },
+    { "n":  2, "text": "where did I negotiate the price for the trademark" },
+    { "n":  3, "text": "muse trademark pricing discussion" },
+    { "n":  4, "text": "counter offer for trademark assets" },
+    { "n":  5, "text": "how much did we ask for the trademark" },
+    { "n":  6, "text": "trademark assignment agreement meeting" },
+    { "n":  7, "text": "right of first refusal trademark" },
+    { "n":  8, "text": "bean counter mode trademark" },
+    { "n":  9, "text": "1.5 million trademark deal" },
+    { "n": 10, "text": "trademark deal move quickly quick execution" }
+  ]
+}

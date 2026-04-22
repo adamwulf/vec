@@ -83,7 +83,19 @@ struct InsertCommand: AsyncParsableCommand {
             case .skippedUnreadable:
                 print("Warning: could not read \(relativePath)")
             case .skippedEmbedFailure:
-                print("Warning: chunks extracted but none could be embedded from \(relativePath)")
+                // Same silent-failure guard as `update-index`. A single
+                // insert that produces zero vectors must exit non-zero so
+                // callers (scripts, editor integrations) can react rather
+                // than assuming the file is now in the index. Print the
+                // path to stderr first so the operator sees *which* file
+                // failed — the thrown error's payload carries counts only.
+                FileHandle.standardError.write(
+                    Data("Failed to embed any chunks from \(relativePath).\n".utf8)
+                )
+                throw VecError.indexingProducedNoVectors(
+                    filesAttempted: 1,
+                    filesFailed: 1
+                )
             }
         }
     }

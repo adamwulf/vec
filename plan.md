@@ -13,7 +13,7 @@ Last updated: 2026-04-21.
 
 ---
 
-## Current state (as of 2026-04-21)
+## Current state (as of 2026-04-22)
 
 **Default embedder**: `bge-base@1200/240` (BGE-base-en-v1.5, 768-dim).
 
@@ -26,20 +26,32 @@ the rubric definition.
 batchSize=16 on a 10-core Apple Silicon machine. Per-model
 comparison in [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md).
 
-**Built-in embedders**: `bge-base` (default), `nomic`, `nl-contextual`,
-`nl`. See [`indexing-profile.md`](./indexing-profile.md) for the
-profile grammar and [`README.md`](./README.md#built-in-embedders)
-for the comparison table.
+**Built-in embedders**: `bge-base` (default), `bge-small`, `bge-large`,
+`nomic`, `nl-contextual`, `nl`. See
+[`indexing-profile.md`](./indexing-profile.md) for the profile grammar
+and [`README.md`](./README.md#built-in-embedders) for the comparison
+table. As of E5.4, the BGE tier defaults are sweep-tuned on
+markdown-memory rather than seeded:
+
+| alias      | default       | rubric | sweep file |
+|------------|--------------|--------|------------|
+| bge-small  | `1200/0`     | 30/60  | `data/retrieval-bge-small-sweep.md` |
+| bge-base   | `1200/240`   | 36/60  | `data/retrieval-bge-base-sweep.md`  |
+| bge-large  | `1200/0`     | 34/60  | `data/retrieval-bge-large-sweep.md` |
+
+Cross-model finding (E5.4): bge-small and bge-large both peak at
+1200/0 — overlap is *harmful* for them at size 1200. bge-base
+uniquely benefits from overlap at 1200 (1200/240, 36/60). Plausible
+reading: bge-base's distillation training smooths the embedding
+space in a way the undistilled tiers don't share.
 
 **Known issues**:
-- The silent-failure observability gap is still open: the indexing
-  pipeline exits 0 with "Update complete" even when zero chunks
-  land in the DB. This is what hid nomic's load failure for a
-  release cycle. Fix in the E5 list below. The underlying nomic
-  load failure was resolved by commit `7182920` (pin
-  `computePolicy: .cpuOnly` in `NomicEmbedder.batchEncode`) —
-  nomic now indexes the markdown-memory corpus end-to-end at
-  ~1417 s (CPU-only). Detail in [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md#nomic-load-failure--diagnosed-and-fixed-historical).
+- None outstanding in the E5.4 scope. The silent-failure observability
+  gap (open pre-E5) is now closed — `vec update-index` exits non-zero
+  when every embed attempt failed. See E5.1 in the Done section.
+- Corpus-generalization of the per-model peaks is still unverified.
+  E5.4e (deferred) would rerun winners against a second corpus; see
+  "Next" below.
 
 ---
 
@@ -96,112 +108,163 @@ reduced-worker / batched-inference topology. **23.9 % wallclock cut**
 - Lessons + what-happened: [`experiments/E4-batched-embed/report.md`](./experiments/E4-batched-embed/report.md)
 - Per-model wallclock at E4 commit: [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md)
 
+### E5.1-3 — Silent-failure guard + bge-small + bge-large (2026-04-21)
+
+Three sub-deliverables closed on 2026-04-21:
+
+**E5.1 — Silent-failure observability guard** (commit `8d63753`).
+The indexing pipeline now exits non-zero with
+`VecError.indexingProducedNoVectors` when every embed attempt fell
+into `.skippedEmbedFailure` on a non-empty work list. The nomic
+CoreML/ANE failure that hid for a release cycle is now a loud
+failure. `SilentFailureGuardTests` covers the exit-code + summary
+paths.
+
+**E5.2 — `bge-small-en-v1.5` (384-dim, "fast tier")** registered as
+a built-in alias. Single-point rubric at the seeded 1200/240 defaults:
+**25/60, 7/10 top-10, wall 692 s** (1.49× bge-base per chunk). Raw
+data in [`data/retrieval-bge-small.md`](./data/retrieval-bge-small.md).
+
+**E5.3 — `bge-large-en-v1.5` (1024-dim, "max quality tier")**
+registered as a built-in alias. Single-point rubric at the seeded
+1200/240 defaults: **31/60, 8/10 top-10, wall 4891 s** (0.21×
+bge-base per chunk). Raw data in
+[`data/retrieval-bge-large.md`](./data/retrieval-bge-large.md).
+
+**Policy reversal on drop gates.** The initial E5.2 and E5.3 plans
+each defined a hard rubric floor ("≥32/60 to ship bge-small",
+"≥40/60 to ship bge-large") and dropped both models after single
+runs at 1200/240. That drop was reversed on 2026-04-21: a single
+chunk-geometry measurement is not sufficient evidence to remove a
+model from the registry. 1200/240 was picked for direct
+comparability with bge-base, not because it is either model's
+optimum. Both models are now retained in
+`IndexingProfileFactory.builtIns`; finding each model's actual
+rubric peak via a full chunk sweep is the first task in E5.4.
+
+- Commits: `8d63753` (E5.1 silent-failure guard), `a145ade` (bge-small),
+  `ca42af5` (bge-large), `356f4d3` (restore both after drop reversal).
+- Raw data: [`data/retrieval-bge-small.md`](./data/retrieval-bge-small.md) •
+  [`data/retrieval-bge-large.md`](./data/retrieval-bge-large.md)
+
+### E5.4a-d — Chunk-geometry sweeps for all three BGE tiers (2026-04-21 → 2026-04-22)
+
+Four sub-deliverables closed. Replaces the seeded-from-bge-base
+defaults for bge-small/bge-large with measured peaks, confirms
+bge-base@1200/240, and surfaces a non-obvious cross-model finding.
+
+**E5.4a — `vec sweep` subcommand** (commits `e82720b` + `197424c`).
+Single Swift process: reset → reindex → 10 rubric queries →
+in-process scorer → per-point q01..q10.json archive + summary.md
+row. Scorer is byte-for-byte parity with
+`scripts/score-rubric.py`. Two-round code review; round 2 APPROVED
+by both reviewers. Added `--force` confirmation, per-iteration
+`VectorDatabase` actor scoping via `runGridPoint` helper, and
+parseGrid dedupe + non-sequential-n support.
+
+**E5.4b — bge-small chunk sweep** (commit `b05cf47`). 15 points
+(sizes ∈ {400,600,800,1200,1600}, overlap_pcts ∈ {0,10,20}) over
+~3 h 40 min wallclock. **Peak: `bge-small@1200/0` → 30/60**, up
+from 25/60 at the seeded 1200/240 (+5 pts). Overlap is harmful at
+size ≥ 1200 for this 384-dim model, helpful at size ≤ 800. Default
+updated. Raw data in
+[`data/retrieval-bge-small-sweep.md`](./data/retrieval-bge-small-sweep.md).
+
+**E5.4c — bge-large chunk sweep** (commit `44e5e09`). 12 points
+(sizes ∈ {800,1200,1600,2000}, overlap_pcts ∈ {0,10,20}) over
+~9 h 42 min wallclock. **Peak: `bge-large@1200/0` → 34/60**, up
+from 31/60 at the seeded 1200/240 (+3 pts). Dramatic `2000/0`
+cliff at 17/60 — biggest chunks with no overlap lose 11 pts vs
+neighboring configs; overlap restores them. Default updated. Raw
+data in
+[`data/retrieval-bge-large-sweep.md`](./data/retrieval-bge-large-sweep.md).
+
+**E5.4d — bge-base chunk sweep** (commit `12152b9`). 12 points,
+~3 h 3 min wallclock. **Two-way tie at 36/60**: `1200/240`
+(existing default, 3/10 top10_both) and `800/80` (5/10
+top10_both). Primary metrics tied; default kept as 1200/240 rather
+than churn the historical default on a softer secondary signal.
+Both co-peak configs documented in
+[`data/retrieval-bge-base-sweep.md`](./data/retrieval-bge-base-sweep.md)
+for the E5.4e tie-breaker.
+
+**Cross-model lesson.** bge-small and bge-large both peak at
+`1200/0` — overlap is harmful at size 1200 for them. bge-base
+uniquely benefits from overlap at 1200 (its peak is 1200/240). The
+pattern is NOT monotone in embedding dimension (384 < 768 > 1024
+on "tolerates overlap"); plausibly related to bge-base being a
+distilled model. Worth carrying forward as a Phase E lesson.
+
+**Scope cut for E5.4e.** Corpus-generalization (rerunning the
+per-model peaks against a second corpus) was deferred. Building a
+code-corpus rubric that probes semantic understanding beyond
+filenames needs domain input; attempting it synthetically risks
+fabricating queries that every config aces. See "Next" below.
+
 ---
 
 ## In progress
 
-Nothing actively running.
+None. Branch `agent/agent-26abd616` is idle after shipping E5.4a-d.
 
 ---
 
-## Next — E5: model expansion
+## Next — E5.4e: Corpus-generalization of per-model peaks
 
-**Run model expansion before further bge-base optimization.**
-Optimization work on bge-base returns less per hour right now, and
-the model-expansion work also tells us *whether* further
-optimization is worth doing.
+**Deferred pending a domain-expert-designed rubric.** The three
+BGE sweeps (E5.4b/c/d) established peaks on markdown-memory:
 
-### Why model expansion first
+- `bge-small@1200/0` → 30/60
+- `bge-base@1200/240` → 36/60 (co-tied with `bge-base@800/80`)
+- `bge-large@1200/0` → 34/60
 
-Three reasons, in declining order of weight:
+Whether these rankings hold on a second corpus is still an open
+question. The obvious second corpus is vec's own Swift source
+tree, but building a useful rubric against a code corpus needs
+domain knowledge: the queries have to probe semantic understanding
+*beyond* the filename (otherwise BGE will trivially ace them and
+the rubric won't distinguish the configs).
 
-**1. E4 already harvested the cheap wallclock wins.** E4 took
-bge-base from 1310 s → 1028 s (the fresh 2026-04-21 number — the
-report's 997 s headline is within run-to-run variance). The
-backlog optimizations below (batch=24/32, bucket-width, parallel
-DB writes) are each plausibly worth 5-15 % on top of the current
-1028 s. Even stacked optimistically that's ~700-800 s — a
-meaningful but bounded win, and bounded only because on this
-corpus the embed step is now 98 % of wallclock and BNNS is already
-pegged at b=16. Pushing past the BNNS cap (32) needs a model
-swap anyway.
+### Concrete E5.4e recipe (when resuming)
 
-**2. Quality has more headroom than speed on the rubric.** bge-base
-scores 36/60 today. The rubric ceiling is 60. Even a modest-quality
-model (bge-large) typically lifts MTEB by 2-3 points versus
-bge-base, which on markdown-memory could realistically translate
-to +4-8 rubric points. Optimization wins are pure speed — they
-cannot move the 36/60 number. Retrieval quality is the user-visible
-story ("did it find the right doc"); speed is the index-time story
-("how long does ingestion take"). Index time is paid once per
-re-ingestion; quality wins compound on every single search.
+1. **Design ~10 queries with 2 target files each.** Queries should
+   NOT be answerable by filename alone. E.g. "how does the
+   indexing pipeline handle slow files" (targets:
+   `IndexingPipeline.swift` + `FileAccumulator` related code) is a
+   useful query; "how does the indexing pipeline work" (targets:
+   `IndexingPipeline.swift` alone) is not — the filename gives it
+   away.
+2. **Write the rubric manifest** at `scripts/rubric-vec-source.json`,
+   matching the shape of `scripts/rubric-queries.json`.
+3. **Init `vec-source` DB** (one-time `vec init` in the repo root).
+4. **Run winners against the new corpus** via:
+   ```
+   vec sweep --db vec-source --embedder bge-small --sizes 1200 --overlap-pcts 0 --out benchmarks/corpus-cross/bge-small --rubric scripts/rubric-vec-source.json --force
+   vec sweep --db vec-source --embedder bge-base  --sizes 1200,800 --overlap-pcts 20,10 --out benchmarks/corpus-cross/bge-base --rubric scripts/rubric-vec-source.json --force
+   vec sweep --db vec-source --embedder bge-large --sizes 1200 --overlap-pcts 0 --out benchmarks/corpus-cross/bge-large --rubric scripts/rubric-vec-source.json --force
+   ```
+   (bge-base runs the two co-peak geometries — 1200/240 and 800/80
+   — to break the tie on this corpus.)
+5. **Outcomes to document:**
+   - **Same ranking**: publish with confidence that the defaults
+     generalize. Update the per-model data files with the
+     second-corpus scores.
+   - **Different ranking**: flag the current defaults as
+     markdown-memory-specific and defer per-corpus default
+     selection to E6.
 
-**3. Smaller models inform whether optimization is worth doing.**
-`bge-small-en-v1.5` is ~33 MB vs bge-base's ~110 MB and ~3-4×
-faster per chunk in benchmarks. If bge-small lands within 2-3
-rubric points of bge-base, the right next move is making it the
-default for users who care about speed — a much bigger speedup
-than any optimization could deliver. If bge-small loses badly
-(under 30/60), model size matters here and the optimization budget
-should go to bge-base.
+### What's deliberately out of scope for E5.4
 
-### Concrete E5 recipe
-
-Priority order, each item independent:
-
-1. **`bge-small-en-v1.5`** — add the alias to `IndexingProfileFactory`,
-   wire it through `swift-embeddings` (same loader as bge-base,
-   different model id), run the rubric at 1200/240. Expected:
-   ~270 s wallclock (extrapolated from per-chunk speed), ~30-34/60.
-   Decision criterion: if rubric ≥ 32/60, ship as
-   `bge-small@1200/240` and document as the "small / fast" option.
-
-2. **`bge-large-en-v1.5`** — same pattern, ~670 MB model. Expected:
-   ~3000-3500 s wallclock (3× bge-base inference cost), ~38-42/60.
-   Decision criterion: if rubric ≥ 40/60, ship as
-   `bge-large@1200/240` and document as "max quality" (default
-   stays bge-base).
-
-3. ~~**Fix nomic load failure**~~ — **resolved 2026-04-21** (commit
-   `7182920`). `NomicEmbedder.batchEncode` now forces
-   `computePolicy: .cpuOnly`, sidestepping the macOS 26.3.1+ ANE
-   compile error on FP32 weights. Post-fix wallclock on
-   markdown-memory: 1417 s / 8170 chunks, pool util 98 %. See
-   [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md#nomic-load-failure--diagnosed-and-fixed-historical).
-
-4. **Fix the silent-failure observability gap** — the pipeline
-   reported "Update complete: 674 added, 0 updated" with exit 0
-   despite zero chunks landing in the DB. Phase-2 review NB4 had
-   already flagged this as a gap; the nomic failure is the first
-   time it's hidden a real bug. Suggested assertion: if
-   `chunks_extracted > 0` and `chunks_saved == 0`, exit non-zero
-   with the underlying error.
-
-### What to skip / deprioritize for E5
-
-- `gte-base`, `e5-base`, `mxbai-embed-large` — all same dim/size
-  class as bge-base or bge-large; if bge-small + bge-large bracket
-  the curve, the middle is well-explored. Revisit only if a
-  specific corpus class (multilingual, code-heavy) calls for one.
-- Further `nl-contextual` chunk sweeps — Phase D already concluded
-  the model is wrong for this corpus (3/60 and 2/60 at 1200/240 and
-  800/160). Keep it as the "no-install" tier and stop trying to
-  make it competitive.
-- MLX backend revisit — upstream-gated on `swift-embeddings`;
-  adding it to active work now just delays model expansion.
-
-### Open question worth answering before starting
-
-Should the rubric corpus be expanded? Today every quality decision
-hinges on 10 queries × 2 target files in markdown-memory. A model
-that wins by +5 there might lose elsewhere. Recommendation: before
-shipping bge-small or bge-large as defaults, run the rubric against
-one additional corpus (vec's own source tree is the easiest
-candidate). If both rank the same winner, ship with confidence. If
-they disagree, we've discovered the corpus-dependence we suspected
-and should pause to build per-corpus default selection before
-locking in a new global default. One-time investment (~half a day)
-that pays back on every subsequent embedder decision.
+- Other models beyond the three registered BGE variants. E5.4b/c/d
+  already exercised the dim×depth curve (384 / 768 / 1024).
+- N × batch_size concurrency sweeps — E6 optimization work.
+- Retrieval-strategy changes (hybrid BM25, query expansion,
+  re-ranker) — those are quality levers orthogonal to chunk
+  geometry, pushed to post-E6.
+- A vec-source rubric written without domain input. The meta-risk
+  is writing "easy" queries that every config aces, yielding no
+  signal to distinguish the configs. Pausing here until a
+  human-designed rubric is available is the honest call.
 
 ---
 

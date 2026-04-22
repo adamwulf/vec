@@ -328,6 +328,12 @@ public enum VecError: Error, LocalizedError {
     /// The DB has no recorded indexing profile but DOES have chunks,
     /// i.e. a pre-profile DB left over from before this refactor.
     case preProfileDatabase
+    /// Indexing produced zero vectors: every attempted file extracted
+    /// chunks but every embed call returned an empty vector. The DB
+    /// contains no new embeddings. `filesAttempted` is the number of
+    /// files passed to the pipeline; `filesFailed` is the subset that
+    /// hit this specific failure mode.
+    case indexingProducedNoVectors(filesAttempted: Int, filesFailed: Int)
 
     public var errorDescription: String? {
         switch self {
@@ -376,6 +382,23 @@ public enum VecError: Error, LocalizedError {
             return "Database has no recorded indexing profile. Run `vec update-index` first to establish a profile."
         case .preProfileDatabase:
             return "Database was indexed by an older version of vec with no recorded profile. Run `vec reset <db>` first, then `vec update-index` to rebuild it under a recorded profile."
+        case .indexingProducedNoVectors(let filesAttempted, let filesFailed):
+            return """
+                Indexing produced no vectors: attempted \(filesAttempted) file(s), \
+                \(filesFailed) failed to embed after extracting chunks. The \
+                database received no new embeddings.
+
+                Likely causes:
+                  - The embedder's model failed to load (check stderr above for a
+                    CoreML/ANE or swift-embeddings error).
+                  - Every embed call errored or returned an empty vector.
+
+                Your options:
+                  1. Re-run `vec update-index --verbose` to see per-file skip detail.
+                     (Single-file `vec insert` already prints the failing path to
+                     stderr above.)
+                  2. Fix the underlying embedder failure, then re-run the command.
+                """
         }
     }
 }

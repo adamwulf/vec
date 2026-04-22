@@ -1,0 +1,402 @@
+[
+  {
+    "file" : "granola\/2026-03-10-20-59-8e7b43c9\/notes.md",
+    "line_count" : 3,
+    "matches" : [
+      {
+        "chunk_type" : "whole",
+        "score" : 0.6636359691619873
+      }
+    ],
+    "modified" : "2026-03-10T22:58:59Z",
+    "score" : 0.6636359691619873
+  },
+  {
+    "file" : "granola\/2026-03-27-16-30-58c8fab8\/notes.md",
+    "line_count" : 3,
+    "matches" : [
+      {
+        "chunk_type" : "whole",
+        "score" : 0.65228372812271118
+      }
+    ],
+    "modified" : "2026-03-28T02:06:43Z",
+    "score" : 0.65228372812271118
+  },
+  {
+    "file" : "muse-trademark\/url-verification-report.md",
+    "line_count" : 138,
+    "matches" : [
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 138,
+        "line_start" : 131,
+        "score" : 0.65188324451446533
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 117,
+        "line_start" : 113,
+        "score" : 0.64882808923721313
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 123,
+        "line_start" : 119,
+        "score" : 0.6230165958404541
+      }
+    ],
+    "modified" : "2026-02-23T17:49:32Z",
+    "score" : 0.65188324451446533
+  },
+  {
+    "file" : "muse-trademark\/muse-trademark-acquisition.md",
+    "line_count" : 304,
+    "matches" : [
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 274,
+        "line_start" : 268,
+        "score" : 0.64602464437484741
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 145,
+        "line_start" : 129,
+        "score" : 0.60822463035583496
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 302,
+        "line_start" : 300,
+        "score" : 0.60397756099700928
+      }
+    ],
+    "modified" : "2026-02-23T22:18:13Z",
+    "score" : 0.64602464437484741
+  },
+  {
+    "file" : "granola\/2026-02-26-22-30-164bf8dc\/notes.md",
+    "line_count" : 3,
+    "matches" : [
+      {
+        "chunk_type" : "whole",
+        "score" : 0.6429181694984436
+      }
+    ],
+    "modified" : "2026-02-27T05:10:04Z",
+    "score" : 0.6429181694984436
+  },
+  {
+    "file" : "granola\/2026-03-26-16-30-5014d9e2\/transcript.txt",
+    "line_count" : 524,
+    "matches" : [
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 140,
+        "line_start" : 128,
+        "score" : 0.64229196310043335
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 124,
+        "line_start" : 108,
+        "score" : 0.62261366844177246
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 126,
+        "line_start" : 124,
+        "score" : 0.60945594310760498
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 164,
+        "line_start" : 156,
+        "score" : 0.60846352577209473
+      }
+    ],
+    "modified" : "2026-03-27T00:18:01Z",
+    "score" : 0.64229196310043335
+  },
+  {
+    "file" : "granola\/2026-02-17-18-00-94ff1655\/transcript.txt",
+    "line_count" : 401,
+    "matches" : [
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 267,
+        "line_start" : 267,
+        "score" : 0.64025449752807617
+      }
+    ],
+    "modified" : "2026-02-22T06:02:16Z",
+    "score" : 0.64025449752807617
+  },
+  {
+    "file" : "granola\/2026-03-10-20-59-8e7b43c9\/meta.md",
+    "line_count" : 16,
+    "matches" : [
+      {
+        "chunk_type" : "whole",
+        "score" : 0.6380765438079834
+      }
+    ],
+    "modified" : "2026-03-10T22:58:46Z",
+    "score" : 0.6380765438079834
+  },
+  {
+    "file" : "muse-trademark\/research\/001-tm-us-uspto.md",
+    "line_count" : 98,
+    "matches" : [
+      {
+        "chunk_type" : "whole",
+        "score" : 0.6338990330696106
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 18,
+        "line_start" : 1,
+        "score" : 0.61733120679855347
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 33,
+        "line_start" : 20,
+        "score" : 0.60262465476989746
+      }
+    ],
+    "modified" : "2026-02-23T17:54:09Z",
+    "score" : 0.6338990330696106
+  },
+  {
+    "file" : "granola\/2026-01-22-17-23-f4d6caa0\/transcript.txt",
+    "line_count" : 62,
+    "matches" : [
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 14,
+        "line_start" : 14,
+        "score" : 0.63305479288101196
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 14,
+        "line_start" : 14,
+        "score" : 0.61349081993103027
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 14,
+        "line_start" : 14,
+        "score" : 0.60788792371749878
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 14,
+        "line_start" : 14,
+        "score" : 0.60440254211425781
+      }
+    ],
+    "modified" : "2026-02-12T00:06:46Z",
+    "score" : 0.63305479288101196
+  },
+  {
+    "file" : "muse-trademark\/research\/003-tm-uk-ipo.md",
+    "line_count" : 94,
+    "matches" : [
+      {
+        "chunk_type" : "whole",
+        "score" : 0.63047194480895996
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 44,
+        "line_start" : 1,
+        "score" : 0.61999434232711792
+      }
+    ],
+    "modified" : "2026-02-23T19:33:36Z",
+    "score" : 0.63047194480895996
+  },
+  {
+    "file" : "granola\/2026-02-26-22-30-164bf8dc\/meta.md",
+    "line_count" : 16,
+    "matches" : [
+      {
+        "chunk_type" : "whole",
+        "score" : 0.62877011299133301
+      }
+    ],
+    "modified" : "2026-02-27T05:09:43Z",
+    "score" : 0.62877011299133301
+  },
+  {
+    "file" : "granola\/2026-02-20-18-00-fe9ecf59\/summary.md",
+    "line_count" : 46,
+    "matches" : [
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 15,
+        "line_start" : 1,
+        "score" : 0.6251407265663147
+      },
+      {
+        "chunk_type" : "whole",
+        "score" : 0.60327470302581787
+      }
+    ],
+    "modified" : "2026-02-20T22:26:19Z",
+    "score" : 0.6251407265663147
+  },
+  {
+    "file" : "granola\/2026-02-26-12-00-30098bdd\/transcript.txt",
+    "line_count" : 575,
+    "matches" : [
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 553,
+        "line_start" : 553,
+        "score" : 0.62340283393859863
+      }
+    ],
+    "modified" : "2026-03-26T22:52:21Z",
+    "score" : 0.62340283393859863
+  },
+  {
+    "file" : "granola\/2026-02-26-18-00-30098bdd\/transcript.txt",
+    "line_count" : 575,
+    "matches" : [
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 553,
+        "line_start" : 553,
+        "score" : 0.62340283393859863
+      }
+    ],
+    "modified" : "2026-02-27T05:16:06Z",
+    "score" : 0.62340283393859863
+  },
+  {
+    "file" : "muse-trademark\/research\/015-zoom-contract-justia.md",
+    "line_count" : 326,
+    "matches" : [
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 210,
+        "line_start" : 210,
+        "score" : 0.62297576665878296
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 208,
+        "line_start" : 208,
+        "score" : 0.61419278383255005
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 101,
+        "line_start" : 88,
+        "score" : 0.61244124174118042
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 44,
+        "line_start" : 42,
+        "score" : 0.61121511459350586
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 148,
+        "line_start" : 146,
+        "score" : 0.61032247543334961
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 144,
+        "line_start" : 142,
+        "score" : 0.60573536157608032
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 109,
+        "line_start" : 104,
+        "score" : 0.60261726379394531
+      }
+    ],
+    "modified" : "2026-02-23T06:17:24Z",
+    "score" : 0.62297576665878296
+  },
+  {
+    "file" : "granola\/2026-03-27-16-30-58c8fab8\/meta.md",
+    "line_count" : 16,
+    "matches" : [
+      {
+        "chunk_type" : "whole",
+        "score" : 0.62042534351348877
+      }
+    ],
+    "modified" : "2026-03-28T02:06:27Z",
+    "score" : 0.62042534351348877
+  },
+  {
+    "file" : "granola\/2026-03-10-20-59-8e7b43c9\/summary.md",
+    "line_count" : 64,
+    "matches" : [
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 47,
+        "line_start" : 36,
+        "score" : 0.61811459064483643
+      }
+    ],
+    "modified" : "2026-03-10T22:58:59Z",
+    "score" : 0.61811459064483643
+  },
+  {
+    "file" : "granola\/2026-03-10-20-59-8e7b43c9\/transcript.txt",
+    "line_count" : 634,
+    "matches" : [
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 352,
+        "line_start" : 336,
+        "score" : 0.61602246761322021
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 190,
+        "line_start" : 190,
+        "score" : 0.60754191875457764
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 310,
+        "line_start" : 300,
+        "score" : 0.60562503337860107
+      },
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 300,
+        "line_start" : 294,
+        "score" : 0.60460829734802246
+      }
+    ],
+    "modified" : "2026-03-10T22:59:22Z",
+    "score" : 0.61602246761322021
+  },
+  {
+    "file" : "granola\/2026-02-26-22-30-164bf8dc\/summary.md",
+    "line_count" : 46,
+    "matches" : [
+      {
+        "chunk_type" : "chunk",
+        "line_end" : 35,
+        "line_start" : 20,
+        "score" : 0.61554849147796631
+      }
+    ],
+    "modified" : "2026-02-27T05:10:04Z",
+    "score" : 0.61554849147796631
+  }
+]

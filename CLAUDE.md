@@ -4,6 +4,112 @@
 `Sources/` and `Tests/`; everything else at the root or under the
 top-level doc folders is documentation about the project.
 
+## READ FIRST: Running `vec` commands — DO NOT `cd`
+
+**You almost never need to change directories to run `vec`. Pass
+`--db <name>` and stay where you are.** Every `vec` DB lives at
+`~/.vec/<name>/` with its source directory recorded in `config.json`.
+The CLI resolves both from `--db` alone.
+
+This trips up new agents repeatedly. The rule is simple:
+
+- `vec init <name>` — the ONLY subcommand that reads the current
+  working directory (it records cwd as the new DB's source dir). If a
+  DB you want to use is already initialized, you do NOT need to run
+  `init` again, and you do NOT need to `cd` anywhere.
+
+- **Every other subcommand** — `update-index`, `search`, `insert`,
+  `remove`, `info`, `reset`, `deinit`, `list`, `chunk` — works from
+  any working directory. Just pass `--db <name>`.
+
+### Concrete examples
+
+From your worktree root, `/tmp`, or anywhere else:
+
+```bash
+# Reindex the existing markdown-memory corpus with a new embedder:
+swift run vec reset --db markdown-memory --force
+swift run vec update-index --db markdown-memory --embedder nomic
+
+# Score a rubric query:
+swift run vec search --db markdown-memory --format json --limit 20 "trademark price negotiation"
+
+# Inspect an existing DB:
+swift run vec info --db markdown-memory
+swift run vec list
+```
+
+No `cd` involved in any of the above. The `markdown-memory` DB is
+already initialized against Adam's corpus at
+`/Users/adamwulf/Library/Containers/com.milestonemade.EssentialMCP/Data/Documents/tools/markdown-memory`
+— `reset` preserves that source path, so a reset+reindex against an
+existing DB is the canonical way to run a fresh rubric sweep with a
+different embedder.
+
+**The `markdown-memory` DB is a test index, not a production one.**
+Adam has explicitly OK'd wiping it at any time and leaving it in any
+embedder/chunk configuration when a sweep finishes. You do NOT need
+to reindex it back to `bge-base` (or any other specific profile) as
+a courtesy step. Whatever embedder the last run used is fine — the
+next sweep will reset it again anyway.
+
+### Rubric scoring — one script, one manifest, one archive
+
+- **`scripts/rubric-queries.json`** — canonical manifest: the 10
+  queries, the 2 target files, the rank-bracket → points mapping.
+  Agents building a sweep must source queries from this file, not
+  from `retrieval-rubric.md`'s prose (the prose exists for humans;
+  the manifest is for scripts).
+- **`scripts/score-rubric.py`** — the scorer. Reads the manifest and
+  a directory of `q01.json` … `q10.json`, prints the rank table +
+  canonical TOTAL line. This is the authoritative score. If a human
+  count disagrees, the script wins.
+- **`benchmarks/<alias>-<chunkChars>-<overlap>/`** — per-sweep JSON
+  archive, committed. Lets future readers rescore historical sweeps
+  when the rubric evolves. See `benchmarks/README.md`.
+
+Exact scorer invocation:
+
+```bash
+python3 scripts/score-rubric.py benchmarks/<alias>-<N>-<M>/
+```
+
+See `retrieval-rubric.md` §"Running a baseline" for the full
+reindex → capture → score → append-to-results-log recipe.
+
+## Long-running commands and sub-agents: wait, don't poll
+
+Two mechanisms already notify you when long work finishes — use
+them instead of polling or sleeping:
+
+- **`run_in_background: true`** on the Bash tool returns immediately
+  and the runtime will notify you when the command exits. You do
+  NOT need to sleep, tail the log, or otherwise watch for it. Good
+  fit for multi-minute reindexes (`vec update-index` against
+  markdown-memory runs ~10-40 min depending on the model) and any
+  long build.
+
+- **Spawned sub-agents** (`ib new-agent --worker …`) fire a
+  notification when they complete or need input. Do NOT call
+  `ib list` in a loop to check on them — just enter WAITING and
+  the watchdog will ping you. Polling burns context on
+  already-cached output you've seen.
+
+When either completes you get a message that looks like
+`[hook]: Your subtask agent-XXXX just completed` or a stream of
+stdout/stderr from the backgrounded command. Pick it up from
+there. Only break the wait if you have genuinely independent
+work to do in parallel.
+
+### When you really do need a brand-new DB
+
+If you need a new throwaway DB name (not a clone/reset of an existing
+one), `vec init <name>` is the only step that needs cwd. In an
+ittybitty worktree where the path-isolation hook blocks external `cd`,
+delegate that one step to a worker sub-agent — but prefer `reset` on
+an existing DB whenever possible. Resets are cheaper than inits for
+the typical "try a new embedder against the same corpus" workflow.
+
 ## Where docs live
 
 - **[`README.md`](./README.md)** — user-facing docs for the CLI.
@@ -49,3 +155,4 @@ top-level doc folders is documentation about the project.
   source of truth for past, present, and future.
 - **Superseded doc**: move to `archived/YYYY-MM/` (current month).
   Don't edit once archived.
+
