@@ -198,6 +198,18 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 1200,
             defaultChunkOverlap: 240
         ),
+        // gte-base-en-v1.5 — 768-dim, thenlper/gte-base. Direct peer of
+        // bge-base (same dim, same tokenizer, same CLS+L2 pooling, no
+        // query/passage prefix). Provisional 1200/240 defaults seeded
+        // from bge-base pending the E5.6 chunk-geometry sweep against
+        // markdown-memory.
+        BuiltIn(
+            alias: "gte-base",
+            canonicalEmbedderName: "gte-base-en-v1.5",
+            canonicalDimension: 768,
+            defaultChunkSize: 1200,
+            defaultChunkOverlap: 240
+        ),
     ]
 
     public static var knownAliases: [String] { builtIns.map(\.alias) }
@@ -255,6 +267,7 @@ public enum IndexingProfileFactory {
         case "bge-small":     factory = { BGESmallEmbedder() }
         case "bge-large":     factory = { BGELargeEmbedder() }
         case "nl-contextual": factory = { NLContextualEmbedder() }
+        case "gte-base":      factory = { GTEBaseEmbedder() }
         default:              throw VecError.unknownProfile(alias)
         }
         let embedder = factory()
