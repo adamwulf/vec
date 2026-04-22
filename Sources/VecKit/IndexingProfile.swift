@@ -161,19 +161,18 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 1200,
             defaultChunkOverlap: 240
         ),
-        // bge-small-en-v1.5 — 384-dim, "fast tier" option. Single-point
-        // E5.2 rubric at 1200/240 scored 25/60 (vs bge-base's 36/60),
-        // but defaults are seeded from bge-base for direct comparability
-        // until a proper parameter sweep establishes bge-small's optimal
-        // chunk geometry. Kept registered because one grid point is not
-        // enough evidence to remove a tier — see E5.4 (corpus expansion
-        // + parameter sweep).
+        // bge-small-en-v1.5 — 384-dim, "fast tier" option. The E5.4
+        // chunk-geometry sweep (15 points: {400,600,800,1200,1600} ×
+        // {0%,10%,20%}) identified 1200/0 as the rubric peak (30/60,
+        // 9/10 top10_either), beating the seeded 1200/240 single-point
+        // result (25/60) by 5 points. See
+        // `data/retrieval-bge-small-sweep.md` for the full grid.
         BuiltIn(
             alias: "bge-small",
             canonicalEmbedderName: "bge-small-en-v1.5",
             canonicalDimension: 384,
             defaultChunkSize: 1200,
-            defaultChunkOverlap: 240
+            defaultChunkOverlap: 0
         ),
         // bge-large-en-v1.5 — 1024-dim, "max quality" option. Single-point
         // E5.3 rubric at 1200/240 scored 31/60, but parameter space is
