@@ -311,10 +311,8 @@ anisotropy). The literal-match probe (`"bean counter mode
 trademark"`) placed the target transcript.txt at rank 1 and
 summary.md at rank 5 — both targets in top 5 on a near-literal query.
 
-- Commits: `ea458a9` (add embedder, provisional 1200/240 default,
-  landed on base branch), `<E5.7-sweep-commit>` (this commit:
-  sweep results + measured peak default + plan.md + writeup; SHA
-  filled in on merge, matching the E5.6 pattern in `7245f99`).
+- Commits: `ea458a9` (add embedder, provisional 1200/240 default),
+  `4792953` (sweep results + measured peak default + plan.md + writeup).
 - Sweep archive: [`benchmarks/sweep-e5-base/`](./benchmarks/sweep-e5-base/)
 - Raw data + observations:
   [`data/retrieval-e5-base-sweep.md`](./data/retrieval-e5-base-sweep.md)
