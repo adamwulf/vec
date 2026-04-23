@@ -240,7 +240,7 @@ story; the bge-base-vs-everything-else gap is more plausibly
 training-data / pretraining differences than distillation.
 
 - Commits: `e794c91` (add embedder, provisional default),
-  `<E5.6-sweep-commit>` (sweep results + measured peak default).
+  `7504a8c` (sweep results + measured peak default).
 - Sweep archive: [`benchmarks/sweep-gte-base/`](./benchmarks/sweep-gte-base/)
 - Raw data + observations:
   [`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md)
