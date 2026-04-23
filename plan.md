@@ -321,9 +321,115 @@ summary.md at rank 5 — both targets in top 5 on a near-literal query.
 
 ## In progress
 
-None. E5.7 is the latest shipped experiment. The open question
-escalated to the manager is whether to flip the global default
-from `bge-base` to `e5-base` based on E5.7's evidence.
+`agent-4f68fb73` is running the E5.8 mxbai-embed-large-v1 sweep
+against markdown-memory (1024-dim, ~10 h wallclock expected).
+Adds the first 1024-dim non-BGE model to the registry; writeup
+will land a three-way 1024-dim comparison (bge-large vs mxbai-large
+vs the E5.7 e5-base Total=40 bar).
+
+The open manager-decision question from E5.7 — whether to flip the
+global default from `bge-base` to `e5-base` — remains open and is
+intentionally deferred pending E5.9 (below) cross-corpus evidence.
+
+---
+
+## Next — E5.9: Fine-tune top candidates + second-corpus validation
+
+Running order after E5.8 completes:
+
+1. Finish any remaining novel-model sweeps (the E6-backlog candidate
+   list is already mostly exhausted — only mxbai-large is in flight;
+   see "Backlog — candidate models" for leftovers and their
+   priority).
+2. Pick the top 2-3 candidates from the measured results so far and
+   run a **fine-grained mini-sweep** around each one's peak to
+   resolve the parameter-space shape that the current 12-point grid
+   smooths over.
+3. Simultaneously (or immediately after), run those same candidates
+   against a **second corpus** — this folds together the previously-
+   deferred E5.4e (corpus-generalization) work with the new
+   param-space refinement. One batch of sweeps answers both
+   questions.
+
+### Why do these together
+
+- Fine-tuning on one corpus risks over-fitting — a peak refined on
+  markdown-memory may not replicate elsewhere. Running the refined
+  grid against a second corpus immediately keeps us honest.
+- The current 12-point grid has wide overlap_pct steps (0 / 10 / 20)
+  and wide chunk_size steps (400 / 800 / 1200 / 1600). E5.7 surfaced
+  the limits of that: `e5-base` showed **two distinct peaks**
+  (1200/0 → 40 and 400/40 → 40 tied) on opposite ends of the grid,
+  with no neighboring points between 400 and 800 to tell which
+  regime is really better. Refining those neighborhoods is cheap
+  signal, but only on candidates worth refining — i.e. after we've
+  triaged down from 8 built-ins.
+
+### Candidate selection rule (to apply after E5.8 completes)
+
+Score candidates by their measured peak Total /60 on markdown-memory.
+Advance candidates to the fine-tune/second-corpus phase IF they
+clear the "interesting" threshold:
+
+- **Always advance**: the current global-default bge-base (36) and
+  anything that beats it. As of now that's e5-base (40). Mxbai will
+  either clear or fail this bar when E5.8 finishes.
+- **Advance if close**: any model within ~3 pts of the top
+  candidate on primary Total /60 (e.g. if e5-base holds at 40,
+  anything scoring 37+). Those are plausibly ranked differently on
+  a different corpus.
+- **Do not advance**: models clearly below threshold (gte-base at
+  8, nl/nl-contextual at 6/3). No amount of chunk-refinement or
+  corpus-swap rescues a content-discrimination failure.
+
+The expected "advance" set post-E5.8 is likely 2-3 models. Keeping
+the set small is deliberate — fine-grained sweeps cost time, and we
+want enough signal per point to actually resolve the peak, not
+spread thin across 8 models.
+
+### Fine-tune mini-sweep shape (per candidate)
+
+Two patterns to mix-and-match, picked based on where the coarse
+peak landed:
+
+- **"Peak refinement"** — 6-9 points around the measured peak,
+  stepping `±100` in chunk_size and `±5%` in overlap_pct. E.g. for
+  e5-base@1200/0, try sizes ∈ {1100, 1200, 1300} × overlap ∈ {0,
+  60, 120}. Answers "is the peak really at 1200/0 or are we on a
+  plateau hiding a better neighbor?"
+- **"Regime probe"** — 6-9 points around a surprising second peak,
+  to establish whether it's real or a single-point artifact. E.g.
+  for e5-base's 400/40 tied peak, probe sizes ∈ {400, 500, 600} ×
+  overlap ∈ {0, 40 (10%), 80 (20%)}. Answers "is the small-chunk
+  regime competitive across more than one grid point?"
+
+Each candidate gets one of each pattern as warranted by its
+measured shape. ~15-20 points per candidate total; ~8-10 h wall
+per candidate at 768-dim, more at 1024-dim.
+
+### Second-corpus threading
+
+Per candidate advancing from the triage step, run the refined
+mini-grid **against both markdown-memory and a second corpus in
+the same batch**. Two interpretations to draw:
+
+- **Same peak, similar ranking across corpora** → confident in the
+  default. Update `IndexingProfileFactory.builtIns` with the
+  refined peak.
+- **Different peak on the second corpus** → flag the default as
+  markdown-memory-specific and push per-corpus default selection
+  to E6. The model still ships; just with a "YMMV on your corpus"
+  note in `data/retrieval-<alias>.md`.
+- **Different ranking between candidates across corpora** (e.g.
+  e5-base wins on markdown-memory but bge-base wins on vec-source)
+  → that's the "no single global default fits all" answer and
+  reshapes the E6 backlog toward multi-default or corpus-aware
+  selection.
+
+The second corpus is the previously-deferred `vec-source` (vec's
+own Swift source tree) per E5.4e. The rubric for it still needs
+domain-designed queries — the concrete recipe below still stands
+as the checklist for when resuming.
 
 ---
 
