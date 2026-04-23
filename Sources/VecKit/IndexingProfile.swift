@@ -215,6 +215,26 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 1600,
             defaultChunkOverlap: 0
         ),
+        // e5-base-v2 — 768-dim, intfloat/e5-base-v2. Third 768-dim
+        // non-BGE model after gte-base. Two shape differences vs the
+        // other Bert-family embedders we carry:
+        //   • MEAN POOLING (not CLS). Implemented manually in
+        //     `E5BaseEmbedder` by driving `Bert.Model` directly with
+        //     the attention mask and running masked mean over the
+        //     sequence output, then L2-normalizing.
+        //   • QUERY/PASSAGE PREFIXES. Documents get `"passage: "` and
+        //     queries get `"query: "` prepended inside the embedder;
+        //     callers remain prefix-unaware (same protocol surface as
+        //     every other embedder).
+        // Provisional defaults 1200/240 seeded from bge-base, pending
+        // the E5.7 chunk-geometry sweep.
+        BuiltIn(
+            alias: "e5-base",
+            canonicalEmbedderName: "e5-base-v2",
+            canonicalDimension: 768,
+            defaultChunkSize: 1200,
+            defaultChunkOverlap: 240
+        ),
     ]
 
     public static var knownAliases: [String] { builtIns.map(\.alias) }
@@ -273,6 +293,7 @@ public enum IndexingProfileFactory {
         case "bge-large":     factory = { BGELargeEmbedder() }
         case "nl-contextual": factory = { NLContextualEmbedder() }
         case "gte-base":      factory = { GTEBaseEmbedder() }
+        case "e5-base":       factory = { E5BaseEmbedder() }
         default:              throw VecError.unknownProfile(alias)
         }
         let embedder = factory()
