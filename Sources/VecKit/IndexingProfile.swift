@@ -200,15 +200,20 @@ public enum IndexingProfileFactory {
         ),
         // gte-base-en-v1.5 — 768-dim, thenlper/gte-base. Direct peer of
         // bge-base (same dim, same tokenizer, same CLS+L2 pooling, no
-        // query/passage prefix). Provisional 1200/240 defaults seeded
-        // from bge-base pending the E5.6 chunk-geometry sweep against
-        // markdown-memory.
+        // query/passage prefix). The E5.6 chunk-geometry sweep (12
+        // points: {400,800,1200,1600} × {0%,10%,20%}) identified
+        // 1600/0 as the rubric peak at 8/60, 3/10 top10_either — far
+        // below bge-base@1200/240's 36/60 on the same corpus. gte-base
+        // is retained as an opt-in built-in but is NOT a default
+        // candidate on markdown-memory. See
+        // `data/retrieval-gte-base-sweep.md` for the full grid and
+        // the content-discrimination failure-mode analysis.
         BuiltIn(
             alias: "gte-base",
             canonicalEmbedderName: "gte-base-en-v1.5",
             canonicalDimension: 768,
-            defaultChunkSize: 1200,
-            defaultChunkOverlap: 240
+            defaultChunkSize: 1600,
+            defaultChunkOverlap: 0
         ),
     ]
 

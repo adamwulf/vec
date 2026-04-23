@@ -9,7 +9,7 @@ what's in progress, and what should happen next.
 - **Per-experiment plans + reports**: [`experiments/`](./experiments/)
 - **Superseded snapshots**: [`archived/`](./archived/)
 
-Last updated: 2026-04-21.
+Last updated: 2026-04-22.
 
 ---
 
@@ -27,17 +27,18 @@ batchSize=16 on a 10-core Apple Silicon machine. Per-model
 comparison in [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md).
 
 **Built-in embedders**: `bge-base` (default), `bge-small`, `bge-large`,
-`nomic`, `nl-contextual`, `nl`. See
+`gte-base`, `nomic`, `nl-contextual`, `nl`. See
 [`indexing-profile.md`](./indexing-profile.md) for the profile grammar
 and [`README.md`](./README.md#built-in-embedders) for the comparison
-table. As of E5.4, the BGE tier defaults are sweep-tuned on
-markdown-memory rather than seeded:
+table. As of E5.4 / E5.6, the BGE tier and gte-base defaults are
+sweep-tuned on markdown-memory rather than seeded:
 
 | alias      | default       | rubric | sweep file |
 |------------|--------------|--------|------------|
 | bge-small  | `1200/0`     | 30/60  | `data/retrieval-bge-small-sweep.md` |
 | bge-base   | `1200/240`   | 36/60  | `data/retrieval-bge-base-sweep.md`  |
 | bge-large  | `1200/0`     | 34/60  | `data/retrieval-bge-large-sweep.md` |
+| gte-base   | `1600/0`     |  8/60  | `data/retrieval-gte-base-sweep.md`  |
 
 Cross-model finding (E5.4): bge-small and bge-large both peak at
 1200/0 — overlap is *harmful* for them at size 1200. bge-base
@@ -200,6 +201,49 @@ per-model peaks against a second corpus) was deferred. Building a
 code-corpus rubric that probes semantic understanding beyond
 filenames needs domain input; attempting it synthetically risks
 fabricating queries that every config aces. See "Next" below.
+
+### E5.6 — gte-base-en-v1.5 + chunk sweep (2026-04-22)
+
+Added `thenlper/gte-base` (768-dim, CLS-pooled + L2-normalized,
+no query/passage prefix) as a new built-in embedder alongside the
+existing BGE tiers. Ran the same 12-point chunk-geometry sweep grid
+used for bge-base (E5.4d) for direct comparability:
+
+  sizes: {400, 800, 1200, 1600}  ×  overlap_pcts: {0%, 10%, 20%}
+
+**Peak: `gte-base@1600/0` → 8/60, 3/10 top10_either, 0/10 top10_both.
+Wallclock 974 s for the winning point; total sweep wall ≈ 9 h 38 min.**
+
+gte-base is dramatically below bge-base on this corpus: the peak
+geometry (8/60) is a quarter of bge-base@1200/240's 36/60, and is
+worse than bge-base's *worst* geometry in the same grid (28/60 at
+2000/0). Spot-checking the per-query archives showed gte-base
+systematically returns the wrong file from the right meeting
+(`notes.md` instead of `summary.md` / `transcript.txt`) on
+trademark-price queries — a content-discrimination failure, not a
+chunk-geometry one. No grid point rescues it.
+
+**No global-default change.** bge-base@1200/240 (36/60) stays as
+the default. gte-base is retained as an opt-in built-in with its
+measured peak (1600/0) stamped as its default, not as a default
+candidate on markdown-memory. If a second corpus is sweep-tested
+under E5.4e, rerunning gte-base@1600/0 there is a cheap second
+data point to confirm whether this ranking generalizes.
+
+**Cross-model counter-evidence.** E5.4d hypothesized that bge-base's
+unique preference for overlap at 1200 was related to distillation
+smoothing the embedding space. gte-base is also distilled (from a
+larger gte teacher) but rejects overlap at 1200 like the undistilled
+BGE tiers, with scores too low to read much signal from the
+overlap-progression anyway. That weakens the distillation-smoothing
+story; the bge-base-vs-everything-else gap is more plausibly
+training-data / pretraining differences than distillation.
+
+- Commits: `e794c91` (add embedder, provisional default),
+  `<E5.6-sweep-commit>` (sweep results + measured peak default).
+- Sweep archive: [`benchmarks/sweep-gte-base/`](./benchmarks/sweep-gte-base/)
+- Raw data + observations:
+  [`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md)
 
 ---
 
