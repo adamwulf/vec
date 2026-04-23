@@ -9,11 +9,11 @@ what's in progress, and what should happen next.
 - **Per-experiment plans + reports**: [`experiments/`](./experiments/)
 - **Superseded snapshots**: [`archived/`](./archived/)
 
-Last updated: 2026-04-22.
+Last updated: 2026-04-23.
 
 ---
 
-## Current state (as of 2026-04-22)
+## Current state (as of 2026-04-23)
 
 **Default embedder**: `bge-base@1200/240` (BGE-base-en-v1.5, 768-dim).
 
@@ -27,11 +27,11 @@ batchSize=16 on a 10-core Apple Silicon machine. Per-model
 comparison in [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md).
 
 **Built-in embedders**: `bge-base` (default), `bge-small`, `bge-large`,
-`gte-base`, `nomic`, `nl-contextual`, `nl`. See
+`gte-base`, `e5-base`, `nomic`, `nl-contextual`, `nl`. See
 [`indexing-profile.md`](./indexing-profile.md) for the profile grammar
 and [`README.md`](./README.md#built-in-embedders) for the comparison
-table. As of E5.4 / E5.6, the BGE tier and gte-base defaults are
-sweep-tuned on markdown-memory rather than seeded:
+table. As of E5.4 / E5.6 / E5.7, the BGE tier, gte-base, and e5-base
+defaults are sweep-tuned on markdown-memory rather than seeded:
 
 | alias      | default       | rubric | sweep file |
 |------------|--------------|--------|------------|
@@ -39,12 +39,27 @@ sweep-tuned on markdown-memory rather than seeded:
 | bge-base   | `1200/240`   | 36/60  | `data/retrieval-bge-base-sweep.md`  |
 | bge-large  | `1200/0`     | 34/60  | `data/retrieval-bge-large-sweep.md` |
 | gte-base   | `1600/0`     |  8/60  | `data/retrieval-gte-base-sweep.md`  |
+| e5-base    | `1200/0`     | 40/60  | `data/retrieval-e5-base-sweep.md`   |
 
-Cross-model finding (E5.4): bge-small and bge-large both peak at
-1200/0 — overlap is *harmful* for them at size 1200. bge-base
-uniquely benefits from overlap at 1200 (1200/240, 36/60). Plausible
-reading: bge-base's distillation training smooths the embedding
-space in a way the undistilled tiers don't share.
+Cross-model finding (E5.4 → E5.7): **bge-base uniquely prefers
+overlap at size 1200.** bge-small, bge-large, gte-base, and e5-base
+all peak at 1200/0 — overlap is harmful or flat for them at size
+1200. bge-base is the only model in the registry whose rubric peak
+sits at 1200/240 (36/60). The E5.4d distillation-smooths-the-space
+hypothesis is now strongly weakened: gte-base is distilled and
+rejects overlap, e5-base is not distilled and also rejects overlap.
+The "bge-base wants overlap at 1200" finding is most plausibly a
+bge-base-specific pretraining/objective-mix artifact, not a
+dim-tier or distillation property.
+
+**E5.7 headline finding: e5-base BEATS bge-base on markdown-memory.**
+`e5-base@1200/0` = 40/60, 9/10 top10_either, 6/10 top10_both vs
+bge-base@1200/240 = 36/60, 9/10, 3/10 on the same corpus with the
+same rubric and near-identical wallclock (~1025 s vs ~1003 s). This
+is a candidate global-default change pending manager review and a
+second-corpus confirmation; the E5.7 commit updates the e5-base
+alias default to 1200/0 but leaves `IndexingProfileFactory.defaultAlias`
+as `bge-base`. See `data/retrieval-e5-base-sweep.md` §4.
 
 **Known issues**:
 - None outstanding in the E5.4 scope. The silent-failure observability
@@ -245,11 +260,72 @@ training-data / pretraining differences than distillation.
 - Raw data + observations:
   [`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md)
 
+### E5.7 — e5-base-v2 + chunk sweep (2026-04-23)
+
+Added `intfloat/e5-base-v2` (768-dim, **masked mean-pooled** with
+`"passage: "` / `"query: "` prefix injection) as a new built-in
+embedder alongside the existing BGE tiers and gte-base. Unlike every
+other Bert-family embedder in the registry (CLS-pooled via
+`Bert.ModelBundle.encode`), `E5BaseEmbedder` drives `bundle.model(...)`
+directly so the attention mask flows into both the encoder and the
+mean-pool, then L2-normalizes per row. Prefixes are injected
+inside the embedder so callers remain prefix-unaware (same
+`Embedder` protocol surface as bge-* / gte-base).
+
+Ran the same 12-point chunk-geometry sweep grid used for bge-base
+(E5.4d) and gte-base (E5.6) for direct comparability:
+
+  sizes: {400, 800, 1200, 1600}  ×  overlap_pcts: {0%, 10%, 20%}
+
+**Peak: `e5-base@1200/0` → 40/60, 9/10 top10_either, 6/10 top10_both.
+Wallclock 1025 s at the winning point; total sweep wall ≈ 4 h 0 min.**
+`e5-base@400/40` is a co-peak on total_60 (40/60, 10/10 top10_either,
+5/10 top10_both) and loses the tiebreaker on the stricter
+top10_both metric.
+
+**e5-base BEATS bge-base@1200/240 on markdown-memory.** +4 on
+total_60 (40 vs 36), 2× on top10_both (6 vs 3), and essentially
+identical wallclock and storage cost (both 768-dim, both Bert-family
+via swift-embeddings). This is the first measured candidate
+global-default change since bge-base replaced nomic in Phase D.
+**Not self-applied** — the E5.7 commit updates only the e5-base
+alias default (1200/240 → 1200/0) and leaves
+`IndexingProfileFactory.defaultAlias` as `bge-base`. A follow-up
+commit after manager review would flip the global default and
+update this plan's Current-state numbers.
+
+**Cross-model finding:** e5-base joins bge-small, bge-large, and
+gte-base in rejecting overlap at size 1200. bge-base is now
+confirmed as the lone outlier in the registry preferring overlap at
+1200. The distillation-smooths-the-space hypothesis from E5.4d is
+further weakened: gte-base is distilled and rejects overlap,
+e5-base is not distilled and also rejects overlap, only bge-base
+wants it. The three-way 768-dim comparison table
+(`data/retrieval-e5-base-sweep.md` §3) is the first direct
+head-to-head across three Bert-family 768-dim models with different
+pooling / prefix conventions on the same corpus + rubric.
+
+**Score distribution is healthy.** Per-query similarity scores at
+the peak config span ~0.77–0.87 (wide dynamic range, no tight-cone
+anisotropy). The literal-match probe (`"bean counter mode
+trademark"`) placed the target transcript.txt at rank 1 and
+summary.md at rank 5 — both targets in top 5 on a near-literal query.
+
+- Commits: `ea458a9` (add embedder, provisional 1200/240 default,
+  landed on base branch), `<E5.7-sweep-commit>` (this commit:
+  sweep results + measured peak default + plan.md + writeup; SHA
+  filled in on merge, matching the E5.6 pattern in `7245f99`).
+- Sweep archive: [`benchmarks/sweep-e5-base/`](./benchmarks/sweep-e5-base/)
+- Raw data + observations:
+  [`data/retrieval-e5-base-sweep.md`](./data/retrieval-e5-base-sweep.md)
+
 ---
 
 ## In progress
 
-None. Branch `agent/agent-26abd616` is idle after shipping E5.4a-d.
+None. E5.7 is the latest shipped experiment. The open question
+escalated to the manager is whether to flip the global default
+from `bge-base` to `e5-base` based on E5.7's evidence.
 
 ---
 

@@ -226,14 +226,25 @@ public enum IndexingProfileFactory {
         //     queries get `"query: "` prepended inside the embedder;
         //     callers remain prefix-unaware (same protocol surface as
         //     every other embedder).
-        // Provisional defaults 1200/240 seeded from bge-base, pending
-        // the E5.7 chunk-geometry sweep.
+        // The E5.7 chunk-geometry sweep (12 points:
+        // {400,800,1200,1600} × {0%,10%,20%}) identified 1200/0 as
+        // the rubric peak: 40/60, 9/10 top10_either, 6/10 top10_both.
+        // That BEATS bge-base@1200/240 (36/60, 9/10, 3/10) on the
+        // same corpus — by +4 on total_60 and 2× on the stricter
+        // top10_both metric, with wallclock parity (~1025 s vs
+        // ~1003 s). `e5-base@400/40` is a co-peak at 40/60 with
+        // 10/10 top10_either but loses the top10_both tiebreaker
+        // (5 vs 6). See `data/retrieval-e5-base-sweep.md` for the
+        // full grid, three-way 768-dim comparison, and the
+        // candidate-global-default analysis. This commit updates the
+        // e5-base alias default only; a global default flip from
+        // bge-base → e5-base is held back pending manager review.
         BuiltIn(
             alias: "e5-base",
             canonicalEmbedderName: "e5-base-v2",
             canonicalDimension: 768,
             defaultChunkSize: 1200,
-            defaultChunkOverlap: 240
+            defaultChunkOverlap: 0
         ),
     ]
 
