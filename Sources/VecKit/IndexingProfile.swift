@@ -246,6 +246,24 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 1200,
             defaultChunkOverlap: 0
         ),
+        // mxbai-embed-large-v1 — 1024-dim, mixedbread-ai/mxbai-embed-large-v1.
+        // Direct peer of bge-large (same dim, same Bert-large architecture,
+        // same CLS+L2 pooling) with one shape difference: an asymmetric
+        // **query-only** prefix is required for retrieval —
+        // `"Represent this sentence for searching relevant passages: "` —
+        // injected inside `MxbaiEmbedLargeEmbedder` so callers stay
+        // prefix-unaware. Documents take no prefix. The provisional
+        // 1200/0 default is seeded from bge-large's measured peak
+        // (E5.4c) — same dim and same architecture make a shared peak
+        // geometry the most plausible starting point. The E5.8 chunk
+        // sweep replaces this with the mxbai-specific measured peak.
+        BuiltIn(
+            alias: "mxbai-large",
+            canonicalEmbedderName: "mxbai-embed-large-v1",
+            canonicalDimension: 1024,
+            defaultChunkSize: 1200,
+            defaultChunkOverlap: 0
+        ),
     ]
 
     public static var knownAliases: [String] { builtIns.map(\.alias) }
@@ -305,6 +323,7 @@ public enum IndexingProfileFactory {
         case "nl-contextual": factory = { NLContextualEmbedder() }
         case "gte-base":      factory = { GTEBaseEmbedder() }
         case "e5-base":       factory = { E5BaseEmbedder() }
+        case "mxbai-large":   factory = { MxbaiEmbedLargeEmbedder() }
         default:              throw VecError.unknownProfile(alias)
         }
         let embedder = factory()
