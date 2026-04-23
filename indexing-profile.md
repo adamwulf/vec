@@ -17,27 +17,34 @@ return nonsense. The profile identity is what prevents that: it
 commits the full parameter bundle to a single string the database
 can match against on every open.
 
-Six built-in profiles ship today:
+Eight built-in profiles ship today:
 
 | Alias            | Canonical identity         | Embedder                | Dim  | Chunk size | Chunk overlap | Rubric score              | Index wall¹ | ch/s¹  |
 | ---------------- | -------------------------- | ----------------------- | ---- | ---------- | ------------- | ------------------------- | ----------- | ------ |
-| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      |  768 | 1200 chars | 240 chars     | **36/60**, 3/10 both-top10 | 1003 s      | 8.1    |
-| `bge-small`      | `bge-small@1200/0`³        | `bge-small-en-v1.5`     |  384 | 1200 chars | 0 chars       | 30/60, 2/10 both-top10    | 610 s       | 12.3   |
-| `bge-large`      | `bge-large@1200/0`³        | `bge-large-en-v1.5`     | 1024 | 1200 chars | 0 chars       | 34/60, 3/10 both-top10    | 3220 s      | 2.3    |
+| `e5-base`        | `e5-base@1200/0`³          | `e5-base-v2`            |  768 | 1200 chars | 0 chars       | **40/60**, 6/10 both-top10 | 1025 s      | 7.3    |
+| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      |  768 | 1200 chars | 240 chars     | 36/60, 3/10 both-top10    | 1003 s      | 8.1    |
 | `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        |  768 | 1200 chars | 240 chars     | 35/60, 3/10 both-top10    | 1417 s²     | 5.8²   |
+| `bge-large`      | `bge-large@1200/0`³        | `bge-large-en-v1.5`     | 1024 | 1200 chars | 0 chars       | 34/60, 3/10 both-top10    | 3220 s      | 2.3    |
+| `bge-small`      | `bge-small@1200/0`³        | `bge-small-en-v1.5`     |  384 | 1200 chars | 0 chars       | 30/60, 2/10 both-top10    | 610 s       | 12.3   |
+| `gte-base`       | `gte-base@1600/0`³         | `gte-base-en-v1.5`      |  768 | 1600 chars | 0 chars       | 8/60, 0/10 both-top10⁴    | 974 s       | 5.9    |
 | `nl`             | `nl@2000/200`              | `nl-en-512`             |  512 | 2000 chars | 200 chars     | 6/60, 0/10 both-top10     | 138 s       | 35.0   |
 | `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  |  512 | 1200 chars | 240 chars     | 3/60, 0/10 both-top10     | 52 s        | 157.1  |
 
 ¹ Wall-clock and chunks-per-second for a full reindex of the
 `markdown-memory` corpus (674 files; chunk counts vary with the
 profile's chunk geometry — 8170 chunks at 1200/240, 7528 chunks at
-1200/0, 4828 chunks for `nl` at 2000/200), 10-core Apple Silicon,
-pool=10, batch=16, release build. `bge-base` row is from the E4
-batched commit; `bge-small` / `bge-large` rows are from the E5.4
-sweep peaks (`data/retrieval-bge-small-sweep.md` /
-`data/retrieval-bge-large-sweep.md`). `ch/s` is `chunks ÷ wall`. Full
-per-stage breakdown for the E4 baseline in
-`data/wallclock-e4-per-model.md`.
+1200/0, 4828 chunks for `nl` at 2000/200, 5760 chunks at 1600/0),
+10-core Apple Silicon, pool=10, batch=16, release build. `bge-base`
+row is from the E4 batched commit; `bge-small` / `bge-large` rows are
+from the E5.4 sweep peaks; `gte-base` is from the E5.6 sweep peak;
+`e5-base` is from the E5.7 sweep peak. Per-model sweep data:
+[`data/retrieval-bge-small-sweep.md`](./data/retrieval-bge-small-sweep.md),
+[`data/retrieval-bge-base-sweep.md`](./data/retrieval-bge-base-sweep.md),
+[`data/retrieval-bge-large-sweep.md`](./data/retrieval-bge-large-sweep.md),
+[`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md),
+[`data/retrieval-e5-base-sweep.md`](./data/retrieval-e5-base-sweep.md).
+`ch/s` is `chunks ÷ wall`. Full per-stage breakdown for the E4
+baseline in `data/wallclock-e4-per-model.md`.
 
 ² `nomic` is pinned to `computePolicy: .cpuOnly` to work around a
 CoreML/ANE compile failure ("Incompatible element type for ANE") on
@@ -48,28 +55,51 @@ path (with ANE) was ~2940 s. See
 `NomicEmbedder.batchEncode` and
 `data/wallclock-e4-per-model.md` for detail.
 
-³ `bge-small` and `bge-large` defaults were tuned by full 12-to-15-point
-chunk×overlap sweeps (E5.4b / E5.4c). Both peak at **1200/0** — overlap
-is harmful at size 1200 for these undistilled BGE tiers on the
-markdown-memory corpus. `bge-base` uniquely benefits from overlap at
-1200 (peak `1200/240`, 36/60); its E5.4d sweep produced a two-way tie
-at 36/60 with `bge-base@800/80` (5/10 both-top10 vs 1200/240's 3/10),
-kept at 1200/240 to match the historical default. Cross-model finding
-(non-monotone in embedding dimension) is documented in
-[`plan.md`](./plan.md) "Current state". Per-model sweep data:
-[`data/retrieval-bge-small-sweep.md`](./data/retrieval-bge-small-sweep.md),
-[`data/retrieval-bge-base-sweep.md`](./data/retrieval-bge-base-sweep.md),
-[`data/retrieval-bge-large-sweep.md`](./data/retrieval-bge-large-sweep.md).
-The original single-point E5.2/E5.3 measurements at the seeded 1200/240
-geometry are preserved in
+³ All `@<size>/<overlap>` defaults carrying this footnote were tuned
+by full chunk×overlap sweeps, not seeded. Peaks at size 1200 split
+along a single-axis: `bge-small`, `bge-large`, `gte-base`, and
+`e5-base` all **reject** overlap at 1200 (peak at 0); `bge-base`
+uniquely **benefits** from overlap at 1200 (peak at 240). The
+pattern is not monotone in embedding dimension (bge-base is the
+only outlier, sitting in the middle at 768-dim) and does not line
+up with distillation status either (bge-base and gte-base are both
+distilled; only bge-base likes overlap). `bge-base@1200/240` and
+`bge-base@800/80` were a two-way tie at 36/60 (E5.4d); kept at
+1200/240 to match the historical default. `gte-base`'s peak is
+1600/0 rather than 1200/0 but the overlap-rejection pattern is the
+same across sizes. `e5-base@1200/0` at **40/60, 6/10 both-top10** is
+the first model to beat the current global default (bge-base's
+36/60, 3/10 both-top10) — see the e5-base sweep data file for the
+three-way 768-dim cross-model comparison and the global-default
+candidacy notes. The original single-point E5.2/E5.3 measurements
+for bge-small/bge-large at the seeded 1200/240 geometry are
+preserved in
 [`data/retrieval-bge-small.md`](./data/retrieval-bge-small.md) and
 [`data/retrieval-bge-large.md`](./data/retrieval-bge-large.md) as
 historical data points.
 
+⁴ `gte-base` is registered as a built-in but is NOT a default
+candidate on markdown-memory. Its 8/60 peak is 28 points below
+bge-base on the same corpus despite being a same-dim peer (768-dim,
+distilled). The sweep diagnosed a content-discrimination failure:
+cosine similarities pack into a narrow 0.75–0.78 band (anisotropy)
+and the rubric's target files are buried under unrelated meetings
+at most grid points. gte-base is retained for users who want a
+non-BGE 768-dim option, but on this corpus it is below threshold.
+See [`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md)
+§2 for the full failure-mode analysis.
+
 `bge-base` is the default. (Originally `nomic`; flipped 2026-04-19
 after the Phase D sweep — see `experiments/PhaseD-embedder-expansion/plan.md` §"Default
-alias decision".) Source of truth is
-`IndexingProfileFactory.builtIns` in `Sources/VecKit/IndexingProfile.swift`.
+alias decision".) `e5-base` is a live candidate to replace it —
+it beats bge-base at every primary metric on markdown-memory
+(40/60 vs 36/60 total, 6/10 vs 3/10 both-top10, wallclock parity,
+same 768-dim storage geometry) and would be a clean swap. The
+candidacy is intentionally unresolved pending cross-corpus
+validation (blocked on the deferred E5.4e vec-source rubric) and
+a direct call from the project owner. Source of truth for the
+effective default is `IndexingProfileFactory.defaultAlias` in
+`Sources/VecKit/IndexingProfile.swift`.
 
 Rubric scores are each embedder running at its own built-in chunk/
 overlap (the identity above), scored against the markdown-memory
@@ -359,11 +389,14 @@ Open directions the current shape already supports:
   normalization or stop-word stripping before embedding. A
   `preprocess(_:)` hook on `Embedder` (with a no-op default) would
   plug in without touching the profile grammar.
-- **Per-profile query shaping.** Nomic already prepends
-  `search_query: ` / `search_document: ` under the `Embedder`
-  protocol's `embedQuery` / `embedDocument` split. Future models
-  with more elaborate query shaping (re-ranking, multi-vector,
-  etc.) can extend the same split.
+- **Per-profile query shaping.** The `Embedder` protocol's
+  `embedQuery` / `embedDocument` split lets each embedder apply its
+  own asymmetric preprocessing without touching callers. Registered
+  examples span three patterns: Nomic prepends `search_query: ` /
+  `search_document: ` (symmetric but prefix-different); e5-base
+  prepends `query: ` / `passage: ` (same shape, different strings);
+  later work may want query-only prefixes or full re-ranking paths.
+  All fit behind the same split.
 - **Non-character chunking.** Token-count-based chunking would need
   a different identity encoding (`nomic@T256/T64` to distinguish),
   but the profile struct already carries `chunkSize` and
