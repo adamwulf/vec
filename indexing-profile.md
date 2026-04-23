@@ -19,16 +19,16 @@ can match against on every open.
 
 Eight built-in profiles ship today:
 
-| Alias            | Canonical identity         | Embedder                | Dim  | Chunk size | Chunk overlap | Rubric score              | Index wall¹ | ch/s¹  |
-| ---------------- | -------------------------- | ----------------------- | ---- | ---------- | ------------- | ------------------------- | ----------- | ------ |
-| `e5-base`        | `e5-base@1200/0`³          | `e5-base-v2`            |  768 | 1200 chars | 0 chars       | **40/60**, 6/10 both-top10 | 1025 s      | 7.3    |
-| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      |  768 | 1200 chars | 240 chars     | 36/60, 3/10 both-top10    | 1003 s      | 8.1    |
-| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        |  768 | 1200 chars | 240 chars     | 35/60, 3/10 both-top10    | 1417 s²     | 5.8²   |
-| `bge-large`      | `bge-large@1200/0`³        | `bge-large-en-v1.5`     | 1024 | 1200 chars | 0 chars       | 34/60, 3/10 both-top10    | 3220 s      | 2.3    |
-| `bge-small`      | `bge-small@1200/0`³        | `bge-small-en-v1.5`     |  384 | 1200 chars | 0 chars       | 30/60, 2/10 both-top10    | 610 s       | 12.3   |
-| `gte-base`       | `gte-base@1600/0`³         | `gte-base-en-v1.5`      |  768 | 1600 chars | 0 chars       | 8/60, 0/10 both-top10⁴    | 974 s       | 5.9    |
-| `nl`             | `nl@2000/200`              | `nl-en-512`             |  512 | 2000 chars | 200 chars     | 6/60, 0/10 both-top10     | 138 s       | 35.0   |
-| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  |  512 | 1200 chars | 240 chars     | 3/60, 0/10 both-top10     | 52 s        | 157.1  |
+| Alias            | Canonical identity         | Embedder                | Dim  | Chunk size | Chunk overlap | Total /60  | Both-top10 /10 | Index wall¹ | ch/s¹  |
+| ---------------- | -------------------------- | ----------------------- | ---- | ---------- | ------------- | ---------- | -------------- | ----------- | ------ |
+| `e5-base`        | `e5-base@1200/0`³          | `e5-base-v2`            |  768 | 1200 chars | 0 chars       | **40**     | **6**          | 1025 s      | 7.3    |
+| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      |  768 | 1200 chars | 240 chars     | 36         | 3              | 1003 s      | 8.1    |
+| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        |  768 | 1200 chars | 240 chars     | 35         | 3              | 1417 s²     | 5.8²   |
+| `bge-large`      | `bge-large@1200/0`³        | `bge-large-en-v1.5`     | 1024 | 1200 chars | 0 chars       | 34         | 3              | 3220 s      | 2.3    |
+| `bge-small`      | `bge-small@1200/0`³        | `bge-small-en-v1.5`     |  384 | 1200 chars | 0 chars       | 30         | 2              | 610 s       | 12.3   |
+| `gte-base`       | `gte-base@1600/0`³         | `gte-base-en-v1.5`      |  768 | 1600 chars | 0 chars       | 8⁴         | 0              | 974 s       | 5.9    |
+| `nl`             | `nl@2000/200`              | `nl-en-512`             |  512 | 2000 chars | 200 chars     | 6          | 0              | 138 s       | 35.0   |
+| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  |  512 | 1200 chars | 240 chars     | 3          | 0              | 52 s        | 157.1  |
 
 ¹ Wall-clock and chunks-per-second for a full reindex of the
 `markdown-memory` corpus (674 files; chunk counts vary with the
@@ -103,10 +103,24 @@ effective default is `IndexingProfileFactory.defaultAlias` in
 
 Rubric scores are each embedder running at its own built-in chunk/
 overlap (the identity above), scored against the markdown-memory
-corpus using `retrieval-rubric.md` — 10 queries, 60 max on the weighted
-total, and the canonical stop-condition metric "both T and S in top 10"
-out of 10. Full per-iteration sweeps (other chunk/overlap combos)
-live in `data/retrieval-<alias>.md`.
+corpus using `retrieval-rubric.md`. Two columns because they
+measure different things:
+
+- **Total /60** — weighted sum across the 10 queries, counting every
+  query's T (transcript) and S (summary) targets and their rank
+  brackets. Rewards partial hits: a query where only S surfaces in
+  top 10 still scores. This is the primary metric.
+- **Both-top10 /10** — stricter secondary metric: the count of
+  queries where *both* T and S landed in top 10 simultaneously.
+  Doesn't reward a query with only one target surfaced. Used as a
+  tiebreaker when Total /60 is close and as a quality signal when
+  it moves sharply without a corresponding Total shift (e.g.
+  e5-base vs bge-base at +4 Total, +3 Both-top10 — the stricter
+  metric doubled, indicating a larger real retrieval improvement
+  than the Total delta alone suggests).
+
+Full per-iteration sweeps (other chunk/overlap combos) live in
+`data/retrieval-<alias>.md`.
 
 ## CLI surface
 
