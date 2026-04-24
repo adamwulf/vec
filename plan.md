@@ -13,7 +13,7 @@ Last updated: 2026-04-23.
 
 ---
 
-## Current state (as of 2026-04-23)
+## Current state (as of 2026-04-23, post-E5.8)
 
 **Default embedder**: `bge-base@1200/240` (BGE-base-en-v1.5, 768-dim).
 
@@ -27,28 +27,37 @@ batchSize=16 on a 10-core Apple Silicon machine. Per-model
 comparison in [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md).
 
 **Built-in embedders**: `bge-base` (default), `bge-small`, `bge-large`,
-`gte-base`, `e5-base`, `nomic`, `nl-contextual`, `nl`. See
-[`indexing-profile.md`](./indexing-profile.md) for the profile grammar
-and [`README.md`](./README.md#built-in-embedders) for the comparison
-table. As of E5.4 / E5.6 / E5.7, the BGE tier, gte-base, and e5-base
-defaults are sweep-tuned on markdown-memory rather than seeded:
+`gte-base`, `e5-base`, `mxbai-large`, `nomic`, `nl-contextual`, `nl`.
+See [`indexing-profile.md`](./indexing-profile.md) for the profile
+grammar and [`README.md`](./README.md#built-in-embedders) for the
+comparison table. As of E5.4 / E5.6 / E5.7 / E5.8, the BGE tier,
+gte-base, e5-base, and mxbai-large defaults are sweep-tuned on
+markdown-memory rather than seeded:
 
-| alias      | default       | rubric | sweep file |
-|------------|--------------|--------|------------|
-| bge-small  | `1200/0`     | 30/60  | `data/retrieval-bge-small-sweep.md` |
-| bge-base   | `1200/240`   | 36/60  | `data/retrieval-bge-base-sweep.md`  |
-| bge-large  | `1200/0`     | 34/60  | `data/retrieval-bge-large-sweep.md` |
-| gte-base   | `1600/0`     |  8/60  | `data/retrieval-gte-base-sweep.md`  |
-| e5-base    | `1200/0`     | 40/60  | `data/retrieval-e5-base-sweep.md`   |
+| alias       | default       | rubric | sweep file |
+|-------------|--------------|--------|------------|
+| bge-small   | `1200/0`     | 30/60  | `data/retrieval-bge-small-sweep.md`   |
+| bge-base    | `1200/240`   | 36/60  | `data/retrieval-bge-base-sweep.md`    |
+| bge-large   | `1200/0`     | 34/60  | `data/retrieval-bge-large-sweep.md`   |
+| gte-base    | `1600/0`     |  8/60  | `data/retrieval-gte-base-sweep.md`    |
+| e5-base     | `1200/0`     | 40/60  | `data/retrieval-e5-base-sweep.md`     |
+| mxbai-large | `800/80`     | 31/60  | `data/retrieval-mxbai-large-sweep.md` |
 
-Cross-model finding (E5.4 → E5.7): **bge-base uniquely prefers
-overlap at size 1200.** bge-small, bge-large, gte-base, and e5-base
-all peak at 1200/0 — overlap is harmful or flat for them at size
-1200. bge-base is the only model in the registry whose rubric peak
-sits at 1200/240 (36/60). The E5.4d distillation-smooths-the-space
-hypothesis is now strongly weakened: gte-base is distilled and
-rejects overlap, e5-base is not distilled and also rejects overlap.
-The "bge-base wants overlap at 1200" finding is most plausibly a
+Cross-model finding (E5.4 → E5.8): **bge-base uniquely prefers
+overlap at size 1200.** bge-small, bge-large, gte-base, e5-base, and
+mxbai-large all peak at `1200/0` *or below the 1200 band entirely* —
+overlap is harmful, flat, or recovers only partially for them at
+size 1200. bge-base is the only model in the registry whose rubric
+peak sits at 1200/240 (36/60). mxbai-large's peak shifts down to
+`800/80` (the only registered embedder peaking in the 800 band),
+likely because its required query prefix
+(`"Represent this sentence for searching relevant passages: "`) eats
+~10 BERT WordPiece tokens of the 512-token budget, effectively
+shrinking its context window. The E5.4d distillation-smooths-the-
+space hypothesis is now strongly weakened: gte-base is distilled and
+rejects overlap, e5-base is not distilled and also rejects overlap,
+mxbai-large is not distilled and peaks below the 1200 band. The
+"bge-base wants overlap at 1200" finding is most plausibly a
 bge-base-specific pretraining/objective-mix artifact, not a
 dim-tier or distillation property.
 
@@ -317,35 +326,102 @@ summary.md at rank 5 — both targets in top 5 on a near-literal query.
 - Raw data + observations:
   [`data/retrieval-e5-base-sweep.md`](./data/retrieval-e5-base-sweep.md)
 
+### E5.8 — mxbai-embed-large-v1 + chunk sweep (2026-04-23)
+
+Added `mixedbread-ai/mxbai-embed-large-v1` (1024-dim, BERT-large,
+**CLS-pooled** with explicit L2 normalization) as a new built-in
+embedder under the `mxbai-large` alias alongside the existing 1024-dim
+bge-large. Shape difference vs every other Bert-family embedder in
+the registry: an **asymmetric, query-only prefix** —
+`"Represent this sentence for searching relevant passages: "` —
+applied inside `MxbaiEmbedLargeEmbedder.embedQuery` per the model
+card. Documents take no prefix. Unique among the registry's
+Bert-family embedders: BGE/GTE apply no prefix on either side,
+e5-base prefixes both sides, mxbai prefixes queries only. Callers
+remain prefix-unaware (same `Embedder` protocol surface).
+
+Ran the same 12-point chunk-geometry sweep grid used for bge-large
+(E5.4c) for direct 1024-dim head-to-head comparability:
+
+  sizes: {800, 1200, 1600, 2000}  ×  overlap_pcts: {0%, 10%, 20%}
+
+**Peak: `mxbai-large@800/80` → 31/60, 8/10 top10_either, 4/10
+top10_both. Wallclock 3638 s at the winning point; total sweep wall
+≈ 13 h 56 min** (~4 h longer than bge-large's E5.4c sweep due to two
+thermal/placement slowdowns at 1600/160 and 2000/200 — rubric scores
+unaffected). `mxbai-large@800/160` is a co-peak on total_60 (31/60)
+and loses the tiebreaker on top10_both (3 vs 4).
+
+**mxbai-large does NOT beat bge-large@1200/0 on markdown-memory.** −3
+on total_60 (31 vs 34), −1 on top10_either (8 vs 9), +1 on top10_both
+(4 vs 3). The +1.5 MTEB-leaderboard headroom over bge-large does NOT
+transfer to this corpus's rubric. mxbai is also well below bge-base@1200/240
+(36/60, −5) and e5-base@1200/0 (40/60, −9). It is the worst-scoring
+sweep-tuned default in the 768/1024-dim tier, and per-rubric-point cost
+is the worst in the registry (117 s/pt vs bge-base 28 s/pt and e5-base
+26 s/pt).
+
+**No global-default change.** bge-base@1200/240 (36/60) stays as the
+default; the open candidate-default question (e5-base over bge-base)
+from E5.7 remains the only outstanding global-default decision and is
+unaffected by this experiment. mxbai-large is retained as an opt-in
+1024-dim alternative to bge-large with its measured peak (800/80)
+stamped as its default, but it is NOT a default candidate on
+markdown-memory.
+
+**Cross-model finding: mxbai is the only registered embedder peaking
+in the size-800 band.** bge-base / bge-small / bge-large / e5-base /
+gte-base all peak at size ≥ 1200 (e5-base co-peaks at 400/40 but its
+tiebreaker peak is 1200/0). mxbai's peak shift is most plausibly
+explained by the query-prefix budget: the prefix tokenizes to ~10
+WordPiece tokens, eating a meaningful fraction of the 512-token max
+sequence and pushing the optimal chunk size down. mxbai also wants
+overlap at *every* size band except the 1200/0-vs-mid-overlap dip
+(matching bge-large's pattern at that band). The 2000/0 cliff is
+reproduced for the third time (bge-base 28, bge-large 17, mxbai 18) —
+strongly confirming this is a markdown-memory corpus property
+(~1 KB conversational-turn granularity), not a model artifact.
+
+**Sibling-file content discrimination is mxbai's failure mode.** On
+the literal-match probe at the smoke config (1200/0): the right
+*meeting* surfaces in top 5 but mxbai ranks `notes.md` at #3 and
+target `summary.md` at #14, with target `transcript.txt` outside top
+20. Compare e5-base (transcript.txt #1, summary.md #5 on the same
+probe). mxbai gets the topic right but the file-within-topic wrong —
+a much milder version of gte-base's E5.6 content-discrimination
+pathology. The 8/10 top10_either ceiling across the entire grid is
+the structural consequence: two queries simply do not surface a
+target in top 10 at any geometry mxbai swept.
+
+- Commits: `eb4893f` (add embedder, provisional 1200/0 default),
+  `43dac4c` (sweep results + measured peak default + plan.md + writeup).
+- Sweep archive: [`benchmarks/sweep-mxbai-large/`](./benchmarks/sweep-mxbai-large/)
+- Raw data + observations:
+  [`data/retrieval-mxbai-large-sweep.md`](./data/retrieval-mxbai-large-sweep.md)
+
 ---
 
 ## In progress
 
-`agent-4f68fb73` is running the E5.8 mxbai-embed-large-v1 sweep
-against markdown-memory (1024-dim, ~10 h wallclock expected).
-Adds the first 1024-dim non-BGE model to the registry; writeup
-will land a three-way 1024-dim comparison (bge-large vs mxbai-large
-vs the E5.7 e5-base Total=40 bar).
-
-The open manager-decision question from E5.7 — whether to flip the
-global default from `bge-base` to `e5-base` — remains open and is
+None. E5.8 is the latest shipped experiment. mxbai-large peaked at
+31/60 on markdown-memory (below bge-base 36 and e5-base 40); it
+does not produce a new global-default candidate. The open
+manager-decision question from E5.7 — whether to flip the global
+default from `bge-base` to `e5-base` — remains open and is
 intentionally deferred pending E5.9 (below) cross-corpus evidence.
 
 ---
 
 ## Next — E5.9: Fine-tune top candidates + second-corpus validation
 
-Running order after E5.8 completes:
+Running order now that all queued novel-model sweeps have landed
+(E5.6 gte-base, E5.7 e5-base, E5.8 mxbai-large):
 
-1. Finish any remaining novel-model sweeps (the E6-backlog candidate
-   list is already mostly exhausted — only mxbai-large is in flight;
-   see "Backlog — candidate models" for leftovers and their
-   priority).
-2. Pick the top 2-3 candidates from the measured results so far and
-   run a **fine-grained mini-sweep** around each one's peak to
-   resolve the parameter-space shape that the current 12-point grid
+1. Pick the top 2-3 candidates from the measured results and run a
+   **fine-grained mini-sweep** around each one's peak to resolve
+   the parameter-space shape that the current 12-point grid
    smooths over.
-3. Simultaneously (or immediately after), run those same candidates
+2. Simultaneously (or immediately after), run those same candidates
    against a **second corpus** — this folds together the previously-
    deferred E5.4e (corpus-generalization) work with the new
    param-space refinement. One batch of sweeps answers both
@@ -363,29 +439,29 @@ Running order after E5.8 completes:
   with no neighboring points between 400 and 800 to tell which
   regime is really better. Refining those neighborhoods is cheap
   signal, but only on candidates worth refining — i.e. after we've
-  triaged down from 8 built-ins.
+  triaged down from 9 built-ins.
 
-### Candidate selection rule (to apply after E5.8 completes)
+### Candidate selection (applied after E5.8 completion)
 
-Score candidates by their measured peak Total /60 on markdown-memory.
-Advance candidates to the fine-tune/second-corpus phase IF they
-clear the "interesting" threshold:
+Scoring candidates by their measured peak Total /60 on markdown-memory:
 
-- **Always advance**: the current global-default bge-base (36) and
-  anything that beats it. As of now that's e5-base (40). Mxbai will
-  either clear or fail this bar when E5.8 finishes.
-- **Advance if close**: any model within ~3 pts of the top
-  candidate on primary Total /60 (e.g. if e5-base holds at 40,
-  anything scoring 37+). Those are plausibly ranked differently on
-  a different corpus.
-- **Do not advance**: models clearly below threshold (gte-base at
-  8, nl/nl-contextual at 6/3). No amount of chunk-refinement or
-  corpus-swap rescues a content-discrimination failure.
+| alias         | peak   | Total /60 | advance? |
+|---------------|--------|----------:|----------|
+| e5-base       | 1200/0 |    **40** | yes (current top) |
+| bge-base      |1200/240|        36 | yes (current global default) |
+| nomic         |1200/240|        35 | yes (within 5 pts of top) |
+| bge-large     | 1200/0 |        34 | maybe (within 6 pts — 1024 dim tier) |
+| mxbai-large   |  800/80|        31 | no (9 pts off top, 3 off current default) |
+| bge-small     | 1200/0 |        30 | no (10 pts off top) |
+| gte-base      | 1600/0 |         8 | no (content-discrimination failure) |
+| nl / nl-ctx   |   —    |       6/3 | no (ceiling) |
 
-The expected "advance" set post-E5.8 is likely 2-3 models. Keeping
-the set small is deliberate — fine-grained sweeps cost time, and we
-want enough signal per point to actually resolve the peak, not
-spread thin across 8 models.
+**Initial advance set: `e5-base`, `bge-base`, `nomic`.** Three
+768-dim candidates on the same corpus makes the comparison clean;
+storage geometry is shared. `bge-large` is a fence-sitter — the
+only 1024-dim model still in contention, but 6 pts below top and
+~3× slower. Advance it only if there's spare budget after the
+three-way 768-dim mini-sweep completes.
 
 ### Fine-tune mini-sweep shape (per candidate)
 

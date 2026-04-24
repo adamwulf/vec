@@ -246,6 +246,36 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 1200,
             defaultChunkOverlap: 0
         ),
+        // mxbai-embed-large-v1 — 1024-dim, mixedbread-ai/mxbai-embed-large-v1.
+        // Direct peer of bge-large (same dim, same Bert-large architecture,
+        // same CLS+L2 pooling) with one shape difference: an asymmetric
+        // **query-only** prefix is required for retrieval —
+        // `"Represent this sentence for searching relevant passages: "` —
+        // injected inside `MxbaiEmbedLargeEmbedder` so callers stay
+        // prefix-unaware. Documents take no prefix.
+        //
+        // The E5.8 chunk-geometry sweep (12 points: {800,1200,1600,2000}
+        // × {0%,10%,20%}, mirroring bge-large's E5.4c grid) identified
+        // 800/80 as the rubric peak: 31/60, 8/10 top10_either, 4/10
+        // top10_both. `800/160` is the co-peak on total_60 (31/60) but
+        // loses the tiebreaker on top10_both (3 vs 4). The peak shifts
+        // to the size-800 band — different from bge-large (peak at 1200)
+        // and bge-base (peak at 1200) — most plausibly because the query
+        // prefix's ~10 BERT WordPiece tokens eat into the 512-token
+        // budget. mxbai-large does NOT beat bge-large@1200/0 (34/60)
+        // and is well below bge-base@1200/240 (36/60) and e5-base@1200/0
+        // (40/60); the MTEB headroom over bge-large does not transfer
+        // to markdown-memory rubric performance. Retained as an opt-in
+        // 1024-dim alternative to bge-large, NOT a default candidate.
+        // See `data/retrieval-mxbai-large-sweep.md` for the full grid
+        // and the cross-model 1024-dim head-to-head with bge-large.
+        BuiltIn(
+            alias: "mxbai-large",
+            canonicalEmbedderName: "mxbai-embed-large-v1",
+            canonicalDimension: 1024,
+            defaultChunkSize: 800,
+            defaultChunkOverlap: 80
+        ),
     ]
 
     public static var knownAliases: [String] { builtIns.map(\.alias) }
@@ -305,6 +335,7 @@ public enum IndexingProfileFactory {
         case "nl-contextual": factory = { NLContextualEmbedder() }
         case "gte-base":      factory = { GTEBaseEmbedder() }
         case "e5-base":       factory = { E5BaseEmbedder() }
+        case "mxbai-large":   factory = { MxbaiEmbedLargeEmbedder() }
         default:              throw VecError.unknownProfile(alias)
         }
         let embedder = factory()
