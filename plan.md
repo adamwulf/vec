@@ -9,11 +9,11 @@ what's in progress, and what should happen next.
 - **Per-experiment plans + reports**: [`experiments/`](./experiments/)
 - **Superseded snapshots**: [`archived/`](./archived/)
 
-Last updated: 2026-04-23.
+Last updated: 2026-04-24.
 
 ---
 
-## Current state (as of 2026-04-23, post-E5.9a, default flipped to e5-base)
+## Current state (as of 2026-04-24, post-E5.9b, default flipped to e5-base)
 
 **Default embedder**: `e5-base@1200/0` (E5-base-v2, 768-dim,
 masked mean-pooled with `passage: ` / `query: ` prefix injection
@@ -459,25 +459,107 @@ edit to `indexing-profile.md` either.
 - Raw data + observations:
   [`data/retrieval-e5-base-refine.md`](./data/retrieval-e5-base-refine.md)
 
+### E5.9b — bge-base peak refinement (2026-04-24)
+
+12-point refinement (two 3×2 sub-grids) around the E5.4d two-way
+tie on `bge-base` at 36/60 (`1200/240` vs `800/80`):
+
+  Large-chunk: sizes 1100, 1200, 1300 × overlap_pcts 20%, 25%
+  Small-chunk: sizes  700,  800,  900 × overlap_pcts  5%, 10%
+
+Grid intentionally includes both tie-peak anchors (`1200/240` and
+`800/80`) for reproducibility checks.
+
+**Large-chunk sub-grid peak: `bge-base@1200/240` → 34/60** (tied
+with `bge-base@1300/325` → 34/60 on total_60; `1300/325` wins
+`top10_both` 3 vs 2).
+**Small-chunk sub-grid peak: `bge-base@800/80` → 32/60**,
+`top10_both=4`.
+**The tie breaks in favor of the large-chunk regime by 2 pts on
+total_60** (34 vs 32 at the sub-grid peaks). `bge-base@1200/240`
+remains the correct default; the newly-discovered `1300/325` is
+documented as a tied co-peak worth checking on a second corpus.
+
+- **Before refinement**: E5.4d two-way tie at 36/60 between
+  `1200/240` and `800/80`; default kept at `1200/240` on historical-
+  continuity grounds, not on a clear primary-metric preference.
+- **After refinement**: tie broken in favor of the large-chunk
+  regime (34 vs 32 at the sub-grid peaks on primary metric).
+  `1200/240` remains the best config in the large sub-grid, tied
+  with the refinement-only `1300/325` at 34/60. Default unchanged.
+
+**Reproducibility anchors DID NOT reproduce bit-exactly.** Unlike
+E5.9a (which reproduced e5-base's `1200/0` anchor with 0-pt
+drift), bge-base's two tie-peak anchors drifted on both total_60
+and chunk count:
+
+  1200/240:  E5.4d 36 / 8170 ch   →   E5.9b 34 / 8742 ch   (−2 pts, +7.0% chunks)
+  800/80:    E5.4d 36 / 11496 ch  →   E5.9b 32 / 12316 ch  (−4 pts, +7.1% chunks)
+
+The ~7% chunk-count growth on both anchors with no changes to
+the chunker or embedder source between E5.4d and E5.9b points to
+**corpus drift on the live `markdown-memory` folder** as the
+cause. E5.4d ran 2026-04-22 (commit `598a072`); E5.9b ran
+2026-04-23/24. Two days of user-side additions to the source
+folder is the simplest and only consistent explanation. The
+E5.9a e5-base refinement reproduced bit-exactly because E5.7
+and E5.9a shared a same-day corpus snapshot. This is a finding
+about the test corpus, not a bug in the indexer or scorer.
+
+**Implications for the cross-model comparison**: the E5.7
+`e5-base@1200/0` vs `bge-base@1200/240` delta (+4 / +3) was
+measured on a single-snapshot pre-drift corpus and remains the
+canonical flip evidence. Under the E5.9b corpus snapshot
+`e5-base` still sits at 40/60 (bit-exact) while `bge-base`
+dropped 2-4 pts at its anchors — the *gap* between the two on
+the drifted snapshot is 6-8 pts rather than 4-6 pts, but the
+pre-drift 4-6 pt gap is the evidence the global-default flip
+was made on and does not retroactively weaken. E5.9b does not
+move the global default.
+
+**Cross-model finding preserved**: `bge-base` still uniquely
+benefits from overlap at size 1200 at the finer (25%) probe.
+The 0 → 10% → 20% → 25% shape is 33 → 29 → 34-36 → 33 across
+E5.4d+E5.9b — overlap at 20% is the peak, 25% starts to roll
+off, no hidden sweet spot.
+
+**No default change.** `IndexingProfile.swift` already stamps
+`bge-base` with `1200/240` per commit `c6c2578` (Phase D).
+`indexing-profile.md`'s bge-base row (`1200/240 → 36 / 3`)
+stays as-is; the footnote ³ commentary about the 1200/240-vs-
+800/80 tie is refined by this sweep but the row values are the
+canonical pre-drift E5.4d numbers. No edit to
+`indexing-profile.md` in this commit.
+
+- Sweep archives: [`benchmarks/sweep-bge-base-refine-large/`](./benchmarks/sweep-bge-base-refine-large/), [`benchmarks/sweep-bge-base-refine-small/`](./benchmarks/sweep-bge-base-refine-small/)
+- Raw data + observations:
+  [`data/retrieval-bge-base-refine.md`](./data/retrieval-bge-base-refine.md)
+
 ---
 
 ## In progress
 
-`agent-263db028` is running E5.9b (bge-base peak refinement, two
-sub-sweeps targeting both coarse-tie-peaks `1200/240` and `800/80`;
-~3.5 h total, ~2 h left from start of 22:58 on 2026-04-23). When
-E5.9b completes, manager auto-queues E5.9c (nomic peak refinement,
-~5 h CPU-only). Both land around 07:00 CDT on 2026-04-24.
+E5.9b is the latest shipped sub-deliverable. Peak refinement
+resolves the E5.4d tie in favor of `bge-base@1200/240` by 2 pts
+on the primary metric and surfaces a **meaningful anchor-drift
+finding**: the live `markdown-memory` folder grew ~7% between
+E5.4d and E5.9b, producing −2 to −4 pt score drift on the same
+geometry across a 2-day window. The E5.7 global-default flip
+(bge-base → e5-base, commit `00e3fd3`) is NOT affected — the flip
+evidence (E5.7 40/60 vs E5.4d 36/60) was single-snapshot
+comparison between two distinct models, not a geometry shift. But
+the drift finding matters for the E5.9 cross-corpus plan (see
+"Next" below) and suggests freezing a corpus snapshot for future
+refinement runs.
 
-After E5.9c lands, manager auto-queues the E6.1 → E6.2 → E6.3 →
-E6.4 indexing-speed chain (see E6 section below). Full autonomy
-through the whole chain per manager directive 2026-04-23. You'll
-see the outcomes in plan.md by morning.
+Manager auto-queues next: E5.9c (nomic peak refinement, ~5 h
+CPU-only). When E5.9c lands, auto-queues the E6.1 → E6.2 → E6.3 →
+E6.4 indexing-speed chain per manager directive 2026-04-23. Full
+autonomy through the whole chain; outcomes land in plan.md by
+morning.
 
-E5.9a shipped earlier today and confirmed `e5-base@1200/0` at
-40/60, corroborating the E5.7 result. The global-default flip
-(bge-base → e5-base, commit `00e3fd3`) is on stronger footing as
-a result.
+E5.9a shipped 2026-04-23 and confirmed `e5-base@1200/0` at 40/60,
+corroborating the E5.7 result.
 
 ---
 
@@ -485,30 +567,45 @@ a result.
 
 Running order now that all queued novel-model sweeps have landed
 (E5.6 gte-base, E5.7 e5-base, E5.8 mxbai-large) and E5.9a (e5-base
-peak refinement) has shipped:
+peak refinement) + E5.9b (bge-base peak refinement) have shipped:
 
 - **E5.9a — e5-base peak refinement** ✅ done (2026-04-23). Peak
   confirmed at `e5-base@1200/0` → 40/60. See Done section above and
   `data/retrieval-e5-base-refine.md`.
-- **E5.9b — bge-base peak refinement** — open. E5.4d's two-way tie
-  at 36/60 (1200/240 vs 800/80) is the target: either break the tie
-  or confirm the plateau via a refinement around each peak.
+- **E5.9b — bge-base peak refinement** ✅ done (2026-04-24). E5.4d
+  two-way tie broken in favor of `1200/240` (large-chunk regime
+  wins by 2 pts on total_60). Surfaced a corpus-drift finding: the
+  live `markdown-memory` folder grew ~7% between E5.4d and E5.9b,
+  causing both anchor configs to drift −2 to −4 pts on total_60
+  without any indexer/scorer change. See Done section above and
+  `data/retrieval-bge-base-refine.md`.
 - **E5.9c — nomic peak refinement** — open. 1200/240 → 35/60 from
   the original migration sweep; refine around it (and check whether
   e5-base's 1200/0-rejects-overlap pattern holds for nomic too).
+  **Note**: the E5.9b corpus-drift finding means a nomic refinement
+  run now will not reproduce the pre-drift 35/60 bit-exactly either.
+  Plan for that: either accept the drifted baseline and compare
+  within-refinement ranking, or freeze a corpus snapshot first.
 
-Then, after those three land:
+Then, after E5.9c lands:
 
 1. Pick the top 2-3 candidates from the refined results and run a
    **fine-grained mini-sweep** around each one's peak to resolve
    the parameter-space shape that the current 12-point grid
-   smooths over. (E5.9a already done this for e5-base; b/c are its
-   analogs for bge-base and nomic.)
+   smooths over. (E5.9a/b done this for e5-base and bge-base; c
+   is its analog for nomic.)
 2. Simultaneously (or immediately after), run those same candidates
    against a **second corpus** — this folds together the previously-
    deferred E5.4e (corpus-generalization) work with the new
    param-space refinement. One batch of sweeps answers both
    questions.
+3. **Corpus-snapshotting question** (surfaced by E5.9b): should
+   rubric sweeps freeze a corpus snapshot, or keep tracking the
+   live folder? Frozen snapshots give bit-exact reproducibility
+   (E5.9a-style) but risk the rubric decaying as the live corpus
+   evolves. Live folders stay representative but give up
+   reproducibility. Decide before the second-corpus work so
+   that comparison is clean.
 
 ### Why do these together
 
