@@ -13,7 +13,7 @@ Last updated: 2026-04-23.
 
 ---
 
-## Current state (as of 2026-04-23, post-E5.8)
+## Current state (as of 2026-04-23, post-E5.9a)
 
 **Default embedder**: `bge-base@1200/240` (BGE-base-en-v1.5, 768-dim).
 
@@ -399,28 +399,89 @@ target in top 10 at any geometry mxbai swept.
 - Raw data + observations:
   [`data/retrieval-mxbai-large-sweep.md`](./data/retrieval-mxbai-large-sweep.md)
 
+### E5.9a — e5-base peak refinement (2026-04-23)
+
+9-point mini-sweep around the E5.7 coarse peak (`e5-base@1200/0` →
+40/60) to answer whether a ±100-size / ±5%-overlap neighbor hides a
+better configuration than the coarse grid surfaced. Grid:
+
+  sizes: 1100, 1200, 1300  ×  overlap_pcts: 0%, 5%, 10%
+
+**Peak unchanged: `e5-base@1200/0` → 40/60, 9/10 top10_either, 6/10
+top10_both, wall 861 s at the peak.** Runner-up `1100/110` lands at
+39/60 (−1 pt, −1 top10_both). Total sweep wall ≈ 2 h 29 min.
+
+- **Before refinement**: `e5-base@1200/0` → 40/60 (E5.7 coarse, 12
+  points, ±400/±10% spacing).
+- **After refinement**: `e5-base@1200/0` → 40/60 (E5.9a refine, 9
+  points, ±100/±5% spacing around the coarse peak). Every
+  refinement-only neighbor scores strictly lower on total_60 — the
+  peak is a single-point peak, not a plateau.
+- **Global-default question now sharper, not flipped.** The coarse
+  grid's "peak might be a grid artifact" uncertainty is resolved;
+  the 40/60 is robust under refinement. The e5-base-vs-bge-base
+  candidate flip remains a manager decision pending E5.9b/c and
+  second-corpus evidence.
+
+**Reproducibility anchors.** `1200/0` and `1200/120` are in both
+this grid and the E5.7 coarse grid. Both reproduced bit-exactly on
+total_60, top10_either, top10_both, and chunk count (0-pt deviation).
+Wallclock drifted ~15% — expected CoreML/ANE placement variance that
+doesn't affect deterministic rubric scores.
+
+**Cross-row finding: overlap behavior is size-dependent for e5-base.**
+At size 1100, 10% overlap recovers most of the loss from shrinking
+the chunk (33 → 39). At size 1200, any overlap is a small net loss
+(40 → 38). At size 1300, overlap is flat (34 → 33 → 33). The
+coarse grid's "e5-base rejects overlap at 1200" finding survives at
+the finer 5% step — 1200/60 lands at 38, below 1200/0's 40 and tied
+with 1200/120's 38. No hidden 5%-overlap sweet spot.
+
+**No default change.** `IndexingProfile.swift` already stamps
+`e5-base` with `1200/0` defaults per the E5.7 commit (`4792953`);
+this refinement corroborates that value rather than moving it. No
+edit to `indexing-profile.md` either.
+
+- Sweep archive: [`benchmarks/sweep-e5-base-refine/`](./benchmarks/sweep-e5-base-refine/)
+- Raw data + observations:
+  [`data/retrieval-e5-base-refine.md`](./data/retrieval-e5-base-refine.md)
+
 ---
 
 ## In progress
 
-None. E5.8 is the latest shipped experiment. mxbai-large peaked at
-31/60 on markdown-memory (below bge-base 36 and e5-base 40); it
-does not produce a new global-default candidate. The open
+None. E5.9a is the latest shipped sub-deliverable. Peak refinement
+confirms `e5-base@1200/0` at 40/60; no default change. The open
 manager-decision question from E5.7 — whether to flip the global
 default from `bge-base` to `e5-base` — remains open and is
-intentionally deferred pending E5.9 (below) cross-corpus evidence.
+intentionally deferred pending the remaining E5.9 refinements
+(bge-base, nomic) and cross-corpus evidence.
 
 ---
 
 ## Next — E5.9: Fine-tune top candidates + second-corpus validation
 
 Running order now that all queued novel-model sweeps have landed
-(E5.6 gte-base, E5.7 e5-base, E5.8 mxbai-large):
+(E5.6 gte-base, E5.7 e5-base, E5.8 mxbai-large) and E5.9a (e5-base
+peak refinement) has shipped:
 
-1. Pick the top 2-3 candidates from the measured results and run a
+- **E5.9a — e5-base peak refinement** ✅ done (2026-04-23). Peak
+  confirmed at `e5-base@1200/0` → 40/60. See Done section above and
+  `data/retrieval-e5-base-refine.md`.
+- **E5.9b — bge-base peak refinement** — open. E5.4d's two-way tie
+  at 36/60 (1200/240 vs 800/80) is the target: either break the tie
+  or confirm the plateau via a refinement around each peak.
+- **E5.9c — nomic peak refinement** — open. 1200/240 → 35/60 from
+  the original migration sweep; refine around it (and check whether
+  e5-base's 1200/0-rejects-overlap pattern holds for nomic too).
+
+Then, after those three land:
+
+1. Pick the top 2-3 candidates from the refined results and run a
    **fine-grained mini-sweep** around each one's peak to resolve
    the parameter-space shape that the current 12-point grid
-   smooths over.
+   smooths over. (E5.9a already done this for e5-base; b/c are its
+   analogs for bge-base and nomic.)
 2. Simultaneously (or immediately after), run those same candidates
    against a **second corpus** — this folds together the previously-
    deferred E5.4e (corpus-generalization) work with the new
