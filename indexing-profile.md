@@ -17,7 +17,7 @@ return nonsense. The profile identity is what prevents that: it
 commits the full parameter bundle to a single string the database
 can match against on every open.
 
-Eight built-in profiles ship today:
+Nine built-in profiles ship today:
 
 | Alias            | Canonical identity         | Embedder                | Dim  | Chunk size | Chunk overlap | Total /60  | Both-top10 /10 | Index wall¹ | ch/s¹  |
 | ---------------- | -------------------------- | ----------------------- | ---- | ---------- | ------------- | ---------- | -------------- | ----------- | ------ |
@@ -25,6 +25,7 @@ Eight built-in profiles ship today:
 | `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      |  768 | 1200 chars | 240 chars     | 36         | 3              | 1003 s      | 8.1    |
 | `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        |  768 | 1200 chars | 240 chars     | 35         | 3              | 1417 s²     | 5.8²   |
 | `bge-large`      | `bge-large@1200/0`³        | `bge-large-en-v1.5`     | 1024 | 1200 chars | 0 chars       | 34         | 3              | 3220 s      | 2.3    |
+| `mxbai-large`    | `mxbai-large@800/80`³      | `mxbai-embed-large-v1`  | 1024 |  800 chars | 80 chars      | 31         | 4              | 3638 s      | 3.2    |
 | `bge-small`      | `bge-small@1200/0`³        | `bge-small-en-v1.5`     |  384 | 1200 chars | 0 chars       | 30         | 2              | 610 s       | 12.3   |
 | `gte-base`       | `gte-base@1600/0`³         | `gte-base-en-v1.5`      |  768 | 1600 chars | 0 chars       | 8⁴         | 0              | 974 s       | 5.9    |
 | `nl`             | `nl@2000/200`              | `nl-en-512`             |  512 | 2000 chars | 200 chars     | 6          | 0              | 138 s       | 35.0   |
@@ -33,16 +34,19 @@ Eight built-in profiles ship today:
 ¹ Wall-clock and chunks-per-second for a full reindex of the
 `markdown-memory` corpus (674 files; chunk counts vary with the
 profile's chunk geometry — 8170 chunks at 1200/240, 7528 chunks at
-1200/0, 4828 chunks for `nl` at 2000/200, 5760 chunks at 1600/0),
-10-core Apple Silicon, pool=10, batch=16, release build. `bge-base`
-row is from the E4 batched commit; `bge-small` / `bge-large` rows are
-from the E5.4 sweep peaks; `gte-base` is from the E5.6 sweep peak;
-`e5-base` is from the E5.7 sweep peak. Per-model sweep data:
+1200/0, 4828 chunks for `nl` at 2000/200, 5760 chunks at 1600/0,
+11496 chunks at 800/80), 10-core Apple Silicon, pool=10, batch=16,
+release build. `bge-base` row is from the E4 batched commit;
+`bge-small` / `bge-large` rows are from the E5.4 sweep peaks;
+`gte-base` is from the E5.6 sweep peak; `e5-base` is from the E5.7
+sweep peak; `mxbai-large` is from the E5.8 sweep peak. Per-model
+sweep data:
 [`data/retrieval-bge-small-sweep.md`](./data/retrieval-bge-small-sweep.md),
 [`data/retrieval-bge-base-sweep.md`](./data/retrieval-bge-base-sweep.md),
 [`data/retrieval-bge-large-sweep.md`](./data/retrieval-bge-large-sweep.md),
 [`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md),
-[`data/retrieval-e5-base-sweep.md`](./data/retrieval-e5-base-sweep.md).
+[`data/retrieval-e5-base-sweep.md`](./data/retrieval-e5-base-sweep.md),
+[`data/retrieval-mxbai-large-sweep.md`](./data/retrieval-mxbai-large-sweep.md).
 `ch/s` is `chunks ÷ wall`. Full per-stage breakdown for the E4
 baseline in `data/wallclock-e4-per-model.md`.
 
@@ -56,25 +60,34 @@ path (with ANE) was ~2940 s. See
 `data/wallclock-e4-per-model.md` for detail.
 
 ³ All `@<size>/<overlap>` defaults carrying this footnote were tuned
-by full chunk×overlap sweeps, not seeded. Peaks at size 1200 split
-along a single-axis: `bge-small`, `bge-large`, `gte-base`, and
-`e5-base` all **reject** overlap at 1200 (peak at 0); `bge-base`
-uniquely **benefits** from overlap at 1200 (peak at 240). The
-pattern is not monotone in embedding dimension (bge-base is the
-only outlier, sitting in the middle at 768-dim) and does not line
-up with distillation status either (bge-base and gte-base are both
-distilled; only bge-base likes overlap). `bge-base@1200/240` and
-`bge-base@800/80` were a two-way tie at 36/60 (E5.4d); kept at
-1200/240 to match the historical default. `gte-base`'s peak is
-1600/0 rather than 1200/0 but the overlap-rejection pattern is the
-same across sizes. `e5-base@1200/0` at **40/60, 6/10 both-top10** is
-the first model to beat the current global default (bge-base's
-36/60, 3/10 both-top10) — see the e5-base sweep data file for the
-three-way 768-dim cross-model comparison and the global-default
-candidacy notes. The original single-point E5.2/E5.3 measurements
-for bge-small/bge-large at the seeded 1200/240 geometry are
-preserved in
-[`data/retrieval-bge-small.md`](./data/retrieval-bge-small.md) and
+by full chunk×overlap sweeps, not seeded. Peaks split along the
+chunk-size axis:
+
+- **Size-1200 band**: `bge-base` (peak 1200/240), `bge-small`,
+  `bge-large`, `e5-base` (all peak at 1200/0). Within this band,
+  `bge-base` uniquely **benefits** from overlap; the other three
+  **reject** it. The pattern is not monotone in embedding
+  dimension (bge-base is the outlier at the middle 768-dim tier)
+  and does not line up with distillation status either. `bge-base`'s
+  co-peak at `800/80` (also 36/60 in E5.4d) was kept at 1200/240 to
+  match the historical default.
+- **Size-800 band**: `mxbai-large` (peak 800/80). The only built-in
+  peaking below the 1200 band. Its required query prefix
+  `"Represent this sentence for searching relevant passages: "` eats
+  ~10 BERT WordPiece tokens from the 512-token budget, effectively
+  shrinking its context window — the peak-shift-down is consistent
+  with that mechanism though not formally proven. See the mxbai
+  sweep data file for details.
+- **Size-1600 band**: `gte-base` (peak 1600/0). Overlap-rejection
+  pattern holds across sizes.
+
+`e5-base@1200/0` at **40/60, 6/10 both-top10** is the first model
+to beat the current global default (bge-base's 36/60, 3/10
+both-top10) — see the e5-base sweep data file for the three-way
+768-dim cross-model comparison and the global-default candidacy
+notes. The original single-point E5.2/E5.3 measurements for
+bge-small/bge-large at the seeded 1200/240 geometry are preserved
+in [`data/retrieval-bge-small.md`](./data/retrieval-bge-small.md) and
 [`data/retrieval-bge-large.md`](./data/retrieval-bge-large.md) as
 historical data points.
 
@@ -406,11 +419,15 @@ Open directions the current shape already supports:
 - **Per-profile query shaping.** The `Embedder` protocol's
   `embedQuery` / `embedDocument` split lets each embedder apply its
   own asymmetric preprocessing without touching callers. Registered
-  examples span three patterns: Nomic prepends `search_query: ` /
-  `search_document: ` (symmetric but prefix-different); e5-base
-  prepends `query: ` / `passage: ` (same shape, different strings);
-  later work may want query-only prefixes or full re-ranking paths.
-  All fit behind the same split.
+  examples span four patterns: BGE and GTE use no prefixes on either
+  side; Nomic prepends `search_query: ` / `search_document: `
+  (symmetric but prefix-different); e5-base prepends
+  `query: ` / `passage: ` (same shape, different strings);
+  mxbai-large prepends a longer
+  `"Represent this sentence for searching relevant passages: "` on
+  queries only (asymmetric — documents take no prefix). All fit
+  behind the same split; callers call `embedDocument` and
+  `embedQuery` identically regardless of the embedder's shape.
 - **Non-character chunking.** Token-count-based chunking would need
   a different identity encoding (`nomic@T256/T64` to distinguish),
   but the profile struct already carries `chunkSize` and
