@@ -102,15 +102,16 @@ non-BGE 768-dim option, but on this corpus it is below threshold.
 See [`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md)
 §2 for the full failure-mode analysis.
 
-`bge-base` is the default. (Originally `nomic`; flipped 2026-04-19
-after the Phase D sweep — see `experiments/PhaseD-embedder-expansion/plan.md` §"Default
-alias decision".) `e5-base` is a live candidate to replace it —
-it beats bge-base at every primary metric on markdown-memory
-(40/60 vs 36/60 total, 6/10 vs 3/10 both-top10, wallclock parity,
-same 768-dim storage geometry) and would be a clean swap. The
-candidacy is intentionally unresolved pending cross-corpus
-validation (blocked on the deferred E5.4e vec-source rubric) and
-a direct call from the project owner. Source of truth for the
+`e5-base` is the default as of 2026-04-23. (Originally `nomic`;
+flipped to `bge-base` on 2026-04-19 after the Phase D sweep — see
+`experiments/PhaseD-embedder-expansion/plan.md` §"Default alias
+decision". Flipped to `e5-base` on 2026-04-23 after E5.7 showed
+`e5-base@1200/0` beating bge-base at every primary metric on
+markdown-memory: 40/60 vs 36/60 Total, 6/10 vs 3/10 Both-top10,
+wallclock parity, same 768-dim storage geometry.) Cross-corpus
+validation on `vec-source` is still open (blocked on the deferred
+E5.4e rubric) — if a second corpus ranks the candidates
+differently, the default may revisit. Source of truth for the
 effective default is `IndexingProfileFactory.defaultAlias` in
 `Sources/VecKit/IndexingProfile.swift`.
 

@@ -130,7 +130,7 @@ public enum IndexingProfileFactory {
         public let defaultChunkOverlap: Int
     }
 
-    public static let defaultAlias = "bge-base"
+    public static let defaultAlias = "e5-base"
 
     /// Static table. Adding a new embedder means adding one row here
     /// plus wiring the `make` switch below. Never instantiates an

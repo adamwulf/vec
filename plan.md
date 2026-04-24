@@ -13,21 +13,29 @@ Last updated: 2026-04-23.
 
 ---
 
-## Current state (as of 2026-04-23, post-E5.8)
+## Current state (as of 2026-04-23, post-E5.8, default flipped to e5-base)
 
-**Default embedder**: `bge-base@1200/240` (BGE-base-en-v1.5, 768-dim).
+**Default embedder**: `e5-base@1200/0` (E5-base-v2, 768-dim,
+masked mean-pooled with `passage: ` / `query: ` prefix injection
+inside the embedder). Flipped from `bge-base@1200/240` on
+2026-04-23 after E5.7 established e5-base at 40/60 vs bge-base's
+36/60 on markdown-memory (see "E5.7 headline finding" below and
+`data/retrieval-e5-base-sweep.md` §4 for the evidence).
 
-**Rubric score on markdown-memory**: 36/60, 9/10 top-10 hits
-(scored with `.score-rubric.py` against the 10-query trademark
-rubric). See [`retrieval-rubric.md`](./retrieval-rubric.md) for
-the rubric definition.
+**Rubric score on markdown-memory**: 40/60, 9/10 top10_either,
+**6/10 top10_both** (scored with `scripts/score-rubric.py` against
+the 10-query trademark rubric). See
+[`retrieval-rubric.md`](./retrieval-rubric.md) for the rubric
+definition.
 
-**Wallclock on markdown-memory**: ~1028 s at N=10 workers,
-batchSize=16 on a 10-core Apple Silicon machine. Per-model
-comparison in [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md).
+**Wallclock on markdown-memory**: ~1025 s at N=10 workers,
+batchSize=16 on a 10-core Apple Silicon machine — parity with
+bge-base's ~1003 s, no throughput cost for the quality gain.
+Per-model comparison in
+[`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md).
 
-**Built-in embedders**: `bge-base` (default), `bge-small`, `bge-large`,
-`gte-base`, `e5-base`, `mxbai-large`, `nomic`, `nl-contextual`, `nl`.
+**Built-in embedders**: `e5-base` (default), `bge-base`, `bge-small`,
+`bge-large`, `gte-base`, `mxbai-large`, `nomic`, `nl-contextual`, `nl`.
 See [`indexing-profile.md`](./indexing-profile.md) for the profile
 grammar and [`README.md`](./README.md#built-in-embedders) for the
 comparison table. As of E5.4 / E5.6 / E5.7 / E5.8, the BGE tier,
@@ -64,11 +72,12 @@ dim-tier or distillation property.
 **E5.7 headline finding: e5-base BEATS bge-base on markdown-memory.**
 `e5-base@1200/0` = 40/60, 9/10 top10_either, 6/10 top10_both vs
 bge-base@1200/240 = 36/60, 9/10, 3/10 on the same corpus with the
-same rubric and near-identical wallclock (~1025 s vs ~1003 s). This
-is a candidate global-default change pending manager review and a
-second-corpus confirmation; the E5.7 commit updates the e5-base
-alias default to 1200/0 but leaves `IndexingProfileFactory.defaultAlias`
-as `bge-base`. See `data/retrieval-e5-base-sweep.md` §4.
+same rubric and near-identical wallclock (~1025 s vs ~1003 s).
+`IndexingProfileFactory.defaultAlias` was flipped from `bge-base`
+to `e5-base` on 2026-04-23 on the strength of this evidence. A
+second-corpus confirmation is still open under E5.9 (below);
+if the cross-corpus ranking diverges, the default may revisit. See
+`data/retrieval-e5-base-sweep.md` §4.
 
 **Known issues**:
 - None outstanding in the E5.4 scope. The silent-failure observability
