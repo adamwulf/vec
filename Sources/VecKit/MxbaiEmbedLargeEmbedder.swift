@@ -1,4 +1,5 @@
 import Foundation
+import CoreML
 import Embeddings
 
 /// `Embedder` wrapping `swift-embeddings`' Bert loader against
@@ -37,8 +38,11 @@ public actor MxbaiEmbedLargeEmbedder: Embedder {
     private static let queryPrefix = "Represent this sentence for searching relevant passages: "
 
     private var bundle: Bert.ModelBundle?
+    private let computePolicy: MLComputePolicy?
 
-    public init() {}
+    public init(computePolicy: MLComputePolicy? = nil) {
+        self.computePolicy = computePolicy
+    }
 
     public func embedDocument(_ text: String) async throws -> [Float] {
         try await embedSingle(prefix: "", text: text)
@@ -57,7 +61,9 @@ public actor MxbaiEmbedLargeEmbedder: Embedder {
         }
 
         let bundle = try await loadBundleIfNeeded()
-        let tensor = try bundle.batchEncode(inputs.liveInputs, padTokenId: 0, maxLength: 512)
+        let tensor = try withOptionalComputePolicy(computePolicy) {
+            try bundle.batchEncode(inputs.liveInputs, padTokenId: 0, maxLength: 512)
+        }
         let scalars = await tensor.cast(to: Float.self).shapedArray(of: Float.self).scalars
 
         return unpackAndReinterleave(
@@ -77,7 +83,9 @@ public actor MxbaiEmbedLargeEmbedder: Embedder {
         }
 
         let bundle = try await loadBundleIfNeeded()
-        let tensor = try bundle.encode(prefixed, maxLength: 512)
+        let tensor = try withOptionalComputePolicy(computePolicy) {
+            try bundle.encode(prefixed, maxLength: 512)
+        }
         let scalars = await tensor.cast(to: Float.self).shapedArray(of: Float.self).scalars
         return l2Normalize(scalars)
     }

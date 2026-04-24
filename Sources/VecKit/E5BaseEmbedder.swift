@@ -38,8 +38,11 @@ public actor E5BaseEmbedder: Embedder {
     private static let queryPrefix = "query: "
 
     private var bundle: Bert.ModelBundle?
+    private let computePolicy: MLComputePolicy?
 
-    public init() {}
+    public init(computePolicy: MLComputePolicy? = nil) {
+        self.computePolicy = computePolicy
+    }
 
     public func embedDocument(_ text: String) async throws -> [Float] {
         try await embedSingle(prefix: Self.documentPrefix, text: text)
@@ -98,34 +101,46 @@ public actor E5BaseEmbedder: Embedder {
         let batchTokenize = try bundle.tokenizer.tokenizeTextsPaddingToLongest(
             texts, padTokenId: 0, maxLength: 512)
 
-        let inputIds = MLTensor(
-            shape: batchTokenize.shape,
-            scalars: batchTokenize.tokens)
-        let attentionMask = MLTensor(
-            shape: batchTokenize.shape,
-            scalars: batchTokenize.attentionMask)
+        // Graph construction and the `bundle.model(...)` call happen
+        // inside `withMLTensorComputePolicy` so the E6 `--compute-policy`
+        // flag (`auto` / `cpu` / `ane` / `gpu`) reaches the MLTensor
+        // scope that compiles the CoreML graph for this run.
+        // Materialization (`await pooled.cast(...).shapedArray(...)`)
+        // runs outside the scope — MLTensor captures the policy at graph
+        // construction time, same pattern `swift-embeddings`' NomicBert
+        // uses internally (NomicBertModel.swift: batchEncode wraps its
+        // body in `withMLTensorComputePolicy` and returns the tensor to
+        // the caller to materialize).
+        let pooled = withOptionalComputePolicy(computePolicy) { () -> MLTensor in
+            let inputIds = MLTensor(
+                shape: batchTokenize.shape,
+                scalars: batchTokenize.tokens)
+            let attentionMask = MLTensor(
+                shape: batchTokenize.shape,
+                scalars: batchTokenize.attentionMask)
 
-        // Drive the model directly so the attention mask flows into the
-        // encoder (for padding-aware attention) AND can be reused below
-        // for masked mean pooling. `sequenceOutput` is shape
-        // [batch, seqLen, hiddenSize].
-        let (sequenceOutput, _) = bundle.model(
-            inputIds: inputIds,
-            attentionMask: attentionMask)
+            // Drive the model directly so the attention mask flows into the
+            // encoder (for padding-aware attention) AND can be reused below
+            // for masked mean pooling. `sequenceOutput` is shape
+            // [batch, seqLen, hiddenSize].
+            let (sequenceOutput, _) = bundle.model(
+                inputIds: inputIds,
+                attentionMask: attentionMask)
 
-        // Masked mean pool. Broadcast the [batch, seqLen] mask across the
-        // hidden dim by expanding to [batch, seqLen, 1], multiply to zero
-        // out pad positions, sum over seqLen, then divide by the per-row
-        // non-pad token count. `keepRank: true` on the denominator gives
-        // a [batch, 1] tensor that broadcasts cleanly against the
-        // [batch, hiddenSize] numerator. This mirrors the recipe used
-        // internally by `swift-embeddings` for NomicBert's `.meanPool`
-        // postProcess (see EmbeddingsUtils.swift `maskedMeanPool`).
-        let expandedMask = attentionMask.expandingShape(at: 2)
-        let masked = sequenceOutput * expandedMask
-        let summed = masked.sum(alongAxes: 1, keepRank: false)
-        let tokenCounts = attentionMask.sum(alongAxes: 1, keepRank: true)
-        let pooled = summed / tokenCounts
+            // Masked mean pool. Broadcast the [batch, seqLen] mask across the
+            // hidden dim by expanding to [batch, seqLen, 1], multiply to zero
+            // out pad positions, sum over seqLen, then divide by the per-row
+            // non-pad token count. `keepRank: true` on the denominator gives
+            // a [batch, 1] tensor that broadcasts cleanly against the
+            // [batch, hiddenSize] numerator. This mirrors the recipe used
+            // internally by `swift-embeddings` for NomicBert's `.meanPool`
+            // postProcess (see EmbeddingsUtils.swift `maskedMeanPool`).
+            let expandedMask = attentionMask.expandingShape(at: 2)
+            let masked = sequenceOutput * expandedMask
+            let summed = masked.sum(alongAxes: 1, keepRank: false)
+            let tokenCounts = attentionMask.sum(alongAxes: 1, keepRank: true)
+            return summed / tokenCounts
+        }
 
         return await pooled.cast(to: Float.self).shapedArray(of: Float.self).scalars
     }

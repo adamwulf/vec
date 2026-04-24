@@ -1,4 +1,5 @@
 import Foundation
+import CoreML
 import NaturalLanguage
 
 /// `Embedder` wrapping `NLEmbedding.sentenceEmbedding(for: .english)`. See `archived/pluggable-embedders.md`.
@@ -12,7 +13,13 @@ public actor NLEmbedder: Embedder {
 
     private let embedding: NLEmbedding?
 
-    public init() {
+    /// Accepts and ignores `computePolicy` — `NLEmbedding` uses Apple's
+    /// NaturalLanguage framework (not CoreML/MLTensor), so the E6
+    /// `--compute-policy` flag has no effect on this embedder. Kept on
+    /// the init signature so `IndexingProfileFactory.make` can pass
+    /// the flag uniformly across all registered embedders.
+    public init(computePolicy: MLComputePolicy? = nil) {
+        _ = computePolicy
         self.embedding = NLEmbedding.sentenceEmbedding(for: .english)
     }
 

@@ -174,18 +174,38 @@ public final class IndexingPipeline: Sendable {
     /// avoid BNNS crashes in `swift-embeddings` (jkrukowski#17).
     public let batchSize: Int
 
+    /// Length-bucket key divisor. The batch-former groups chunks into
+    /// buckets keyed by `chunk.text.count / bucketWidth` so similarly-
+    /// sized chunks batch together and minimize `batchEncode` padding
+    /// waste. Default `500` matches E4's tuning for bge-base; narrower
+    /// widths produce more small batches, wider widths produce fewer
+    /// large-but-padded batches. Exposed for the E6 speed sweep.
+    public let bucketWidth: Int
+
+    /// Default length-bucket width in characters. Matches the E4
+    /// hardcoded value; exposed as a constant so callers can refer to
+    /// it by name instead of re-declaring the literal.
+    public static let defaultBucketWidth: Int = 500
+
+    /// Default batch size. Matches the E4-era hardcoded value.
+    public static let defaultBatchSize: Int = 16
+
     /// Bounded pool of N embedder instances sized to `workerCount`.
     private let pool: EmbedderPool
 
     public init(
         concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
-        batchSize: Int = 16,
+        batchSize: Int = IndexingPipeline.defaultBatchSize,
+        bucketWidth: Int = IndexingPipeline.defaultBucketWidth,
         profile: IndexingProfile
     ) {
         precondition(batchSize >= 1 && batchSize <= 32,
                      "batchSize must be in 1…32 (BNNS cap per swift-embeddings #17)")
+        precondition(bucketWidth >= 1,
+                     "bucketWidth must be >= 1 (chunk.text.count / bucketWidth is the bucket key)")
         self.workerCount = concurrency
         self.batchSize = batchSize
+        self.bucketWidth = bucketWidth
         self.pool = EmbedderPool(factory: profile.embedderFactory, count: concurrency)
     }
 
@@ -259,6 +279,7 @@ public final class IndexingPipeline: Sendable {
         // pipeline starts consuming in batches rather than one-at-a-time.
         let extractGate = ExtractBackpressure(capacity: workerCount * batchSize * 2)
         let batchSize = self.batchSize
+        let bucketWidth = self.bucketWidth
 
         try await withThrowingTaskGroup(of: Void.self) { group in
 
@@ -371,8 +392,9 @@ public final class IndexingPipeline: Sendable {
             }
 
             // Stage 1.5: Batch-former. Drains embedStream, length-buckets
-            // by chunk.text.count / 500 (minimizes batchEncode padding
-            // waste). Flush rules, in order:
+            // by chunk.text.count / bucketWidth (minimizes batchEncode
+            // padding waste; default width 500 char). Flush rules, in
+            // order:
             //   1. If any bucket hits batchSize, flush it (preferred: full
             //      batch = best pool utilization, minimal padding).
             //   2. Else, if total buffered items reaches batchSize, flush
@@ -397,7 +419,7 @@ public final class IndexingPipeline: Sendable {
                     // are mutually exclusive via `else if`, so at most one
                     // flush fires per iteration. This is what keeps the
                     // 2*batchSize − 1 worst-case `totalBuffered` bound.
-                    let bucket = work.chunk.text.count / 500
+                    let bucket = work.chunk.text.count / bucketWidth
                     buckets[bucket, default: []].append(work)
                     totalBuffered += 1
                     if buckets[bucket]!.count >= batchSize {

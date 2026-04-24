@@ -633,6 +633,53 @@ generalization work and for E6 indexing-speed regression bars.
 - Raw data + observations:
   [`data/retrieval-nomic-refine.md`](./data/retrieval-nomic-refine.md)
 
+### E6.1 — CLI flags for tuning knobs (2026-04-24)
+
+First step of the E6 e5-base indexing-speed tuning chain. Exposed
+the three indexing-pipeline tuning knobs that were hardcoded in
+E4 (concurrency=10, batchSize=16, bucket-width=500) plus a new
+MLTensor compute-policy knob as CLI flags on both `vec update-index`
+and `vec sweep`:
+
+- `--concurrency` — overrides `EmbedderPool` worker count.
+- `--batch-size` — overrides the batch-former flush threshold (cap 32).
+- `--bucket-width` — overrides `chunk.text.count / N` bucket key divisor.
+- `--compute-policy` (`auto` | `cpu` | `ane` | `gpu`) — routes a
+  user-supplied `MLComputePolicy` through `IndexingProfileFactory.make`
+  to every Bert-family embedder's `withMLTensorComputePolicy(...)`
+  scope.
+
+**Compute-policy plumbing worked without an upstream fork.**
+`Bert.ModelBundle.encode` / `batchEncode` don't accept a policy
+parameter (only `NomicBert.ModelBundle` does), but
+`withMLTensorComputePolicy(_:,_:)` is a scope-based CoreML helper
+that captures the policy at MLTensor graph-construction time. Each
+Bert-family embedder (bge-base / bge-small / bge-large / gte-base /
+e5-base / mxbai-large) now wraps its model invocation in that scope
+when a policy is supplied; NomicEmbedder honors the CLI override
+otherwise keeping its `.cpuOnly` ANE-fp16 pin; NL and NLContextual
+ignore the policy (non-CoreML path). Same pattern that
+`swift-embeddings`' `NomicBertModel.swift` uses internally.
+
+**Regression-bar check: default-flag mode reproduces the baseline
+archive byte-for-byte.** Scored both
+`benchmarks/e5-base-baseline-2026-04-24/e5-base-1200-0/` and
+`benchmarks/e5-base-postflag-smoke/e5-base-1200-0/` with
+`scripts/score-rubric.py` — identical `total_60`, `top10_either`,
+`top10_both` rows. The pre-E6.1 call sites (tests, the no-flags
+update-index path) all hit the new optional-parameter defaults and
+see no behavior change.
+
+**Flag-probe run** (`--concurrency 6 --batch-size 24 --bucket-width 300`)
+archived at `benchmarks/e5-base-flag-probe/`; confirmed the flags
+route cleanly through both commands.
+
+Unblocks E6.2 (ANE feasibility probe) and E6.3 (speed grid).
+
+- Writeup: [`data/e6-1-cli-flags.md`](./data/e6-1-cli-flags.md)
+- Regression-smoke archive: [`benchmarks/e5-base-postflag-smoke/`](./benchmarks/e5-base-postflag-smoke/)
+- Flag-probe archive: [`benchmarks/e5-base-flag-probe/`](./benchmarks/e5-base-flag-probe/)
+
 ---
 
 ## In progress
@@ -664,11 +711,27 @@ E5.7 global-default flip (bge-base → e5-base, commit `00e3fd3`)
 NOT affected by drift — cross-model gap preserved across
 snapshots.
 
-Manager auto-queues next: E6.1 → E6.2 → E6.3 → E6.4
-indexing-speed chain per manager directive 2026-04-23. The
-fresh `benchmarks/e5-base-baseline-2026-04-24/` archive is the
-E6.3 regression-bar reference anchor (E5.7's stale archive is
-retired for that purpose).
+**E6.1 shipped 2026-04-24** (see Done above). CLI flags for
+`concurrency` / `batch-size` / `bucket-width` / `compute-policy`
+on both `update-index` and `sweep`, plumbed through
+`IndexingPipeline` + every registered Bert-family embedder.
+Regression bar: default-flag smoke archive matches the
+`e5-base-baseline-2026-04-24` reference byte-for-byte on
+total_60 / top10_either / top10_both. E6.2 is now unblocked
+(the ANE probe can run `--compute-policy ane` directly).
+
+**E6.2 auto-queued next.** Single e5-base index run on
+markdown-memory at the default geometry with
+`--compute-policy ane`. Measures whether the graph compiles for
+ANE (risk: nomic hit "Incompatible element type for ANE" on
+macOS 26.3.1+ and had to pin `.cpuOnly` — e5-base's custom
+mean-pool via `bundle.model(...)` is a different code path so
+may succeed or fail differently), wallclock, and bit-identical
+retrieval vs the baseline archive. Outcome shapes E6.3's grid.
+
+E6.3 → E6.4 remain as planned below. The fresh
+`benchmarks/e5-base-baseline-2026-04-24/` archive remains the
+E6.3 regression-bar reference anchor.
 
 ---
 
@@ -897,16 +960,15 @@ measure indexing wallclock; retrieval quality must stay
 bit-identical (the E4 regression bar). Execution order is fixed —
 each step's outcome shapes the next:
 
-**E6.1 — CLI flags for tuning knobs.** Add `--batch-size`,
-`--concurrency`, and `--compute-policy` (`auto` | `cpu` | `ane` |
-`gpu`) to `vec update-index` AND `vec sweep`. Wire through to
-`IndexingPipeline` (which currently takes hardcoded N) and
-`EmbedderPool` / batch-former (which currently takes hardcoded b).
-Default values MUST reproduce current behavior exactly — no
-existing-sweep drift without the flags. Build + 1-point smoke
-test confirms retrieval bit-identical to the last
-`e5-base@1200/0` archive (the regression bar). ~2 h code. Pure
-code work, zero GPU contention.
+**E6.1 — CLI flags for tuning knobs.** ✅ done (2026-04-24).
+Added `--concurrency`, `--batch-size`, `--bucket-width`, and
+`--compute-policy` (`auto` | `cpu` | `ane` | `gpu`) flags to
+both `vec update-index` AND `vec sweep`. Wired through to
+`IndexingPipeline` and every registered Bert-family embedder
+via `withMLTensorComputePolicy(...)`. Regression bar: default
+mode reproduces `benchmarks/e5-base-baseline-2026-04-24/`
+byte-for-byte on total_60 / top10_either / top10_both. See
+Done section above and [`data/e6-1-cli-flags.md`](./data/e6-1-cli-flags.md).
 
 **E6.2 — ANE feasibility probe for e5-base.** Single e5-base
 index run on markdown-memory at the default geometry with

@@ -1,4 +1,5 @@
 import Foundation
+import CoreML
 
 /// A self-contained bundle of every parameter that affects how text
 /// becomes vectors. Two profiles with the same `identity` must produce
@@ -306,7 +307,8 @@ public enum IndexingProfileFactory {
     public static func make(
         alias: String,
         chunkSize: Int? = nil,
-        chunkOverlap: Int? = nil
+        chunkOverlap: Int? = nil,
+        computePolicy: MLComputePolicy? = nil
     ) throws -> IndexingProfile {
         precondition(
             (chunkSize == nil) == (chunkOverlap == nil),
@@ -322,20 +324,27 @@ public enum IndexingProfileFactory {
         let identity = "\(alias)@\(effectiveSize)/\(effectiveOverlap)"
 
         // Alias → factory closure. The closure is `@Sendable` and
-        // captures only the alias string (literal), so the pool can
-        // call it N times from any isolation domain to mint fresh
-        // sibling instances.
+        // captures only the alias string (literal) plus the optional
+        // compute-policy override, so the pool can call it N times from
+        // any isolation domain to mint fresh sibling instances.
+        //
+        // `computePolicy` is deliberately NOT rolled into `identity` —
+        // it's a runtime placement preference (CPU/ANE/GPU), not a
+        // semantic property of the stored vectors. Two runs at the same
+        // chunk geometry with different compute policies must round-
+        // trip through `config.json`'s stored identity unchanged.
+        let policy = computePolicy
         let factory: @Sendable () -> any Embedder
         switch alias {
-        case "nomic":         factory = { NomicEmbedder() }
-        case "nl":            factory = { NLEmbedder() }
-        case "bge-base":      factory = { BGEBaseEmbedder() }
-        case "bge-small":     factory = { BGESmallEmbedder() }
-        case "bge-large":     factory = { BGELargeEmbedder() }
-        case "nl-contextual": factory = { NLContextualEmbedder() }
-        case "gte-base":      factory = { GTEBaseEmbedder() }
-        case "e5-base":       factory = { E5BaseEmbedder() }
-        case "mxbai-large":   factory = { MxbaiEmbedLargeEmbedder() }
+        case "nomic":         factory = { NomicEmbedder(computePolicy: policy) }
+        case "nl":            factory = { NLEmbedder(computePolicy: policy) }
+        case "bge-base":      factory = { BGEBaseEmbedder(computePolicy: policy) }
+        case "bge-small":     factory = { BGESmallEmbedder(computePolicy: policy) }
+        case "bge-large":     factory = { BGELargeEmbedder(computePolicy: policy) }
+        case "nl-contextual": factory = { NLContextualEmbedder(computePolicy: policy) }
+        case "gte-base":      factory = { GTEBaseEmbedder(computePolicy: policy) }
+        case "e5-base":       factory = { E5BaseEmbedder(computePolicy: policy) }
+        case "mxbai-large":   factory = { MxbaiEmbedLargeEmbedder(computePolicy: policy) }
         default:              throw VecError.unknownProfile(alias)
         }
         let embedder = factory()
@@ -361,12 +370,21 @@ public enum IndexingProfileFactory {
     /// to `IndexingProfile.parseIdentity` — the one parser in the
     /// tree — then calls `make` with explicit chunk params so that
     /// `isBuiltIn` is computed from effective values.
-    public static func resolve(identity: String) throws -> IndexingProfile {
+    ///
+    /// `computePolicy` is a runtime placement preference (CPU/ANE/GPU);
+    /// it is NOT part of the persisted identity and therefore must be
+    /// re-supplied on each resolve if the caller wants a non-default
+    /// policy.
+    public static func resolve(
+        identity: String,
+        computePolicy: MLComputePolicy? = nil
+    ) throws -> IndexingProfile {
         let parsed = try IndexingProfile.parseIdentity(identity)
         return try make(
             alias: parsed.alias,
             chunkSize: parsed.chunkSize,
-            chunkOverlap: parsed.chunkOverlap
+            chunkOverlap: parsed.chunkOverlap,
+            computePolicy: computePolicy
         )
     }
 

@@ -1,4 +1,5 @@
 import Foundation
+import CoreML
 import NaturalLanguage
 
 /// `Embedder` wrapping Apple's `NLContextualEmbedding` for English.
@@ -29,7 +30,14 @@ public actor NLContextualEmbedder: Embedder {
 
     private var loaded: NLContextualEmbedding?
 
-    public init() {}
+    /// Accepts and ignores `computePolicy` — `NLContextualEmbedding` is
+    /// an Apple NaturalLanguage API and does not consult MLTensor's
+    /// compute policy. Kept on the init signature so
+    /// `IndexingProfileFactory.make` can pass the flag uniformly across
+    /// all registered embedders.
+    public init(computePolicy: MLComputePolicy? = nil) {
+        _ = computePolicy
+    }
 
     public func embedDocument(_ text: String) async throws -> [Float] {
         try await embed(text)

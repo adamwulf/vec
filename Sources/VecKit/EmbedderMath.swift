@@ -1,4 +1,25 @@
 import Foundation
+import CoreML
+
+/// Runs `body` either directly (when `policy` is nil) or inside
+/// `withMLTensorComputePolicy(policy)` so the enclosed MLTensor /
+/// CoreML graph honors the requested CPU/ANE/GPU placement. Used by
+/// every Bert-family embedder in the registry (BGE*, GTE, E5-base,
+/// mxbai-large) so the E6 `--compute-policy` CLI flag reaches the
+/// MLTensor scope that actually dispatches the work.
+///
+/// Thrown errors and return values pass through unchanged.
+///
+/// Note: NLEmbedder / NLContextualEmbedder use Apple NaturalLanguage
+/// APIs that don't go through MLTensor / MLComputePolicy; they
+/// accept and ignore the policy.
+@inline(__always)
+func withOptionalComputePolicy<T>(_ policy: MLComputePolicy?, _ body: () throws -> T) rethrows -> T {
+    if let policy {
+        return try withMLTensorComputePolicy(policy, body)
+    }
+    return try body()
+}
 
 /// L2-normalize a vector in place and return the result. `Bert.ModelBundle.encode`
 /// returns CLS-token output without normalization, so BERT-based embedders
