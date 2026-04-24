@@ -53,6 +53,18 @@ to reindex it back to `bge-base` (or any other specific profile) as
 a courtesy step. Whatever embedder the last run used is fine — the
 next sweep will reset it again anyway.
 
+**The source folder is NOT continuously-growing; drift is
+operator-triggered.** The markdown-memory source folder stays
+static on disk between manual sync operations. Rubric scores on
+the same `<embedder>@<geometry>` combination reproduce bit-exactly
+across runs UNLESS Adam has synced new Granola meetings into the
+folder between runs (which he does intermittently). If you observe
+an unexpected score delta on a supposedly-identical reindex —
+**ask Adam to confirm whether he recently synced**. If yes, the
+delta is corpus growth, not a model/pipeline change; note the
+drift and move on. If no, investigate — a model/pipeline change
+producing score drift is a real bug.
+
 ### Rubric scoring — one script, one manifest, one archive
 
 - **`scripts/rubric-queries.json`** — canonical manifest: the 10

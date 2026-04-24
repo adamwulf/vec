@@ -86,15 +86,21 @@ if the cross-corpus ranking diverges, the default may revisit. See
 - Corpus-generalization of the per-model peaks is still unverified.
   E5.4e (deferred) would rerun winners against a second corpus; see
   "Next" below.
-- **Corpus drift on live `markdown-memory`** (surfaced E5.9b,
-  confirmed E5.9c). Refinement runs executed days or weeks after
-  the original sweep no longer reproduce anchor scores bit-exactly
-  — the live source folder grows ~1%/day and total_60 moves by
-  2-4 pts over 2-7 days at a fixed geometry. Cross-model rankings
-  are preserved (gap between embedders holds across snapshots)
-  but absolute comparisons to archived scores need a drift note.
-  Open question: snapshot-freezing the rubric corpus, see E5.9
-  "Next" section below.
+- **Corpus drift on live `markdown-memory` is operator-triggered,
+  not continuous** (surfaced E5.9b, confirmed E5.9c). The
+  `markdown-memory` folder does NOT grow on its own — the drift
+  observed between E5.4d and E5.9b was caused by Adam manually
+  syncing new Granola meetings into the folder between the two
+  sweeps. When no sync happens, the corpus is static on disk and
+  anchor scores reproduce bit-exactly (demonstrated by E5.9a's
+  e5-base@1200/0 reproduction and E6.1's flag-probe regression
+  check). **Manager behavior when drift is observed**: before
+  treating an unexpected score delta as a real finding, ask Adam
+  to confirm whether he recently synced Granola into the folder;
+  if yes, the delta is corpus growth, not a model/pipeline change.
+  Cross-model rankings are preserved under drift (gap between
+  embedders holds across snapshots) but absolute comparisons to
+  archived scores at different corpus snapshots need a drift note.
 
 ---
 
