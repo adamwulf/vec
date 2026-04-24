@@ -13,7 +13,7 @@ Last updated: 2026-04-24.
 
 ---
 
-## Current state (as of 2026-04-24, post-E5.9b, default flipped to e5-base)
+## Current state (as of 2026-04-24, post-E5.9c, default flipped to e5-base; E5.9 phase complete)
 
 **Default embedder**: `e5-base@1200/0` (E5-base-v2, 768-dim,
 masked mean-pooled with `passage: ` / `query: ` prefix injection
@@ -86,6 +86,15 @@ if the cross-corpus ranking diverges, the default may revisit. See
 - Corpus-generalization of the per-model peaks is still unverified.
   E5.4e (deferred) would rerun winners against a second corpus; see
   "Next" below.
+- **Corpus drift on live `markdown-memory`** (surfaced E5.9b,
+  confirmed E5.9c). Refinement runs executed days or weeks after
+  the original sweep no longer reproduce anchor scores bit-exactly
+  — the live source folder grows ~1%/day and total_60 moves by
+  2-4 pts over 2-7 days at a fixed geometry. Cross-model rankings
+  are preserved (gap between embedders holds across snapshots)
+  but absolute comparisons to archived scores need a drift note.
+  Open question: snapshot-freezing the rubric corpus, see E5.9
+  "Next" section below.
 
 ---
 
@@ -535,39 +544,138 @@ canonical pre-drift E5.4d numbers. No edit to
 - Raw data + observations:
   [`data/retrieval-bge-base-refine.md`](./data/retrieval-bge-base-refine.md)
 
+### E5.9c — nomic peak refinement + current-corpus e5-base baseline (2026-04-24)
+
+9-point refinement mini-sweep on `nomic` around the Phase D peak
+(`1200/240` → 35/60) paired with a single-point current-corpus
+baseline capture on `e5-base@1200/0` to anchor the upcoming E6
+indexing-speed work. Nomic grid:
+
+  sizes: 1100, 1200, 1300  ×  overlap_pcts: 10%, 20%, 25%
+
+The `10/20/25` overlap span (vs E5.9a's `0/5/10` for e5-base)
+probes upward from Phase D's 20% peak to see whether nomic keeps
+benefiting from additional overlap.
+
+**Nomic peak unchanged: `nomic@1200/240` → 32/60, 9/10 top10_either,
+2/10 top10_both.** Total sweep wall ≈ 3 h 00 min (CPU-only via
+`NomicEmbedder` `.cpuOnly` pin). The peak **ties on total_60 with
+`nomic@1300/325` (also 32/60)**; the tiebreaker on top10_either
+(9 vs 8) falls to the historical default.
+
+**e5-base current-corpus baseline**: `e5-base@1200/0` →
+**38/60, 9/10 top10_either, 5/10 top10_both, 8070 chunks**, wall
+969 s. This is 2 pts below the E5.7 canonical 40/60 / 6 both on
+the pre-drift corpus — consistent with the E5.9b-surfaced corpus
+drift (~7% chunk-count growth). Captured as the E6 regression-bar
+reference anchor (E5.7's stale archive is no longer representative).
+
+- **Before refinement**: Phase D ad-hoc sweep put nomic's peak at
+  `1200/240` → 35/60, 3/10 both-top-10 (2026-04-17). No regular
+  grid around the peak.
+- **After refinement**: peak stays at `1200/240` → 32/60 (drifted)
+  under a 3×3 grid. `1300/325` ties on primary metric; `1200/240`
+  wins the top10_either tiebreaker 9 vs 8. Default unchanged.
+
+**Reproducibility anchor drifted** (expected, per E5.9b).
+`1200/240` is shared with the Phase D sweep:
+
+  nomic@1200/240:  Phase D 35 / 8116 ch  →  E5.9c 32 / 8742 ch  (−3 pts, +7.7% chunks)
+
+The +7.7% chunk growth closely mirrors E5.9b's +7.0% and +7.1%
+on bge-base's two anchors. With chunker and nomic loader
+unchanged between Phase D (2026-04-17) and E5.9c (2026-04-24),
+corpus drift on the live `markdown-memory` folder is the only
+consistent explanation. 7 days × ~1%/day content growth matches
+the observed drift.
+
+**New cross-model finding: nomic is an "overlap-preferring"
+model, like bge-base and unlike e5-base.** At size 1200 the
+overlap progression 10% → 20% → 25% is 31 → 32 → 29 — inverted-U
+with peak at 20%. bge-base previously held the distinction of
+being the only registered model to benefit from overlap at size
+1200; nomic now joins that camp. The three 768-dim candidates
+have distinct overlap profiles:
+
+  e5-base:  peak 1200/0   — rejects overlap
+  bge-base: peak 1200/240 — uniquely benefits from overlap (E5.4d/E5.9b)
+  nomic:    peak 1200/240 — benefits from overlap (E5.9c)
+
+**Striking secondary finding: size-1300 band is sharply
+overlap-sensitive for nomic.** Scores 24 (10% overlap) → 20
+(20%) → 32 (25%). Only row in the grid where 25% overlap beats
+20%. `1300/325` is the co-peak tied on total_60 with the
+historical default; worth including in any future second-corpus
+probe.
+
+**No default change.** `IndexingProfile.swift` already stamps
+nomic with `1200/240` per Phase D commit (`c6c2578`).
+`indexing-profile.md` nomic row unchanged; this refinement
+layers on top of the original Phase D data rather than replacing
+it.
+
+**E5.9 phase complete** — all three candidates
+(`e5-base`, `bge-base`, `nomic`) refined. Summary of the
+three refinements' decisions:
+
+  E5.9a (e5-base):  peak 1200/0   → 40/60 (bit-exact reproducibility).
+  E5.9b (bge-base): peak 1200/240 → 34/60 (drifted), tie broken large-chunk regime.
+  E5.9c (nomic):    peak 1200/240 → 32/60 (drifted), tiebreaker on top10_either.
+
+No default changes across the three refinements; the three
+refinements together confirm the per-model defaults stamped in
+`IndexingProfile.swift`. The E5.9-surfaced corpus-drift finding
+is the largest secondary lesson — both for E5.4e corpus-
+generalization work and for E6 indexing-speed regression bars.
+
+- Sweep archive: [`benchmarks/sweep-nomic-refine/`](./benchmarks/sweep-nomic-refine/)
+- Baseline archive: [`benchmarks/e5-base-baseline-2026-04-24/`](./benchmarks/e5-base-baseline-2026-04-24/)
+- Raw data + observations:
+  [`data/retrieval-nomic-refine.md`](./data/retrieval-nomic-refine.md)
+
 ---
 
 ## In progress
 
-E5.9b is the latest shipped sub-deliverable. Peak refinement
-resolves the E5.4d tie in favor of `bge-base@1200/240` by 2 pts
-on the primary metric and surfaces a **meaningful anchor-drift
-finding**: the live `markdown-memory` folder grew ~7% between
-E5.4d and E5.9b, producing −2 to −4 pt score drift on the same
-geometry across a 2-day window. The E5.7 global-default flip
-(bge-base → e5-base, commit `00e3fd3`) is NOT affected — the flip
-evidence (E5.7 40/60 vs E5.4d 36/60) was single-snapshot
-comparison between two distinct models, not a geometry shift. But
-the drift finding matters for the E5.9 cross-corpus plan (see
-"Next" below) and suggests freezing a corpus snapshot for future
-refinement runs.
+**E5.9 phase complete.** All three refinements
+(E5.9a e5-base, E5.9b bge-base, E5.9c nomic) have shipped and
+no default changes were required — the per-model peaks all sit
+at their existing `IndexingProfile.swift` values. Key secondary
+findings across the three runs:
 
-Manager auto-queues next: E5.9c (nomic peak refinement, ~5 h
-CPU-only). When E5.9c lands, auto-queues the E6.1 → E6.2 → E6.3 →
-E6.4 indexing-speed chain per manager directive 2026-04-23. Full
-autonomy through the whole chain; outcomes land in plan.md by
-morning.
+- **E5.9a** reproduced the e5-base peak bit-exactly (same-day
+  snapshot as E5.7).
+- **E5.9b** surfaced the corpus-drift finding: bge-base anchors
+  drifted −2 to −4 pts on total_60 over a 2-day window with
+  +7% chunk count growth.
+- **E5.9c** confirmed the drift persists over a 7-day window:
+  nomic's 1200/240 anchor drifted from 35 → 32 with +7.7%
+  chunk growth, and the fresh e5-base@1200/0 baseline sits at
+  38/60 (vs E5.7's 40/60, −2 pts on primary metric). Cross-
+  model gaps preserved: e5-base still +4 over bge-base and +6
+  over nomic under the consistent E5.9c snapshot.
+- **E5.9c** also confirmed nomic is an "overlap-preferring"
+  model like bge-base (peak at 20% overlap, inverted-U in the
+  10-25% span). The three 768-dim models now have distinct
+  overlap profiles: e5-base rejects, bge-base uniquely
+  benefits, nomic benefits.
 
-E5.9a shipped 2026-04-23 and confirmed `e5-base@1200/0` at 40/60,
-corroborating the E5.7 result.
+E5.7 global-default flip (bge-base → e5-base, commit `00e3fd3`)
+NOT affected by drift — cross-model gap preserved across
+snapshots.
+
+Manager auto-queues next: E6.1 → E6.2 → E6.3 → E6.4
+indexing-speed chain per manager directive 2026-04-23. The
+fresh `benchmarks/e5-base-baseline-2026-04-24/` archive is the
+E6.3 regression-bar reference anchor (E5.7's stale archive is
+retired for that purpose).
 
 ---
 
 ## Next — E5.9: Fine-tune top candidates + second-corpus validation
 
-Running order now that all queued novel-model sweeps have landed
-(E5.6 gte-base, E5.7 e5-base, E5.8 mxbai-large) and E5.9a (e5-base
-peak refinement) + E5.9b (bge-base peak refinement) have shipped:
+**E5.9 phase complete as of 2026-04-24.** All three refinements
+shipped:
 
 - **E5.9a — e5-base peak refinement** ✅ done (2026-04-23). Peak
   confirmed at `e5-base@1200/0` → 40/60. See Done section above and
@@ -579,33 +687,47 @@ peak refinement) + E5.9b (bge-base peak refinement) have shipped:
   causing both anchor configs to drift −2 to −4 pts on total_60
   without any indexer/scorer change. See Done section above and
   `data/retrieval-bge-base-refine.md`.
-- **E5.9c — nomic peak refinement** — open. 1200/240 → 35/60 from
-  the original migration sweep; refine around it (and check whether
-  e5-base's 1200/0-rejects-overlap pattern holds for nomic too).
-  **Note**: the E5.9b corpus-drift finding means a nomic refinement
-  run now will not reproduce the pre-drift 35/60 bit-exactly either.
-  Plan for that: either accept the drifted baseline and compare
-  within-refinement ranking, or freeze a corpus snapshot first.
+- **E5.9c — nomic peak refinement + e5-base baseline** ✅ done
+  (2026-04-24). Peak stays at `nomic@1200/240` → 32/60 (drifted
+  from Phase D's 35/60), tied with `nomic@1300/325` on total_60
+  and winning the top10_either tiebreaker 9 vs 8. Confirmed nomic
+  is an overlap-preferring model like bge-base. Fresh
+  `e5-base@1200/0` current-corpus baseline captured at 38/60
+  (−2 from E5.7 pre-drift), archived as the E6.3 regression-bar
+  reference anchor. See Done section above and
+  `data/retrieval-nomic-refine.md`.
 
-Then, after E5.9c lands:
+The three refinements together confirm the per-model defaults
+stamped in `IndexingProfile.swift`; no default changes resulted.
+Key secondary findings:
 
-1. Pick the top 2-3 candidates from the refined results and run a
-   **fine-grained mini-sweep** around each one's peak to resolve
-   the parameter-space shape that the current 12-point grid
-   smooths over. (E5.9a/b done this for e5-base and bge-base; c
-   is its analog for nomic.)
-2. Simultaneously (or immediately after), run those same candidates
-   against a **second corpus** — this folds together the previously-
-   deferred E5.4e (corpus-generalization) work with the new
-   param-space refinement. One batch of sweeps answers both
-   questions.
-3. **Corpus-snapshotting question** (surfaced by E5.9b): should
-   rubric sweeps freeze a corpus snapshot, or keep tracking the
-   live folder? Frozen snapshots give bit-exact reproducibility
+- **Corpus drift is real and measurable.** Over 2-7 days the
+  live `markdown-memory` folder grew enough (~1%/day chunk
+  count growth) to move total_60 scores by 2-4 pts on
+  reproducibility anchors. Time-separated refinements are no
+  longer bit-exactly comparable without a frozen snapshot.
+- **Cross-model gaps preserved despite drift.** e5-base still
+  sits +4 over bge-base and +6 over nomic under the E5.9c
+  snapshot — same gap as the pre-drift E5.7 comparison. The
+  global-default flip (bge-base → e5-base) is unaffected.
+- **Overlap preference varies by model.** Three 768-dim models
+  have three distinct overlap profiles: e5-base rejects,
+  bge-base uniquely benefits, nomic benefits. Not a
+  dim-tier or distillation property.
+
+Remaining E5.4/5.9-scope open questions (moved to their own
+sections below):
+
+1. **E5.4e — corpus-generalization.** Re-run the refined per-model
+   peaks against a second corpus. The E5.9 refinements give us a
+   clean slate of peaks to test; a second corpus is the next
+   non-redundant probe. See E5.4e section below.
+2. **Corpus-snapshotting question** (surfaced by E5.9b, confirmed
+   by E5.9c). Frozen snapshots give bit-exact reproducibility
    (E5.9a-style) but risk the rubric decaying as the live corpus
    evolves. Live folders stay representative but give up
-   reproducibility. Decide before the second-corpus work so
-   that comparison is clean.
+   reproducibility. Decide before the E5.4e second-corpus work
+   so that comparison is clean.
 
 ### Why do these together
 
