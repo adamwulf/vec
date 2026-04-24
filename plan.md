@@ -463,12 +463,21 @@ edit to `indexing-profile.md` either.
 
 ## In progress
 
-None. E5.9a is the latest shipped sub-deliverable. Peak refinement
-confirms `e5-base@1200/0` at 40/60, corroborating the E5.7 result.
-The E5.7 global-default flip (bge-base → e5-base, commit `00e3fd3`)
-is now on stronger footing. Remaining E5.9 work (bge-base and nomic
-peak refinements, then cross-corpus validation) continues per the
-"Next" section below.
+`agent-263db028` is running E5.9b (bge-base peak refinement, two
+sub-sweeps targeting both coarse-tie-peaks `1200/240` and `800/80`;
+~3.5 h total, ~2 h left from start of 22:58 on 2026-04-23). When
+E5.9b completes, manager auto-queues E5.9c (nomic peak refinement,
+~5 h CPU-only). Both land around 07:00 CDT on 2026-04-24.
+
+After E5.9c lands, manager auto-queues the E6.1 → E6.2 → E6.3 →
+E6.4 indexing-speed chain (see E6 section below). Full autonomy
+through the whole chain per manager directive 2026-04-23. You'll
+see the outcomes in plan.md by morning.
+
+E5.9a shipped earlier today and confirmed `e5-base@1200/0` at
+40/60, corroborating the E5.7 result. The global-default flip
+(bge-base → e5-base, commit `00e3fd3`) is on stronger footing as
+a result.
 
 ---
 
@@ -646,16 +655,86 @@ the rubric won't distinguish the configs).
 
 Deferred until E5 resolves. From the E4 next-steps audit.
 
-### Candidate models (after bge-small / bge-large)
+### Candidate models (original list — all three now tested)
 
-| Candidate              | Size    | Dim  | MTEB  | Why it's interesting |
-|------------------------|---------|------|-------|----------------------|
-| `gte-base-en-v1.5`     | ~110 MB | 768  | 51.14 | Direct BGE-base peer; same dim lets us swap-test without changing index storage geometry |
-| `e5-base-v2`           | ~110 MB | 768  | 50.3  | Query-prefix convention (`query:` / `passage:`) is different — validates prefix handling |
-| `mxbai-embed-large-v1` | ~670 MB | 1024 | 54.7  | Current open-weights SOTA in the ~1 GB class; competitor to bge-large |
+| Candidate              | Size    | Dim  | MTEB  | Status |
+|------------------------|---------|------|-------|--------|
+| `gte-base-en-v1.5`     | ~110 MB | 768  | 51.14 | E5.6 shipped: 8/60, anisotropy failure, below threshold |
+| `e5-base-v2`           | ~110 MB | 768  | 50.3  | E5.7 shipped: 40/60, **new global default** |
+| `mxbai-embed-large-v1` | ~670 MB | 1024 | 54.7  | E5.8 shipped: 31/60, below bge-base |
 
-Per candidate, measure: rubric score vs bge-base 36/60,
-wallclock at N=10 b=16, peak RSS + CPU%, chunks/sec at steady state.
+Further unexplored candidates worth considering when E6 wraps:
+`intfloat/e5-large-v2` (1024-dim, same family as current default —
+most likely to beat 40/60 without new engineering),
+`snowflake-arctic-embed-l-v2.0` (2024 SOTA, MTEB ~56), and
+instruction-tuned `gte-Qwen2-1.5B/7B` (MTEB ~60+ but needs
+substantial pool resize — trades indexing wallclock for quality).
+
+### E6 — e5-base indexing-speed tuning (queued, triggers after E5.9 completes)
+
+Concrete action plan for the first overnight after E5.9 finishes.
+All E6.1-E6.4 items target `e5-base` (our current default) and
+measure indexing wallclock; retrieval quality must stay
+bit-identical (the E4 regression bar). Execution order is fixed —
+each step's outcome shapes the next:
+
+**E6.1 — CLI flags for tuning knobs.** Add `--batch-size`,
+`--concurrency`, and `--compute-policy` (`auto` | `cpu` | `ane` |
+`gpu`) to `vec update-index` AND `vec sweep`. Wire through to
+`IndexingPipeline` (which currently takes hardcoded N) and
+`EmbedderPool` / batch-former (which currently takes hardcoded b).
+Default values MUST reproduce current behavior exactly — no
+existing-sweep drift without the flags. Build + 1-point smoke
+test confirms retrieval bit-identical to the last
+`e5-base@1200/0` archive (the regression bar). ~2 h code. Pure
+code work, zero GPU contention.
+
+**E6.2 — ANE feasibility probe for e5-base.** Single e5-base
+index run on markdown-memory at the default geometry with
+`--compute-policy ane`. Measures: does the graph compile for ANE
+(nomic hit `"Incompatible element type for ANE"` on macOS 26.3.1+
+and had to pin CPU-only — same class of failure is possible for
+e5-base's custom mean-pool path via `bundle.model(...)`)? What's
+the wallclock? Does retrieval reproduce bit-identical?
+The outcome shapes E6.3's grid. ~20-30 min including model
+reload.
+
+**E6.3 — indexing-speed grid for e5-base.** Grid shape depends
+on E6.2:
+- **If ANE compiles**: 24-point grid `batch_size ∈ {16, 24, 32}`
+  × `concurrency ∈ {6, 8, 10, 12}` × `policy ∈ {auto, ane}`,
+  ~1025 s × 24 ≈ 7 h.
+- **If ANE fails**: CPU-only 12-point grid `batch_size ∈ {16,
+  24, 32}` × `concurrency ∈ {6, 8, 10, 12}`, ~3.5 h.
+Each point: reindex markdown-memory at the config, measure wall
++ peak RSS + pool utilization, verify retrieval bit-identical to
+reference. Output: `data/indexing-speed-e5-base.md` table sorted
+by speed.
+
+**E6.4 — Length-bucket width.** Current bucket key is
+`chunk.text.count / 500`. After E6.3 identifies the fastest
+`(N, b, policy)` config, 2 additional points at that config:
+`/300` (finer, less padding waste) and `/700` (coarser, larger
+effective batches). ~35 min.
+
+**Defaults update rule.** After E6.4, if the best config beats
+the current `N=10 b=16 /500 auto` baseline by ≥5% wallclock with
+bit-identical retrieval, update `IndexingPipeline`'s hardcoded
+defaults to the new values AND update
+[`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md)
++ the [`indexing-profile.md`](./indexing-profile.md) table rows
+for e5-base specifically. Marginal wins (<5%) stay documented
+but don't flip defaults — too much risk of corpus-specific
+tuning that doesn't generalize.
+
+**Autonomy on overnight execution:** run autonomously through
+E6.1 → E6.2 → E6.3 → E6.4 without pausing for review, except:
+stop and ask manager via `ib ask` if E6.1 hits a structural
+problem (e.g. `swift-embeddings` doesn't expose compute-policy
+cleanly) or if any step produces a retrieval-quality drift. Per
+manager directive 2026-04-23.
+
+### E6 — Parameter grid fill (original, superseded by E6.1-E6.4 above)
 
 ### E6 — Parameter grid fill
 
