@@ -680,6 +680,54 @@ Unblocks E6.2 (ANE feasibility probe) and E6.3 (speed grid).
 - Regression-smoke archive: [`benchmarks/e5-base-postflag-smoke/`](./benchmarks/e5-base-postflag-smoke/)
 - Flag-probe archive: [`benchmarks/e5-base-flag-probe/`](./benchmarks/e5-base-flag-probe/)
 
+### E6.2 — e5-base ANE feasibility probe (2026-04-24)
+
+Second step of the E6 e5-base indexing-speed tuning chain. Single-
+point sweep at the default geometry with `--compute-policy ane` to
+answer: does e5-base's custom mean-pool graph (via `bundle.model(...)`,
+not `ModelBundle.batchEncode`) compile for ANE, or does it hit the
+same `"Incompatible element type for ANE"` failure that pinned
+`NomicEmbedder` to `.cpuOnly` on macOS 26.3.1+?
+
+**Outcome: ANE compiles and runs cleanly for e5-base. Retrieval is
+bit-identical to the baseline on primary metrics; wallclock is 3.8 %
+faster (968.9 s → 932.4 s).**
+
+| metric         | baseline (auto) | ANE probe | match |
+|----------------|----------------:|----------:|:-----:|
+| chunks         |            8070 |      8070 |   ✓   |
+| `TOTAL`        |           38/60 |     38/60 |   ✓   |
+| `TOP10_EITHER` |            9/10 |      9/10 |   ✓   |
+| `TOP10_BOTH`   |            5/10 |      5/10 |   ✓   |
+| wall_s         |           968.9 |     932.4 |   −   |
+
+`scripts/score-rubric.py` output is row-for-row identical on all 10
+queries (same T rank, same S rank, same subtotal). No crash, no
+garbage embeddings, no silent-failure exit.
+
+**Why e5-base works where nomic failed.** Nomic's failure mode was
+inside `NomicBert.ModelBundle.batchEncode`, which constructs a
+tokens + attention-mask graph that ANE rejected as having an
+incompatible element type. `E5BaseEmbedder` takes a different path —
+`bundle.model(inputIds:attentionMask:)` directly, wrapped in
+`withOptionalComputePolicy` — and the graph constructed around that
+call does compile for ANE on macOS 26.3.1+. Possible that the
+scheduler is silently falling back to CPU for some subgraph
+(consistent with the modest 3.8 % speedup), which the E6.3 A/B
+will surface.
+
+**Next E6.3 grid shape: 24-point grid with ANE variants.** The
+original E6.3 plan's "if ANE compiles" branch applies. Grid:
+`batch_size ∈ {16, 24, 32}` × `concurrency ∈ {6, 8, 10, 12}` ×
+`policy ∈ {auto, ane}` = 24 points, ~6.5 h wallclock. The
+`{auto, ane}` A/B at each point is what lets us tell whether ANE is
+a real acceleration lever or a scheduler no-op. CPU-only 12-point
+fallback not needed.
+
+- Writeup: [`data/e6-2-ane-probe.md`](./data/e6-2-ane-probe.md)
+- Probe archive: [`benchmarks/e6-2-ane-probe/`](./benchmarks/e6-2-ane-probe/)
+- Baseline reference: [`benchmarks/e5-base-baseline-2026-04-24/`](./benchmarks/e5-base-baseline-2026-04-24/)
+
 ---
 
 ## In progress
@@ -717,19 +765,29 @@ on both `update-index` and `sweep`, plumbed through
 `IndexingPipeline` + every registered Bert-family embedder.
 Regression bar: default-flag smoke archive matches the
 `e5-base-baseline-2026-04-24` reference byte-for-byte on
-total_60 / top10_either / top10_both. E6.2 is now unblocked
-(the ANE probe can run `--compute-policy ane` directly).
+total_60 / top10_either / top10_both.
 
-**E6.2 auto-queued next.** Single e5-base index run on
-markdown-memory at the default geometry with
-`--compute-policy ane`. Measures whether the graph compiles for
-ANE (risk: nomic hit "Incompatible element type for ANE" on
-macOS 26.3.1+ and had to pin `.cpuOnly` — e5-base's custom
-mean-pool via `bundle.model(...)` is a different code path so
-may succeed or fail differently), wallclock, and bit-identical
-retrieval vs the baseline archive. Outcome shapes E6.3's grid.
+**E6.2 shipped 2026-04-24** (see Done above). Single-point ANE
+feasibility probe at e5-base's default geometry. **ANE compiles
+and runs cleanly** — unlike nomic's batched path on macOS 26.3.1+,
+e5-base's custom `bundle.model(...)` + masked-mean-pool graph
+does not trigger the `"Incompatible element type for ANE"` error.
+Retrieval is bit-identical to the baseline on all primary metrics
+and per-query target ranks; wallclock is 3.8 % faster (968.9 s →
+932.4 s). The modest speedup suggests ANE may be falling back to
+CPU for some subgraph, which the E6.3 auto-vs-ane A/B will
+surface.
 
-E6.3 → E6.4 remain as planned below. The fresh
+**E6.3 auto-queued next with the 24-point grid shape.** Per E6.2's
+outcome, the ANE-compiles branch of the original E6.3 plan applies:
+`batch_size ∈ {16, 24, 32}` × `concurrency ∈ {6, 8, 10, 12}` ×
+`policy ∈ {auto, ane}` = 24 points, ~6.5 h wallclock budget. Each
+point reindexes markdown-memory at the given config, measures wall
++ peak RSS + pool utilization, and verifies retrieval bit-identical
+to the baseline reference. Output:
+`data/indexing-speed-e5-base.md` table sorted by speed.
+
+E6.4 remains as planned below. The fresh
 `benchmarks/e5-base-baseline-2026-04-24/` archive remains the
 E6.3 regression-bar reference anchor.
 
@@ -970,27 +1028,26 @@ mode reproduces `benchmarks/e5-base-baseline-2026-04-24/`
 byte-for-byte on total_60 / top10_either / top10_both. See
 Done section above and [`data/e6-1-cli-flags.md`](./data/e6-1-cli-flags.md).
 
-**E6.2 — ANE feasibility probe for e5-base.** Single e5-base
-index run on markdown-memory at the default geometry with
-`--compute-policy ane`. Measures: does the graph compile for ANE
-(nomic hit `"Incompatible element type for ANE"` on macOS 26.3.1+
-and had to pin CPU-only — same class of failure is possible for
-e5-base's custom mean-pool path via `bundle.model(...)`)? What's
-the wallclock? Does retrieval reproduce bit-identical?
-The outcome shapes E6.3's grid. ~20-30 min including model
-reload.
+**E6.2 — ANE feasibility probe for e5-base.** ✅ done (2026-04-24).
+ANE compiles and runs cleanly for e5-base's custom mean-pool path;
+retrieval is bit-identical to baseline on all primary metrics and
+per-query target ranks; wallclock is 3.8 % faster (968.9 s →
+932.4 s). The E6.3 grid uses the 24-point shape with ANE variants.
+See Done section above and
+[`data/e6-2-ane-probe.md`](./data/e6-2-ane-probe.md).
 
-**E6.3 — indexing-speed grid for e5-base.** Grid shape depends
-on E6.2:
-- **If ANE compiles**: 24-point grid `batch_size ∈ {16, 24, 32}`
-  × `concurrency ∈ {6, 8, 10, 12}` × `policy ∈ {auto, ane}`,
-  ~1025 s × 24 ≈ 7 h.
-- **If ANE fails**: CPU-only 12-point grid `batch_size ∈ {16,
-  24, 32}` × `concurrency ∈ {6, 8, 10, 12}`, ~3.5 h.
-Each point: reindex markdown-memory at the config, measure wall
-+ peak RSS + pool utilization, verify retrieval bit-identical to
-reference. Output: `data/indexing-speed-e5-base.md` table sorted
-by speed.
+**E6.3 — indexing-speed grid for e5-base.** Grid shape resolved
+by E6.2: **24-point grid** `batch_size ∈ {16, 24, 32}` ×
+`concurrency ∈ {6, 8, 10, 12}` × `policy ∈ {auto, ane}`,
+~932–969 s × 24 ≈ 6.5 h. Each point: reindex markdown-memory at
+the config, measure wall + peak RSS + pool utilization, verify
+retrieval bit-identical to reference. Output:
+`data/indexing-speed-e5-base.md` table sorted by speed. The
+`{auto, ane}` A/B at each `(batch_size, concurrency)` point is
+the direct measurement of whether `--compute-policy ane` is a
+real acceleration lever or a scheduler no-op; E6.2's modest
+3.8 % speedup on one point is suggestive but a 24-point grid is
+what will tell us whether the speedup generalizes.
 
 **E6.4 — Length-bucket width.** Current bucket key is
 `chunk.text.count / 500`. After E6.3 identifies the fastest
