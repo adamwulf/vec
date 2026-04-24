@@ -394,7 +394,7 @@ the structural consequence: two queries simply do not surface a
 target in top 10 at any geometry mxbai swept.
 
 - Commits: `eb4893f` (add embedder, provisional 1200/0 default),
-  `<TBD>` (sweep results + measured peak default + plan.md + writeup).
+  `43dac4c` (sweep results + measured peak default + plan.md + writeup).
 - Sweep archive: [`benchmarks/sweep-mxbai-large/`](./benchmarks/sweep-mxbai-large/)
 - Raw data + observations:
   [`data/retrieval-mxbai-large-sweep.md`](./data/retrieval-mxbai-large-sweep.md)
