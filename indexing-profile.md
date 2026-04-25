@@ -21,48 +21,49 @@ Nine built-in profiles ship today:
 
 | Alias            | Canonical identity         | Embedder                | Dim  | Chunk size | Chunk overlap | Total /60  | Both-top10 /10 | Index wall¹ | ch/s¹  |
 | ---------------- | -------------------------- | ----------------------- | ---- | ---------- | ------------- | ---------- | -------------- | ----------- | ------ |
-| `e5-base`        | `e5-base@1200/0`³          | `e5-base-v2`            |  768 | 1200 chars | 0 chars       | **40**     | **6**          | 1025 s      | 7.3    |
-| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      |  768 | 1200 chars | 240 chars     | 36         | 3              | 1003 s      | 8.1    |
-| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        |  768 | 1200 chars | 240 chars     | 35         | 3              | 1417 s²     | 5.8²   |
-| `bge-large`      | `bge-large@1200/0`³        | `bge-large-en-v1.5`     | 1024 | 1200 chars | 0 chars       | 34         | 3              | 3220 s      | 2.3    |
-| `mxbai-large`    | `mxbai-large@800/80`³      | `mxbai-embed-large-v1`  | 1024 |  800 chars | 80 chars      | 31         | 4              | 3638 s      | 3.2    |
-| `bge-small`      | `bge-small@1200/0`³        | `bge-small-en-v1.5`     |  384 | 1200 chars | 0 chars       | 30         | 2              | 610 s       | 12.3   |
-| `gte-base`       | `gte-base@1600/0`³         | `gte-base-en-v1.5`      |  768 | 1600 chars | 0 chars       | 8⁴         | 0              | 974 s       | 5.9    |
-| `nl`             | `nl@2000/200`              | `nl-en-512`             |  512 | 2000 chars | 200 chars     | 6          | 0              | 138 s       | 35.0   |
-| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  |  512 | 1200 chars | 240 chars     | 3          | 0              | 52 s        | 157.1  |
+| `e5-base`        | `e5-base@1200/0`³          | `e5-base-v2`            |  768 | 1200 chars | 0 chars       | **40**     | **6**          | 891 s       | 9.1    |
+| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      |  768 | 1200 chars | 240 chars     | 36         | 3              | 1022 s      | 8.6    |
+| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        |  768 | 1200 chars | 240 chars     | 35         | 3              | 1497 s²     | 5.8²   |
+| `bge-large`      | `bge-large@1200/0`³        | `bge-large-en-v1.5`     | 1024 | 1200 chars | 0 chars       | 34         | 3              | 2667 s      | 3.0    |
+| `mxbai-large`    | `mxbai-large@800/80`³      | `mxbai-embed-large-v1`  | 1024 |  800 chars | 80 chars      | 31         | 4              | 3638 s⁵     | 3.2⁵   |
+| `bge-small`      | `bge-small@1200/0`³        | `bge-small-en-v1.5`     |  384 | 1200 chars | 0 chars       | 30         | 2              | 573 s       | 14.1   |
+| `gte-base`       | `gte-base@1600/0`³         | `gte-base-en-v1.5`      |  768 | 1600 chars | 0 chars       | 8⁴         | 0              | 1611 s⁶     | 3.8⁶   |
+| `nl`             | `nl@2000/200`              | `nl-en-512`             |  512 | 2000 chars | 200 chars     | 6          | 0              | 138 s⁷      | 35.0⁷  |
+| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  |  512 | 1200 chars | 240 chars     | 3          | 0              | 52 s⁷       | 157.1⁷ |
 
 ¹ Wall-clock and chunks-per-second for a full reindex of the
 `markdown-memory` corpus (674 files; chunk counts vary with the
-profile's chunk geometry — 8170 chunks at 1200/240, 7528 chunks at
-1200/0, 4828 chunks for `nl` at 2000/200, 5760 chunks at 1600/0,
-11496 chunks at 800/80), 10-perf-core M-series Apple Silicon.
-Rows captured at the E4-era `pool=10 batch=16 bucket-width=500`
-defaults (release build). **As of 2026-04-24 the defaults are
-`pool=8 batch=32 bucket-width=500`** (E6.3 tuning, measured 13.3 %
-wall cut at the defaults for e5-base). Other models in the table
-have not been re-measured at the new defaults; their wallclock
-and ch/s rows are snapshots from the original sweep, not current-
-default numbers. The relative rankings and per-model geometries
-are unchanged. `bge-base` row is from the E4 batched commit;
-`bge-small` / `bge-large` rows are from the E5.4 sweep peaks;
-`gte-base` is from the E5.6 sweep peak; `e5-base` is from the E5.7
-sweep peak; `mxbai-large` is from the E5.8 sweep peak. Per-model
-sweep data:
+profile's chunk geometry — 8742 chunks at 1200/240, 8070 chunks at
+1200/0, 4828 chunks for `nl` at 2000/200, 6166 chunks at 1600/0,
+~11500 chunks at 800/80), 10-perf-core M-series Apple Silicon.
+Most rows captured 2026-04-25 at the **E6.5 defaults**:
+`pool=8 batch=32 bucket-width=500 compute-policy=auto` (E6.3
+tuning, flipped on 2026-04-24). The MLTensor-based embedders
+(`e5-base`, `bge-base`, `bge-small`, `bge-large`, `nomic`,
+`gte-base`) were all re-measured at the new defaults in E6.6 —
+see [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
+for the OLD-vs-NEW comparison. The `e5-base` row in particular is
+−13 % vs the OLD E5.7-era number, validating the E6.3 grid winner.
+`ch/s` is `chunks ÷ wall`. Full per-stage breakdown for the
+earlier E4 baseline (different defaults) in
+`data/wallclock-e4-per-model.md`. Per-model retrieval sweep data:
 [`data/retrieval-bge-small-sweep.md`](./data/retrieval-bge-small-sweep.md),
 [`data/retrieval-bge-base-sweep.md`](./data/retrieval-bge-base-sweep.md),
 [`data/retrieval-bge-large-sweep.md`](./data/retrieval-bge-large-sweep.md),
 [`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md),
 [`data/retrieval-e5-base-sweep.md`](./data/retrieval-e5-base-sweep.md),
 [`data/retrieval-mxbai-large-sweep.md`](./data/retrieval-mxbai-large-sweep.md).
-`ch/s` is `chunks ÷ wall`. Full per-stage breakdown for the E4
-baseline in `data/wallclock-e4-per-model.md`.
 
 ² `nomic` is pinned to `computePolicy: .cpuOnly` to work around a
 CoreML/ANE compile failure ("Incompatible element type for ANE") on
-macOS 26.3.1+. The 1417 s wallclock is therefore CPU-only and not
+macOS 26.3.1+. The 1497 s wallclock is therefore CPU-only and not
 directly comparable to the other rows, which leave placement to the
-compiler. Historical wallclock at the same config on the pre-E4 code
-path (with ANE) was ~2940 s. See
+compiler. The new E6.5 defaults are slightly worse for `nomic`
+(+5.6 % wall vs the OLD `pool=10 batch=16` 1417 s) because the
+worker-pool drop from 10 → 8 strictly reduces parallelism on a
+CPU-bound path; see [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
+§"nomic" for analysis. Historical wallclock at the same config on
+the pre-E4 code path (with ANE) was ~2940 s. See
 `NomicEmbedder.batchEncode` and
 `data/wallclock-e4-per-model.md` for detail.
 
@@ -108,6 +109,33 @@ at most grid points. gte-base is retained for users who want a
 non-BGE 768-dim option, but on this corpus it is below threshold.
 See [`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md)
 §2 for the full failure-mode analysis.
+
+⁵ `mxbai-large`'s wallclock has NOT been re-measured at the E6.5
+defaults yet. The 3638 s row is from the original E5.8 sweep peak
+at the OLD `pool=10 batch=16` defaults and is left unchanged here
+as a placeholder until the deferred E6.6 addendum runs (a single
+~3 h sweep on AC power). When measured, this row will be updated
+in-place; see [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
+"mxbai-large — deferred".
+
+⁶ `gte-base`'s NEW E6.5-default wallclock is **+65 % worse** than
+the OLD E5.6 number (974 s → 1611 s). Retrieval is unchanged at
+8/60 (still a dead canary on this corpus, see footnote ⁴). The
+regression is unique among the re-measured MLTensor models — every
+other 768-dim peer gained or held within ±6 %. Likely
+auto-placement under N=8/b=32 picks an unfavourable backend for
+`gte-base` specifically; a model-scoped follow-up grid would
+discriminate, but isn't blocking since `gte-base` is not a default
+candidate. See [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
+§"gte-base" for the full diagnosis.
+
+⁷ `nl` and `nl-contextual` use Apple's NaturalLanguage framework,
+not MLTensor. The E6.5 knobs (worker concurrency, batch size,
+bucket width, compute policy) do not flow into Apple's framework,
+so the rows are NOT re-measured at the new defaults — their E4-era
+numbers carry forward. They remain comparable to each other but
+should not be compared like-for-like to the MLTensor rows above
+without noting the captured-defaults difference.
 
 `e5-base` is the default as of 2026-04-23. (Originally `nomic`;
 flipped to `bge-base` on 2026-04-19 after the Phase D sweep — see

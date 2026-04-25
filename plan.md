@@ -9,7 +9,7 @@ what's in progress, and what should happen next.
 - **Per-experiment plans + reports**: [`experiments/`](./experiments/)
 - **Superseded snapshots**: [`archived/`](./archived/)
 
-Last updated: 2026-04-24.
+Last updated: 2026-04-25.
 
 ---
 
@@ -870,6 +870,85 @@ wallclock noise, not a regression.
 - Commit: `8b249c7` (E6.5: flip IndexingPipeline defaults to E6.3
   winner (N=8, b=32)).
 - Smoke archive: [`benchmarks/e5-base-post-defaults-smoke/`](./benchmarks/e5-base-post-defaults-smoke/)
+
+### E6.6 — Per-model wallclock re-measurement at E6.5 defaults (2026-04-25)
+
+Re-measured indexing wallclock for the MLTensor-based built-in
+embedders at the new E6.5 defaults
+(`pool=8 batch=32 bucket-width=500 compute-policy=auto`). Closes
+the loop on the `indexing-profile.md` table, which previously
+mixed E5.x-era OLD-default numbers with the new defaults flip.
+
+**Re-measured (6 of 7 planned)**:
+
+| alias       | OLD wall | NEW wall | Δ %     | NEW total /60 |
+|-------------|---------:|---------:|--------:|--------------:|
+| `e5-base`   |  1025 s  |  891 s   | −13.1 % | 38 (doc 40)   |
+| `bge-base`  |  1003 s  | 1022 s   |  +1.9 % | 34 (doc 36)   |
+| `bge-small` |   610 s  |  573 s   |  −6.1 % | 27 (doc 30)   |
+| `bge-large` |  3220 s  | 2667 s   | −17.2 % | 30 (doc 34)   |
+| `nomic`     |  1417 s  | 1497 s   |  +5.6 % | 32 (doc 35)   |
+| `gte-base`  |   974 s  | 1611 s   | +65.4 % |  8 (doc 8)    |
+
+**Deferred (1 of 7)**: `mxbai-large` — the ~3 h sweep was started
+and stopped early because it would have eaten too much battery;
+will run on AC power. The `indexing-profile.md` row keeps the OLD
+3638 s value with footnote ⁵ flagging the deferral.
+
+**Skipped (2 of 9)**: `nl` and `nl-contextual` use Apple's
+NaturalLanguage framework, not MLTensor — the E6.5 knobs don't
+flow into Apple's framework, so re-measurement would produce
+identical numbers within run-to-run noise. Both rows kept with
+footnote ⁷ noting the captured-defaults difference.
+
+Aggregate across the 6 re-measured rows: +12 s (+0.1 %), flat in
+aggregate. Without `gte-base`, the 5-model aggregate is **−626 s,
+−8.6 %** — the more honest read on what E6.5 does for the typical
+model.
+
+**Per-model patterns / surprises**:
+
+- **`e5-base` validates the E6.3 grid prediction.** The single-
+  point E6.6 re-run cut −13.1 % vs the E5.7-era OLD number,
+  within 0.2 pp of the −13.3 % E6.3 in-grid prediction.
+- **`bge-large` is the biggest absolute winner**, shaving 9.2 min
+  off a single full reindex (−17.2 %). Likely the b=16 → b=32
+  amortisation has more total wall to amortise on the highest-dim
+  model.
+- **`bge-base` flat** (+1.9 %, in noise band) — consistent with
+  E6.3's prediction that the gain is largest at e5-base / mid-dim.
+- **`nomic`'s +5.6 % regression is the expected sign** for its
+  CPU-only pin: ANE half of the flip doesn't apply, and N=10 → N=8
+  strictly reduces parallelism on a CPU-bound path.
+- **`gte-base` regresses catastrophically (+65.4 %)** — the only
+  outlier and the dominating term in the aggregate. Retrieval
+  unchanged at 8/60. Hypothesis: auto-placement under N=8/b=32
+  picks an unfavourable backend for `gte-base` specifically.
+  `gte-base` is registered but is not a default candidate (8/60
+  on this corpus), so this is documented but not blocking — a
+  follow-up grid scoped to gte-base alone is queued as an E6.7
+  candidate.
+
+**Retrieval drift**: −2 to −4 pts across 5 of 6 models, all in
+the same direction. Disambiguated on `bge-small` with a control
+run at the OLD defaults (`--concurrency 10 --batch-size 16`):
+that run produced **27/60, rank-by-rank identical** to the
+new-defaults run, confirming the drift is operator-triggered
+corpus drift since the E5.x baselines, not a defaults-side
+effect. The new defaults do not affect retrieval; on bge-small
+the rank table is byte-identical between the two default regimes.
+
+**Decision implications**: E6.5 defaults flip is validated for
+the family it was tuned on (e5-base + BGE tier). `gte-base` and
+`mxbai-large` are open follow-ups; neither blocks E6.6. No new
+default changes recommended.
+
+- Data: [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
+- Per-archive raw data: [`benchmarks/wallclock-2026-04-25/`](./benchmarks/wallclock-2026-04-25/)
+- Disambiguation archive: [`benchmarks/wallclock-2026-04-25/bge-small-old-defaults/`](./benchmarks/wallclock-2026-04-25/bge-small-old-defaults/)
+- `indexing-profile.md` table refreshed with 6 NEW rows + footnotes ⁵⁶⁷.
+- Follow-ups: mxbai-large addendum (deferred ~3 h sweep on AC
+  power), gte-base regression diagnosis (E6.7 candidate).
 
 ---
 
