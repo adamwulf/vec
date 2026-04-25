@@ -734,6 +734,55 @@ fallback not needed.
 - Probe archive: [`benchmarks/e6-2-ane-probe/`](./benchmarks/e6-2-ane-probe/)
 - Baseline reference: [`benchmarks/e5-base-baseline-2026-04-24/`](./benchmarks/e5-base-baseline-2026-04-24/)
 
+### E6.3 — e5-base indexing-speed grid (2026-04-24)
+
+Third step of the E6 e5-base indexing-speed tuning chain. Ran the
+full 24-point grid `batch_size ∈ {16, 24, 32}` × `concurrency ∈
+{6, 8, 10, 12}` × `policy ∈ {auto, ane}` against `markdown-memory`
+at `e5-base@1200/0`. Each point reset+reindexed the corpus and
+captured a fresh rubric archive. Total wallclock ~7 h.
+
+**Winner: `N=8, b=32, compute_policy=ane` → 937.2 s, 8.6 chps_wall.**
+
+**Wall reduction vs in-grid default `(N=10, b=16, auto)` 1081.1 s:
+−143.9 s, −13.3 %.** Clears the 5 % defaults-update threshold by a
+wide margin. (Cross-day comparison vs the 968.9 s 2026-04-24
+baseline run is −3.3 %, but contaminated by run-to-run wallclock
+noise — the in-grid same-machine-state apples-to-apples number is
+authoritative.)
+
+**Bit-identical retrieval on all 24 points.** Every point produced
+TOTAL=38/60, TOP10_EITHER=9/10, TOP10_BOTH=5/10 — byte-identical to
+the baseline reference at the rank level. Concurrency, batch size,
+and compute-policy are pure speed knobs for `e5-base`'s embedding
+pipeline.
+
+**ANE-default flip: do NOT recommend.** Across the 12 paired
+`(N, b)` points, ANE wins 5, auto wins 7. ANE consistently helps
+only at N=8 (−3.0 % to −3.8 %); at N=6 and N=10 it's noisy ±3–7 %;
+at N=12 it's catastrophic (+22–24 %, two slowest points in the
+grid). Keep `auto` as the default; treat `--compute-policy ane` as
+an opt-in tuning knob.
+
+**Concurrency findings.** N=8 is the global optimum, beating N=10
+by ~5–7 % and N=12 by ~30 %. N=12 oversubscribes the M-series
+~10-active-processor budget and forces context-switch contention,
+which compounds catastrophically with ANE.
+
+**Batch-size findings.** b=32 wins consistently over b=16 by 6–11 %
+across all N ≤ 10. The pipeline's compile-time cap is 32; whether
+b=48 or b=64 extends the trend is open as a follow-up.
+
+**Defaults update qualifies.** Recommend manager review for
+flipping `IndexingPipeline.defaultBatchSize` 16 → 32 and pinning
+default concurrency at 8 instead of `activeProcessorCount` (≈10 on
+M-series). Skip the ANE flip.
+
+- Writeup: [`data/sweep-e5-base-speed.md`](./data/sweep-e5-base-speed.md)
+- Per-point archives: [`benchmarks/sweep-e5-base-speed/`](./benchmarks/sweep-e5-base-speed/)
+- Driver script: [`scripts/e6-3-sweep-grid.sh`](./scripts/e6-3-sweep-grid.sh)
+- Baseline reference: [`benchmarks/e5-base-baseline-2026-04-24/`](./benchmarks/e5-base-baseline-2026-04-24/)
+
 ---
 
 ## In progress
@@ -784,18 +833,17 @@ and per-query target ranks; wallclock is 3.8 % faster (968.9 s →
 CPU for some subgraph, which the E6.3 auto-vs-ane A/B will
 surface.
 
-**E6.3 auto-queued next with the 24-point grid shape.** Per E6.2's
-outcome, the ANE-compiles branch of the original E6.3 plan applies:
-`batch_size ∈ {16, 24, 32}` × `concurrency ∈ {6, 8, 10, 12}` ×
-`policy ∈ {auto, ane}` = 24 points, ~6.5 h wallclock budget. Each
-point reindexes markdown-memory at the given config, measures wall
-+ peak RSS + pool utilization, and verifies retrieval bit-identical
-to the baseline reference. Output:
-`data/indexing-speed-e5-base.md` table sorted by speed.
+**E6.3 shipped 2026-04-24** (see Done above). Full 24-point grid
+captured. Winner is `N=8, b=32, compute_policy=ane` at 937.2 s,
+−13.3 % vs in-grid default — clears the 5 % threshold for a
+defaults update. ANE wins are inconsistent across the grid;
+recommend NOT flipping the compute-policy default. Bit-identical
+retrieval on all 24 points.
 
-E6.4 remains as planned below. The fresh
-`benchmarks/e5-base-baseline-2026-04-24/` archive remains the
-E6.3 regression-bar reference anchor.
+**E6.4 auto-queued next.** Bucket-width sweep at the E6.3 winner
+`(N=8, b=32, ane)` using the `--bucket-width` flag from E6.1. Plan
+remains as in the Backlog section below — but anchored at the E6.3
+winner rather than the prior `(N=10, b=16, auto)` default.
 
 ---
 
@@ -1042,24 +1090,22 @@ per-query target ranks; wallclock is 3.8 % faster (968.9 s →
 See Done section above and
 [`data/e6-2-ane-probe.md`](./data/e6-2-ane-probe.md).
 
-**E6.3 — indexing-speed grid for e5-base.** Grid shape resolved
-by E6.2: **24-point grid** `batch_size ∈ {16, 24, 32}` ×
-`concurrency ∈ {6, 8, 10, 12}` × `policy ∈ {auto, ane}`,
-~932–969 s × 24 ≈ 6.5 h. Each point: reindex markdown-memory at
-the config, measure wall + peak RSS + pool utilization, verify
-retrieval bit-identical to reference. Output:
-`data/indexing-speed-e5-base.md` table sorted by speed. The
-`{auto, ane}` A/B at each `(batch_size, concurrency)` point is
-the direct measurement of whether `--compute-policy ane` is a
-real acceleration lever or a scheduler no-op; E6.2's modest
-3.8 % speedup on one point is suggestive but a 24-point grid is
-what will tell us whether the speedup generalizes.
+**E6.3 — indexing-speed grid for e5-base.** ✅ done (2026-04-24).
+24-point grid complete. Winner: `N=8, b=32, compute_policy=ane`
+at 937.2 s, −13.3 % vs in-grid default `(N=10, b=16, auto)`
+1081.1 s. Clears 5 % defaults-update threshold. All 24 points
+bit-identical retrieval to baseline (38/60, 9/10, 5/10). ANE wins
+inconsistent across the grid; recommend NOT flipping the
+compute-policy default. See Done section above and
+[`data/sweep-e5-base-speed.md`](./data/sweep-e5-base-speed.md).
 
 **E6.4 — Length-bucket width.** Current bucket key is
-`chunk.text.count / 500`. After E6.3 identifies the fastest
-`(N, b, policy)` config, 2 additional points at that config:
-`/300` (finer, less padding waste) and `/700` (coarser, larger
-effective batches). ~35 min.
+`chunk.text.count / 500`. Anchored at the E6.3 winner
+`(N=8, b=32, ane)`, 2 additional points: `/300` (finer, less
+padding waste) and `/700` (coarser, larger effective batches).
+~35 min. If neither beats `/500` at the winner config, the
+defaults stay; otherwise the bucket-width default flip is
+considered alongside the `(N, b)` flip from E6.3.
 
 **Defaults update rule.** After E6.4, if the best config beats
 the current `N=10 b=16 /500 auto` baseline by ≥5% wallclock with
