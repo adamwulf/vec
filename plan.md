@@ -783,6 +783,50 @@ M-series). Skip the ANE flip.
 - Driver script: [`scripts/e6-3-sweep-grid.sh`](./scripts/e6-3-sweep-grid.sh)
 - Baseline reference: [`benchmarks/e5-base-baseline-2026-04-24/`](./benchmarks/e5-base-baseline-2026-04-24/)
 
+### E6.4 — bucket-width refinement at E6.3 winner (2026-04-24)
+
+Final step of the E6 e5-base indexing-speed tuning chain. Two new
+sweep points at the E6.3 winning config `(N=8, b=32, ane)` varying
+only `--bucket-width`: `/300` (finer) and `/700` (coarser). The
+current default `/500` is the third reference point, taken from the
+E6.3 winner archive.
+
+**Best bucket-width: 500 (current default), 937.2 s, 8.6 chps_wall.**
+
+| bucket_width | wall_s | chps_wall | total_60 | top10_either | top10_both |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 300 | 1018.8 | 7.9 | 38 | 9 | 5 |
+| **500** | **937.2** | **8.6** | **38** | **9** | **5** |
+| 700 |  952.1 | 8.5 | 38 | 9 | 5 |
+
+`/300` is +8.7 % slower (finer bucketing flushes more partial
+batches and loses ANE batched-parallelism amortization). `/700` is
++1.6 % slower — within documented E6.3 run-to-run noise (~11.6 %).
+
+**Bit-identical retrieval on all three points.** Both new sweeps
+produced TOTAL=38/60, TOP10_EITHER=9/10, TOP10_BOTH=5/10 with
+T-rank and S-rank byte-identical to baseline across all 10
+queries. Bucket-width is a pure batching knob, retrieval-invariant
+for `e5-base`.
+
+**Defaults update for bucket-width: NO.** Neither point clears the
+5 % threshold over `/500`. `/300` regresses by 8.7 %; `/700` is
++1.6 % (inside noise). Keep
+`IndexingPipeline.defaultBucketWidth = 500`. The E6.3
+recommendation to flip `defaultBatchSize` 16 → 32 and pin default
+concurrency at 8 stands; this E6.4 result narrows the E6 defaults
+update to those two knobs only.
+
+**E6 chain complete.** All four steps shipped 2026-04-24:
+E6.1 (flags), E6.2 (ANE feasibility), E6.3 (speed grid),
+E6.4 (bucket-width). Manager review pending for the E6.3 defaults
+flip; bucket-width and compute-policy defaults stay as they are.
+
+- Writeup: [`data/sweep-e5-base-bucket.md`](./data/sweep-e5-base-bucket.md)
+- Per-point archives: [`benchmarks/sweep-e5-base-bucket/`](./benchmarks/sweep-e5-base-bucket/)
+- bucket=500 reference: [`benchmarks/sweep-e5-base-speed/N8-b32-ane/`](./benchmarks/sweep-e5-base-speed/N8-b32-ane/)
+- Baseline reference: [`benchmarks/e5-base-baseline-2026-04-24/`](./benchmarks/e5-base-baseline-2026-04-24/)
+
 ---
 
 ## In progress
@@ -840,10 +884,19 @@ defaults update. ANE wins are inconsistent across the grid;
 recommend NOT flipping the compute-policy default. Bit-identical
 retrieval on all 24 points.
 
-**E6.4 auto-queued next.** Bucket-width sweep at the E6.3 winner
-`(N=8, b=32, ane)` using the `--bucket-width` flag from E6.1. Plan
-remains as in the Backlog section below — but anchored at the E6.3
-winner rather than the prior `(N=10, b=16, auto)` default.
+**E6.4 shipped 2026-04-24** (see Done above). Bucket-width
+refinement at the E6.3 winner `(N=8, b=32, ane)`: `/300` is +8.7 %
+slower than the current `/500` default; `/700` is +1.6 % slower
+(inside run-to-run noise). Bit-identical retrieval on all three
+points. **Recommendation: do NOT flip
+`IndexingPipeline.defaultBucketWidth`** — neither alternative
+clears the 5 % threshold.
+
+**E6 chain complete.** E6.1 → E6.2 → E6.3 → E6.4 all shipped
+2026-04-24. Pending manager review: apply the E6.3 defaults flip
+(`defaultBatchSize` 16 → 32, default concurrency pinned at 8).
+The compute-policy and bucket-width defaults stay as they are
+based on E6.3 / E6.4 findings.
 
 ---
 
@@ -1099,13 +1152,15 @@ inconsistent across the grid; recommend NOT flipping the
 compute-policy default. See Done section above and
 [`data/sweep-e5-base-speed.md`](./data/sweep-e5-base-speed.md).
 
-**E6.4 — Length-bucket width.** Current bucket key is
-`chunk.text.count / 500`. Anchored at the E6.3 winner
-`(N=8, b=32, ane)`, 2 additional points: `/300` (finer, less
-padding waste) and `/700` (coarser, larger effective batches).
-~35 min. If neither beats `/500` at the winner config, the
-defaults stay; otherwise the bucket-width default flip is
-considered alongside the `(N, b)` flip from E6.3.
+**E6.4 — Length-bucket width.** ✅ done (2026-04-24). Anchored at
+the E6.3 winner `(N=8, b=32, ane)`, ran the two alternative
+bucket-width points: `/300` is +8.7 % slower than `/500`
+(regression — finer bucketing flushes more partial batches), `/700`
+is +1.6 % slower (inside noise). All three points bit-identical
+retrieval to baseline (38/60, 9/10, 5/10). **bucket-width default
+flip: NO** — neither alternative clears the 5 % threshold. Keep
+`IndexingPipeline.defaultBucketWidth = 500`. See Done section above
+and [`data/sweep-e5-base-bucket.md`](./data/sweep-e5-base-bucket.md).
 
 **Defaults update rule.** After E6.4, if the best config beats
 the current `N=10 b=16 /500 auto` baseline by ≥5% wallclock with
