@@ -282,7 +282,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Indexing profile alias (\(IndexingProfileFactory.knownAliases.joined(separator: ", "))). Default is \(IndexingProfileFactory.defaultAlias) on first index; must match the recorded profile on subsequent runs (or omit to reuse the recorded alias with its alias-default chunk params).")
     var embedder: String?
 
-    @Option(name: .long, help: "Override embedder pool size (default: #activeProcessors, typically 10). E6.3 indexing-speed knob.")
+    @Option(name: .long, help: "Override embedder pool size (default: \(IndexingPipeline.defaultConcurrency), measured optimum on 10-perf-core M-series in E6.3). E6.3 indexing-speed knob.")
     var concurrency: Int?
 
     @Option(name: .long, help: "Override max chunks per embedDocuments batch (default: \(IndexingPipeline.defaultBatchSize), cap 32). E6.3 indexing-speed knob.")
@@ -523,20 +523,18 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     }
 
     /// Constructs an `IndexingPipeline` honoring the E6.1 CLI knobs.
-    /// Nil overrides fall back to the pipeline's own default values
-    /// (`activeProcessorCount`, `defaultBatchSize`, `defaultBucketWidth`),
-    /// preserving pre-E6.1 behavior byte-for-byte when no flags are
-    /// passed. Shared between `UpdateIndexCommand` and `SweepCommand`
-    /// so both see identical knob-routing semantics.
+    /// Nil overrides fall back to the pipeline's own measured-and-
+    /// hardcoded defaults (`defaultConcurrency`, `defaultBatchSize`,
+    /// `defaultBucketWidth`). Shared between `UpdateIndexCommand` and
+    /// `SweepCommand` so both see identical knob-routing semantics.
     static func makePipeline(
         profile: IndexingProfile,
         concurrency: Int?,
         batchSize: Int?,
         bucketWidth: Int?
     ) -> IndexingPipeline {
-        let defaultConcurrency = max(ProcessInfo.processInfo.activeProcessorCount, 2)
         return IndexingPipeline(
-            concurrency: concurrency ?? defaultConcurrency,
+            concurrency: concurrency ?? IndexingPipeline.defaultConcurrency,
             batchSize: batchSize ?? IndexingPipeline.defaultBatchSize,
             bucketWidth: bucketWidth ?? IndexingPipeline.defaultBucketWidth,
             profile: profile

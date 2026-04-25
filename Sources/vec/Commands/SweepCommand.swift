@@ -36,7 +36,7 @@ struct SweepCommand: AsyncParsableCommand {
     @Flag(name: .shortAndLong, help: "Print progress line per grid point")
     var verbose: Bool = false
 
-    @Option(name: .long, help: "Override embedder pool size (default: #activeProcessors). Applied to every grid point's pipeline.")
+    @Option(name: .long, help: "Override embedder pool size (default: \(IndexingPipeline.defaultConcurrency), measured in E6.3). Applied to every grid point's pipeline.")
     var concurrency: Int?
 
     @Option(name: .long, help: "Override max chunks per embedDocuments batch (default: \(IndexingPipeline.defaultBatchSize), cap 32). Applied to every grid point.")

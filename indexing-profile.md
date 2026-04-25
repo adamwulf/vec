@@ -35,8 +35,15 @@ Nine built-in profiles ship today:
 `markdown-memory` corpus (674 files; chunk counts vary with the
 profile's chunk geometry — 8170 chunks at 1200/240, 7528 chunks at
 1200/0, 4828 chunks for `nl` at 2000/200, 5760 chunks at 1600/0,
-11496 chunks at 800/80), 10-core Apple Silicon, pool=10, batch=16,
-release build. `bge-base` row is from the E4 batched commit;
+11496 chunks at 800/80), 10-perf-core M-series Apple Silicon.
+Rows captured at the E4-era `pool=10 batch=16 bucket-width=500`
+defaults (release build). **As of 2026-04-24 the defaults are
+`pool=8 batch=32 bucket-width=500`** (E6.3 tuning, measured 13.3 %
+wall cut at the defaults for e5-base). Other models in the table
+have not been re-measured at the new defaults; their wallclock
+and ch/s rows are snapshots from the original sweep, not current-
+default numbers. The relative rankings and per-model geometries
+are unchanged. `bge-base` row is from the E4 batched commit;
 `bge-small` / `bge-large` rows are from the E5.4 sweep peaks;
 `gte-base` is from the E5.6 sweep peak; `e5-base` is from the E5.7
 sweep peak; `mxbai-large` is from the E5.8 sweep peak. Per-model

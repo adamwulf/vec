@@ -28,9 +28,13 @@ the 10-query trademark rubric). See
 [`retrieval-rubric.md`](./retrieval-rubric.md) for the rubric
 definition.
 
-**Wallclock on markdown-memory**: ~1025 s at N=10 workers,
-batchSize=16 on a 10-core Apple Silicon machine — parity with
-bge-base's ~1003 s, no throughput cost for the quality gain.
+**Wallclock on markdown-memory**: ~937 s at N=8 workers,
+batchSize=32 on a 10-perf-core M-series Apple Silicon machine after
+the E6.3 defaults flip (committed 2026-04-24). Previously ~1025 s
+at N=10 b=16. The new defaults are measured-and-hardcoded for the
+one machine vec targets today; see `IndexingPipeline.swift`
+doc-comments on `defaultConcurrency` and `defaultBatchSize` for
+the rationale and re-measurement notes if the host ever changes.
 Per-model comparison in
 [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md).
 

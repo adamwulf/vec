@@ -182,19 +182,36 @@ public final class IndexingPipeline: Sendable {
     /// large-but-padded batches. Exposed for the E6 speed sweep.
     public let bucketWidth: Int
 
-    /// Default length-bucket width in characters. Matches the E4
-    /// hardcoded value; exposed as a constant so callers can refer to
-    /// it by name instead of re-declaring the literal.
+    /// Default length-bucket width in characters. E6.4 confirmed 500
+    /// as the optimum at the E6.3 winning (N=8, b=32, ANE) anchor on
+    /// the 10-perf-core M-series test host; neither 300 nor 700 beat
+    /// it. Exposed as a constant so callers can refer to it by name
+    /// instead of re-declaring the literal.
     public static let defaultBucketWidth: Int = 500
 
-    /// Default batch size. Matches the E4-era hardcoded value.
-    public static let defaultBatchSize: Int = 16
+    /// Default batch size. Tuned to 32 in E6.3 (the BNNS fused-
+    /// attention cap) after the 24-point speed grid showed consistent
+    /// 6–11 % wall reductions over the E4-era b=16 default at every
+    /// N ≤ 10 for `e5-base@1200/0` on markdown-memory. See
+    /// `data/sweep-e5-base-speed.md` for the full grid.
+    public static let defaultBatchSize: Int = 32
+
+    /// Default embedder-pool concurrency. Tuned to 8 in E6.3 as the
+    /// measured global optimum on Adam's 10-perf-core M-series host
+    /// (N=12 oversubscribes the scheduler; N=10 is inferior to N=8;
+    /// N=6 trails N=8 by ~7%). vec is a local-only tool targeting
+    /// this one machine class, so a measured-and-hardcoded value is
+    /// preferred over a machine-sensing formula that would introduce
+    /// untested branches. If you ever run vec on materially different
+    /// hardware (e.g. many more or fewer perf cores, or an Intel Mac)
+    /// this default will need re-measurement.
+    public static let defaultConcurrency: Int = 8
 
     /// Bounded pool of N embedder instances sized to `workerCount`.
     private let pool: EmbedderPool
 
     public init(
-        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
+        concurrency: Int = IndexingPipeline.defaultConcurrency,
         batchSize: Int = IndexingPipeline.defaultBatchSize,
         bucketWidth: Int = IndexingPipeline.defaultBucketWidth,
         profile: IndexingProfile
