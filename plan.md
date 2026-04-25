@@ -823,13 +823,53 @@ update to those two knobs only.
 
 **E6 chain complete.** All four steps shipped 2026-04-24:
 E6.1 (flags), E6.2 (ANE feasibility), E6.3 (speed grid),
-E6.4 (bucket-width). Manager review pending for the E6.3 defaults
+E6.4 (bucket-width). E6.5 below applies the recommended defaults
 flip; bucket-width and compute-policy defaults stay as they are.
 
 - Writeup: [`data/sweep-e5-base-bucket.md`](./data/sweep-e5-base-bucket.md)
 - Per-point archives: [`benchmarks/sweep-e5-base-bucket/`](./benchmarks/sweep-e5-base-bucket/)
 - bucket=500 reference: [`benchmarks/sweep-e5-base-speed/N8-b32-ane/`](./benchmarks/sweep-e5-base-speed/N8-b32-ane/)
 - Baseline reference: [`benchmarks/e5-base-baseline-2026-04-24/`](./benchmarks/e5-base-baseline-2026-04-24/)
+
+### E6.5 — Apply E6.3 defaults flip (2026-04-24)
+
+Flipped the IndexingPipeline defaults to the measured E6.3 winner.
+Adam signed off on applying these directly rather than retaining
+machine-sensing fallbacks — vec is a local-only tool targeting his
+one machine, so measured-and-hardcoded defaults beat portability
+for defaults that won't be re-measured on other hardware.
+
+Changes to `Sources/VecKit/IndexingPipeline.swift`:
+- `defaultBatchSize`: **16 → 32** (the BNNS fused-attention cap;
+  E6.3 showed 6–11 % wall cut over b=16 at every N ≤ 10).
+- **NEW** `defaultConcurrency = 8` (hardcoded). Replaces the
+  former `max(ProcessInfo.processInfo.activeProcessorCount, 2)`
+  fallback in `UpdateIndexCommand.makePipeline`. Measured as the
+  E6.3 global optimum on the 10-perf-core M-series host; N=12
+  oversubscribes catastrophically and N=10 trails N=8 by ~5–7 %.
+- `defaultBucketWidth = 500` unchanged (E6.4 confirmed optimal).
+- Compute-policy default unchanged at `auto` (ANE is opt-in via
+  `--compute-policy ane`; E6.3 showed auto is safer system-wide —
+  5 ANE wins vs 7 auto wins across 12 paired points).
+
+The `defaultConcurrency` constant carries a doc-comment flagging
+that it's machine-specific and will need re-measurement if the
+host ever materially changes (more/fewer perf cores, non-Apple
+Silicon). CLI help text for `--concurrency`, `--batch-size`, and
+`--bucket-width` interpolates the new defaults so `vec sweep
+--help` reads correctly.
+
+Smoke test: `vec sweep --db markdown-memory --embedder e5-base
+--sizes 1200 --overlap-pcts 0` at the new defaults produces
+**bit-identical retrieval** (38/60, 9/10 top10_either, 5/10
+top10_both — every T/S rank matches the 2026-04-24 baseline).
+Wallclock landed at 1059 s (vs the E6.3 in-grid N8-b32-auto
+measurement of 966 s) — within documented ~11.6 % run-to-run
+wallclock noise, not a regression.
+
+- Commit: `8b249c7` (E6.5: flip IndexingPipeline defaults to E6.3
+  winner (N=8, b=32)).
+- Smoke archive: [`benchmarks/e5-base-post-defaults-smoke/`](./benchmarks/e5-base-post-defaults-smoke/)
 
 ---
 
