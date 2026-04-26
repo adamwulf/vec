@@ -40,6 +40,100 @@ enum ComputePolicyOption: String, ExpressibleByArgument, CaseIterable {
     }
 }
 
+/// Thread-safe writer for the per-DB PID/progress file at `<dbDir>/index.pid`.
+///
+/// Two-line format:
+///   line 1: PID of the running `vec update-index` process
+///   line 2: `<filesDone>/<totalFiles>` — updated after every file finishes
+///
+/// External tools tail this file to track indexing progress without
+/// attaching to the CLI's stdout. The file is removed on completion
+/// (success or failure). On startup, a stale file left behind by a
+/// crashed run is detected via `kill(pid, 0)` and overwritten; a live
+/// PID causes `update-index` to refuse to start.
+private final class PIDProgressFile: @unchecked Sendable {
+    private let url: URL
+    private let pid: Int32
+    private let totalFiles: Int
+    private let lock = NSLock()
+    private var filesDone = 0
+    private var removed = false
+
+    init(url: URL, totalFiles: Int) {
+        self.url = url
+        self.pid = getpid()
+        self.totalFiles = totalFiles
+    }
+
+    /// Writes the initial `pid` + `0/<total>` content. Throws if the
+    /// file can't be written (permissions, missing directory).
+    func writeInitial() throws {
+        try writeContents(filesDone: 0)
+    }
+
+    /// Bumps the `filesDone` counter and rewrites line 2. Safe to call
+    /// from multiple concurrent stages — the underlying file write is
+    /// guarded by `lock` and uses atomic-replace semantics so a
+    /// concurrent reader never sees a partial line.
+    func recordFileFinished() {
+        lock.lock()
+        let snapshotDone: Int
+        let alreadyRemoved: Bool
+        filesDone += 1
+        snapshotDone = filesDone
+        alreadyRemoved = removed
+        lock.unlock()
+        guard !alreadyRemoved else { return }
+        // Best-effort: a transient write error shouldn't kill the whole
+        // index. The next file's update will retry.
+        try? writeContents(filesDone: snapshotDone)
+    }
+
+    /// Idempotent: safe to call from both the success and error paths.
+    func remove() {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !removed else { return }
+        removed = true
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    private func writeContents(filesDone: Int) throws {
+        let body = "\(pid)\n\(filesDone)/\(totalFiles)\n"
+        try body.data(using: .utf8)!.write(to: url, options: .atomic)
+    }
+
+    /// Returns true if a process with the given PID is currently alive.
+    /// `kill(pid, 0)` performs the permission/existence check without
+    /// actually sending a signal: returns 0 if the process exists,
+    /// `errno == ESRCH` if it doesn't, `errno == EPERM` if it exists
+    /// but we lack permission to signal it (still alive — treat as
+    /// running).
+    static func isProcessAlive(pid: Int32) -> Bool {
+        guard pid > 0 else { return false }
+        if kill(pid, 0) == 0 {
+            return true
+        }
+        return errno == EPERM
+    }
+
+    /// Inspects an existing PID file at `url`. Returns the live PID if
+    /// the file exists, parses cleanly, and the recorded process is
+    /// still running. Returns `nil` for "no file", "malformed file",
+    /// or "stale PID" — all three mean it's safe to overwrite.
+    static func livePID(at url: URL) -> Int32? {
+        guard let data = try? Data(contentsOf: url),
+              let text = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        let firstLine = text.split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
+        guard let pid = Int32(firstLine.trimmingCharacters(in: .whitespaces)) else {
+            return nil
+        }
+        return isProcessAlive(pid: pid) ? pid : nil
+    }
+}
+
 /// Thread-safe renderer for a single-line rolling progress display in verbose mode.
 ///
 /// The `IndexingPipeline` calls `handle(_:)` from multiple concurrent stages
@@ -305,6 +399,14 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             ? DatabaseLocator.resolve(db!)
             : DatabaseLocator.resolveFromCurrentDirectory()
 
+        // Refuse to run if another vec process is already indexing this
+        // DB. A stale file (process died without cleanup) is silently
+        // overwritten when we claim the lock below.
+        let pidFileURL = dbDir.appendingPathComponent("index.pid")
+        if let livePID = PIDProgressFile.livePID(at: pidFileURL) {
+            throw VecError.indexingAlreadyRunning(pid: livePID)
+        }
+
         // Step 3: open DB only to count chunks. The three missing-profile
         // branches split on chunk count; the probe dimension doesn't
         // matter because we only read the chunk count, but we still
@@ -391,6 +493,18 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         )
         let workerCount = pipeline.workerCount
 
+        // Per-DB PID + progress file. Only write it when we actually
+        // have files to process — a no-op `update-index` exits in
+        // milliseconds and doesn't need an external progress signal.
+        let pidFile: PIDProgressFile?
+        if !workItems.isEmpty {
+            let f = PIDProgressFile(url: pidFileURL, totalFiles: workItems.count)
+            try f.writeInitial()
+            pidFile = f
+        } else {
+            pidFile = nil
+        }
+
         // Wire up the rolling progress renderer when verbose and attached to a TTY.
         // Piped/redirected stdout skips the rolling line, but non-verbose runs
         // still need a progress handler so non-English warnings can print to
@@ -398,19 +512,28 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         // sees.
         let stdoutIsTTY = isatty(FileHandle.standardOutput.fileDescriptor) != 0
         let renderer: ProgressRenderer?
-        let progress: ProgressHandler?
+        let baseProgress: ProgressHandler
         if verbose && stdoutIsTTY && !workItems.isEmpty {
             let r = ProgressRenderer(totalFiles: workItems.count, totalWorkers: workerCount)
             renderer = r
-            progress = { event in r.handle(event) }
+            baseProgress = { event in r.handle(event) }
         } else {
             renderer = nil
-            progress = { event in
+            baseProgress = { event in
                 if case .nonEnglishDetected(let path, let language) = event {
                     FileHandle.standardError.write(
                         Data("Warning: non-English content detected in \(path) (detected: \(language)), embedding quality may be reduced\n".utf8)
                     )
                 }
+            }
+        }
+        let progress: ProgressHandler? = { [pidFile] event in
+            baseProgress(event)
+            switch event {
+            case .fileFinished, .fileSkipped:
+                pidFile?.recordFileFinished()
+            default:
+                break
             }
         }
 
@@ -425,8 +548,10 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                 progress: progress
             )
             renderer?.finish()
+            pidFile?.remove()
         } catch {
             renderer?.finish()
+            pidFile?.remove()
             throw error
         }
         let wallSeconds = Date().timeIntervalSince(pipelineStart)
