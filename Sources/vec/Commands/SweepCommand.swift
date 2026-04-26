@@ -36,6 +36,18 @@ struct SweepCommand: AsyncParsableCommand {
     @Flag(name: .shortAndLong, help: "Print progress line per grid point")
     var verbose: Bool = false
 
+    @Option(name: .long, help: "Override embedder pool size (default: \(IndexingPipeline.defaultConcurrency), measured in E6.3). Applied to every grid point's pipeline.")
+    var concurrency: Int?
+
+    @Option(name: .long, help: "Override max chunks per embedDocuments batch (default: \(IndexingPipeline.defaultBatchSize), cap 32). Applied to every grid point.")
+    var batchSize: Int?
+
+    @Option(name: .long, help: "Override length-bucket width (chars) for batch-former keying: chunk.text.count / bucket-width (default: \(IndexingPipeline.defaultBucketWidth)). Applied to every grid point.")
+    var bucketWidth: Int?
+
+    @Option(name: .long, help: "MLTensor compute-policy placement (auto/cpu/ane/gpu; default: auto = per-embedder default). Applied to every grid point.")
+    var computePolicy: ComputePolicyOption = .auto
+
     func run() async throws {
         // Step 1: parse grid.
         let grid = try Self.parseGrid(sizes: sizes, overlapPcts: overlapPcts)
@@ -184,7 +196,8 @@ struct SweepCommand: AsyncParsableCommand {
         let profile = try IndexingProfileFactory.make(
             alias: embedder,
             chunkSize: point.size,
-            chunkOverlap: point.overlap
+            chunkOverlap: point.overlap,
+            computePolicy: computePolicy.mlPolicy
         )
         let record = DatabaseConfig.ProfileRecord(
             identity: profile.identity,
@@ -210,7 +223,12 @@ struct SweepCommand: AsyncParsableCommand {
         let files = try scanner.scan()
         let workItems: [(file: FileInfo, label: String)] = files.map { (file: $0, label: "Added") }
 
-        let pipeline = IndexingPipeline(profile: profile)
+        let pipeline = UpdateIndexCommand.makePipeline(
+            profile: profile,
+            concurrency: concurrency,
+            batchSize: batchSize,
+            bucketWidth: bucketWidth
+        )
         let pipelineStart = Date()
         let (_, stats) = try await pipeline.run(
             workItems: workItems,

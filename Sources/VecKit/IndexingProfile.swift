@@ -1,4 +1,5 @@
 import Foundation
+import CoreML
 
 /// A self-contained bundle of every parameter that affects how text
 /// becomes vectors. Two profiles with the same `identity` must produce
@@ -130,7 +131,7 @@ public enum IndexingProfileFactory {
         public let defaultChunkOverlap: Int
     }
 
-    public static let defaultAlias = "bge-base"
+    public static let defaultAlias = "e5-base"
 
     /// Static table. Adding a new embedder means adding one row here
     /// plus wiring the `make` switch below. Never instantiates an
@@ -198,6 +199,84 @@ public enum IndexingProfileFactory {
             defaultChunkSize: 1200,
             defaultChunkOverlap: 240
         ),
+        // gte-base-en-v1.5 — 768-dim, thenlper/gte-base. Direct peer of
+        // bge-base (same dim, same tokenizer, same CLS+L2 pooling, no
+        // query/passage prefix). The E5.6 chunk-geometry sweep (12
+        // points: {400,800,1200,1600} × {0%,10%,20%}) identified
+        // 1600/0 as the rubric peak at 8/60, 3/10 top10_either — far
+        // below bge-base@1200/240's 36/60 on the same corpus. gte-base
+        // is retained as an opt-in built-in but is NOT a default
+        // candidate on markdown-memory. See
+        // `data/retrieval-gte-base-sweep.md` for the full grid and
+        // the content-discrimination failure-mode analysis.
+        BuiltIn(
+            alias: "gte-base",
+            canonicalEmbedderName: "gte-base-en-v1.5",
+            canonicalDimension: 768,
+            defaultChunkSize: 1600,
+            defaultChunkOverlap: 0
+        ),
+        // e5-base-v2 — 768-dim, intfloat/e5-base-v2. Third 768-dim
+        // non-BGE model after gte-base. Two shape differences vs the
+        // other Bert-family embedders we carry:
+        //   • MEAN POOLING (not CLS). Implemented manually in
+        //     `E5BaseEmbedder` by driving `Bert.Model` directly with
+        //     the attention mask and running masked mean over the
+        //     sequence output, then L2-normalizing.
+        //   • QUERY/PASSAGE PREFIXES. Documents get `"passage: "` and
+        //     queries get `"query: "` prepended inside the embedder;
+        //     callers remain prefix-unaware (same protocol surface as
+        //     every other embedder).
+        // The E5.7 chunk-geometry sweep (12 points:
+        // {400,800,1200,1600} × {0%,10%,20%}) identified 1200/0 as
+        // the rubric peak: 40/60, 9/10 top10_either, 6/10 top10_both.
+        // That BEATS bge-base@1200/240 (36/60, 9/10, 3/10) on the
+        // same corpus — by +4 on total_60 and 2× on the stricter
+        // top10_both metric, with wallclock parity (~1025 s vs
+        // ~1003 s). `e5-base@400/40` is a co-peak at 40/60 with
+        // 10/10 top10_either but loses the top10_both tiebreaker
+        // (5 vs 6). See `data/retrieval-e5-base-sweep.md` for the
+        // full grid, three-way 768-dim comparison, and the
+        // candidate-global-default analysis. This commit updates the
+        // e5-base alias default only; a global default flip from
+        // bge-base → e5-base is held back pending manager review.
+        BuiltIn(
+            alias: "e5-base",
+            canonicalEmbedderName: "e5-base-v2",
+            canonicalDimension: 768,
+            defaultChunkSize: 1200,
+            defaultChunkOverlap: 0
+        ),
+        // mxbai-embed-large-v1 — 1024-dim, mixedbread-ai/mxbai-embed-large-v1.
+        // Direct peer of bge-large (same dim, same Bert-large architecture,
+        // same CLS+L2 pooling) with one shape difference: an asymmetric
+        // **query-only** prefix is required for retrieval —
+        // `"Represent this sentence for searching relevant passages: "` —
+        // injected inside `MxbaiEmbedLargeEmbedder` so callers stay
+        // prefix-unaware. Documents take no prefix.
+        //
+        // The E5.8 chunk-geometry sweep (12 points: {800,1200,1600,2000}
+        // × {0%,10%,20%}, mirroring bge-large's E5.4c grid) identified
+        // 800/80 as the rubric peak: 31/60, 8/10 top10_either, 4/10
+        // top10_both. `800/160` is the co-peak on total_60 (31/60) but
+        // loses the tiebreaker on top10_both (3 vs 4). The peak shifts
+        // to the size-800 band — different from bge-large (peak at 1200)
+        // and bge-base (peak at 1200) — most plausibly because the query
+        // prefix's ~10 BERT WordPiece tokens eat into the 512-token
+        // budget. mxbai-large does NOT beat bge-large@1200/0 (34/60)
+        // and is well below bge-base@1200/240 (36/60) and e5-base@1200/0
+        // (40/60); the MTEB headroom over bge-large does not transfer
+        // to markdown-memory rubric performance. Retained as an opt-in
+        // 1024-dim alternative to bge-large, NOT a default candidate.
+        // See `data/retrieval-mxbai-large-sweep.md` for the full grid
+        // and the cross-model 1024-dim head-to-head with bge-large.
+        BuiltIn(
+            alias: "mxbai-large",
+            canonicalEmbedderName: "mxbai-embed-large-v1",
+            canonicalDimension: 1024,
+            defaultChunkSize: 800,
+            defaultChunkOverlap: 80
+        ),
     ]
 
     public static var knownAliases: [String] { builtIns.map(\.alias) }
@@ -228,7 +307,8 @@ public enum IndexingProfileFactory {
     public static func make(
         alias: String,
         chunkSize: Int? = nil,
-        chunkOverlap: Int? = nil
+        chunkOverlap: Int? = nil,
+        computePolicy: MLComputePolicy? = nil
     ) throws -> IndexingProfile {
         precondition(
             (chunkSize == nil) == (chunkOverlap == nil),
@@ -244,17 +324,27 @@ public enum IndexingProfileFactory {
         let identity = "\(alias)@\(effectiveSize)/\(effectiveOverlap)"
 
         // Alias → factory closure. The closure is `@Sendable` and
-        // captures only the alias string (literal), so the pool can
-        // call it N times from any isolation domain to mint fresh
-        // sibling instances.
+        // captures only the alias string (literal) plus the optional
+        // compute-policy override, so the pool can call it N times from
+        // any isolation domain to mint fresh sibling instances.
+        //
+        // `computePolicy` is deliberately NOT rolled into `identity` —
+        // it's a runtime placement preference (CPU/ANE/GPU), not a
+        // semantic property of the stored vectors. Two runs at the same
+        // chunk geometry with different compute policies must round-
+        // trip through `config.json`'s stored identity unchanged.
+        let policy = computePolicy
         let factory: @Sendable () -> any Embedder
         switch alias {
-        case "nomic":         factory = { NomicEmbedder() }
-        case "nl":            factory = { NLEmbedder() }
-        case "bge-base":      factory = { BGEBaseEmbedder() }
-        case "bge-small":     factory = { BGESmallEmbedder() }
-        case "bge-large":     factory = { BGELargeEmbedder() }
-        case "nl-contextual": factory = { NLContextualEmbedder() }
+        case "nomic":         factory = { NomicEmbedder(computePolicy: policy) }
+        case "nl":            factory = { NLEmbedder(computePolicy: policy) }
+        case "bge-base":      factory = { BGEBaseEmbedder(computePolicy: policy) }
+        case "bge-small":     factory = { BGESmallEmbedder(computePolicy: policy) }
+        case "bge-large":     factory = { BGELargeEmbedder(computePolicy: policy) }
+        case "nl-contextual": factory = { NLContextualEmbedder(computePolicy: policy) }
+        case "gte-base":      factory = { GTEBaseEmbedder(computePolicy: policy) }
+        case "e5-base":       factory = { E5BaseEmbedder(computePolicy: policy) }
+        case "mxbai-large":   factory = { MxbaiEmbedLargeEmbedder(computePolicy: policy) }
         default:              throw VecError.unknownProfile(alias)
         }
         let embedder = factory()
@@ -280,12 +370,21 @@ public enum IndexingProfileFactory {
     /// to `IndexingProfile.parseIdentity` — the one parser in the
     /// tree — then calls `make` with explicit chunk params so that
     /// `isBuiltIn` is computed from effective values.
-    public static func resolve(identity: String) throws -> IndexingProfile {
+    ///
+    /// `computePolicy` is a runtime placement preference (CPU/ANE/GPU);
+    /// it is NOT part of the persisted identity and therefore must be
+    /// re-supplied on each resolve if the caller wants a non-default
+    /// policy.
+    public static func resolve(
+        identity: String,
+        computePolicy: MLComputePolicy? = nil
+    ) throws -> IndexingProfile {
         let parsed = try IndexingProfile.parseIdentity(identity)
         return try make(
             alias: parsed.alias,
             chunkSize: parsed.chunkSize,
-            chunkOverlap: parsed.chunkOverlap
+            chunkOverlap: parsed.chunkOverlap,
+            computePolicy: computePolicy
         )
     }
 

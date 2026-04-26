@@ -17,66 +17,178 @@ return nonsense. The profile identity is what prevents that: it
 commits the full parameter bundle to a single string the database
 can match against on every open.
 
-Six built-in profiles ship today:
+Nine built-in profiles ship today:
 
-| Alias            | Canonical identity         | Embedder                | Dim  | Chunk size | Chunk overlap | Rubric score              | Index wall¹ | ch/s¹  |
-| ---------------- | -------------------------- | ----------------------- | ---- | ---------- | ------------- | ------------------------- | ----------- | ------ |
-| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      |  768 | 1200 chars | 240 chars     | **36/60**, 3/10 both-top10 | 1003 s      | 8.1    |
-| `bge-small`      | `bge-small@1200/0`³        | `bge-small-en-v1.5`     |  384 | 1200 chars | 0 chars       | 30/60, 2/10 both-top10    | 610 s       | 12.3   |
-| `bge-large`      | `bge-large@1200/0`³        | `bge-large-en-v1.5`     | 1024 | 1200 chars | 0 chars       | 34/60, 3/10 both-top10    | 3220 s      | 2.3    |
-| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        |  768 | 1200 chars | 240 chars     | 35/60, 3/10 both-top10    | 1417 s²     | 5.8²   |
-| `nl`             | `nl@2000/200`              | `nl-en-512`             |  512 | 2000 chars | 200 chars     | 6/60, 0/10 both-top10     | 138 s       | 35.0   |
-| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  |  512 | 1200 chars | 240 chars     | 3/60, 0/10 both-top10     | 52 s        | 157.1  |
+| Alias            | Canonical identity         | Embedder                | Dim  | Chunk size | Chunk overlap | Total /60  | Both-top10 /10 | Index wall¹ | ch/s¹  |
+| ---------------- | -------------------------- | ----------------------- | ---- | ---------- | ------------- | ---------- | -------------- | ----------- | ------ |
+| `e5-base`        | `e5-base@1200/0`³          | `e5-base-v2`            |  768 | 1200 chars | 0 chars       | **40**     | **6**          | 891 s       | 9.1    |
+| `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      |  768 | 1200 chars | 240 chars     | 36         | 3              | 1022 s      | 8.6    |
+| `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        |  768 | 1200 chars | 240 chars     | 35         | 3              | 1497 s²     | 5.8²   |
+| `bge-large`      | `bge-large@1200/0`³        | `bge-large-en-v1.5`     | 1024 | 1200 chars | 0 chars       | 34         | 3              | 2667 s      | 3.0    |
+| `mxbai-large`    | `mxbai-large@800/80`³      | `mxbai-embed-large-v1`  | 1024 |  800 chars | 80 chars      | 31         | 4              | 3617 s      | 3.4    |
+| `bge-small`      | `bge-small@1200/0`³        | `bge-small-en-v1.5`     |  384 | 1200 chars | 0 chars       | 30         | 2              | 573 s       | 14.1   |
+| `gte-base`       | `gte-base@1600/0`³         | `gte-base-en-v1.5`      |  768 | 1600 chars | 0 chars       | 8⁴         | 0              | 1611 s⁵     | 3.8⁵   |
+| `nl`             | `nl@2000/200`              | `nl-en-512`             |  512 | 2000 chars | 200 chars     | 6          | 0              | 138 s⁶      | 35.0⁶  |
+| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  |  512 | 1200 chars | 240 chars     | 3          | 0              | 52 s⁶       | 157.1⁶ |
 
 ¹ Wall-clock and chunks-per-second for a full reindex of the
 `markdown-memory` corpus (674 files; chunk counts vary with the
-profile's chunk geometry — 8170 chunks at 1200/240, 7528 chunks at
-1200/0, 4828 chunks for `nl` at 2000/200), 10-core Apple Silicon,
-pool=10, batch=16, release build. `bge-base` row is from the E4
-batched commit; `bge-small` / `bge-large` rows are from the E5.4
-sweep peaks (`data/retrieval-bge-small-sweep.md` /
-`data/retrieval-bge-large-sweep.md`). `ch/s` is `chunks ÷ wall`. Full
-per-stage breakdown for the E4 baseline in
-`data/wallclock-e4-per-model.md`.
+profile's chunk geometry — 8742 chunks at 1200/240, 8070 chunks at
+1200/0, 4828 chunks for `nl` at 2000/200, 6166 chunks at 1600/0,
+12316 chunks at 800/80), 10-perf-core M-series Apple Silicon.
+Most rows captured 2026-04-25 / 2026-04-26 at the **E6.5
+defaults**: `pool=8 batch=32 bucket-width=500 compute-policy=auto`
+(E6.3 tuning, flipped on 2026-04-24). All seven MLTensor-based
+embedders (`e5-base`, `bge-base`, `bge-small`, `bge-large`,
+`nomic`, `gte-base`, `mxbai-large`) were re-measured at the new
+defaults in E6.6 — see [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
+for the OLD-vs-NEW comparison. The `e5-base` row in particular is
+−13 % vs the OLD E5.7-era number, validating the E6.3 grid winner.
+`mxbai-large` lands flat (−0.6 %, well within run-to-run noise).
+`ch/s` is `chunks ÷ wall`. Full per-stage breakdown for the
+earlier E4 baseline (different defaults) in
+`data/wallclock-e4-per-model.md`. Per-model retrieval sweep data:
+[`data/retrieval-bge-small-sweep.md`](./data/retrieval-bge-small-sweep.md),
+[`data/retrieval-bge-base-sweep.md`](./data/retrieval-bge-base-sweep.md),
+[`data/retrieval-bge-large-sweep.md`](./data/retrieval-bge-large-sweep.md),
+[`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md),
+[`data/retrieval-e5-base-sweep.md`](./data/retrieval-e5-base-sweep.md),
+[`data/retrieval-mxbai-large-sweep.md`](./data/retrieval-mxbai-large-sweep.md).
 
 ² `nomic` is pinned to `computePolicy: .cpuOnly` to work around a
 CoreML/ANE compile failure ("Incompatible element type for ANE") on
-macOS 26.3.1+. The 1417 s wallclock is therefore CPU-only and not
+macOS 26.3.1+. The 1497 s wallclock is therefore CPU-only and not
 directly comparable to the other rows, which leave placement to the
-compiler. Historical wallclock at the same config on the pre-E4 code
-path (with ANE) was ~2940 s. See
+compiler. The new E6.5 defaults are slightly worse for `nomic`
+(+5.6 % wall vs the OLD `pool=10 batch=16` 1417 s) because the
+worker-pool drop from 10 → 8 strictly reduces parallelism on a
+CPU-bound path; see [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
+§"nomic" for analysis. Historical wallclock at the same config on
+the pre-E4 code path (with ANE) was ~2940 s. See
 `NomicEmbedder.batchEncode` and
 `data/wallclock-e4-per-model.md` for detail.
 
-³ `bge-small` and `bge-large` defaults were tuned by full 12-to-15-point
-chunk×overlap sweeps (E5.4b / E5.4c). Both peak at **1200/0** — overlap
-is harmful at size 1200 for these undistilled BGE tiers on the
-markdown-memory corpus. `bge-base` uniquely benefits from overlap at
-1200 (peak `1200/240`, 36/60); its E5.4d sweep produced a two-way tie
-at 36/60 with `bge-base@800/80` (5/10 both-top10 vs 1200/240's 3/10),
-kept at 1200/240 to match the historical default. Cross-model finding
-(non-monotone in embedding dimension) is documented in
-[`plan.md`](./plan.md) "Current state". Per-model sweep data:
-[`data/retrieval-bge-small-sweep.md`](./data/retrieval-bge-small-sweep.md),
-[`data/retrieval-bge-base-sweep.md`](./data/retrieval-bge-base-sweep.md),
-[`data/retrieval-bge-large-sweep.md`](./data/retrieval-bge-large-sweep.md).
-The original single-point E5.2/E5.3 measurements at the seeded 1200/240
-geometry are preserved in
-[`data/retrieval-bge-small.md`](./data/retrieval-bge-small.md) and
+³ All `@<size>/<overlap>` defaults carrying this footnote were tuned
+by full chunk×overlap sweeps, not seeded. Peaks split along the
+chunk-size axis:
+
+- **Size-1200 band**: `bge-base` (peak 1200/240), `bge-small`,
+  `bge-large`, `e5-base` (all peak at 1200/0). Within this band,
+  `bge-base` uniquely **benefits** from overlap; the other three
+  **reject** it. The pattern is not monotone in embedding
+  dimension (bge-base is the outlier at the middle 768-dim tier)
+  and does not line up with distillation status either. `bge-base`'s
+  co-peak at `800/80` (also 36/60 in E5.4d) was kept at 1200/240 to
+  match the historical default.
+- **Size-800 band**: `mxbai-large` (peak 800/80). The only built-in
+  peaking below the 1200 band. Its required query prefix
+  `"Represent this sentence for searching relevant passages: "` eats
+  ~10 BERT WordPiece tokens from the 512-token budget, effectively
+  shrinking its context window — the peak-shift-down is consistent
+  with that mechanism though not formally proven. See the mxbai
+  sweep data file for details.
+- **Size-1600 band**: `gte-base` (peak 1600/0). Overlap-rejection
+  pattern holds across sizes.
+
+`e5-base@1200/0` at **40/60, 6/10 both-top10** is the first model
+to beat the current global default (bge-base's 36/60, 3/10
+both-top10) — see the e5-base sweep data file for the three-way
+768-dim cross-model comparison and the global-default candidacy
+notes. The original single-point E5.2/E5.3 measurements for
+bge-small/bge-large at the seeded 1200/240 geometry are preserved
+in [`data/retrieval-bge-small.md`](./data/retrieval-bge-small.md) and
 [`data/retrieval-bge-large.md`](./data/retrieval-bge-large.md) as
 historical data points.
 
-`bge-base` is the default. (Originally `nomic`; flipped 2026-04-19
-after the Phase D sweep — see `experiments/PhaseD-embedder-expansion/plan.md` §"Default
-alias decision".) Source of truth is
-`IndexingProfileFactory.builtIns` in `Sources/VecKit/IndexingProfile.swift`.
+⁴ `gte-base` is registered as a built-in but is NOT a default
+candidate on markdown-memory. Its 8/60 peak is 28 points below
+bge-base on the same corpus despite being a same-dim peer (768-dim,
+distilled). The sweep diagnosed a content-discrimination failure:
+cosine similarities pack into a narrow 0.75–0.78 band (anisotropy)
+and the rubric's target files are buried under unrelated meetings
+at most grid points. gte-base is retained for users who want a
+non-BGE 768-dim option, but on this corpus it is below threshold.
+See [`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md)
+§2 for the full failure-mode analysis.
+
+⁵ `gte-base`'s NEW E6.5-default wallclock is **+65 % worse** than
+the OLD E5.6 number (974 s → 1611 s). Retrieval is unchanged at
+8/60 (still a dead canary on this corpus, see footnote ⁴). The
+regression is unique among the re-measured MLTensor models — every
+other 768-dim peer gained or held within ±6 %. Likely
+auto-placement under N=8/b=32 picks an unfavourable backend for
+`gte-base` specifically; a model-scoped follow-up grid would
+discriminate, but isn't blocking since `gte-base` is not a default
+candidate. See [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
+§"gte-base" for the full diagnosis.
+
+⁶ `nl` and `nl-contextual` use Apple's NaturalLanguage framework,
+not MLTensor. The E6.5 knobs (worker concurrency, batch size,
+bucket width, compute policy) do not flow into Apple's framework,
+so the rows are NOT re-measured at the new defaults — their E4-era
+numbers carry forward. They remain comparable to each other but
+should not be compared like-for-like to the MLTensor rows above
+without noting the captured-defaults difference.
+
+### Candidates evaluated but not shipped
+
+Two MTEB-competitive mid-tier candidates were investigated as
+post-E6.6 challengers to `e5-base` and rejected at the loader
+layer before any rubric measurement was possible:
+
+- **`Snowflake/snowflake-arctic-embed-m`** (109M, ~MTEB top of class
+  at this size) ships a sentence-transformer-style safetensors
+  export with the `pooler.dense.*` weights stripped. The
+  `swift-embeddings` 0.0.26 `Bert.loadModelBundle` loader requires
+  those keys and throws on absence. Investigated 2026-04-26 (worker
+  branch killed, no commits to main).
+- **`infgrad/stella-base-en-v2`** (110M, MTEB-competitive) ships
+  only `pytorch_model.bin` — no safetensors at all on the main
+  branch and no auto-converted PR ref. `swift-embeddings` 0.0.26
+  is safetensors-only (`BertUtils.swift` line 72: `// NOTE: just
+  safetensors support for now`). Investigated 2026-04-26 (worker
+  branch killed, no commits to main).
+
+Both are real architectural blockers, not transient failures. To
+ship either model, `swift-embeddings` would need a loader change
+to (a) tolerate a missing pooler head and/or (b) read
+`pytorch_model.bin`. That work is out of scope as long as
+`e5-base` remains the strongest tested default; the question
+revisits if a future MTEB leader hits the same constraint.
+
+`e5-base` is the default as of 2026-04-23. (Originally `nomic`;
+flipped to `bge-base` on 2026-04-19 after the Phase D sweep — see
+`experiments/PhaseD-embedder-expansion/plan.md` §"Default alias
+decision". Flipped to `e5-base` on 2026-04-23 after E5.7 showed
+`e5-base@1200/0` beating bge-base at every primary metric on
+markdown-memory: 40/60 vs 36/60 Total, 6/10 vs 3/10 Both-top10,
+wallclock parity, same 768-dim storage geometry.) Cross-corpus
+validation on `vec-source` is still open (blocked on the deferred
+E5.4e rubric) — if a second corpus ranks the candidates
+differently, the default may revisit. Source of truth for the
+effective default is `IndexingProfileFactory.defaultAlias` in
+`Sources/VecKit/IndexingProfile.swift`.
 
 Rubric scores are each embedder running at its own built-in chunk/
 overlap (the identity above), scored against the markdown-memory
-corpus using `retrieval-rubric.md` — 10 queries, 60 max on the weighted
-total, and the canonical stop-condition metric "both T and S in top 10"
-out of 10. Full per-iteration sweeps (other chunk/overlap combos)
-live in `data/retrieval-<alias>.md`.
+corpus using `retrieval-rubric.md`. Two columns because they
+measure different things:
+
+- **Total /60** — weighted sum across the 10 queries, counting every
+  query's T (transcript) and S (summary) targets and their rank
+  brackets. Rewards partial hits: a query where only S surfaces in
+  top 10 still scores. This is the primary metric.
+- **Both-top10 /10** — stricter secondary metric: the count of
+  queries where *both* T and S landed in top 10 simultaneously.
+  Doesn't reward a query with only one target surfaced. Used as a
+  tiebreaker when Total /60 is close and as a quality signal when
+  it moves sharply without a corresponding Total shift (e.g.
+  e5-base vs bge-base at +4 Total, +3 Both-top10 — the stricter
+  metric doubled, indicating a larger real retrieval improvement
+  than the Total delta alone suggests).
+
+Full per-iteration sweeps (other chunk/overlap combos) live in
+`data/retrieval-<alias>.md`.
 
 ## CLI surface
 
@@ -359,11 +471,18 @@ Open directions the current shape already supports:
   normalization or stop-word stripping before embedding. A
   `preprocess(_:)` hook on `Embedder` (with a no-op default) would
   plug in without touching the profile grammar.
-- **Per-profile query shaping.** Nomic already prepends
-  `search_query: ` / `search_document: ` under the `Embedder`
-  protocol's `embedQuery` / `embedDocument` split. Future models
-  with more elaborate query shaping (re-ranking, multi-vector,
-  etc.) can extend the same split.
+- **Per-profile query shaping.** The `Embedder` protocol's
+  `embedQuery` / `embedDocument` split lets each embedder apply its
+  own asymmetric preprocessing without touching callers. Registered
+  examples span four patterns: BGE and GTE use no prefixes on either
+  side; Nomic prepends `search_query: ` / `search_document: `
+  (symmetric but prefix-different); e5-base prepends
+  `query: ` / `passage: ` (same shape, different strings);
+  mxbai-large prepends a longer
+  `"Represent this sentence for searching relevant passages: "` on
+  queries only (asymmetric — documents take no prefix). All fit
+  behind the same split; callers call `embedDocument` and
+  `embedQuery` identically regardless of the embedder's shape.
 - **Non-character chunking.** Token-count-based chunking would need
   a different identity encoding (`nomic@T256/T64` to distinguish),
   but the profile struct already carries `chunkSize` and

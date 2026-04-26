@@ -174,18 +174,55 @@ public final class IndexingPipeline: Sendable {
     /// avoid BNNS crashes in `swift-embeddings` (jkrukowski#17).
     public let batchSize: Int
 
+    /// Length-bucket key divisor. The batch-former groups chunks into
+    /// buckets keyed by `chunk.text.count / bucketWidth` so similarly-
+    /// sized chunks batch together and minimize `batchEncode` padding
+    /// waste. Default `500` matches E4's tuning for bge-base; narrower
+    /// widths produce more small batches, wider widths produce fewer
+    /// large-but-padded batches. Exposed for the E6 speed sweep.
+    public let bucketWidth: Int
+
+    /// Default length-bucket width in characters. E6.4 confirmed 500
+    /// as the optimum at the E6.3 winning (N=8, b=32, ANE) anchor on
+    /// the 10-perf-core M-series test host; neither 300 nor 700 beat
+    /// it. Exposed as a constant so callers can refer to it by name
+    /// instead of re-declaring the literal.
+    public static let defaultBucketWidth: Int = 500
+
+    /// Default batch size. Tuned to 32 in E6.3 (the BNNS fused-
+    /// attention cap) after the 24-point speed grid showed consistent
+    /// 6–11 % wall reductions over the E4-era b=16 default at every
+    /// N ≤ 10 for `e5-base@1200/0` on markdown-memory. See
+    /// `data/sweep-e5-base-speed.md` for the full grid.
+    public static let defaultBatchSize: Int = 32
+
+    /// Default embedder-pool concurrency. Tuned to 8 in E6.3 as the
+    /// measured global optimum on Adam's 10-perf-core M-series host
+    /// (N=12 oversubscribes the scheduler; N=10 is inferior to N=8;
+    /// N=6 trails N=8 by ~7%). vec is a local-only tool targeting
+    /// this one machine class, so a measured-and-hardcoded value is
+    /// preferred over a machine-sensing formula that would introduce
+    /// untested branches. If you ever run vec on materially different
+    /// hardware (e.g. many more or fewer perf cores, or an Intel Mac)
+    /// this default will need re-measurement.
+    public static let defaultConcurrency: Int = 8
+
     /// Bounded pool of N embedder instances sized to `workerCount`.
     private let pool: EmbedderPool
 
     public init(
-        concurrency: Int = max(ProcessInfo.processInfo.activeProcessorCount, 2),
-        batchSize: Int = 16,
+        concurrency: Int = IndexingPipeline.defaultConcurrency,
+        batchSize: Int = IndexingPipeline.defaultBatchSize,
+        bucketWidth: Int = IndexingPipeline.defaultBucketWidth,
         profile: IndexingProfile
     ) {
         precondition(batchSize >= 1 && batchSize <= 32,
                      "batchSize must be in 1…32 (BNNS cap per swift-embeddings #17)")
+        precondition(bucketWidth >= 1,
+                     "bucketWidth must be >= 1 (chunk.text.count / bucketWidth is the bucket key)")
         self.workerCount = concurrency
         self.batchSize = batchSize
+        self.bucketWidth = bucketWidth
         self.pool = EmbedderPool(factory: profile.embedderFactory, count: concurrency)
     }
 
@@ -259,6 +296,7 @@ public final class IndexingPipeline: Sendable {
         // pipeline starts consuming in batches rather than one-at-a-time.
         let extractGate = ExtractBackpressure(capacity: workerCount * batchSize * 2)
         let batchSize = self.batchSize
+        let bucketWidth = self.bucketWidth
 
         try await withThrowingTaskGroup(of: Void.self) { group in
 
@@ -371,8 +409,9 @@ public final class IndexingPipeline: Sendable {
             }
 
             // Stage 1.5: Batch-former. Drains embedStream, length-buckets
-            // by chunk.text.count / 500 (minimizes batchEncode padding
-            // waste). Flush rules, in order:
+            // by chunk.text.count / bucketWidth (minimizes batchEncode
+            // padding waste; default width 500 char). Flush rules, in
+            // order:
             //   1. If any bucket hits batchSize, flush it (preferred: full
             //      batch = best pool utilization, minimal padding).
             //   2. Else, if total buffered items reaches batchSize, flush
@@ -397,7 +436,7 @@ public final class IndexingPipeline: Sendable {
                     // are mutually exclusive via `else if`, so at most one
                     // flush fires per iteration. This is what keeps the
                     // 2*batchSize − 1 worst-case `totalBuffered` bound.
-                    let bucket = work.chunk.text.count / 500
+                    let bucket = work.chunk.text.count / bucketWidth
                     buckets[bucket, default: []].append(work)
                     totalBuffered += 1
                     if buckets[bucket]!.count >= batchSize {

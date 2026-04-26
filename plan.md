@@ -9,41 +9,79 @@ what's in progress, and what should happen next.
 - **Per-experiment plans + reports**: [`experiments/`](./experiments/)
 - **Superseded snapshots**: [`archived/`](./archived/)
 
-Last updated: 2026-04-21.
+Last updated: 2026-04-26.
 
 ---
 
-## Current state (as of 2026-04-22)
+## Current state (as of 2026-04-24, post-E5.9c, default flipped to e5-base; E5.9 phase complete)
 
-**Default embedder**: `bge-base@1200/240` (BGE-base-en-v1.5, 768-dim).
+**Default embedder**: `e5-base@1200/0` (E5-base-v2, 768-dim,
+masked mean-pooled with `passage: ` / `query: ` prefix injection
+inside the embedder). Flipped from `bge-base@1200/240` on
+2026-04-23 after E5.7 established e5-base at 40/60 vs bge-base's
+36/60 on markdown-memory (see "E5.7 headline finding" below and
+`data/retrieval-e5-base-sweep.md` §4 for the evidence).
 
-**Rubric score on markdown-memory**: 36/60, 9/10 top-10 hits
-(scored with `.score-rubric.py` against the 10-query trademark
-rubric). See [`retrieval-rubric.md`](./retrieval-rubric.md) for
-the rubric definition.
+**Rubric score on markdown-memory**: 40/60, 9/10 top10_either,
+**6/10 top10_both** (scored with `scripts/score-rubric.py` against
+the 10-query trademark rubric). See
+[`retrieval-rubric.md`](./retrieval-rubric.md) for the rubric
+definition.
 
-**Wallclock on markdown-memory**: ~1028 s at N=10 workers,
-batchSize=16 on a 10-core Apple Silicon machine. Per-model
-comparison in [`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md).
+**Wallclock on markdown-memory**: ~937 s at N=8 workers,
+batchSize=32 on a 10-perf-core M-series Apple Silicon machine after
+the E6.3 defaults flip (committed 2026-04-24). Previously ~1025 s
+at N=10 b=16. The new defaults are measured-and-hardcoded for the
+one machine vec targets today; see `IndexingPipeline.swift`
+doc-comments on `defaultConcurrency` and `defaultBatchSize` for
+the rationale and re-measurement notes if the host ever changes.
+Per-model comparison in
+[`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md).
 
-**Built-in embedders**: `bge-base` (default), `bge-small`, `bge-large`,
-`nomic`, `nl-contextual`, `nl`. See
-[`indexing-profile.md`](./indexing-profile.md) for the profile grammar
-and [`README.md`](./README.md#built-in-embedders) for the comparison
-table. As of E5.4, the BGE tier defaults are sweep-tuned on
+**Built-in embedders**: `e5-base` (default), `bge-base`, `bge-small`,
+`bge-large`, `gte-base`, `mxbai-large`, `nomic`, `nl-contextual`, `nl`.
+See [`indexing-profile.md`](./indexing-profile.md) for the profile
+grammar and [`README.md`](./README.md#built-in-embedders) for the
+comparison table. As of E5.4 / E5.6 / E5.7 / E5.8, the BGE tier,
+gte-base, e5-base, and mxbai-large defaults are sweep-tuned on
 markdown-memory rather than seeded:
 
-| alias      | default       | rubric | sweep file |
-|------------|--------------|--------|------------|
-| bge-small  | `1200/0`     | 30/60  | `data/retrieval-bge-small-sweep.md` |
-| bge-base   | `1200/240`   | 36/60  | `data/retrieval-bge-base-sweep.md`  |
-| bge-large  | `1200/0`     | 34/60  | `data/retrieval-bge-large-sweep.md` |
+| alias       | default       | rubric | sweep file |
+|-------------|--------------|--------|------------|
+| bge-small   | `1200/0`     | 30/60  | `data/retrieval-bge-small-sweep.md`   |
+| bge-base    | `1200/240`   | 36/60  | `data/retrieval-bge-base-sweep.md`    |
+| bge-large   | `1200/0`     | 34/60  | `data/retrieval-bge-large-sweep.md`   |
+| gte-base    | `1600/0`     |  8/60  | `data/retrieval-gte-base-sweep.md`    |
+| e5-base     | `1200/0`     | 40/60  | `data/retrieval-e5-base-sweep.md`     |
+| mxbai-large | `800/80`     | 31/60  | `data/retrieval-mxbai-large-sweep.md` |
 
-Cross-model finding (E5.4): bge-small and bge-large both peak at
-1200/0 — overlap is *harmful* for them at size 1200. bge-base
-uniquely benefits from overlap at 1200 (1200/240, 36/60). Plausible
-reading: bge-base's distillation training smooths the embedding
-space in a way the undistilled tiers don't share.
+Cross-model finding (E5.4 → E5.8): **bge-base uniquely prefers
+overlap at size 1200.** bge-small, bge-large, gte-base, e5-base, and
+mxbai-large all peak at `1200/0` *or below the 1200 band entirely* —
+overlap is harmful, flat, or recovers only partially for them at
+size 1200. bge-base is the only model in the registry whose rubric
+peak sits at 1200/240 (36/60). mxbai-large's peak shifts down to
+`800/80` (the only registered embedder peaking in the 800 band),
+likely because its required query prefix
+(`"Represent this sentence for searching relevant passages: "`) eats
+~10 BERT WordPiece tokens of the 512-token budget, effectively
+shrinking its context window. The E5.4d distillation-smooths-the-
+space hypothesis is now strongly weakened: gte-base is distilled and
+rejects overlap, e5-base is not distilled and also rejects overlap,
+mxbai-large is not distilled and peaks below the 1200 band. The
+"bge-base wants overlap at 1200" finding is most plausibly a
+bge-base-specific pretraining/objective-mix artifact, not a
+dim-tier or distillation property.
+
+**E5.7 headline finding: e5-base BEATS bge-base on markdown-memory.**
+`e5-base@1200/0` = 40/60, 9/10 top10_either, 6/10 top10_both vs
+bge-base@1200/240 = 36/60, 9/10, 3/10 on the same corpus with the
+same rubric and near-identical wallclock (~1025 s vs ~1003 s).
+`IndexingProfileFactory.defaultAlias` was flipped from `bge-base`
+to `e5-base` on 2026-04-23 on the strength of this evidence. A
+second-corpus confirmation is still open under E5.9 (below);
+if the cross-corpus ranking diverges, the default may revisit. See
+`data/retrieval-e5-base-sweep.md` §4.
 
 **Known issues**:
 - None outstanding in the E5.4 scope. The silent-failure observability
@@ -52,6 +90,21 @@ space in a way the undistilled tiers don't share.
 - Corpus-generalization of the per-model peaks is still unverified.
   E5.4e (deferred) would rerun winners against a second corpus; see
   "Next" below.
+- **Corpus drift on live `markdown-memory` is operator-triggered,
+  not continuous** (surfaced E5.9b, confirmed E5.9c). The
+  `markdown-memory` folder does NOT grow on its own — the drift
+  observed between E5.4d and E5.9b was caused by Adam manually
+  syncing new Granola meetings into the folder between the two
+  sweeps. When no sync happens, the corpus is static on disk and
+  anchor scores reproduce bit-exactly (demonstrated by E5.9a's
+  e5-base@1200/0 reproduction and E6.1's flag-probe regression
+  check). **Manager behavior when drift is observed**: before
+  treating an unexpected score delta as a real finding, ask Adam
+  to confirm whether he recently synced Granola into the folder;
+  if yes, the delta is corpus growth, not a model/pipeline change.
+  Cross-model rankings are preserved under drift (gap between
+  embedders holds across snapshots) but absolute comparisons to
+  archived scores at different corpus snapshots need a drift note.
 
 ---
 
@@ -201,11 +254,917 @@ code-corpus rubric that probes semantic understanding beyond
 filenames needs domain input; attempting it synthetically risks
 fabricating queries that every config aces. See "Next" below.
 
+### E5.6 — gte-base-en-v1.5 + chunk sweep (2026-04-22)
+
+Added `thenlper/gte-base` (768-dim, CLS-pooled + L2-normalized,
+no query/passage prefix) as a new built-in embedder alongside the
+existing BGE tiers. Ran the same 12-point chunk-geometry sweep grid
+used for bge-base (E5.4d) for direct comparability:
+
+  sizes: {400, 800, 1200, 1600}  ×  overlap_pcts: {0%, 10%, 20%}
+
+**Peak: `gte-base@1600/0` → 8/60, 3/10 top10_either, 0/10 top10_both.
+Wallclock 974 s for the winning point; total sweep wall ≈ 9 h 38 min.**
+
+gte-base is dramatically below bge-base on this corpus: the peak
+geometry (8/60) is a quarter of bge-base@1200/240's 36/60, and is
+worse than bge-base's *worst* geometry in the same grid (28/60 at
+2000/0). Spot-checking the per-query archives showed gte-base
+systematically returns the wrong file from the right meeting
+(`notes.md` instead of `summary.md` / `transcript.txt`) on
+trademark-price queries — a content-discrimination failure, not a
+chunk-geometry one. No grid point rescues it.
+
+**No global-default change.** bge-base@1200/240 (36/60) stays as
+the default. gte-base is retained as an opt-in built-in with its
+measured peak (1600/0) stamped as its default, not as a default
+candidate on markdown-memory. If a second corpus is sweep-tested
+under E5.4e, rerunning gte-base@1600/0 there is a cheap second
+data point to confirm whether this ranking generalizes.
+
+**Cross-model counter-evidence.** E5.4d hypothesized that bge-base's
+unique preference for overlap at 1200 was related to distillation
+smoothing the embedding space. gte-base is also distilled (from a
+larger gte teacher) but rejects overlap at 1200 like the undistilled
+BGE tiers, with scores too low to read much signal from the
+overlap-progression anyway. That weakens the distillation-smoothing
+story; the bge-base-vs-everything-else gap is more plausibly
+training-data / pretraining differences than distillation.
+
+- Commits: `e794c91` (add embedder, provisional default),
+  `7504a8c` (sweep results + measured peak default).
+- Sweep archive: [`benchmarks/sweep-gte-base/`](./benchmarks/sweep-gte-base/)
+- Raw data + observations:
+  [`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md)
+
+### E5.7 — e5-base-v2 + chunk sweep (2026-04-23)
+
+Added `intfloat/e5-base-v2` (768-dim, **masked mean-pooled** with
+`"passage: "` / `"query: "` prefix injection) as a new built-in
+embedder alongside the existing BGE tiers and gte-base. Unlike every
+other Bert-family embedder in the registry (CLS-pooled via
+`Bert.ModelBundle.encode`), `E5BaseEmbedder` drives `bundle.model(...)`
+directly so the attention mask flows into both the encoder and the
+mean-pool, then L2-normalizes per row. Prefixes are injected
+inside the embedder so callers remain prefix-unaware (same
+`Embedder` protocol surface as bge-* / gte-base).
+
+Ran the same 12-point chunk-geometry sweep grid used for bge-base
+(E5.4d) and gte-base (E5.6) for direct comparability:
+
+  sizes: {400, 800, 1200, 1600}  ×  overlap_pcts: {0%, 10%, 20%}
+
+**Peak: `e5-base@1200/0` → 40/60, 9/10 top10_either, 6/10 top10_both.
+Wallclock 1025 s at the winning point; total sweep wall ≈ 4 h 0 min.**
+`e5-base@400/40` is a co-peak on total_60 (40/60, 10/10 top10_either,
+5/10 top10_both) and loses the tiebreaker on the stricter
+top10_both metric.
+
+**e5-base BEATS bge-base@1200/240 on markdown-memory.** +4 on
+total_60 (40 vs 36), 2× on top10_both (6 vs 3), and essentially
+identical wallclock and storage cost (both 768-dim, both Bert-family
+via swift-embeddings). This is the first measured candidate
+global-default change since bge-base replaced nomic in Phase D.
+**Not self-applied** — the E5.7 commit updates only the e5-base
+alias default (1200/240 → 1200/0) and leaves
+`IndexingProfileFactory.defaultAlias` as `bge-base`. A follow-up
+commit after manager review would flip the global default and
+update this plan's Current-state numbers.
+
+**Cross-model finding:** e5-base joins bge-small, bge-large, and
+gte-base in rejecting overlap at size 1200. bge-base is now
+confirmed as the lone outlier in the registry preferring overlap at
+1200. The distillation-smooths-the-space hypothesis from E5.4d is
+further weakened: gte-base is distilled and rejects overlap,
+e5-base is not distilled and also rejects overlap, only bge-base
+wants it. The three-way 768-dim comparison table
+(`data/retrieval-e5-base-sweep.md` §3) is the first direct
+head-to-head across three Bert-family 768-dim models with different
+pooling / prefix conventions on the same corpus + rubric.
+
+**Score distribution is healthy.** Per-query similarity scores at
+the peak config span ~0.77–0.87 (wide dynamic range, no tight-cone
+anisotropy). The literal-match probe (`"bean counter mode
+trademark"`) placed the target transcript.txt at rank 1 and
+summary.md at rank 5 — both targets in top 5 on a near-literal query.
+
+- Commits: `ea458a9` (add embedder, provisional 1200/240 default),
+  `4792953` (sweep results + measured peak default + plan.md + writeup).
+- Sweep archive: [`benchmarks/sweep-e5-base/`](./benchmarks/sweep-e5-base/)
+- Raw data + observations:
+  [`data/retrieval-e5-base-sweep.md`](./data/retrieval-e5-base-sweep.md)
+
+### E5.8 — mxbai-embed-large-v1 + chunk sweep (2026-04-23)
+
+Added `mixedbread-ai/mxbai-embed-large-v1` (1024-dim, BERT-large,
+**CLS-pooled** with explicit L2 normalization) as a new built-in
+embedder under the `mxbai-large` alias alongside the existing 1024-dim
+bge-large. Shape difference vs every other Bert-family embedder in
+the registry: an **asymmetric, query-only prefix** —
+`"Represent this sentence for searching relevant passages: "` —
+applied inside `MxbaiEmbedLargeEmbedder.embedQuery` per the model
+card. Documents take no prefix. Unique among the registry's
+Bert-family embedders: BGE/GTE apply no prefix on either side,
+e5-base prefixes both sides, mxbai prefixes queries only. Callers
+remain prefix-unaware (same `Embedder` protocol surface).
+
+Ran the same 12-point chunk-geometry sweep grid used for bge-large
+(E5.4c) for direct 1024-dim head-to-head comparability:
+
+  sizes: {800, 1200, 1600, 2000}  ×  overlap_pcts: {0%, 10%, 20%}
+
+**Peak: `mxbai-large@800/80` → 31/60, 8/10 top10_either, 4/10
+top10_both. Wallclock 3638 s at the winning point; total sweep wall
+≈ 13 h 56 min** (~4 h longer than bge-large's E5.4c sweep due to two
+thermal/placement slowdowns at 1600/160 and 2000/200 — rubric scores
+unaffected). `mxbai-large@800/160` is a co-peak on total_60 (31/60)
+and loses the tiebreaker on top10_both (3 vs 4).
+
+**mxbai-large does NOT beat bge-large@1200/0 on markdown-memory.** −3
+on total_60 (31 vs 34), −1 on top10_either (8 vs 9), +1 on top10_both
+(4 vs 3). The +1.5 MTEB-leaderboard headroom over bge-large does NOT
+transfer to this corpus's rubric. mxbai is also well below bge-base@1200/240
+(36/60, −5) and e5-base@1200/0 (40/60, −9). It is the worst-scoring
+sweep-tuned default in the 768/1024-dim tier, and per-rubric-point cost
+is the worst in the registry (117 s/pt vs bge-base 28 s/pt and e5-base
+26 s/pt).
+
+**No global-default change.** bge-base@1200/240 (36/60) stays as the
+default; the open candidate-default question (e5-base over bge-base)
+from E5.7 remains the only outstanding global-default decision and is
+unaffected by this experiment. mxbai-large is retained as an opt-in
+1024-dim alternative to bge-large with its measured peak (800/80)
+stamped as its default, but it is NOT a default candidate on
+markdown-memory.
+
+**Cross-model finding: mxbai is the only registered embedder peaking
+in the size-800 band.** bge-base / bge-small / bge-large / e5-base /
+gte-base all peak at size ≥ 1200 (e5-base co-peaks at 400/40 but its
+tiebreaker peak is 1200/0). mxbai's peak shift is most plausibly
+explained by the query-prefix budget: the prefix tokenizes to ~10
+WordPiece tokens, eating a meaningful fraction of the 512-token max
+sequence and pushing the optimal chunk size down. mxbai also wants
+overlap at *every* size band except the 1200/0-vs-mid-overlap dip
+(matching bge-large's pattern at that band). The 2000/0 cliff is
+reproduced for the third time (bge-base 28, bge-large 17, mxbai 18) —
+strongly confirming this is a markdown-memory corpus property
+(~1 KB conversational-turn granularity), not a model artifact.
+
+**Sibling-file content discrimination is mxbai's failure mode.** On
+the literal-match probe at the smoke config (1200/0): the right
+*meeting* surfaces in top 5 but mxbai ranks `notes.md` at #3 and
+target `summary.md` at #14, with target `transcript.txt` outside top
+20. Compare e5-base (transcript.txt #1, summary.md #5 on the same
+probe). mxbai gets the topic right but the file-within-topic wrong —
+a much milder version of gte-base's E5.6 content-discrimination
+pathology. The 8/10 top10_either ceiling across the entire grid is
+the structural consequence: two queries simply do not surface a
+target in top 10 at any geometry mxbai swept.
+
+- Commits: `eb4893f` (add embedder, provisional 1200/0 default),
+  `43dac4c` (sweep results + measured peak default + plan.md + writeup).
+- Sweep archive: [`benchmarks/sweep-mxbai-large/`](./benchmarks/sweep-mxbai-large/)
+- Raw data + observations:
+  [`data/retrieval-mxbai-large-sweep.md`](./data/retrieval-mxbai-large-sweep.md)
+
+### E5.9a — e5-base peak refinement (2026-04-23)
+
+9-point mini-sweep around the E5.7 coarse peak (`e5-base@1200/0` →
+40/60) to answer whether a ±100-size / ±5%-overlap neighbor hides a
+better configuration than the coarse grid surfaced. Grid:
+
+  sizes: 1100, 1200, 1300  ×  overlap_pcts: 0%, 5%, 10%
+
+**Peak unchanged: `e5-base@1200/0` → 40/60, 9/10 top10_either, 6/10
+top10_both, wall 861 s at the peak.** Runner-up `1100/110` lands at
+39/60 (−1 pt, −1 top10_both). Total sweep wall ≈ 2 h 29 min.
+
+- **Before refinement**: `e5-base@1200/0` → 40/60 (E5.7 coarse, 12
+  points, ±400/±10% spacing).
+- **After refinement**: `e5-base@1200/0` → 40/60 (E5.9a refine, 9
+  points, ±100/±5% spacing around the coarse peak). Every
+  refinement-only neighbor scores strictly lower on total_60 — the
+  peak is a single-point peak, not a plateau.
+- **Global-default flip corroborated.** The coarse grid's "peak
+  might be a grid artifact" uncertainty is resolved; 40/60 is robust
+  under refinement. `IndexingProfileFactory.defaultAlias` was
+  flipped from `bge-base` to `e5-base` earlier on 2026-04-23
+  (commit `00e3fd3`) on the strength of the E5.7 coarse result;
+  this refinement confirms that was not a grid artifact. Cross-
+  corpus validation (E5.9b/c + second-corpus rubric) remains open
+  and could still move the default if a different corpus ranks
+  candidates differently.
+
+**Reproducibility anchors.** `1200/0` and `1200/120` are in both
+this grid and the E5.7 coarse grid. Both reproduced bit-exactly on
+total_60, top10_either, top10_both, and chunk count (0-pt deviation).
+Wallclock drifted ~15% — expected CoreML/ANE placement variance that
+doesn't affect deterministic rubric scores.
+
+**Cross-row finding: overlap behavior is size-dependent for e5-base.**
+At size 1100, 10% overlap recovers most of the loss from shrinking
+the chunk (33 → 39). At size 1200, any overlap is a small net loss
+(40 → 38). At size 1300, overlap is flat (34 → 33 → 33). The
+coarse grid's "e5-base rejects overlap at 1200" finding survives at
+the finer 5% step — 1200/60 lands at 38, below 1200/0's 40 and tied
+with 1200/120's 38. No hidden 5%-overlap sweet spot.
+
+**No default change.** `IndexingProfile.swift` already stamps
+`e5-base` with `1200/0` defaults per the E5.7 commit (`4792953`);
+this refinement corroborates that value rather than moving it. No
+edit to `indexing-profile.md` either.
+
+- Sweep archive: [`benchmarks/sweep-e5-base-refine/`](./benchmarks/sweep-e5-base-refine/)
+- Raw data + observations:
+  [`data/retrieval-e5-base-refine.md`](./data/retrieval-e5-base-refine.md)
+
+### E5.9b — bge-base peak refinement (2026-04-24)
+
+12-point refinement (two 3×2 sub-grids) around the E5.4d two-way
+tie on `bge-base` at 36/60 (`1200/240` vs `800/80`):
+
+  Large-chunk: sizes 1100, 1200, 1300 × overlap_pcts 20%, 25%
+  Small-chunk: sizes  700,  800,  900 × overlap_pcts  5%, 10%
+
+Grid intentionally includes both tie-peak anchors (`1200/240` and
+`800/80`) for reproducibility checks.
+
+**Large-chunk sub-grid peak: `bge-base@1200/240` → 34/60** (tied
+with `bge-base@1300/325` → 34/60 on total_60; `1300/325` wins
+`top10_both` 3 vs 2).
+**Small-chunk sub-grid peak: `bge-base@800/80` → 32/60**,
+`top10_both=4`.
+**The tie breaks in favor of the large-chunk regime by 2 pts on
+total_60** (34 vs 32 at the sub-grid peaks). `bge-base@1200/240`
+remains the correct default; the newly-discovered `1300/325` is
+documented as a tied co-peak worth checking on a second corpus.
+
+- **Before refinement**: E5.4d two-way tie at 36/60 between
+  `1200/240` and `800/80`; default kept at `1200/240` on historical-
+  continuity grounds, not on a clear primary-metric preference.
+- **After refinement**: tie broken in favor of the large-chunk
+  regime (34 vs 32 at the sub-grid peaks on primary metric).
+  `1200/240` remains the best config in the large sub-grid, tied
+  with the refinement-only `1300/325` at 34/60. Default unchanged.
+
+**Reproducibility anchors DID NOT reproduce bit-exactly.** Unlike
+E5.9a (which reproduced e5-base's `1200/0` anchor with 0-pt
+drift), bge-base's two tie-peak anchors drifted on both total_60
+and chunk count:
+
+  1200/240:  E5.4d 36 / 8170 ch   →   E5.9b 34 / 8742 ch   (−2 pts, +7.0% chunks)
+  800/80:    E5.4d 36 / 11496 ch  →   E5.9b 32 / 12316 ch  (−4 pts, +7.1% chunks)
+
+The ~7% chunk-count growth on both anchors with no changes to
+the chunker or embedder source between E5.4d and E5.9b points to
+**corpus drift on the live `markdown-memory` folder** as the
+cause. E5.4d ran 2026-04-22 (commit `598a072`); E5.9b ran
+2026-04-23/24. Two days of user-side additions to the source
+folder is the simplest and only consistent explanation. The
+E5.9a e5-base refinement reproduced bit-exactly because E5.7
+and E5.9a shared a same-day corpus snapshot. This is a finding
+about the test corpus, not a bug in the indexer or scorer.
+
+**Implications for the cross-model comparison**: the E5.7
+`e5-base@1200/0` vs `bge-base@1200/240` delta (+4 / +3) was
+measured on a single-snapshot pre-drift corpus and remains the
+canonical flip evidence. Under the E5.9b corpus snapshot
+`e5-base` still sits at 40/60 (bit-exact) while `bge-base`
+dropped 2-4 pts at its anchors — the *gap* between the two on
+the drifted snapshot is 6-8 pts rather than 4-6 pts, but the
+pre-drift 4-6 pt gap is the evidence the global-default flip
+was made on and does not retroactively weaken. E5.9b does not
+move the global default.
+
+**Cross-model finding preserved**: `bge-base` still uniquely
+benefits from overlap at size 1200 at the finer (25%) probe.
+The 0 → 10% → 20% → 25% shape is 33 → 29 → 34-36 → 33 across
+E5.4d+E5.9b — overlap at 20% is the peak, 25% starts to roll
+off, no hidden sweet spot.
+
+**No default change.** `IndexingProfile.swift` already stamps
+`bge-base` with `1200/240` per commit `c6c2578` (Phase D).
+`indexing-profile.md`'s bge-base row (`1200/240 → 36 / 3`)
+stays as-is; the footnote ³ commentary about the 1200/240-vs-
+800/80 tie is refined by this sweep but the row values are the
+canonical pre-drift E5.4d numbers. No edit to
+`indexing-profile.md` in this commit.
+
+- Sweep archives: [`benchmarks/sweep-bge-base-refine-large/`](./benchmarks/sweep-bge-base-refine-large/), [`benchmarks/sweep-bge-base-refine-small/`](./benchmarks/sweep-bge-base-refine-small/)
+- Raw data + observations:
+  [`data/retrieval-bge-base-refine.md`](./data/retrieval-bge-base-refine.md)
+
+### E5.9c — nomic peak refinement + current-corpus e5-base baseline (2026-04-24)
+
+9-point refinement mini-sweep on `nomic` around the Phase D peak
+(`1200/240` → 35/60) paired with a single-point current-corpus
+baseline capture on `e5-base@1200/0` to anchor the upcoming E6
+indexing-speed work. Nomic grid:
+
+  sizes: 1100, 1200, 1300  ×  overlap_pcts: 10%, 20%, 25%
+
+The `10/20/25` overlap span (vs E5.9a's `0/5/10` for e5-base)
+probes upward from Phase D's 20% peak to see whether nomic keeps
+benefiting from additional overlap.
+
+**Nomic peak unchanged: `nomic@1200/240` → 32/60, 9/10 top10_either,
+2/10 top10_both.** Total sweep wall ≈ 3 h 00 min (CPU-only via
+`NomicEmbedder` `.cpuOnly` pin). The peak **ties on total_60 with
+`nomic@1300/325` (also 32/60)**; the tiebreaker on top10_either
+(9 vs 8) falls to the historical default.
+
+**e5-base current-corpus baseline**: `e5-base@1200/0` →
+**38/60, 9/10 top10_either, 5/10 top10_both, 8070 chunks**, wall
+969 s. This is 2 pts below the E5.7 canonical 40/60 / 6 both on
+the pre-drift corpus — consistent with the E5.9b-surfaced corpus
+drift (~7% chunk-count growth). Captured as the E6 regression-bar
+reference anchor (E5.7's stale archive is no longer representative).
+
+- **Before refinement**: Phase D ad-hoc sweep put nomic's peak at
+  `1200/240` → 35/60, 3/10 both-top-10 (2026-04-17). No regular
+  grid around the peak.
+- **After refinement**: peak stays at `1200/240` → 32/60 (drifted)
+  under a 3×3 grid. `1300/325` ties on primary metric; `1200/240`
+  wins the top10_either tiebreaker 9 vs 8. Default unchanged.
+
+**Reproducibility anchor drifted** (expected, per E5.9b).
+`1200/240` is shared with the Phase D sweep:
+
+  nomic@1200/240:  Phase D 35 / 8116 ch  →  E5.9c 32 / 8742 ch  (−3 pts, +7.7% chunks)
+
+The +7.7% chunk growth closely mirrors E5.9b's +7.0% and +7.1%
+on bge-base's two anchors. With chunker and nomic loader
+unchanged between Phase D (2026-04-17) and E5.9c (2026-04-24),
+corpus drift on the live `markdown-memory` folder is the only
+consistent explanation. 7 days × ~1%/day content growth matches
+the observed drift.
+
+**New cross-model finding: nomic is an "overlap-preferring"
+model, like bge-base and unlike e5-base.** At size 1200 the
+overlap progression 10% → 20% → 25% is 31 → 32 → 29 — inverted-U
+with peak at 20%. bge-base previously held the distinction of
+being the only registered model to benefit from overlap at size
+1200; nomic now joins that camp. The three 768-dim candidates
+have distinct overlap profiles:
+
+  e5-base:  peak 1200/0   — rejects overlap
+  bge-base: peak 1200/240 — uniquely benefits from overlap (E5.4d/E5.9b)
+  nomic:    peak 1200/240 — benefits from overlap (E5.9c)
+
+**Striking secondary finding: size-1300 band is sharply
+overlap-sensitive for nomic.** Scores 24 (10% overlap) → 20
+(20%) → 32 (25%). Only row in the grid where 25% overlap beats
+20%. `1300/325` is the co-peak tied on total_60 with the
+historical default; worth including in any future second-corpus
+probe.
+
+**No default change.** `IndexingProfile.swift` already stamps
+nomic with `1200/240` per Phase D commit (`c6c2578`).
+`indexing-profile.md` nomic row unchanged; this refinement
+layers on top of the original Phase D data rather than replacing
+it.
+
+**E5.9 phase complete** — all three candidates
+(`e5-base`, `bge-base`, `nomic`) refined. Summary of the
+three refinements' decisions:
+
+  E5.9a (e5-base):  peak 1200/0   → 40/60 (bit-exact reproducibility).
+  E5.9b (bge-base): peak 1200/240 → 34/60 (drifted), tie broken large-chunk regime.
+  E5.9c (nomic):    peak 1200/240 → 32/60 (drifted), tiebreaker on top10_either.
+
+No default changes across the three refinements; the three
+refinements together confirm the per-model defaults stamped in
+`IndexingProfile.swift`. The E5.9-surfaced corpus-drift finding
+is the largest secondary lesson — both for E5.4e corpus-
+generalization work and for E6 indexing-speed regression bars.
+
+- Sweep archive: [`benchmarks/sweep-nomic-refine/`](./benchmarks/sweep-nomic-refine/)
+- Baseline archive: [`benchmarks/e5-base-baseline-2026-04-24/`](./benchmarks/e5-base-baseline-2026-04-24/)
+- Raw data + observations:
+  [`data/retrieval-nomic-refine.md`](./data/retrieval-nomic-refine.md)
+
+### E6.1 — CLI flags for tuning knobs (2026-04-24)
+
+First step of the E6 e5-base indexing-speed tuning chain. Exposed
+the three indexing-pipeline tuning knobs that were hardcoded in
+E4 (concurrency=10, batchSize=16, bucket-width=500) plus a new
+MLTensor compute-policy knob as CLI flags on both `vec update-index`
+and `vec sweep`:
+
+- `--concurrency` — overrides `EmbedderPool` worker count.
+- `--batch-size` — overrides the batch-former flush threshold (cap 32).
+- `--bucket-width` — overrides `chunk.text.count / N` bucket key divisor.
+- `--compute-policy` (`auto` | `cpu` | `ane` | `gpu`) — routes a
+  user-supplied `MLComputePolicy` through `IndexingProfileFactory.make`
+  to every Bert-family embedder's `withMLTensorComputePolicy(...)`
+  scope.
+
+**Compute-policy plumbing worked without an upstream fork.**
+`Bert.ModelBundle.encode` / `batchEncode` don't accept a policy
+parameter (only `NomicBert.ModelBundle` does), but
+`withMLTensorComputePolicy(_:,_:)` is a scope-based CoreML helper
+that captures the policy at MLTensor graph-construction time. Each
+Bert-family embedder (bge-base / bge-small / bge-large / gte-base /
+e5-base / mxbai-large) now wraps its model invocation in that scope
+when a policy is supplied; NomicEmbedder honors the CLI override
+otherwise keeping its `.cpuOnly` ANE-fp16 pin; NL and NLContextual
+ignore the policy (non-CoreML path). Same pattern that
+`swift-embeddings`' `NomicBertModel.swift` uses internally.
+
+**Regression-bar check: default-flag mode reproduces the baseline
+archive byte-for-byte.** Scored both
+`benchmarks/e5-base-baseline-2026-04-24/e5-base-1200-0/` and
+`benchmarks/e5-base-postflag-smoke/e5-base-1200-0/` with
+`scripts/score-rubric.py` — identical `total_60`, `top10_either`,
+`top10_both` rows. The pre-E6.1 call sites (tests, the no-flags
+update-index path) all hit the new optional-parameter defaults and
+see no behavior change.
+
+**Flag-probe run** (`--concurrency 6 --batch-size 24 --bucket-width 300`)
+archived at `benchmarks/e5-base-flag-probe/`; confirmed the flags
+route cleanly through both commands.
+
+Unblocks E6.2 (ANE feasibility probe) and E6.3 (speed grid).
+
+- Writeup: [`data/e6-1-cli-flags.md`](./data/e6-1-cli-flags.md)
+- Regression-smoke archive: [`benchmarks/e5-base-postflag-smoke/`](./benchmarks/e5-base-postflag-smoke/)
+- Flag-probe archive: [`benchmarks/e5-base-flag-probe/`](./benchmarks/e5-base-flag-probe/)
+
+### E6.2 — e5-base ANE feasibility probe (2026-04-24)
+
+Second step of the E6 e5-base indexing-speed tuning chain. Single-
+point sweep at the default geometry with `--compute-policy ane` to
+answer: does e5-base's custom mean-pool graph (via `bundle.model(...)`,
+not `ModelBundle.batchEncode`) compile for ANE, or does it hit the
+same `"Incompatible element type for ANE"` failure that pinned
+`NomicEmbedder` to `.cpuOnly` on macOS 26.3.1+?
+
+**Outcome: ANE compiles and runs cleanly for e5-base. Retrieval is
+bit-identical to the baseline on primary metrics; wallclock is 3.8 %
+faster (968.9 s → 932.4 s).**
+
+| metric         | baseline (auto) | ANE probe | match |
+|----------------|----------------:|----------:|:-----:|
+| chunks         |            8070 |      8070 |   ✓   |
+| `TOTAL`        |           38/60 |     38/60 |   ✓   |
+| `TOP10_EITHER` |            9/10 |      9/10 |   ✓   |
+| `TOP10_BOTH`   |            5/10 |      5/10 |   ✓   |
+| wall_s         |           968.9 |     932.4 |   −   |
+
+`scripts/score-rubric.py` output is row-for-row identical on all 10
+queries (same T rank, same S rank, same subtotal). No crash, no
+garbage embeddings, no silent-failure exit.
+
+**Why e5-base works where nomic failed.** Nomic's failure mode was
+inside `NomicBert.ModelBundle.batchEncode`, which constructs a
+tokens + attention-mask graph that ANE rejected as having an
+incompatible element type. `E5BaseEmbedder` takes a different path —
+`bundle.model(inputIds:attentionMask:)` directly, wrapped in
+`withOptionalComputePolicy` — and the graph constructed around that
+call does compile for ANE on macOS 26.3.1+. Possible that the
+scheduler is silently falling back to CPU for some subgraph
+(consistent with the modest 3.8 % speedup), which the E6.3 A/B
+will surface.
+
+**Next E6.3 grid shape: 24-point grid with ANE variants.** The
+original E6.3 plan's "if ANE compiles" branch applies. Grid:
+`batch_size ∈ {16, 24, 32}` × `concurrency ∈ {6, 8, 10, 12}` ×
+`policy ∈ {auto, ane}` = 24 points, ~6.5 h wallclock. The
+`{auto, ane}` A/B at each point is what lets us tell whether ANE is
+a real acceleration lever or a scheduler no-op. CPU-only 12-point
+fallback not needed.
+
+- Writeup: [`data/e6-2-ane-probe.md`](./data/e6-2-ane-probe.md)
+- Probe archive: [`benchmarks/e6-2-ane-probe/`](./benchmarks/e6-2-ane-probe/)
+- Baseline reference: [`benchmarks/e5-base-baseline-2026-04-24/`](./benchmarks/e5-base-baseline-2026-04-24/)
+
+### E6.3 — e5-base indexing-speed grid (2026-04-24)
+
+Third step of the E6 e5-base indexing-speed tuning chain. Ran the
+full 24-point grid `batch_size ∈ {16, 24, 32}` × `concurrency ∈
+{6, 8, 10, 12}` × `policy ∈ {auto, ane}` against `markdown-memory`
+at `e5-base@1200/0`. Each point reset+reindexed the corpus and
+captured a fresh rubric archive. Total wallclock ~7 h.
+
+**Winner: `N=8, b=32, compute_policy=ane` → 937.2 s, 8.6 chps_wall.**
+
+**Wall reduction vs in-grid default `(N=10, b=16, auto)` 1081.1 s:
+−143.9 s, −13.3 %.** Clears the 5 % defaults-update threshold by a
+wide margin. (Cross-day comparison vs the 968.9 s 2026-04-24
+baseline run is −3.3 %, but contaminated by run-to-run wallclock
+noise — the in-grid same-machine-state apples-to-apples number is
+authoritative.)
+
+**Bit-identical retrieval on all 24 points.** Every point produced
+TOTAL=38/60, TOP10_EITHER=9/10, TOP10_BOTH=5/10 — byte-identical to
+the baseline reference at the rank level. Concurrency, batch size,
+and compute-policy are pure speed knobs for `e5-base`'s embedding
+pipeline.
+
+**ANE-default flip: do NOT recommend.** Across the 12 paired
+`(N, b)` points, ANE wins 5, auto wins 7. ANE consistently helps
+only at N=8 (−3.0 % to −3.8 %); at N=6 and N=10 it's noisy ±3–7 %;
+at N=12 it's catastrophic (+22–24 %, two slowest points in the
+grid). Keep `auto` as the default; treat `--compute-policy ane` as
+an opt-in tuning knob.
+
+**Concurrency findings.** N=8 is the global optimum, beating N=10
+by ~5–7 % and N=12 by ~30 %. N=12 oversubscribes the M-series
+~10-active-processor budget and forces context-switch contention,
+which compounds catastrophically with ANE.
+
+**Batch-size findings.** b=32 wins consistently over b=16 by 6–11 %
+across all N ≤ 10. The pipeline's compile-time cap is 32; whether
+b=48 or b=64 extends the trend is open as a follow-up.
+
+**Defaults update qualifies.** Recommend manager review for
+flipping `IndexingPipeline.defaultBatchSize` 16 → 32 and pinning
+default concurrency at 8 instead of `activeProcessorCount` (≈10 on
+M-series). Skip the ANE flip.
+
+- Writeup: [`data/sweep-e5-base-speed.md`](./data/sweep-e5-base-speed.md)
+- Per-point archives: [`benchmarks/sweep-e5-base-speed/`](./benchmarks/sweep-e5-base-speed/)
+- Driver script: [`scripts/e6-3-sweep-grid.sh`](./scripts/e6-3-sweep-grid.sh)
+- Baseline reference: [`benchmarks/e5-base-baseline-2026-04-24/`](./benchmarks/e5-base-baseline-2026-04-24/)
+
+### E6.4 — bucket-width refinement at E6.3 winner (2026-04-24)
+
+Final step of the E6 e5-base indexing-speed tuning chain. Two new
+sweep points at the E6.3 winning config `(N=8, b=32, ane)` varying
+only `--bucket-width`: `/300` (finer) and `/700` (coarser). The
+current default `/500` is the third reference point, taken from the
+E6.3 winner archive.
+
+**Best bucket-width: 500 (current default), 937.2 s, 8.6 chps_wall.**
+
+| bucket_width | wall_s | chps_wall | total_60 | top10_either | top10_both |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 300 | 1018.8 | 7.9 | 38 | 9 | 5 |
+| **500** | **937.2** | **8.6** | **38** | **9** | **5** |
+| 700 |  952.1 | 8.5 | 38 | 9 | 5 |
+
+`/300` is +8.7 % slower (finer bucketing flushes more partial
+batches and loses ANE batched-parallelism amortization). `/700` is
++1.6 % slower — within documented E6.3 run-to-run noise (~11.6 %).
+
+**Bit-identical retrieval on all three points.** Both new sweeps
+produced TOTAL=38/60, TOP10_EITHER=9/10, TOP10_BOTH=5/10 with
+T-rank and S-rank byte-identical to baseline across all 10
+queries. Bucket-width is a pure batching knob, retrieval-invariant
+for `e5-base`.
+
+**Defaults update for bucket-width: NO.** Neither point clears the
+5 % threshold over `/500`. `/300` regresses by 8.7 %; `/700` is
++1.6 % (inside noise). Keep
+`IndexingPipeline.defaultBucketWidth = 500`. The E6.3
+recommendation to flip `defaultBatchSize` 16 → 32 and pin default
+concurrency at 8 stands; this E6.4 result narrows the E6 defaults
+update to those two knobs only.
+
+**E6 chain complete.** All four steps shipped 2026-04-24:
+E6.1 (flags), E6.2 (ANE feasibility), E6.3 (speed grid),
+E6.4 (bucket-width). E6.5 below applies the recommended defaults
+flip; bucket-width and compute-policy defaults stay as they are.
+
+- Writeup: [`data/sweep-e5-base-bucket.md`](./data/sweep-e5-base-bucket.md)
+- Per-point archives: [`benchmarks/sweep-e5-base-bucket/`](./benchmarks/sweep-e5-base-bucket/)
+- bucket=500 reference: [`benchmarks/sweep-e5-base-speed/N8-b32-ane/`](./benchmarks/sweep-e5-base-speed/N8-b32-ane/)
+- Baseline reference: [`benchmarks/e5-base-baseline-2026-04-24/`](./benchmarks/e5-base-baseline-2026-04-24/)
+
+### E6.5 — Apply E6.3 defaults flip (2026-04-24)
+
+Flipped the IndexingPipeline defaults to the measured E6.3 winner.
+Adam signed off on applying these directly rather than retaining
+machine-sensing fallbacks — vec is a local-only tool targeting his
+one machine, so measured-and-hardcoded defaults beat portability
+for defaults that won't be re-measured on other hardware.
+
+Changes to `Sources/VecKit/IndexingPipeline.swift`:
+- `defaultBatchSize`: **16 → 32** (the BNNS fused-attention cap;
+  E6.3 showed 6–11 % wall cut over b=16 at every N ≤ 10).
+- **NEW** `defaultConcurrency = 8` (hardcoded). Replaces the
+  former `max(ProcessInfo.processInfo.activeProcessorCount, 2)`
+  fallback in `UpdateIndexCommand.makePipeline`. Measured as the
+  E6.3 global optimum on the 10-perf-core M-series host; N=12
+  oversubscribes catastrophically and N=10 trails N=8 by ~5–7 %.
+- `defaultBucketWidth = 500` unchanged (E6.4 confirmed optimal).
+- Compute-policy default unchanged at `auto` (ANE is opt-in via
+  `--compute-policy ane`; E6.3 showed auto is safer system-wide —
+  5 ANE wins vs 7 auto wins across 12 paired points).
+
+The `defaultConcurrency` constant carries a doc-comment flagging
+that it's machine-specific and will need re-measurement if the
+host ever materially changes (more/fewer perf cores, non-Apple
+Silicon). CLI help text for `--concurrency`, `--batch-size`, and
+`--bucket-width` interpolates the new defaults so `vec sweep
+--help` reads correctly.
+
+Smoke test: `vec sweep --db markdown-memory --embedder e5-base
+--sizes 1200 --overlap-pcts 0` at the new defaults produces
+**bit-identical retrieval** (38/60, 9/10 top10_either, 5/10
+top10_both — every T/S rank matches the 2026-04-24 baseline).
+Wallclock landed at 1059 s (vs the E6.3 in-grid N8-b32-auto
+measurement of 966 s) — within documented ~11.6 % run-to-run
+wallclock noise, not a regression.
+
+- Commit: `8b249c7` (E6.5: flip IndexingPipeline defaults to E6.3
+  winner (N=8, b=32)).
+- Smoke archive: [`benchmarks/e5-base-post-defaults-smoke/`](./benchmarks/e5-base-post-defaults-smoke/)
+
+### E6.6 — Per-model wallclock re-measurement at E6.5 defaults (2026-04-25 / 2026-04-26)
+
+Re-measured indexing wallclock for the MLTensor-based built-in
+embedders at the new E6.5 defaults
+(`pool=8 batch=32 bucket-width=500 compute-policy=auto`). Closes
+the loop on the `indexing-profile.md` table, which previously
+mixed E5.x-era OLD-default numbers with the new defaults flip.
+
+**Re-measured (7 of 7 planned)**:
+
+| alias         | OLD wall | NEW wall | Δ %     | NEW total /60 |
+|---------------|---------:|---------:|--------:|--------------:|
+| `e5-base`     |  1025 s  |  891 s   | −13.1 % | 38 (doc 40)   |
+| `bge-base`    |  1003 s  | 1022 s   |  +1.9 % | 34 (doc 36)   |
+| `bge-small`   |   610 s  |  573 s   |  −6.1 % | 27 (doc 30)   |
+| `bge-large`   |  3220 s  | 2667 s   | −17.2 % | 30 (doc 34)   |
+| `nomic`       |  1417 s  | 1497 s   |  +5.6 % | 32 (doc 35)   |
+| `gte-base`    |   974 s  | 1611 s   | +65.4 % |  8 (doc 8)    |
+| `mxbai-large` |  3638 s  | 3617 s   |  −0.6 % | 30 (doc 31)   |
+
+`mxbai-large` was deferred mid-experiment to AC power (the run
+started during the main session would have eaten too much battery)
+and completed on 2026-04-26 as the addendum. Lands flat at −0.6 %,
+well within the run-to-run noise band.
+
+**Skipped (2 of 9)**: `nl` and `nl-contextual` use Apple's
+NaturalLanguage framework, not MLTensor — the E6.5 knobs don't
+flow into Apple's framework, so re-measurement would produce
+identical numbers within run-to-run noise. Both rows kept with
+footnote ⁶ noting the captured-defaults difference.
+
+Aggregate across all 7 re-measured rows: −10 s (−0.1 %), flat in
+aggregate. Without `gte-base`, the 6-model aggregate is **−647 s,
+−5.9 %** — the more honest read on what E6.5 does for the typical
+model.
+
+**Per-model patterns / surprises**:
+
+- **`e5-base` validates the E6.3 grid prediction.** The single-
+  point E6.6 re-run cut −13.1 % vs the E5.7-era OLD number,
+  within 0.2 pp of the −13.3 % E6.3 in-grid prediction.
+- **`bge-large` is the biggest absolute winner**, shaving 9.2 min
+  off a single full reindex (−17.2 %). Likely the b=16 → b=32
+  amortisation has more total wall to amortise on the highest-dim
+  model.
+- **`bge-base` flat** (+1.9 %, in noise band) — consistent with
+  E6.3's prediction that the gain is largest at e5-base / mid-dim.
+- **`nomic`'s +5.6 % regression is the expected sign** for its
+  CPU-only pin: ANE half of the flip doesn't apply, and N=10 → N=8
+  strictly reduces parallelism on a CPU-bound path.
+- **`gte-base` regresses catastrophically (+65.4 %)** — the only
+  outlier and the dominating term in the aggregate. Retrieval
+  unchanged at 8/60. Hypothesis: auto-placement under N=8/b=32
+  picks an unfavourable backend for `gte-base` specifically.
+  `gte-base` is registered but is not a default candidate (8/60
+  on this corpus), so this is documented but not blocking — a
+  follow-up grid scoped to gte-base alone is queued as an E6.7
+  candidate.
+- **`mxbai-large` lands flat (−0.6 %)**, splitting the
+  hypothesis space between bge-large's clean −17 % win and
+  gte-base's +65 % regression. Likely the 800/80 geometry's
+  shorter-and-more-numerous chunks (12316 vs bge-large's 8070)
+  dilute the b=16 → b=32 amortisation per call. No action needed.
+
+**Retrieval drift**: −1 to −4 pts across 6 of 7 models, all in
+the same direction. Disambiguated on `bge-small` with a control
+run at the OLD defaults (`--concurrency 10 --batch-size 16`):
+that run produced **27/60, rank-by-rank identical** to the
+new-defaults run, confirming the drift is operator-triggered
+corpus drift since the E5.x baselines, not a defaults-side
+effect. The new defaults do not affect retrieval; on bge-small
+the rank table is byte-identical between the two default regimes.
+
+**Decision implications**: E6.5 defaults flip is validated for
+the family it was tuned on (e5-base + BGE tier). `mxbai-large`
+is flat, no action needed. `gte-base` is the only open follow-up
+and does not block E6.6 since it is not a default candidate. No
+new default changes recommended.
+
+- Data: [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
+- Per-archive raw data: [`benchmarks/wallclock-2026-04-25/`](./benchmarks/wallclock-2026-04-25/)
+- Disambiguation archive: [`benchmarks/wallclock-2026-04-25/bge-small-old-defaults/`](./benchmarks/wallclock-2026-04-25/bge-small-old-defaults/)
+- `indexing-profile.md` table refreshed with 7 NEW MLTensor rows + footnotes ⁵⁶.
+- Follow-up: gte-base regression diagnosis (E6.7 candidate, not blocking).
+
 ---
 
 ## In progress
 
-None. Branch `agent/agent-26abd616` is idle after shipping E5.4a-d.
+**E5.9 phase complete.** All three refinements
+(E5.9a e5-base, E5.9b bge-base, E5.9c nomic) have shipped and
+no default changes were required — the per-model peaks all sit
+at their existing `IndexingProfile.swift` values. Key secondary
+findings across the three runs:
+
+- **E5.9a** reproduced the e5-base peak bit-exactly (same-day
+  snapshot as E5.7).
+- **E5.9b** surfaced the corpus-drift finding: bge-base anchors
+  drifted −2 to −4 pts on total_60 over a 2-day window with
+  +7% chunk count growth.
+- **E5.9c** confirmed the drift persists over a 7-day window:
+  nomic's 1200/240 anchor drifted from 35 → 32 with +7.7%
+  chunk growth, and the fresh e5-base@1200/0 baseline sits at
+  38/60 (vs E5.7's 40/60, −2 pts on primary metric). Cross-
+  model gaps preserved: e5-base still +4 over bge-base and +6
+  over nomic under the consistent E5.9c snapshot.
+- **E5.9c** also confirmed nomic is an "overlap-preferring"
+  model like bge-base (peak at 20% overlap, inverted-U in the
+  10-25% span). The three 768-dim models now have distinct
+  overlap profiles: e5-base rejects, bge-base uniquely
+  benefits, nomic benefits.
+
+E5.7 global-default flip (bge-base → e5-base, commit `00e3fd3`)
+NOT affected by drift — cross-model gap preserved across
+snapshots.
+
+**E6.1 shipped 2026-04-24** (see Done above). CLI flags for
+`concurrency` / `batch-size` / `bucket-width` / `compute-policy`
+on both `update-index` and `sweep`, plumbed through
+`IndexingPipeline` + every registered Bert-family embedder.
+Regression bar: default-flag smoke archive matches the
+`e5-base-baseline-2026-04-24` reference byte-for-byte on
+total_60 / top10_either / top10_both.
+
+**E6.2 shipped 2026-04-24** (see Done above). Single-point ANE
+feasibility probe at e5-base's default geometry. **ANE compiles
+and runs cleanly** — unlike nomic's batched path on macOS 26.3.1+,
+e5-base's custom `bundle.model(...)` + masked-mean-pool graph
+does not trigger the `"Incompatible element type for ANE"` error.
+Retrieval is bit-identical to the baseline on all primary metrics
+and per-query target ranks; wallclock is 3.8 % faster (968.9 s →
+932.4 s). The modest speedup suggests ANE may be falling back to
+CPU for some subgraph, which the E6.3 auto-vs-ane A/B will
+surface.
+
+**E6.3 shipped 2026-04-24** (see Done above). Full 24-point grid
+captured. Winner is `N=8, b=32, compute_policy=ane` at 937.2 s,
+−13.3 % vs in-grid default — clears the 5 % threshold for a
+defaults update. ANE wins are inconsistent across the grid;
+recommend NOT flipping the compute-policy default. Bit-identical
+retrieval on all 24 points.
+
+**E6.4 shipped 2026-04-24** (see Done above). Bucket-width
+refinement at the E6.3 winner `(N=8, b=32, ane)`: `/300` is +8.7 %
+slower than the current `/500` default; `/700` is +1.6 % slower
+(inside run-to-run noise). Bit-identical retrieval on all three
+points. **Recommendation: do NOT flip
+`IndexingPipeline.defaultBucketWidth`** — neither alternative
+clears the 5 % threshold.
+
+**E6 chain complete.** E6.1 → E6.2 → E6.3 → E6.4 all shipped
+2026-04-24. Pending manager review: apply the E6.3 defaults flip
+(`defaultBatchSize` 16 → 32, default concurrency pinned at 8).
+The compute-policy and bucket-width defaults stay as they are
+based on E6.3 / E6.4 findings.
+
+---
+
+## Next — E5.9: Fine-tune top candidates + second-corpus validation
+
+**E5.9 phase complete as of 2026-04-24.** All three refinements
+shipped:
+
+- **E5.9a — e5-base peak refinement** ✅ done (2026-04-23). Peak
+  confirmed at `e5-base@1200/0` → 40/60. See Done section above and
+  `data/retrieval-e5-base-refine.md`.
+- **E5.9b — bge-base peak refinement** ✅ done (2026-04-24). E5.4d
+  two-way tie broken in favor of `1200/240` (large-chunk regime
+  wins by 2 pts on total_60). Surfaced a corpus-drift finding: the
+  live `markdown-memory` folder grew ~7% between E5.4d and E5.9b,
+  causing both anchor configs to drift −2 to −4 pts on total_60
+  without any indexer/scorer change. See Done section above and
+  `data/retrieval-bge-base-refine.md`.
+- **E5.9c — nomic peak refinement + e5-base baseline** ✅ done
+  (2026-04-24). Peak stays at `nomic@1200/240` → 32/60 (drifted
+  from Phase D's 35/60), tied with `nomic@1300/325` on total_60
+  and winning the top10_either tiebreaker 9 vs 8. Confirmed nomic
+  is an overlap-preferring model like bge-base. Fresh
+  `e5-base@1200/0` current-corpus baseline captured at 38/60
+  (−2 from E5.7 pre-drift), archived as the E6.3 regression-bar
+  reference anchor. See Done section above and
+  `data/retrieval-nomic-refine.md`.
+
+The three refinements together confirm the per-model defaults
+stamped in `IndexingProfile.swift`; no default changes resulted.
+Key secondary findings:
+
+- **Corpus drift is real and measurable.** Over 2-7 days the
+  live `markdown-memory` folder grew enough (~1%/day chunk
+  count growth) to move total_60 scores by 2-4 pts on
+  reproducibility anchors. Time-separated refinements are no
+  longer bit-exactly comparable without a frozen snapshot.
+- **Cross-model gaps preserved despite drift.** e5-base still
+  sits +4 over bge-base and +6 over nomic under the E5.9c
+  snapshot — same gap as the pre-drift E5.7 comparison. The
+  global-default flip (bge-base → e5-base) is unaffected.
+- **Overlap preference varies by model.** Three 768-dim models
+  have three distinct overlap profiles: e5-base rejects,
+  bge-base uniquely benefits, nomic benefits. Not a
+  dim-tier or distillation property.
+
+Remaining E5.4/5.9-scope open questions (moved to their own
+sections below):
+
+1. **E5.4e — corpus-generalization.** Re-run the refined per-model
+   peaks against a second corpus. The E5.9 refinements give us a
+   clean slate of peaks to test; a second corpus is the next
+   non-redundant probe. See E5.4e section below.
+2. **Corpus-snapshotting question** (surfaced by E5.9b, confirmed
+   by E5.9c). Frozen snapshots give bit-exact reproducibility
+   (E5.9a-style) but risk the rubric decaying as the live corpus
+   evolves. Live folders stay representative but give up
+   reproducibility. Decide before the E5.4e second-corpus work
+   so that comparison is clean.
+
+### Why do these together
+
+- Fine-tuning on one corpus risks over-fitting — a peak refined on
+  markdown-memory may not replicate elsewhere. Running the refined
+  grid against a second corpus immediately keeps us honest.
+- The current 12-point grid has wide overlap_pct steps (0 / 10 / 20)
+  and wide chunk_size steps (400 / 800 / 1200 / 1600). E5.7 surfaced
+  the limits of that: `e5-base` showed **two distinct peaks**
+  (1200/0 → 40 and 400/40 → 40 tied) on opposite ends of the grid,
+  with no neighboring points between 400 and 800 to tell which
+  regime is really better. Refining those neighborhoods is cheap
+  signal, but only on candidates worth refining — i.e. after we've
+  triaged down from 9 built-ins.
+
+### Candidate selection (applied after E5.8 completion)
+
+Scoring candidates by their measured peak Total /60 on markdown-memory:
+
+| alias         | peak   | Total /60 | advance? |
+|---------------|--------|----------:|----------|
+| e5-base       | 1200/0 |    **40** | yes (current top) |
+| bge-base      |1200/240|        36 | yes (current global default) |
+| nomic         |1200/240|        35 | yes (within 5 pts of top) |
+| bge-large     | 1200/0 |        34 | maybe (within 6 pts — 1024 dim tier) |
+| mxbai-large   |  800/80|        31 | no (9 pts off top, 3 off current default) |
+| bge-small     | 1200/0 |        30 | no (10 pts off top) |
+| gte-base      | 1600/0 |         8 | no (content-discrimination failure) |
+| nl / nl-ctx   |   —    |       6/3 | no (ceiling) |
+
+**Initial advance set: `e5-base`, `bge-base`, `nomic`.** Three
+768-dim candidates on the same corpus makes the comparison clean;
+storage geometry is shared. `bge-large` is a fence-sitter — the
+only 1024-dim model still in contention, but 6 pts below top and
+~3× slower. Advance it only if there's spare budget after the
+three-way 768-dim mini-sweep completes.
+
+### Fine-tune mini-sweep shape (per candidate)
+
+Two patterns to mix-and-match, picked based on where the coarse
+peak landed:
+
+- **"Peak refinement"** — 6-9 points around the measured peak,
+  stepping `±100` in chunk_size and `±5%` in overlap_pct. E.g. for
+  e5-base@1200/0, try sizes ∈ {1100, 1200, 1300} × overlap ∈ {0,
+  60, 120}. Answers "is the peak really at 1200/0 or are we on a
+  plateau hiding a better neighbor?"
+- **"Regime probe"** — 6-9 points around a surprising second peak,
+  to establish whether it's real or a single-point artifact. E.g.
+  for e5-base's 400/40 tied peak, probe sizes ∈ {400, 500, 600} ×
+  overlap ∈ {0, 40 (10%), 80 (20%)}. Answers "is the small-chunk
+  regime competitive across more than one grid point?"
+
+Each candidate gets one of each pattern as warranted by its
+measured shape. ~15-20 points per candidate total; ~8-10 h wall
+per candidate at 768-dim, more at 1024-dim.
+
+### Second-corpus threading
+
+Per candidate advancing from the triage step, run the refined
+mini-grid **against both markdown-memory and a second corpus in
+the same batch**. Two interpretations to draw:
+
+- **Same peak, similar ranking across corpora** → confident in the
+  default. Update `IndexingProfileFactory.builtIns` with the
+  refined peak.
+- **Different peak on the second corpus** → flag the default as
+  markdown-memory-specific and push per-corpus default selection
+  to E6. The model still ships; just with a "YMMV on your corpus"
+  note in `data/retrieval-<alias>.md`.
+- **Different ranking between candidates across corpora** (e.g.
+  e5-base wins on markdown-memory but bge-base wins on vec-source)
+  → that's the "no single global default fits all" answer and
+  reshapes the E6 backlog toward multi-default or corpus-aware
+  selection.
+
+The second corpus is the previously-deferred `vec-source` (vec's
+own Swift source tree) per E5.4e. The rubric for it still needs
+domain-designed queries — the concrete recipe below still stands
+as the checklist for when resuming.
 
 ---
 
@@ -272,16 +1231,84 @@ the rubric won't distinguish the configs).
 
 Deferred until E5 resolves. From the E4 next-steps audit.
 
-### Candidate models (after bge-small / bge-large)
+### Candidate models (original list — all three now tested)
 
-| Candidate              | Size    | Dim  | MTEB  | Why it's interesting |
-|------------------------|---------|------|-------|----------------------|
-| `gte-base-en-v1.5`     | ~110 MB | 768  | 51.14 | Direct BGE-base peer; same dim lets us swap-test without changing index storage geometry |
-| `e5-base-v2`           | ~110 MB | 768  | 50.3  | Query-prefix convention (`query:` / `passage:`) is different — validates prefix handling |
-| `mxbai-embed-large-v1` | ~670 MB | 1024 | 54.7  | Current open-weights SOTA in the ~1 GB class; competitor to bge-large |
+| Candidate              | Size    | Dim  | MTEB  | Status |
+|------------------------|---------|------|-------|--------|
+| `gte-base-en-v1.5`     | ~110 MB | 768  | 51.14 | E5.6 shipped: 8/60, anisotropy failure, below threshold |
+| `e5-base-v2`           | ~110 MB | 768  | 50.3  | E5.7 shipped: 40/60, **new global default** |
+| `mxbai-embed-large-v1` | ~670 MB | 1024 | 54.7  | E5.8 shipped: 31/60, below bge-base |
 
-Per candidate, measure: rubric score vs bge-base 36/60,
-wallclock at N=10 b=16, peak RSS + CPU%, chunks/sec at steady state.
+Further unexplored candidates worth considering when E6 wraps:
+`intfloat/e5-large-v2` (1024-dim, same family as current default —
+most likely to beat 40/60 without new engineering),
+`snowflake-arctic-embed-l-v2.0` (2024 SOTA, MTEB ~56), and
+instruction-tuned `gte-Qwen2-1.5B/7B` (MTEB ~60+ but needs
+substantial pool resize — trades indexing wallclock for quality).
+
+### E6 — e5-base indexing-speed tuning (queued, triggers after E5.9 completes)
+
+Concrete action plan for the first overnight after E5.9 finishes.
+All E6.1-E6.4 items target `e5-base` (our current default) and
+measure indexing wallclock; retrieval quality must stay
+bit-identical (the E4 regression bar). Execution order is fixed —
+each step's outcome shapes the next:
+
+**E6.1 — CLI flags for tuning knobs.** ✅ done (2026-04-24).
+Added `--concurrency`, `--batch-size`, `--bucket-width`, and
+`--compute-policy` (`auto` | `cpu` | `ane` | `gpu`) flags to
+both `vec update-index` AND `vec sweep`. Wired through to
+`IndexingPipeline` and every registered Bert-family embedder
+via `withMLTensorComputePolicy(...)`. Regression bar: default
+mode reproduces `benchmarks/e5-base-baseline-2026-04-24/`
+byte-for-byte on total_60 / top10_either / top10_both. See
+Done section above and [`data/e6-1-cli-flags.md`](./data/e6-1-cli-flags.md).
+
+**E6.2 — ANE feasibility probe for e5-base.** ✅ done (2026-04-24).
+ANE compiles and runs cleanly for e5-base's custom mean-pool path;
+retrieval is bit-identical to baseline on all primary metrics and
+per-query target ranks; wallclock is 3.8 % faster (968.9 s →
+932.4 s). The E6.3 grid uses the 24-point shape with ANE variants.
+See Done section above and
+[`data/e6-2-ane-probe.md`](./data/e6-2-ane-probe.md).
+
+**E6.3 — indexing-speed grid for e5-base.** ✅ done (2026-04-24).
+24-point grid complete. Winner: `N=8, b=32, compute_policy=ane`
+at 937.2 s, −13.3 % vs in-grid default `(N=10, b=16, auto)`
+1081.1 s. Clears 5 % defaults-update threshold. All 24 points
+bit-identical retrieval to baseline (38/60, 9/10, 5/10). ANE wins
+inconsistent across the grid; recommend NOT flipping the
+compute-policy default. See Done section above and
+[`data/sweep-e5-base-speed.md`](./data/sweep-e5-base-speed.md).
+
+**E6.4 — Length-bucket width.** ✅ done (2026-04-24). Anchored at
+the E6.3 winner `(N=8, b=32, ane)`, ran the two alternative
+bucket-width points: `/300` is +8.7 % slower than `/500`
+(regression — finer bucketing flushes more partial batches), `/700`
+is +1.6 % slower (inside noise). All three points bit-identical
+retrieval to baseline (38/60, 9/10, 5/10). **bucket-width default
+flip: NO** — neither alternative clears the 5 % threshold. Keep
+`IndexingPipeline.defaultBucketWidth = 500`. See Done section above
+and [`data/sweep-e5-base-bucket.md`](./data/sweep-e5-base-bucket.md).
+
+**Defaults update rule.** After E6.4, if the best config beats
+the current `N=10 b=16 /500 auto` baseline by ≥5% wallclock with
+bit-identical retrieval, update `IndexingPipeline`'s hardcoded
+defaults to the new values AND update
+[`data/wallclock-e4-per-model.md`](./data/wallclock-e4-per-model.md)
++ the [`indexing-profile.md`](./indexing-profile.md) table rows
+for e5-base specifically. Marginal wins (<5%) stay documented
+but don't flip defaults — too much risk of corpus-specific
+tuning that doesn't generalize.
+
+**Autonomy on overnight execution:** run autonomously through
+E6.1 → E6.2 → E6.3 → E6.4 without pausing for review, except:
+stop and ask manager via `ib ask` if E6.1 hits a structural
+problem (e.g. `swift-embeddings` doesn't expose compute-policy
+cleanly) or if any step produces a retrieval-quality drift. Per
+manager directive 2026-04-23.
+
+### E6 — Parameter grid fill (original, superseded by E6.1-E6.4 above)
 
 ### E6 — Parameter grid fill
 

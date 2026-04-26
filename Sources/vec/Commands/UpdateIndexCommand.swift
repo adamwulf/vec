@@ -1,11 +1,44 @@
 import Foundation
 import ArgumentParser
+import CoreML
 import VecKit
 #if canImport(Darwin)
 import Darwin
 #elseif canImport(Glibc)
 import Glibc
 #endif
+
+/// CLI-facing compute-policy enum. `auto` preserves the current
+/// per-embedder default (no explicit `withMLTensorComputePolicy` call
+/// except where the embedder has its own hardcoded override, e.g.
+/// `NomicEmbedder`'s batched-path `.cpuOnly` pin for the macOS 26.3+
+/// ANE-fp16 incompatibility). `cpu` / `ane` / `gpu` map to the
+/// corresponding `MLComputePolicy` values for the E6 speed/ANE-feasibility
+/// probe chain.
+enum ComputePolicyOption: String, ExpressibleByArgument, CaseIterable {
+    case auto, cpu, ane, gpu
+
+    /// `nil` means "preserve current per-embedder default behavior".
+    /// Non-nil values thread into `IndexingProfileFactory.make` via
+    /// the `computePolicy` argument and reach every Bert-family
+    /// embedder's `withMLTensorComputePolicy(...)` scope.
+    ///
+    /// `MLComputePolicy` only exposes `.cpuOnly` and `.cpuAndGPU`
+    /// as static-var factories on macOS 15 / iOS 18; the `ane` and
+    /// (full-three-device) mapping has to go through the
+    /// `MLComputePolicy(_ computeUnits: MLComputeUnits)` initializer.
+    /// `.ane` → `.cpuAndNeuralEngine` (CPU + ANE, matches how
+    /// NomicBert spells "ANE probing"); `.gpu` stays on the direct
+    /// `.cpuAndGPU` spelling for readability.
+    var mlPolicy: MLComputePolicy? {
+        switch self {
+        case .auto: return nil
+        case .cpu:  return .cpuOnly
+        case .ane:  return MLComputePolicy(.cpuAndNeuralEngine)
+        case .gpu:  return .cpuAndGPU
+        }
+    }
+}
 
 /// Thread-safe renderer for a single-line rolling progress display in verbose mode.
 ///
@@ -249,6 +282,18 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Indexing profile alias (\(IndexingProfileFactory.knownAliases.joined(separator: ", "))). Default is \(IndexingProfileFactory.defaultAlias) on first index; must match the recorded profile on subsequent runs (or omit to reuse the recorded alias with its alias-default chunk params).")
     var embedder: String?
 
+    @Option(name: .long, help: "Override embedder pool size (default: \(IndexingPipeline.defaultConcurrency), measured optimum on 10-perf-core M-series in E6.3). E6.3 indexing-speed knob.")
+    var concurrency: Int?
+
+    @Option(name: .long, help: "Override max chunks per embedDocuments batch (default: \(IndexingPipeline.defaultBatchSize), cap 32). E6.3 indexing-speed knob.")
+    var batchSize: Int?
+
+    @Option(name: .long, help: "Override length-bucket width (chars) for batch-former keying: chunk.text.count / bucket-width (default: \(IndexingPipeline.defaultBucketWidth)). E6.4 indexing-speed knob.")
+    var bucketWidth: Int?
+
+    @Option(name: .long, help: "MLTensor compute-policy placement (auto/cpu/ane/gpu; default: auto = per-embedder default). E6.2 ANE-feasibility probe for e5-base.")
+    var computePolicy: ComputePolicyOption = .auto
+
     func run() async throws {
         // Step 1: CLI partial-override hard-fail — before any DB work.
         if (chunkChars == nil) != (chunkOverlap == nil) {
@@ -282,7 +327,8 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             chunkCount: chunkCount,
             cliEmbedder: embedder,
             cliChunkChars: chunkChars,
-            cliChunkOverlap: chunkOverlap
+            cliChunkOverlap: chunkOverlap,
+            cliComputePolicy: computePolicy.mlPolicy
         )
         let activeProfile = resolution.profile
 
@@ -334,8 +380,15 @@ struct UpdateIndexCommand: AsyncParsableCommand {
 
         // Source worker count from the pipeline so the rolling line's
         // "N/M" denominator can't silently desync from the actual pool size
-        // if the default ever changes.
-        let pipeline = IndexingPipeline(profile: activeProfile)
+        // if the default ever changes. Nil CLI overrides fall through to
+        // `IndexingPipeline`'s existing defaults, so the no-flags path is
+        // behavior-identical to pre-E6.1 (the E6.1 regression bar).
+        let pipeline = Self.makePipeline(
+            profile: activeProfile,
+            concurrency: concurrency,
+            batchSize: batchSize,
+            bucketWidth: bucketWidth
+        )
         let workerCount = pipeline.workerCount
 
         // Wire up the rolling progress renderer when verbose and attached to a TTY.
@@ -469,6 +522,25 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         }
     }
 
+    /// Constructs an `IndexingPipeline` honoring the E6.1 CLI knobs.
+    /// Nil overrides fall back to the pipeline's own measured-and-
+    /// hardcoded defaults (`defaultConcurrency`, `defaultBatchSize`,
+    /// `defaultBucketWidth`). Shared between `UpdateIndexCommand` and
+    /// `SweepCommand` so both see identical knob-routing semantics.
+    static func makePipeline(
+        profile: IndexingProfile,
+        concurrency: Int?,
+        batchSize: Int?,
+        bucketWidth: Int?
+    ) -> IndexingPipeline {
+        return IndexingPipeline(
+            concurrency: concurrency ?? IndexingPipeline.defaultConcurrency,
+            batchSize: batchSize ?? IndexingPipeline.defaultBatchSize,
+            bucketWidth: bucketWidth ?? IndexingPipeline.defaultBucketWidth,
+            profile: profile
+        )
+    }
+
     /// Outcome of profile resolution on a given DB state. Lives as a
     /// small enum+struct so tests can assert both the chosen identity
     /// and whether the command is expected to write a new
@@ -493,7 +565,8 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         chunkCount: Int,
         cliEmbedder: String?,
         cliChunkChars: Int?,
-        cliChunkOverlap: Int?
+        cliChunkOverlap: Int?,
+        cliComputePolicy: MLComputePolicy? = nil
     ) throws -> ProfileResolution {
         // The caller must have already rejected partial overrides. Trap
         // any slip through so tests catch a regression in the check
@@ -530,8 +603,13 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             // Match. Resolve the persisted identity through the
             // factory — `resolve` re-parses the identity (no shortcut
             // via `make`) so a corrupt `config.json` with a malformed
-            // identity fails as `malformedProfileIdentity`.
-            let profile = try IndexingProfileFactory.resolve(identity: recorded.identity)
+            // identity fails as `malformedProfileIdentity`. Compute
+            // policy is runtime-only (not persisted), so it's threaded
+            // in here rather than read from config.
+            let profile = try IndexingProfileFactory.resolve(
+                identity: recorded.identity,
+                computePolicy: cliComputePolicy
+            )
             return ProfileResolution(profile: profile, writeProfileRecord: false)
         }
 
@@ -546,7 +624,8 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         let profile = try IndexingProfileFactory.make(
             alias: alias,
             chunkSize: cliChunkChars,
-            chunkOverlap: cliChunkOverlap
+            chunkOverlap: cliChunkOverlap,
+            computePolicy: cliComputePolicy
         )
         return ProfileResolution(profile: profile, writeProfileRecord: true)
     }

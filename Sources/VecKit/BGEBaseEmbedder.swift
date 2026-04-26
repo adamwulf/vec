@@ -1,4 +1,5 @@
 import Foundation
+import CoreML
 import Embeddings
 
 /// `Embedder` wrapping `swift-embeddings`' Bert loader against
@@ -17,8 +18,11 @@ public actor BGEBaseEmbedder: Embedder {
     public static let maxInputCharacters = 2_000
 
     private var bundle: Bert.ModelBundle?
+    private let computePolicy: MLComputePolicy?
 
-    public init() {}
+    public init(computePolicy: MLComputePolicy? = nil) {
+        self.computePolicy = computePolicy
+    }
 
     public func embedDocument(_ text: String) async throws -> [Float] {
         try await embed(text)
@@ -38,7 +42,9 @@ public actor BGEBaseEmbedder: Embedder {
         }
 
         let bundle = try await loadBundleIfNeeded()
-        let tensor = try bundle.batchEncode(inputs.liveInputs, padTokenId: 0, maxLength: 512)
+        let tensor = try withOptionalComputePolicy(computePolicy) {
+            try bundle.batchEncode(inputs.liveInputs, padTokenId: 0, maxLength: 512)
+        }
         let scalars = await tensor.cast(to: Float.self).shapedArray(of: Float.self).scalars
 
         return unpackAndReinterleave(
@@ -57,7 +63,9 @@ public actor BGEBaseEmbedder: Embedder {
         }
 
         let bundle = try await loadBundleIfNeeded()
-        let tensor = try bundle.encode(trimmed, maxLength: 512)
+        let tensor = try withOptionalComputePolicy(computePolicy) {
+            try bundle.encode(trimmed, maxLength: 512)
+        }
         let scalars = await tensor.cast(to: Float.self).shapedArray(of: Float.self).scalars
         return l2Normalize(scalars)
     }
