@@ -334,6 +334,10 @@ public enum VecError: Error, LocalizedError {
     /// files passed to the pipeline; `filesFailed` is the subset that
     /// hit this specific failure mode.
     case indexingProducedNoVectors(filesAttempted: Int, filesFailed: Int)
+    /// A live `vec update-index` is already running against this DB
+    /// (its PID file exists and the recorded process is alive). The
+    /// associated value carries the recorded PID for the user.
+    case indexingAlreadyRunning(pid: Int32)
 
     public var errorDescription: String? {
         switch self {
@@ -398,6 +402,12 @@ public enum VecError: Error, LocalizedError {
                      (Single-file `vec insert` already prints the failing path to
                      stderr above.)
                   2. Fix the underlying embedder failure, then re-run the command.
+                """
+        case .indexingAlreadyRunning(let pid):
+            return """
+                Another `vec update-index` is already running against this database \
+                (PID \(pid)). Wait for it to finish, or kill it (`kill \(pid)`) and \
+                remove the stale `index.pid` file from the database directory if needed.
                 """
         }
     }
