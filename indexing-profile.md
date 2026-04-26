@@ -25,25 +25,26 @@ Nine built-in profiles ship today:
 | `bge-base`       | `bge-base@1200/240`        | `bge-base-en-v1.5`      |  768 | 1200 chars | 240 chars     | 36         | 3              | 1022 s      | 8.6    |
 | `nomic`          | `nomic@1200/240`           | `nomic-v1.5-768`        |  768 | 1200 chars | 240 chars     | 35         | 3              | 1497 s²     | 5.8²   |
 | `bge-large`      | `bge-large@1200/0`³        | `bge-large-en-v1.5`     | 1024 | 1200 chars | 0 chars       | 34         | 3              | 2667 s      | 3.0    |
-| `mxbai-large`    | `mxbai-large@800/80`³      | `mxbai-embed-large-v1`  | 1024 |  800 chars | 80 chars      | 31         | 4              | 3638 s⁵     | 3.2⁵   |
+| `mxbai-large`    | `mxbai-large@800/80`³      | `mxbai-embed-large-v1`  | 1024 |  800 chars | 80 chars      | 31         | 4              | 3617 s      | 3.4    |
 | `bge-small`      | `bge-small@1200/0`³        | `bge-small-en-v1.5`     |  384 | 1200 chars | 0 chars       | 30         | 2              | 573 s       | 14.1   |
-| `gte-base`       | `gte-base@1600/0`³         | `gte-base-en-v1.5`      |  768 | 1600 chars | 0 chars       | 8⁴         | 0              | 1611 s⁶     | 3.8⁶   |
-| `nl`             | `nl@2000/200`              | `nl-en-512`             |  512 | 2000 chars | 200 chars     | 6          | 0              | 138 s⁷      | 35.0⁷  |
-| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  |  512 | 1200 chars | 240 chars     | 3          | 0              | 52 s⁷       | 157.1⁷ |
+| `gte-base`       | `gte-base@1600/0`³         | `gte-base-en-v1.5`      |  768 | 1600 chars | 0 chars       | 8⁴         | 0              | 1611 s⁵     | 3.8⁵   |
+| `nl`             | `nl@2000/200`              | `nl-en-512`             |  512 | 2000 chars | 200 chars     | 6          | 0              | 138 s⁶      | 35.0⁶  |
+| `nl-contextual`  | `nl-contextual@1200/240`   | `nl-contextual-en-512`  |  512 | 1200 chars | 240 chars     | 3          | 0              | 52 s⁶       | 157.1⁶ |
 
 ¹ Wall-clock and chunks-per-second for a full reindex of the
 `markdown-memory` corpus (674 files; chunk counts vary with the
 profile's chunk geometry — 8742 chunks at 1200/240, 8070 chunks at
 1200/0, 4828 chunks for `nl` at 2000/200, 6166 chunks at 1600/0,
-~11500 chunks at 800/80), 10-perf-core M-series Apple Silicon.
-Most rows captured 2026-04-25 at the **E6.5 defaults**:
-`pool=8 batch=32 bucket-width=500 compute-policy=auto` (E6.3
-tuning, flipped on 2026-04-24). The MLTensor-based embedders
-(`e5-base`, `bge-base`, `bge-small`, `bge-large`, `nomic`,
-`gte-base`) were all re-measured at the new defaults in E6.6 —
-see [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
+12316 chunks at 800/80), 10-perf-core M-series Apple Silicon.
+Most rows captured 2026-04-25 / 2026-04-26 at the **E6.5
+defaults**: `pool=8 batch=32 bucket-width=500 compute-policy=auto`
+(E6.3 tuning, flipped on 2026-04-24). All seven MLTensor-based
+embedders (`e5-base`, `bge-base`, `bge-small`, `bge-large`,
+`nomic`, `gte-base`, `mxbai-large`) were re-measured at the new
+defaults in E6.6 — see [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
 for the OLD-vs-NEW comparison. The `e5-base` row in particular is
 −13 % vs the OLD E5.7-era number, validating the E6.3 grid winner.
+`mxbai-large` lands flat (−0.6 %, well within run-to-run noise).
 `ch/s` is `chunks ÷ wall`. Full per-stage breakdown for the
 earlier E4 baseline (different defaults) in
 `data/wallclock-e4-per-model.md`. Per-model retrieval sweep data:
@@ -110,15 +111,7 @@ non-BGE 768-dim option, but on this corpus it is below threshold.
 See [`data/retrieval-gte-base-sweep.md`](./data/retrieval-gte-base-sweep.md)
 §2 for the full failure-mode analysis.
 
-⁵ `mxbai-large`'s wallclock has NOT been re-measured at the E6.5
-defaults yet. The 3638 s row is from the original E5.8 sweep peak
-at the OLD `pool=10 batch=16` defaults and is left unchanged here
-as a placeholder until the deferred E6.6 addendum runs (a single
-~3 h sweep on AC power). When measured, this row will be updated
-in-place; see [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
-"mxbai-large — deferred".
-
-⁶ `gte-base`'s NEW E6.5-default wallclock is **+65 % worse** than
+⁵ `gte-base`'s NEW E6.5-default wallclock is **+65 % worse** than
 the OLD E5.6 number (974 s → 1611 s). Retrieval is unchanged at
 8/60 (still a dead canary on this corpus, see footnote ⁴). The
 regression is unique among the re-measured MLTensor models — every
@@ -129,7 +122,7 @@ discriminate, but isn't blocking since `gte-base` is not a default
 candidate. See [`data/wallclock-2026-04-25.md`](./data/wallclock-2026-04-25.md)
 §"gte-base" for the full diagnosis.
 
-⁷ `nl` and `nl-contextual` use Apple's NaturalLanguage framework,
+⁶ `nl` and `nl-contextual` use Apple's NaturalLanguage framework,
 not MLTensor. The E6.5 knobs (worker concurrency, batch size,
 bucket width, compute policy) do not flow into Apple's framework,
 so the rows are NOT re-measured at the new defaults — their E4-era

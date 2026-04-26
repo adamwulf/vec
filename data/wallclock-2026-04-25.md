@@ -1,7 +1,8 @@
 # E6.6 — per-model wallclock at E6.5 defaults — markdown-memory corpus
 
-Captured 2026-04-25. Re-measures indexing wallclock for every
-MLTensor-based built-in embedder at the new
+Captured 2026-04-25 (6 of 7 models) and 2026-04-26
+(`mxbai-large` addendum, run on AC power). Re-measures indexing
+wallclock for every MLTensor-based built-in embedder at the new
 `pool=8 batch=32 bucket-width=500 compute-policy=auto` defaults
 (flipped on 2026-04-24 in E6.5). The OLD numbers in
 `indexing-profile.md` were captured at the prior
@@ -11,14 +12,12 @@ is no longer a mix of two default regimes.
 
 ## Scope
 
-- **Re-measured (6 of 7 planned)**: `e5-base`, `bge-base`,
-  `bge-small`, `bge-large`, `nomic`, `gte-base`. One single-point
-  sweep per model at its registered default geometry, no flag
-  overrides — the whole point is to measure the new hardcoded
-  defaults.
-- **Deferred (mxbai-large)**: the ~3 h sweep was launched and
-  killed because the run ate too much battery; will resume on
-  AC power and an addendum will be appended below the table.
+- **Re-measured (7 of 7 planned)**: `e5-base`, `bge-base`,
+  `bge-small`, `bge-large`, `nomic`, `gte-base`, `mxbai-large`.
+  One single-point sweep per model at its registered default
+  geometry, no flag overrides — the whole point is to measure
+  the new hardcoded defaults. `mxbai-large` was deferred mid-
+  experiment to AC power and run on 2026-04-26.
 - **Out of scope**: `nl` and `nl-contextual` use Apple's
   NaturalLanguage framework, not MLTensor. The E6.5 knobs
   (worker concurrency, batch size, bucket width, compute policy)
@@ -49,7 +48,7 @@ is no longer a mix of two default regimes.
 | `bge-large`  | 1200/0    | 3220         |   **2666.7** | **−553.3** | **−17.2 %** | 2.3      | **3.0**  | 8070       | 30            | 34            | −4    |
 | `nomic`²     | 1200/240  | 1417         |       1496.6 |   +79.6 |  +5.6 % | 5.8      |    5.8   | 8742       | 32            | 35            | −3    |
 | `gte-base`   | 1600/0    |  974         |       1611.4 |  +637.4 | +65.4 % | 5.9      |    3.8   | 6166       |  8            |  8            |  0    |
-| `mxbai-large`| 800/80    | 3638         |   *(deferred)* |     —   |     —   | 3.2      |    —     | —          | —             | 31            | —     |
+| `mxbai-large`| 800/80    | 3638         |       3616.5 |   −21.5 |  −0.6 % | 3.2      |    3.4   | 12316      | 30            | 31            | −1    |
 
 ¹ The 3-pt drift on `bge-small` was disambiguated with a control
 re-run at the OLD defaults (`--concurrency 10 --batch-size 16`)
@@ -72,21 +71,23 @@ for that change.
 
 ## Aggregate
 
-Across the 6 re-measured rows:
+Across all 7 re-measured rows:
 
-- **OLD total wallclock**: 8249 s
-- **NEW total wallclock**: 8260.9 s
-- **Aggregate delta**: +11.9 s (+0.1 %) — flat in aggregate
+- **OLD total wallclock**: 11887 s
+- **NEW total wallclock**: 11877.4 s
+- **Aggregate delta**: −9.6 s (−0.1 %) — flat in aggregate
 
 The flat aggregate hides bimodal per-model behaviour:
 
-- **5 of 6 models within ±10 % of expectation** — the BGE family
+- **6 of 7 models within ±10 % of expectation** — the BGE family
   and `e5-base` got the headline gain (−6 % to −17 %), `bge-base`
   is wallclock-flat (+1.9 %, in noise band), `nomic` regresses
-  modestly (+5.6 %, expected for its CPU-pinned path).
+  modestly (+5.6 %, expected for its CPU-pinned path), and
+  `mxbai-large` is essentially flat (−0.6 %, well within noise
+  band).
 - **`gte-base` regresses catastrophically (+65.4 %)** — the
   single dominating term in the aggregate. Without `gte-base`, the
-  5-model aggregate is **−625.5 s, −8.6 %**, which is the more
+  6-model aggregate is **−647.0 s, −5.9 %**, which is the more
   honest read on what the E6.5 defaults do for the typical model.
 
 ## Per-model observations
@@ -176,12 +177,27 @@ candidate (8/60 vs 36+/60 for the BGE peers); the regression
 doesn't affect any user who follows the recommended profile.
 Out of scope to fix in E6.6.
 
-### mxbai-large — deferred
+### mxbai-large — flat (−0.6 %, in noise band)
 
-`mxbai-large@800/80` is a ~3 h reindex; the run was started
-during this experiment and stopped early because it would
-have eaten too much battery. The row will be appended below
-when run on AC power.
+3638 s → 3616.5 s = −21.5 s, −0.6 %. The largest model in the
+registry (1024-dim, 800/80 geometry) is essentially unchanged
+under the new defaults — well inside run-to-run noise on a
+~1 h reindex. Notable that this contrasts with `bge-large`
+(also 1024-dim) which got a clean −17 %: the two ~1024-dim
+models do not move together. Hypotheses:
+
+- mxbai-large's 800-char geometry already produces ~1.5× more
+  chunks than bge-large's 1200-char geometry (12316 vs 8070),
+  so the per-batch payload at b=32 is shorter on average. The
+  b=16 → b=32 amortisation has less to amortise per call than
+  on bge-large's longer chunks.
+- Run-to-run thermal noise on a ~1 h sweep can easily account
+  for ±5 % swings; −0.6 % is within that band.
+
+Either way, no action needed — the model neither benefits nor
+suffers under the new defaults. Rubric drift is −1 (30/60 vs
+documented 31/60), the smallest observed delta in this sweep,
+consistent with the corpus-drift story.
 
 ## Retrieval drift summary
 
@@ -193,8 +209,9 @@ when run on AC power.
 | `bge-large`   | 30 | 34 | −4 | at the autonomy threshold; same shape as the smaller-dim BGEs |
 | `nomic`       | 32 | 35 | −3 | same shape as bge-small |
 | `gte-base`    |  8 |  8 |  0 | rank-table identical to E5.6 |
+| `mxbai-large` | 30 | 31 | −1 | smallest delta observed; corpus drift in noise band |
 
-Drift is consistent across the 5 affected models (−2 to −4 pts,
+Drift is consistent across the 6 affected models (−1 to −4 pts,
 all in the same direction). Combined with the bge-small
 disambiguation, this is most consistent with corpus drift since
 the E5.x baselines were captured (Granola syncs into the test
@@ -216,12 +233,13 @@ between the two default regimes.
    such; no action needed unless we want to ship a per-model
    override (overkill for a +5.6 % wall hit on a non-default
    embedder).
-4. **`mxbai-large` outstanding.** Will be measured next. It is
-   the other ~3 h-class model; if its delta lands near
-   `bge-large`'s −17 %, the b=16 → b=32 amortisation hypothesis
-   strengthens. If it regresses like `gte-base`, the
-   non-BGE-family suspicion strengthens. The single number will
-   discriminate between the two stories.
+4. **`mxbai-large` lands flat (−0.6 %), splitting the
+   hypothesis space.** Neither the b=16 → b=32 amortisation win
+   (`bge-large`-shape, −17 %) nor a `gte-base`-shape regression
+   materialises. The 800/80 geometry produces ~1.5× more (and
+   shorter) chunks than `bge-large`'s 1200/0, which dilutes the
+   per-batch amortisation; the model lands in the noise band.
+   No action needed.
 
 ## References
 
@@ -235,12 +253,11 @@ between the two default regimes.
 
 ## Commits
 
-- (this run) — E6.6: re-measure per-model wallclock at E6.5 defaults — 5 of 6 BGE+e5 models faster, gte-base regresses, mxbai-large deferred
+- `4476b5b` — E6.6: re-measure per-model wallclock at E6.5 defaults — 5 of 6 BGE+e5 models faster, gte-base regresses, mxbai-large deferred
+- (this run) — E6.6 addendum: mxbai-large measured at 3616.5 s (−0.6 %, flat in noise band); E6.6 scope now complete (7 of 7)
 
 ## Follow-ups
 
-- **mxbai-large addendum** — run the deferred sweep and append a
-  row + observation to this file. ~3 h.
 - **gte-base regression diagnosis** (E6.7 candidate) — either
   accept and document, or scope a small grid (N × b × policy) on
   gte-base alone to find a model-specific override. Not blocking.
