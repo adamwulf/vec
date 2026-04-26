@@ -130,6 +130,32 @@ numbers carry forward. They remain comparable to each other but
 should not be compared like-for-like to the MLTensor rows above
 without noting the captured-defaults difference.
 
+### Candidates evaluated but not shipped
+
+Two MTEB-competitive mid-tier candidates were investigated as
+post-E6.6 challengers to `e5-base` and rejected at the loader
+layer before any rubric measurement was possible:
+
+- **`Snowflake/snowflake-arctic-embed-m`** (109M, ~MTEB top of class
+  at this size) ships a sentence-transformer-style safetensors
+  export with the `pooler.dense.*` weights stripped. The
+  `swift-embeddings` 0.0.26 `Bert.loadModelBundle` loader requires
+  those keys and throws on absence. Investigated 2026-04-26 (worker
+  branch killed, no commits to main).
+- **`infgrad/stella-base-en-v2`** (110M, MTEB-competitive) ships
+  only `pytorch_model.bin` — no safetensors at all on the main
+  branch and no auto-converted PR ref. `swift-embeddings` 0.0.26
+  is safetensors-only (`BertUtils.swift` line 72: `// NOTE: just
+  safetensors support for now`). Investigated 2026-04-26 (worker
+  branch killed, no commits to main).
+
+Both are real architectural blockers, not transient failures. To
+ship either model, `swift-embeddings` would need a loader change
+to (a) tolerate a missing pooler head and/or (b) read
+`pytorch_model.bin`. That work is out of scope as long as
+`e5-base` remains the strongest tested default; the question
+revisits if a future MTEB leader hits the same constraint.
+
 `e5-base` is the default as of 2026-04-23. (Originally `nomic`;
 flipped to `bge-base` on 2026-04-19 after the Phase D sweep — see
 `experiments/PhaseD-embedder-expansion/plan.md` §"Default alias
