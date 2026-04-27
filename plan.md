@@ -956,6 +956,26 @@ new default changes recommended.
 - `indexing-profile.md` table refreshed with 7 NEW MLTensor rows + footnotes ⁵⁶.
 - Follow-up: gte-base regression diagnosis (E6.7 candidate, not blocking).
 
+### E8 — `index.log` for `update-index` runs (2026-04-26)
+
+`update-index` now appends a one-line JSON record to `~/.vec/<db>/index.log`
+after every run (success, partial-success, *and* silent-failure),
+capturing the timestamp, embedder alias, full profile identity, wall
+seconds, file counts, and the relative paths of every skipped file
+(`skippedUnreadable` / `skippedEmbedFailures`). The log is capped at
+the most recent 200 records via a last-N rotation that operates on
+raw lines (no decode/re-encode) so additive future fields survive
+older binaries. Atomic-replace via tmp+rename keeps the swap clean;
+failure is best-effort with a stderr warning, never affecting the
+exit code. Reset already wipes the log via the existing
+`removeItem(at: dbDir)`; a new test pins that.
+
+Trigger: a 752-file e5-base reindex finished with 18 unreadable skips,
+and identifying which 18 required either a verbose re-run or an
+external scan. Both wasteful when the pipeline already knew.
+
+- Plan: [`experiments/E8-index-log/plan.md`](./experiments/E8-index-log/plan.md)
+
 ---
 
 ## In progress

@@ -151,14 +151,37 @@ final class UpdateIndexLogTests: XCTestCase {
     /// the "the log is per-invocation, not per-change" invariant.
     func testNoOpRunStillWritesLogEntry() async throws {
         let dbDir = try await initEmptyDB()
-        try writeFile("doc.md",
-                      content: "Some English content for the embedder.\n")
+        let docURL = try writeFile(
+            "doc.md",
+            content: "Some English content for the embedder.\n"
+        )
+
+        // Pin the file's mtime to a fixed point in the past so the
+        // "modificationDate > stored" check in UpdateIndexCommand
+        // deterministically reports unchanged. Without this pin,
+        // filesystem mtime precision (APFS nanoseconds vs SQLite
+        // Double round-trip) can land the comparison on the
+        // "updated" side of the threshold and the test reports
+        // updated=1 spuriously.
+        let pinned = Date(timeIntervalSince1970: 1_700_000_000)
+        try FileManager.default.setAttributes(
+            [.modificationDate: pinned],
+            ofItemAtPath: docURL.path
+        )
 
         // First run: indexes the file.
         try await runUpdateIndex()
         let firstEntries = try readLog(dbDir)
         XCTAssertEqual(firstEntries.count, 1)
         XCTAssertGreaterThanOrEqual(firstEntries[0].added, 1)
+
+        // Re-pin in case any indexing-side touch bumped the mtime.
+        // The pipeline doesn't write to source files, but this is
+        // belt-and-suspenders against future regressions.
+        try FileManager.default.setAttributes(
+            [.modificationDate: pinned],
+            ofItemAtPath: docURL.path
+        )
 
         // Second run: same files, nothing modified → no-op.
         try await runUpdateIndex()
