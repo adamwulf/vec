@@ -58,11 +58,15 @@ completion (success, partial-success, *and* silent-failure — see
 
 - **Type pinning:** `IndexLogEntry.timestamp` is a Swift `Date`
   encoded via `JSONEncoder.dateEncodingStrategy = .iso8601`
-  (UTC, `Z`-suffix). Round-trip tests assert this concretely.
+  (UTC, `Z`-suffix). The encoder MUST NOT use `.prettyPrinted`
+  output formatting — one record = one line is a load-bearing
+  invariant of the rotation algorithm. `wallSeconds` is `Double`
+  seconds (not milliseconds).
 - **Path format:** `skippedUnreadable` / `skippedEmbedFailures`
   contain the same relative-to-source-dir strings the pipeline
   emits in `IndexResult.skippedUnreadable(filePath:)` /
-  `.skippedEmbedFailure(filePath:)`. Tests pin this.
+  `.skippedEmbedFailure(filePath:)`. This semantics is inherited
+  from `FileScanner.scan()`, not a new contract. Tests pin it.
 - **Why JSONL:** append-friendly, line-oriented (greppable,
   tail-able), parseable. Plain-text would lose the path lists at
   scale.
@@ -99,14 +103,29 @@ Cap at **200 records** (last-N policy). When a run is about to
 append:
 
 1. Read the existing log if present (`String` contents).
-2. Split on `\n`, drop empty trailing lines.
+2. Split on `\n`, drop empty trailing entries (handles the case
+   where the prior run wrote a trailing `\n` and `split` produces
+   an empty final element).
 3. If line count ≥ 200, keep the trailing 199 lines verbatim
    (no decode → re-encode — preserves any future additive fields
    we might not know about).
 4. Append the new line.
-5. Atomic-replace the file: write to `index.log.tmp`, then
-   `FileManager.moveItem(at:to:)` over the original. Matches the
-   atomic-replace pattern at `UpdateIndexCommand.swift:103`.
+5. Always terminate the file with a trailing `\n` (every record,
+   including the last, ends in `\n`). This means the on-disk form
+   is `record1\nrecord2\n…\nrecordN\n` — a clean, idempotent
+   append target.
+6. Atomic-replace the file: write the full new contents to
+   `index.log.tmp`, then `FileManager.replaceItemAt(_:withItemAt:)`
+   (or `moveItem` after removing the original) so a crash mid-write
+   leaves either the prior log or the new one — never a partial
+   file. (Note: the existing PID writer at
+   `UpdateIndexCommand.swift:103` uses `Data.write(to:options:.atomic)`
+   to achieve the same goal via a different system call. We use
+   tmp+rename here because we want the kept tail and new entry to
+   land together as one atomic swap, which the `Data.write(.atomic)`
+   path also provides — either approach is acceptable. Pick one
+   and stick to it; the test for "no `.tmp` artifact remains"
+   covers both.)
 
 Why last-N and not byte-cap: cap-by-bytes requires read-decode-
 truncate-rewrite and produces a "single record > cap" edge case
@@ -171,7 +190,10 @@ the silent-failure `throw` at line 642:
 
 - `IndexLogTests`:
   - Round-trip encode/decode of one entry (asserts ISO-8601 format
-    in raw JSON, decodes back to equal `Date`).
+    in raw JSON, decodes back to equal `Date`, asserts
+    `schemaVersion == 1` is present in the raw JSON, asserts the
+    encoded form is exactly one line — a `\n` count of 1 in the
+    output buffer guards against accidental `.prettyPrinted`).
   - Append to fresh dir → file has one line, parses.
   - Append twice → two lines, both parse.
   - Last-N rotation: pre-fill with 250 lines, append → file has
@@ -186,7 +208,12 @@ the silent-failure `throw` at line 642:
   file):
   - After a run with ≥1 unreadable file, log contains an entry
     where `skippedUnreadable` contains the *relative* path
-    matching `IndexResult.filePath` semantics.
+    matching `IndexResult.filePath` semantics (i.e., the same
+    string `FileScanner` produces for that file).
+  - After a run against profile `e5-base@1200/0`, the log entry's
+    `embedder` field equals `"e5-base"` (alias only — guards
+    against a buggy implementation that stores the full identity
+    in both fields) and `profile` equals `"e5-base@1200/0"`.
   - After a no-op run (everything unchanged), log still gets an
     entry with `added=0, updated=0`.
   - After a silent-failure run (all `.skippedEmbedFailure`), the
