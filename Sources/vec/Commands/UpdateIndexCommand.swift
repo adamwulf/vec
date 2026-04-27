@@ -561,6 +561,8 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         var updated = 0
         var skippedUnreadable = 0
         var skippedEmbedFailures = 0
+        var skippedUnreadablePaths: [String] = []
+        var skippedEmbedFailurePaths: [String] = []
 
         for result in results {
             switch result {
@@ -572,11 +574,13 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                 }
             case .skippedUnreadable(let filePath):
                 skippedUnreadable += 1
+                skippedUnreadablePaths.append(filePath)
                 if verbose {
                     print("Skipped (no chunks extracted): \(filePath)")
                 }
             case .skippedEmbedFailure(let filePath):
                 skippedEmbedFailures += 1
+                skippedEmbedFailurePaths.append(filePath)
                 if verbose {
                     print("Skipped (all chunks failed to embed): \(filePath)")
                 }
@@ -637,6 +641,36 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         // add noise to the thrown error. Skip it.
         if verbose && !workItems.isEmpty && !silentFailure {
             printTimingFooter(stats: stats, wallSeconds: wallSeconds, workerCount: workerCount, filesIndexed: added + updated)
+        }
+
+        // Persist a per-run audit record before any throw. The
+        // silent-failure path (every attempt → `.skippedEmbedFailure`)
+        // is exactly the case operators most need to audit, so the log
+        // write happens *before* the throw below. A failing log write
+        // is best-effort — indexing succeeded (or failed in a way the
+        // exit code already surfaces); we don't roll that back over a
+        // log issue.
+        let alias = (try? IndexingProfile.parseIdentity(activeProfile.identity).alias)
+            ?? activeProfile.identity
+        let logEntry = IndexLogEntry(
+            timestamp: Date(),
+            embedder: alias,
+            profile: activeProfile.identity,
+            wallSeconds: wallSeconds,
+            filesScanned: files.count,
+            added: added,
+            updated: updated,
+            removed: removed,
+            unchanged: unchanged,
+            skippedUnreadable: skippedUnreadablePaths,
+            skippedEmbedFailures: skippedEmbedFailurePaths
+        )
+        do {
+            try IndexLog.append(logEntry, to: dbDir)
+        } catch {
+            FileHandle.standardError.write(
+                Data("Warning: failed to write index.log: \(error.localizedDescription)\n".utf8)
+            )
         }
 
         if silentFailure {
