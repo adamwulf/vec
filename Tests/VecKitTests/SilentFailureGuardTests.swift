@@ -225,7 +225,7 @@ final class SilentFailureGuardTests: XCTestCase {
         var added = 0, updated = 0, embedFailures = 0, unreadable = 0
         for r in results {
             switch r {
-            case .indexed(_, let wasUpdate, _):
+            case .indexed(_, let wasUpdate, _, _):
                 if wasUpdate { updated += 1 } else { added += 1 }
             case .skippedEmbedFailure:
                 embedFailures += 1

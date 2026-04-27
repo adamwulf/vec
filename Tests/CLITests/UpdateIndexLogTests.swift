@@ -235,7 +235,8 @@ final class UpdateIndexLogTests: XCTestCase {
             removed: 0,
             unchanged: 0,
             skippedUnreadable: [],
-            skippedEmbedFailures: ["ru.md"]
+            skippedEmbedFailures: ["ru.md"],
+            partialEmbedFailures: []
         )
         try IndexLog.append(entry, to: dbDir)
 
@@ -247,6 +248,83 @@ final class UpdateIndexLogTests: XCTestCase {
         XCTAssertEqual(stored.skippedEmbedFailures, ["ru.md"])
         XCTAssertEqual(stored.embedder, "nl")
         XCTAssertEqual(stored.profile, "nl@2000/200")
+    }
+
+    /// Partial-chunk-failure shape on disk: when extract produces N
+    /// chunks for a file but only M < N successfully embed, the file
+    /// IS still indexed (with M surviving records) and the run's log
+    /// entry includes a `PartialFailure(path:, failedChunks: N-M,
+    /// totalChunks: N)` for that file.
+    ///
+    /// **Why a unit test, not integration.** Same reason as
+    /// `testSilentFailureLogEntryShape`: no stock embedder fails
+    /// deterministically on a per-chunk basis. NL embeds anything we
+    /// can construct from a `.md` corpus; CoreML embedders are
+    /// network-dependent. This test mirrors the exact tally-then-log
+    /// sequence in `UpdateIndexCommand.run()`: build a synthetic
+    /// `[IndexResult]` containing one partially-failed `.indexed`,
+    /// run the same `failedChunkCount > 0` predicate the command
+    /// uses, construct the entry the same way, write through the real
+    /// `IndexLog.append`, decode it back, and assert the documented
+    /// on-disk shape. The compiler enforces the `failedChunkCount`
+    /// reach the tally loop (its absence would fail to build); this
+    /// test pins the rest of the contract — predicate + struct shape
+    /// + JSON round-trip.
+    func testPartialChunkFailuresAreLogged() async throws {
+        let dbDir = try await initEmptyDB()
+
+        // One file indexed with 3 surviving chunks out of 4 attempted.
+        let results: [IndexResult] = [
+            .indexed(filePath: "doc.md", wasUpdate: false, chunkCount: 3, failedChunkCount: 1)
+        ]
+
+        // Mirrors the tally loop in UpdateIndexCommand.run.
+        var added = 0
+        var updated = 0
+        var partialEmbedFailures: [PartialFailure] = []
+        for r in results {
+            switch r {
+            case .indexed(let p, let wasUpdate, let chunkCount, let failedChunkCount):
+                if wasUpdate { updated += 1 } else { added += 1 }
+                if failedChunkCount > 0 {
+                    partialEmbedFailures.append(PartialFailure(
+                        path: p,
+                        failedChunks: failedChunkCount,
+                        totalChunks: chunkCount + failedChunkCount
+                    ))
+                }
+            case .skippedUnreadable, .skippedEmbedFailure:
+                break
+            }
+        }
+
+        let entry = IndexLogEntry(
+            timestamp: Date(),
+            embedder: "nl",
+            profile: "nl@2000/200",
+            wallSeconds: 0.456,
+            filesScanned: 1,
+            added: added,
+            updated: updated,
+            removed: 0,
+            unchanged: 0,
+            skippedUnreadable: [],
+            skippedEmbedFailures: [],
+            partialEmbedFailures: partialEmbedFailures
+        )
+        try IndexLog.append(entry, to: dbDir)
+
+        let decoded = try readLog(dbDir)
+        XCTAssertEqual(decoded.count, 1)
+        let stored = decoded[0]
+        XCTAssertEqual(stored.added, 1, "partial-failure: file is still indexed")
+        XCTAssertEqual(stored.skippedEmbedFailures, [],
+                       "partial-failure differs from skippedEmbedFailures — file IS in the DB")
+        XCTAssertEqual(stored.partialEmbedFailures.count, 1)
+        let pf = stored.partialEmbedFailures[0]
+        XCTAssertEqual(pf.path, "doc.md")
+        XCTAssertEqual(pf.failedChunks, 1)
+        XCTAssertEqual(pf.totalChunks, 4)
     }
 
     /// Best-effort write failure: poison the log location by creating

@@ -241,7 +241,8 @@ final class IndexLogTests: XCTestCase {
         removed: Int = 0,
         unchanged: Int = 0,
         unreadable: [String] = [],
-        embedFailures: [String] = []
+        embedFailures: [String] = [],
+        partialFailures: [PartialFailure] = []
     ) -> IndexLogEntry {
         IndexLogEntry(
             timestamp: timestamp,
@@ -254,7 +255,8 @@ final class IndexLogTests: XCTestCase {
             removed: removed,
             unchanged: unchanged,
             skippedUnreadable: unreadable,
-            skippedEmbedFailures: embedFailures
+            skippedEmbedFailures: embedFailures,
+            partialEmbedFailures: partialFailures
         )
     }
 }

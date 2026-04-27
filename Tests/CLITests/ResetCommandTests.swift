@@ -70,7 +70,8 @@ final class ResetCommandTests: XCTestCase {
             removed: 0,
             unchanged: 0,
             skippedUnreadable: [],
-            skippedEmbedFailures: []
+            skippedEmbedFailures: [],
+            partialEmbedFailures: []
         )
         try IndexLog.append(logEntry, to: dbDir)
 

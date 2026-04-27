@@ -1,5 +1,23 @@
 import Foundation
 
+/// One file that was indexed but lost some of its chunks to embed
+/// failures. The file IS in the DB (with `totalChunks - failedChunks`
+/// surviving records); this entry records the partial loss for audit.
+/// Distinct from `skippedEmbedFailures` (the file landed in
+/// `.skippedEmbedFailure` — every chunk failed and nothing was
+/// indexed).
+public struct PartialFailure: Codable, Sendable, Equatable {
+    public let path: String
+    public let failedChunks: Int
+    public let totalChunks: Int
+
+    public init(path: String, failedChunks: Int, totalChunks: Int) {
+        self.path = path
+        self.failedChunks = failedChunks
+        self.totalChunks = totalChunks
+    }
+}
+
 /// One record per `update-index` invocation. Encoded as a single line of
 /// JSON in `~/.vec/<db>/index.log` (JSONL — append-friendly,
 /// line-oriented, greppable).
@@ -11,6 +29,10 @@ import Foundation
 /// relative-to-source-dir strings the pipeline emits in
 /// `IndexResult.skippedUnreadable(filePath:)` /
 /// `.skippedEmbedFailure(filePath:)`.
+/// `partialEmbedFailures` records files that DID land in the DB but
+/// lost some of their chunks to embed failures (per-chunk partial
+/// failure, distinct from the all-chunks-failed
+/// `skippedEmbedFailures` case).
 public struct IndexLogEntry: Codable, Sendable, Equatable {
     public let schemaVersion: Int
     public let timestamp: Date
@@ -24,6 +46,7 @@ public struct IndexLogEntry: Codable, Sendable, Equatable {
     public let unchanged: Int
     public let skippedUnreadable: [String]
     public let skippedEmbedFailures: [String]
+    public let partialEmbedFailures: [PartialFailure]
 
     public init(
         schemaVersion: Int = 1,
@@ -37,7 +60,8 @@ public struct IndexLogEntry: Codable, Sendable, Equatable {
         removed: Int,
         unchanged: Int,
         skippedUnreadable: [String],
-        skippedEmbedFailures: [String]
+        skippedEmbedFailures: [String],
+        partialEmbedFailures: [PartialFailure]
     ) {
         self.schemaVersion = schemaVersion
         self.timestamp = timestamp
@@ -51,6 +75,7 @@ public struct IndexLogEntry: Codable, Sendable, Equatable {
         self.unchanged = unchanged
         self.skippedUnreadable = skippedUnreadable
         self.skippedEmbedFailures = skippedEmbedFailures
+        self.partialEmbedFailures = partialEmbedFailures
     }
 }
 

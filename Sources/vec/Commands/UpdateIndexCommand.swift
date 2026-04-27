@@ -563,14 +563,22 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         var skippedEmbedFailures = 0
         var skippedUnreadablePaths: [String] = []
         var skippedEmbedFailurePaths: [String] = []
+        var partialEmbedFailures: [PartialFailure] = []
 
         for result in results {
             switch result {
-            case .indexed(_, let wasUpdate, _):
+            case .indexed(let filePath, let wasUpdate, let chunkCount, let failedChunkCount):
                 if wasUpdate {
                     updated += 1
                 } else {
                     added += 1
+                }
+                if failedChunkCount > 0 {
+                    partialEmbedFailures.append(PartialFailure(
+                        path: filePath,
+                        failedChunks: failedChunkCount,
+                        totalChunks: chunkCount + failedChunkCount
+                    ))
                 }
             case .skippedUnreadable(let filePath):
                 skippedUnreadable += 1
@@ -663,7 +671,8 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             removed: removed,
             unchanged: unchanged,
             skippedUnreadable: skippedUnreadablePaths,
-            skippedEmbedFailures: skippedEmbedFailurePaths
+            skippedEmbedFailures: skippedEmbedFailurePaths,
+            partialEmbedFailures: partialEmbedFailures
         )
         do {
             try IndexLog.append(logEntry, to: dbDir)

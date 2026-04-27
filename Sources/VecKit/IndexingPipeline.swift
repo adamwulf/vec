@@ -2,8 +2,13 @@ import Foundation
 import NaturalLanguage
 
 /// Result of indexing a single file.
+///
+/// `.indexed.failedChunkCount` is the count of chunks the extract stage
+/// produced for this file that failed to embed (the file IS still
+/// indexed, with the surviving `chunkCount` records). Zero on the
+/// happy path where every chunk succeeded.
 public enum IndexResult: Sendable {
-    case indexed(filePath: String, wasUpdate: Bool, chunkCount: Int)
+    case indexed(filePath: String, wasUpdate: Bool, chunkCount: Int, failedChunkCount: Int)
     case skippedUnreadable(filePath: String)
     case skippedEmbedFailure(filePath: String)
 }
@@ -623,7 +628,13 @@ public final class IndexingPipeline: Sendable {
                     let dbSeconds = Self.elapsed(since: dbStart)
 
                     let wasUpdate = work.label == "Updated"
-                    await resultCollector.record(.indexed(filePath: path, wasUpdate: wasUpdate, chunkCount: work.records.count))
+                    let failedChunkCount = work.totalChunksExtracted - work.records.count
+                    await resultCollector.record(.indexed(
+                        filePath: path,
+                        wasUpdate: wasUpdate,
+                        chunkCount: work.records.count,
+                        failedChunkCount: failedChunkCount
+                    ))
                     await statsCollector.recordFile(
                         path: path,
                         extractSeconds: work.extractSeconds,
