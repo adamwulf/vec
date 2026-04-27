@@ -193,132 +193,60 @@ final class UpdateIndexLogTests: XCTestCase {
         XCTAssertEqual(noOp.updated, 0, "no-op run: nothing updated")
     }
 
-    /// Silent-failure run (every file's chunks fail to embed) writes
-    /// the log entry *before* throwing `indexingProducedNoVectors`.
+    /// Silent-failure shape on disk: when every file's chunks fail to
+    /// embed, the log entry has `added=0, updated=0` and lists each
+    /// failed file in `skippedEmbedFailures`.
     ///
-    /// The IndexingPipeline silent-failure contract is already pinned
-    /// by `VecKitTests.SilentFailureGuardTests` (which uses a mock
-    /// embedder to deterministically force every embed to `[]`). What
-    /// this test adds is the *CLI-layer* invariant: in
-    /// `UpdateIndexCommand.run()` the `IndexLog.append` call sits
-    /// physically before the `throw VecError.indexingProducedNoVectors`,
-    /// so the on-disk log contains the failed run's entry by the time
-    /// the throw propagates.
-    ///
-    /// Reliably triggering silent-failure from the real CLI is
-    /// awkward: every shipped embedder (`nl` is fastest in CI, the
-    /// CoreML ones too heavy) is intentionally tolerant of weird
-    /// inputs. Rather than depend on embedder behavior we don't own,
-    /// this test exercises the same in-scope code by:
-    ///
-    ///  1. Running a successful pipeline through a mock embedder that
-    ///     fails every batch (matches `SilentFailureGuardTests`'s
-    ///     selective mock).
-    ///  2. Calling the post-pipeline tally + `IndexLog.append` block
-    ///     directly with the resulting `[IndexResult]`, then verifying
-    ///     the on-disk entry shape.
-    ///  3. The throw-after-append ordering itself is enforced by the
-    ///     code structure of `UpdateIndexCommand.run()` (see the
-    ///     comment at the log-append site) and is observed by reading,
-    ///     not testing — an attempt to "test" ordering by mocking
-    ///     `IndexLog.append` would just be testing the test mock.
-    func testSilentFailureRunWritesLogEntryBeforeThrow() async throws {
+    /// **Why this is a unit test and not an integration test.** The
+    /// silent-failure code path in `UpdateIndexCommand.run()` only
+    /// fires when the pipeline returns `.skippedEmbedFailure` for
+    /// every attempted file. No stock embedder produces that outcome
+    /// deterministically: `NLEmbedder` happily embeds non-English /
+    /// CJK / emoji / control-character input (verified empirically on
+    /// Darwin 25 — `NLEmbedding.sentenceEmbedding(for:.english)`
+    /// returns vectors for Russian, Japanese, Chinese, Arabic, and
+    /// pure-symbol strings); the heavier CoreML embedders are
+    /// network-dependent and far too slow for CI. The pipeline-level
+    /// silent-failure contract is already pinned by
+    /// `VecKitTests.SilentFailureGuardTests` using a `SelectiveMockEmbedder`.
+    /// The throw-after-append *ordering* (log written before the
+    /// throw propagates) is enforced by the physical layout of
+    /// `UpdateIndexCommand.run()` — `IndexLog.append` precedes the
+    /// `throw VecError.indexingProducedNoVectors` block — and is
+    /// observed by reading the source, not by another mocked test.
+    /// What this test pins is the on-disk *shape*: hand-build the
+    /// `IndexLogEntry` exactly as the silent-failure path does, write
+    /// it through the real `IndexLog.append`, decode it back, and
+    /// assert the contract documented in `IndexLog.swift`. A buggy
+    /// `IndexLogEntry` codable surface (renamed field, dropped array,
+    /// wrong key) would fail this test the same way it would fail a
+    /// hypothetical integration test.
+    func testSilentFailureLogEntryShape() async throws {
         let dbDir = try await initEmptyDB()
-        try writeFile("ru.md",
-                      content: String(repeating: "Some content. ", count: 200))
 
-        // Drive a silent-failure pipeline run via the same mock
-        // embedder shape used by SilentFailureGuardTests. The mock
-        // returns `[]` for every chunk, so the pipeline records
-        // `.skippedEmbedFailure` for every file.
-        let scanner = FileScanner(directory: sourceDir)
-        let files = try scanner.scan()
-        XCTAssertEqual(files.count, 1)
-
-        let mockProfile = makeFailingMockProfile()
-        let workItems = files.map { (file: $0, label: "Added") }
-
-        let database = VectorDatabase(
-            databaseDirectory: dbDir,
-            sourceDirectory: sourceDir,
-            dimension: 768
-        )
-        try await database.open()
-
-        let pipeline = IndexingPipeline(concurrency: 2, batchSize: 4, profile: mockProfile)
-        let pipelineStart = Date()
-        let (results, _) = try await pipeline.run(
-            workItems: workItems,
-            extractor: TextExtractor(splitter: mockProfile.splitter),
-            database: database
-        )
-        let wallSeconds = Date().timeIntervalSince(pipelineStart)
-
-        // Tally exactly as `UpdateIndexCommand.run` does.
-        var added = 0, updated = 0
-        var skippedUnreadablePaths: [String] = []
-        var skippedEmbedFailurePaths: [String] = []
-        for r in results {
-            switch r {
-            case .indexed(_, let wasUpdate, _):
-                if wasUpdate { updated += 1 } else { added += 1 }
-            case .skippedUnreadable(let p):
-                skippedUnreadablePaths.append(p)
-            case .skippedEmbedFailure(let p):
-                skippedEmbedFailurePaths.append(p)
-            }
-        }
-        XCTAssertEqual(added, 0)
-        XCTAssertEqual(updated, 0)
-        XCTAssertEqual(skippedEmbedFailurePaths, ["ru.md"],
-                       "mock must produce a silent-failure for the input file")
-
-        // Build + write the entry the same way the CLI does. Alias
-        // resolution mirrors the line in `UpdateIndexCommand.run`.
-        let alias = (try? IndexingProfile.parseIdentity(mockProfile.identity).alias)
-            ?? mockProfile.identity
         let entry = IndexLogEntry(
             timestamp: Date(),
-            embedder: alias,
-            profile: mockProfile.identity,
-            wallSeconds: wallSeconds,
-            filesScanned: files.count,
-            added: added,
-            updated: updated,
+            embedder: "nl",
+            profile: "nl@2000/200",
+            wallSeconds: 0.123,
+            filesScanned: 1,
+            added: 0,
+            updated: 0,
             removed: 0,
             unchanged: 0,
-            skippedUnreadable: skippedUnreadablePaths,
-            skippedEmbedFailures: skippedEmbedFailurePaths
+            skippedUnreadable: [],
+            skippedEmbedFailures: ["ru.md"]
         )
         try IndexLog.append(entry, to: dbDir)
 
-        // The log must contain the failed-run entry. This is the
-        // observable post-condition of "log written before throw":
-        // even though the CLI throws immediately after this point, the
-        // file is already on disk.
         let decoded = try readLog(dbDir)
         XCTAssertEqual(decoded.count, 1)
         let stored = decoded[0]
-        XCTAssertEqual(stored.added, 0)
-        XCTAssertEqual(stored.updated, 0)
+        XCTAssertEqual(stored.added, 0, "silent-failure: added=0")
+        XCTAssertEqual(stored.updated, 0, "silent-failure: updated=0")
         XCTAssertEqual(stored.skippedEmbedFailures, ["ru.md"])
-        XCTAssertEqual(stored.embedder, "mock")
-        XCTAssertEqual(stored.profile, "mock@1200/240")
-    }
-
-    /// Builds a `mock@1200/240` profile whose embedder returns `[]`
-    /// for every input. Mirrors `SilentFailureGuardTests`'s helper.
-    private func makeFailingMockProfile() -> IndexingProfile {
-        let factory: @Sendable () -> any Embedder = { AlwaysFailingMockEmbedder() }
-        return IndexingProfile(
-            identity: "mock@1200/240",
-            embedder: factory(),
-            embedderFactory: factory,
-            splitter: RecursiveCharacterSplitter(chunkSize: 1200, chunkOverlap: 240),
-            chunkSize: 1200,
-            chunkOverlap: 240,
-            isBuiltIn: false
-        )
+        XCTAssertEqual(stored.embedder, "nl")
+        XCTAssertEqual(stored.profile, "nl@2000/200")
     }
 
     /// Best-effort write failure: poison the log location by creating
@@ -349,20 +277,5 @@ final class UpdateIndexLogTests: XCTestCase {
         XCTAssertTrue(exists)
         XCTAssertTrue(isDir.boolValue,
                       "index.log location must remain a directory — log write failed cleanly")
-    }
-}
-
-/// Mock embedder that returns `[]` for every embed call, used to
-/// drive the silent-failure path in `testSilentFailureRunWritesLog
-/// EntryBeforeThrow`. Actor to satisfy the `Sendable` Embedder
-/// protocol contract.
-private actor AlwaysFailingMockEmbedder: Embedder {
-    nonisolated var name: String { "mock" }
-    nonisolated var dimension: Int { 768 }
-
-    func embedDocument(_ text: String) async throws -> [Float] { [] }
-    func embedQuery(_ text: String) async throws -> [Float] { [] }
-    func embedDocuments(_ texts: [String]) async throws -> [[Float]] {
-        Array(repeating: [], count: texts.count)
     }
 }
