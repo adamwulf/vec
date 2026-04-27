@@ -90,6 +90,8 @@ Options:
 - `--allow-hidden` — Include hidden files and folders.
 - `--verbose` / `-v` — Print per-stage timings, throughput, pool utilization, and per-file slow-list. Includes a `[verbose-stats]` one-liner suitable for grep/awk/python.
 
+After every run (success, partial-success, *and* silent-failure), `update-index` appends a one-line JSON record to `~/.vec/<db>/index.log` capturing the timestamp, embedder alias and full profile identity, wall time, file counts (scanned/added/updated/removed/unchanged), and the relative paths of every file that was skipped (`skippedUnreadable` or `skippedEmbedFailures`). Files that were indexed but lost some chunks to embed failures are recorded in `partialEmbedFailures` as `{path, failedChunks, totalChunks}` objects (the file IS in the DB with the surviving chunks; this field exists for audit when partial loss occurs). The log is capped at the most recent 200 records — older entries are dropped on the next write. If the log write itself fails (e.g. the file's location is unwritable), `update-index` exits with its normal status and prints `Warning: failed to write index.log: <reason>` to stderr; logging is best-effort and never affects the command's exit code.
+
 ### Search
 
 ```bash
