@@ -262,6 +262,27 @@ Plan leaves that path alone.
 - The DB schema — `file_modified_at REAL` stays as is. No
   migration needed.
 
+### Known tradeoff (PDF + image extraction switched to Data-based APIs)
+
+To make the throw-vs-empty split work for PDFs and images,
+`extractFromPDF` and `extractFromImage` switched from URL-based
+APIs (`PDFDocument(url:)`, `VNImageRequestHandler(url:)`) to their
+Data-based counterparts (`PDFDocument(data:)`,
+`VNImageRequestHandler(data:)`) preceded by `try Data(contentsOf:)`.
+The motivation is correctness: `PDFDocument(url:)` returns nil
+indistinguishably for "couldn't read the file" and "the bytes
+aren't a valid PDF", which is exactly the distinction Fix 2 needs.
+
+Tradeoff: previously the OS could potentially memory-map the
+file; now we read the entire file into RAM eagerly before parsing.
+For markdown-memory's typical PDFs (a few MB at most) this is
+fine. For pathological inputs — multi-hundred-MB PDFs or images —
+peak memory rises by the file size. If that ever becomes a real
+problem, the fix is to keep the URL-based path for the parse step
+and add a separate `Data(contentsOf:url, options: [.alwaysMapped])`
+probe upfront purely to detect read errors before handing off the
+URL. Not worth the complexity today; flag for future work.
+
 ## Tests
 
 The categorizer is currently inline in `UpdateIndexCommand.run`.

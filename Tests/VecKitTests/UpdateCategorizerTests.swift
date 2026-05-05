@@ -27,6 +27,17 @@ final class UpdateCategorizerTests: XCTestCase {
     /// SQLite REAL is itself a true 8-byte double and round-trips
     /// exactly, so reproducing the drift in-memory matches the
     /// production behavior.
+    ///
+    /// **Codec dependency**: this test only reproduces the production
+    /// drift if BOTH legs of the SQLite codec use
+    /// `timeIntervalSince1970`. If either side ever switches to
+    /// `timeIntervalSinceReferenceDate` (or any other epoch), the
+    /// production round-trip changes and this in-memory model would
+    /// silently pass while production keeps drifting. Anchor checks:
+    /// `VectorDatabase.markFileIndexed` binds via
+    /// `modifiedAt.timeIntervalSince1970`, and `allIndexedFiles`
+    /// reads via `Date(timeIntervalSince1970: timestamp)`. Keep both
+    /// in sync with the helper below.
     private func roundtripVia1970(_ date: Date) -> Date {
         return Date(timeIntervalSince1970: date.timeIntervalSince1970)
     }
