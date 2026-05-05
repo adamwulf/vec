@@ -54,17 +54,26 @@ public final class TextExtractor: @unchecked Sendable {
         let utType = UTType(filenameExtension: file.fileExtension)
 
         if utType?.conforms(to: .pdf) == true {
-            return extractFromPDF(file)
+            return try extractFromPDF(file)
         }
 
         // Only route to image OCR if the file is an image but NOT also text.
         // SVG files conform to both .text and .image — their XML content is more
         // useful than OCR output, so we prefer the text extraction path.
         if utType?.conforms(to: .image) == true && utType?.conforms(to: .text) != true {
-            return ExtractionResult(chunks: extractFromImage(file), linePageCount: nil)
+            return ExtractionResult(chunks: try extractFromImage(file), linePageCount: nil)
         }
 
-        guard let content = try? String(contentsOf: file.url, encoding: .utf8) else {
+        // Open-as-Data throws on real read errors (permission denied, IO
+        // failure, missing file). Those propagate up to the pipeline's
+        // catch arm, which records the file as `.skippedUnreadable`
+        // *without* marking it indexed — so the next run retries.
+        // A successful read whose bytes aren't valid UTF-8 is a "no
+        // extractable text" case (binary masquerading as text, etc.):
+        // return empty chunks so the file still gets a completion
+        // record and stops re-processing on every run.
+        let data = try Data(contentsOf: file.url)
+        guard let content = String(data: data, encoding: .utf8) else {
             return ExtractionResult(chunks: [], linePageCount: nil)
         }
 
@@ -96,8 +105,12 @@ public final class TextExtractor: @unchecked Sendable {
 
     // MARK: - PDF Extraction
 
-    private func extractFromPDF(_ file: FileInfo) -> ExtractionResult {
-        guard let document = PDFDocument(url: file.url) else {
+    private func extractFromPDF(_ file: FileInfo) throws -> ExtractionResult {
+        // Same split as the text path: read failure throws (so the
+        // pipeline retries), parse failure returns empty (file is
+        // readable but PDFKit can't make sense of it).
+        let data = try Data(contentsOf: file.url)
+        guard let document = PDFDocument(data: data) else {
             return ExtractionResult(chunks: [], linePageCount: nil)
         }
 
@@ -128,8 +141,12 @@ public final class TextExtractor: @unchecked Sendable {
 
     // MARK: - Image OCR Extraction
 
-    private func extractFromImage(_ file: FileInfo) -> [TextChunk] {
-        let requestHandler = VNImageRequestHandler(url: file.url)
+    private func extractFromImage(_ file: FileInfo) throws -> [TextChunk] {
+        // Read failure throws (so the pipeline retries on the next
+        // run); Vision recognition failure on readable bytes returns
+        // an empty chunk list (no OCR text found).
+        let data = try Data(contentsOf: file.url)
+        let requestHandler = VNImageRequestHandler(data: data)
 
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate

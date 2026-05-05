@@ -9,7 +9,7 @@ what's in progress, and what should happen next.
 - **Per-experiment plans + reports**: [`experiments/`](./experiments/)
 - **Superseded snapshots**: [`archived/`](./archived/)
 
-Last updated: 2026-04-26.
+Last updated: 2026-05-05.
 
 ---
 
@@ -111,6 +111,31 @@ if the cross-corpus ranking diverges, the default may revisit. See
 ## Done
 
 All shipped on the current branch, in rough chronological order.
+
+### E9 — mtime round-trip + zero-chunk re-extract (2026-05-05)
+
+Fixed a no-op-`update-index` bug: every back-to-back run on
+`markdown-memory` was reprocessing the same 196 + 18 files and
+firing dozens of misleading non-English warnings. Two independent
+causes:
+
+- **196 files**: `Date → timeIntervalSince1970 (Double) → REAL → Date`
+  round-trip drops one ULP at the reference-date binade
+  (~1.19e-7 s), and the categorizer's strict `>` saw that as
+  "newer". Switched to a `> 0.001` tolerance comparison.
+- **18 files**: empty / no-text files extracted to zero chunks but
+  the pipeline never called `markFileIndexed`, so the next run
+  treated them as new. Now they get a `linePageCount: 0`
+  completion record. To preserve retry semantics for transient
+  read errors (permission denied, IO failure), `TextExtractor`
+  now throws on real read failures instead of swallowing them via
+  `try?` — those flow through the pipeline's catch arm and
+  remain unmarked.
+
+After: `update-index` against an unchanged corpus reports
+`0 added, 0 updated, 0 removed` and emits zero warnings.
+
+- Plan: [`experiments/E9-mtime-roundtrip/plan.md`](./experiments/E9-mtime-roundtrip/plan.md)
 
 ### Nomic migration (2026-04-17 → 2026-04-18)
 

@@ -464,21 +464,12 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         let files = try scanner.scan()
         let indexedFiles = try await database.allIndexedFiles()
 
-        // Categorize files into work items
-        var workItems: [(file: FileInfo, label: String)] = []
-        var unchanged = 0
-
-        for file in files {
-            if let existingModDate = indexedFiles[file.relativePath] {
-                if file.modificationDate > existingModDate {
-                    workItems.append((file: file, label: "Updated"))
-                } else {
-                    unchanged += 1
-                }
-            } else {
-                workItems.append((file: file, label: "Added"))
-            }
-        }
+        // Categorize files into work items via the round-trip-tolerant
+        // helper in VecKit (see `categorizeForUpdate` for the tolerance
+        // rationale around Date round-trips through SQLite REAL).
+        let categorization = categorizeForUpdate(scanned: files, indexed: indexedFiles)
+        let workItems = categorization.workItems
+        let unchanged = categorization.unchanged
 
         // Source worker count from the pipeline so the rolling line's
         // "N/M" denominator can't silently desync from the actual pool size

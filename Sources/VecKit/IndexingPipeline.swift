@@ -133,6 +133,16 @@ struct SaveWork: Sendable {
     let totalChunksExtracted: Int
     /// Lines for text, pages for PDFs, nil for images / unknown.
     let linePageCount: Int?
+    /// `true` when extract succeeded but produced no useful text
+    /// (genuinely empty file, whitespace-only, binary masquerading as
+    /// text, malformed-but-readable PDF). `false` when extract threw —
+    /// i.e. the file couldn't be read at all (permission denied, IO
+    /// failure, missing). Used by the DB writer's zero-chunk arm to
+    /// decide whether to call `markFileIndexed`: stable no-text files
+    /// get a `linePageCount: 0` completion record so they stop
+    /// reprocessing on every run; transient read errors stay
+    /// unmarked so the next run retries.
+    let extractSucceeded: Bool
 }
 
 /// A three-stage producer/consumer pipeline that parallelizes file indexing.
@@ -323,6 +333,9 @@ public final class IndexingPipeline: Sendable {
                         // the accumulator and immediately close it so the
                         // DB writer reports the skip. Result accounting
                         // stays single-sourced (the DB writer).
+                        // `extractSucceeded: false` tells the DB writer to
+                        // *not* mark the file indexed — the next run will
+                        // retry, since the failure was likely transient.
                         await accumulator.markFileTotal(
                             path: item.file.relativePath,
                             file: item.file,
@@ -330,7 +343,8 @@ public final class IndexingPipeline: Sendable {
                             total: 0,
                             extractSeconds: extractSeconds,
                             firstChunkAt: nil,
-                            linePageCount: nil
+                            linePageCount: nil,
+                            extractSucceeded: false
                         )
                         if let work = await accumulator.closeIfComplete(path: item.file.relativePath) {
                             progress?(.saveEnqueued)
@@ -344,8 +358,12 @@ public final class IndexingPipeline: Sendable {
 
                     if chunks.isEmpty {
                         // Empty / no-text file: same close-out as the
-                        // unreadable path. The DB writer will translate
-                        // an empty record set into `.skippedUnreadable`.
+                        // unreadable path, but `extractSucceeded: true`
+                        // so the DB writer marks the file indexed with
+                        // `linePageCount: 0`. That stops the file from
+                        // being re-extracted on every subsequent run —
+                        // its no-text-ness is a stable property until
+                        // the source mtime advances.
                         await accumulator.markFileTotal(
                             path: item.file.relativePath,
                             file: item.file,
@@ -353,7 +371,8 @@ public final class IndexingPipeline: Sendable {
                             total: 0,
                             extractSeconds: extractSeconds,
                             firstChunkAt: nil,
-                            linePageCount: extraction.linePageCount
+                            linePageCount: extraction.linePageCount,
+                            extractSucceeded: true
                         )
                         if let work = await accumulator.closeIfComplete(path: item.file.relativePath) {
                             progress?(.saveEnqueued)
@@ -386,7 +405,8 @@ public final class IndexingPipeline: Sendable {
                         total: chunks.count,
                         extractSeconds: extractSeconds,
                         firstChunkAt: firstChunkAt,
-                        linePageCount: extraction.linePageCount
+                        linePageCount: extraction.linePageCount,
+                        extractSucceeded: true
                     )
 
                     for (index, chunk) in chunks.enumerated() {
@@ -603,14 +623,40 @@ public final class IndexingPipeline: Sendable {
                                 chunkCount: 0
                             )
                         } else {
-                            // Extract produced zero chunks (unreadable /
-                            // no-text / empty). No embed work happened;
-                            // stats only account the extract time.
+                            // Extract produced zero chunks. Two
+                            // sub-cases keyed off `work.extractSucceeded`:
+                            //
+                            // - `true`: extract opened the file but
+                            //   found no extractable text (genuinely
+                            //   empty, whitespace-only, binary read as
+                            //   text, malformed-but-readable PDF).
+                            //   Mark the file indexed with
+                            //   `linePageCount: 0` so the next run
+                            //   sees it as `unchanged` instead of
+                            //   re-extracting it (and re-firing
+                            //   misleading non-English warnings on
+                            //   whatever sliver of pre-trim text the
+                            //   extractor briefly held).
+                            //
+                            // - `false`: extract threw — the file
+                            //   couldn't be read at all (permission
+                            //   denied, IO failure, missing). Don't
+                            //   mark indexed, so the next run retries.
+                            //   Likely transient; making the user
+                            //   `vec reset` to recover would be a
+                            //   regression.
                             await resultCollector.record(.skippedUnreadable(filePath: path))
                             await statsCollector.recordSkipped(
                                 path: path,
                                 extractSeconds: work.extractSeconds
                             )
+                            if work.extractSucceeded {
+                                try await database.markFileIndexed(
+                                    path: path,
+                                    modifiedAt: work.file.modificationDate,
+                                    linePageCount: 0
+                                )
+                            }
                         }
                         progress?(.fileSkipped)
                         continue
@@ -720,6 +766,7 @@ actor FileAccumulator {
         // per-chunk wall-clock — see IndexingStats doc.
         var firstChunkAt: DispatchTime?
         var linePageCount: Int?
+        var extractSucceeded: Bool
     }
 
     private var files: [String: PartialFile] = [:]
@@ -731,7 +778,8 @@ actor FileAccumulator {
         total: Int,
         extractSeconds: Double,
         firstChunkAt: DispatchTime?,
-        linePageCount: Int?
+        linePageCount: Int?,
+        extractSucceeded: Bool
     ) {
         // First contact for this file. Extract is single-threaded so
         // markFileTotal always runs before any add() for the same file.
@@ -742,7 +790,8 @@ actor FileAccumulator {
             received: [],
             extractSeconds: extractSeconds,
             firstChunkAt: firstChunkAt,
-            linePageCount: linePageCount
+            linePageCount: linePageCount,
+            extractSucceeded: extractSucceeded
         )
     }
 
@@ -796,7 +845,8 @@ actor FileAccumulator {
             extractSeconds: partial.extractSeconds,
             embedSeconds: embedSpan,
             totalChunksExtracted: partial.total,
-            linePageCount: partial.linePageCount
+            linePageCount: partial.linePageCount,
+            extractSucceeded: partial.extractSucceeded
         )
     }
 }
