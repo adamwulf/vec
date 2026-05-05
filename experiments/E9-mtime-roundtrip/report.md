@@ -62,4 +62,4 @@ to E9 — they were failing on `main` before the branch.
 - `0f50257` — initial plan
 - `53840d1` — plan revision after review-cycle 1
 - `b2e9adc` — implementation
-- (final tweaks for review-cycle 2 in subsequent commit)
+- `80aecc8` — review-cycle 2 follow-ups (mixed-corpus E2E test, codec-dependency comment, PDF/image memory tradeoff note, this report)

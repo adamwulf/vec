@@ -207,13 +207,16 @@ final class UpdateIndexLogTests: XCTestCase {
             content: "Some English content for the embedder.\n"
         )
 
-        // Pin the file's mtime to a fixed point in the past so the
-        // "modificationDate > stored" check in UpdateIndexCommand
-        // deterministically reports unchanged. Without this pin,
-        // filesystem mtime precision (APFS nanoseconds vs SQLite
-        // Double round-trip) can land the comparison on the
-        // "updated" side of the threshold and the test reports
-        // updated=1 spuriously.
+        // Pin the file's mtime to a fixed point so the
+        // categorizer's tolerance comparison (see
+        // `categorizeForUpdate` / `mtimeRoundtripTolerance` in
+        // VecKit) deterministically reports unchanged on the
+        // second run. Pre-E9, filesystem mtime precision (APFS
+        // nanoseconds vs SQLite Double round-trip) could clear
+        // the strict-`>` threshold and report `updated=1`
+        // spuriously; post-E9 the tolerance handles that, but
+        // the pin still keeps the test stable against future
+        // filesystem-touch surprises.
         let pinned = Date(timeIntervalSince1970: 1_700_000_000)
         try FileManager.default.setAttributes(
             [.modificationDate: pinned],
