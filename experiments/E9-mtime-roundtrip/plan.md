@@ -35,15 +35,15 @@ a 64-bit IEEE 754 double.
 
 The `timeIntervalSince1970` getter and the
 `Date(timeIntervalSince1970:)` initializer both apply the constant
-`978307200.0` offset between the 1970 and 2001 epochs. Because
-the file's mtime sits at ~1.77e9 seconds-since-1970 (~7.8e8
-seconds-since-2001) and a double has ~15-17 significant decimal
-digits, the offset arithmetic is not bit-exact for every input.
-The original
-`timeIntervalSinceReferenceDate` and the round-tripped
-`timeIntervalSinceReferenceDate` differ by exactly one ULP — measured
-at `1.1920928955078125e-07` (i.e. 2⁻²³, the resolution of a
-double at magnitude ~10⁹).
+`978307200.0` offset between the 1970 and 2001 epochs. SQLite's
+`REAL` is a true 8-byte IEEE 754 double and round-trips exactly;
+the lossy step is the Foundation arithmetic that crosses epochs.
+
+The file's `timeIntervalSinceReferenceDate` sits at ~7.78e8 (binade
+[2^29, 2^30)), where the ULP is 2⁻²³ ≈ 1.1920928955078125e-7.
+The round-tripped value differs from the original by exactly one
+ULP at that binade — measured deterministically at
+`1.1920928955078125e-07` for every affected file.
 
 **Why the strict `>` comparison sees this 1 ULP.**
 
@@ -56,11 +56,13 @@ re-processed.
 **Why only 196 of 798 files are affected.**
 
 Round-trip-stable mtimes do exist — when the original double
-happens to fit cleanly through the 1970-offset subtraction. Roughly
-75% of the corpus survives, the other 25% trips the ULP. APFS
-mtimes have nanosecond resolution and are uniformly distributed at
-this magnitude, so the split is essentially a property of which
-doubles happen to be representable on both sides of the constant.
+happens to fit cleanly through the 1970-offset subtraction. The
+behavior is deterministic per-file (a given mtime either survives
+the round-trip exactly or trips the ULP every time), and which
+half a file lands in is purely a property of which doubles happen
+to be representable bit-exactly on both sides of the offset
+arithmetic. The 196/798 split is corpus-specific, not a general
+ratio.
 
 **Confirmation.**
 
@@ -126,80 +128,130 @@ either empty or contain no extractable text.
 
 Fix both causes. They are independent and small.
 
-### Fix 1 — Round-trip-safe mtime equality
+### Fix 1 — Round-trip-safe mtime comparison
 
 **Change `UpdateIndexCommand`'s comparison from strict `>` to a
-tolerance-aware "newer than" test.** The natural tolerance is
-1 ULP at the magnitude of the timestamp; in practice, anything
-less than the filesystem's claimed mtime resolution is fine. APFS
-exposes nanosecond mtimes; HFS+ has 1-second resolution. A 1-ms
-tolerance is well below the smallest meaningful "the file actually
-changed" signal on either filesystem and well above the
-~1.2e-7 s ULP we observed.
+tolerance-aware "newer than" test.** Implementation: replace
 
-Implementation: replace
 ```swift
 if file.modificationDate > existingModDate {
 ```
+
 with
+
 ```swift
 if file.modificationDate.timeIntervalSince(existingModDate) > 0.001 {
 ```
+
 in `Sources/vec/Commands/UpdateIndexCommand.swift:473`.
 
-This sidesteps the bridge entirely — we still store as
+This sidesteps the round-trip entirely — we still store as
 `timeIntervalSince1970` (existing DB schema, no migration needed)
 and we still compare via `Date`, but we treat any sub-millisecond
-"newer" as a no-op.
+"newer" as a no-op. The 1 ms threshold is ~8000× the observed ULP
+(1.19e-7 s) — comfortable headroom against precision drift, well
+below any filesystem's coarsest mtime granularity (1 s on FAT/HFS+)
+or any meaningful editor-save cadence on APFS. The justification
+is purely "ULP headroom + below FS granularity"; this is not a
+product-level "we suppress sub-1ms edits" claim.
 
-**Why not store-as-reference-date instead.** Tempting, but it
-doesn't solve the general problem (the same kind of round-trip
-exists for any double-encoded epoch and adds an unrelated DB
-schema change), and the user-facing behavior — "re-index when
-the source actually changes" — is what a mtime-tolerance test
-expresses directly. A 1-ms tolerance is also a defensible product
-behavior independent of any precision bug: editors that touch a
-file faster than that aren't producing meaningful edits.
+**Why not store as INTEGER nanoseconds instead.** That fixes the
+bug at the source by switching to an exact integer representation,
+but requires a schema migration and `vec`'s stated philosophy
+(`VectorDatabase.swift:664`) is "single-user tool, no migrations".
+A tolerance-based comparison is the cheapest correct fix; if more
+precision bugs surface later, revisit.
 
-**Test.** Add a unit test in
-`Tests/VecKitTests/UpdateIndexLogicTests.swift` (or wherever the
-categorization logic gets exercised — the categorizer is currently
-inline in the command; we'll either inline-test via a public
-helper or leave it as-is and rely on an integration test). The
-integration test: build `FileInfo` and an `indexedFiles` map with
-mtimes that round-trip-differ by 1 ULP, run the categorizer,
-assert the file lands in `unchanged` not `workItems`.
+**Why asymmetric `> 0.001` rather than `abs(...) > 0.001`.** The
+categorizer asks "is the source newer than the indexed copy", not
+"are they equal". Asymmetric matches the existing intent.
 
-### Fix 2 — Empty/unreadable files get marked indexed too
+### Fix 2 — Empty/no-text files get marked indexed; transient read errors keep retrying
 
-**Change `IndexingPipeline`'s zero-chunk path to call
-`markFileIndexed(linePageCount: 0)` instead of leaving the row
-absent.** The contract for `markFileIndexed` becomes "the file
-has been *processed*, with N chunks where N may be 0", which
-matches the comment that's already there. This stops the
-re-extract loop on truly empty/unreadable files.
+This needs **two coordinated changes**, because today's code can't
+tell "empty file" apart from "permission-denied". Both the
+zero-chunk and transient-error paths fall into the same "extract
+returned 0 chunks without throwing" branch in the pipeline (the
+review-cycle audit confirmed `TextExtractor.extract` is declared
+`throws` but contains zero `throw` statements — `try? String(contentsOf:)`
+swallows everything). If we naively mark every zero-chunk file as
+indexed, transient errors stop retrying.
 
-The integration consequence to think through: if a previously-empty
-file later gets content, the mtime check will catch it (the
-filesystem mtime *will* be newer) and re-extract it. Good.
+**Change A — Make `TextExtractor` throw on real read errors.**
 
-If a file is genuinely unreadable due to a transient error
-(permission glitch, IO failure mid-read), marking it indexed at
-mtime=now would suppress the next run's retry. The current
-zero-chunk path is invoked from `IndexingPipeline.swift:345-364`
-which is the "extractor returned zero chunks but didn't throw"
-path — i.e. the extractor *succeeded* in saying "no text here",
-which is different from "I crashed trying to read this". The
-unreadable-as-error path has its own handling further up. Need to
-confirm this distinction holds in `TextExtractor` before
-implementing — specifically, that a permissions error or read
-failure throws rather than returning empty chunks. Will verify
-during implementation.
+In `Sources/VecKit/TextExtractor.swift`, replace `try?` with `try`
+on the actual byte-level read. The semantic split we want:
 
-**Test.** Integration test: create a file with zero extractable
-content, run update-index twice, assert the second run categorizes
-it as `unchanged` (or rather, does *not* call into the pipeline
-for it).
+- **Throws**: file couldn't be opened (permission, IO failure,
+  missing). The pipeline's catch arm at
+  `IndexingPipeline.swift:320-340` handles this — the file is
+  recorded as `.skippedUnreadable` and **`markFileIndexed` is
+  not called**, so the next run retries. This matches the doc
+  comment that's already on that arm.
+- **Returns empty `chunks`**: file was opened successfully but had
+  no extractable text (genuinely empty, whitespace-only, all
+  comments-stripped, malformed but-readable PDF, image with no OCR
+  text). The pipeline's zero-chunk arm at
+  `IndexingPipeline.swift:345-364` records `.skippedUnreadable`
+  and **does** call `markFileIndexed(linePageCount: 0)` — see
+  Change B.
+
+The text path:
+```swift
+// before:
+guard let content = try? String(contentsOf: url, encoding: .utf8) else {
+    return ExtractionResult(chunks: [], linePageCount: nil)
+}
+// after:
+let data: Data
+do {
+    data = try Data(contentsOf: url)
+} catch {
+    throw error  // permission/IO/missing bubbles up; pipeline retries next run
+}
+guard let content = String(data: data, encoding: .utf8) else {
+    return ExtractionResult(chunks: [], linePageCount: nil)  // not-utf8: legitimately no text
+}
+```
+
+The PDF and image paths get the same treatment: open via
+`Data(contentsOf:)` (which throws on read failure), then call into
+PDFKit / Vision on the resulting Data (their own failures still
+return empty — that's fine, those mean "we read the bytes but
+couldn't parse them as PDF/image-text", which is the no-text case,
+not the unreadable case).
+
+**Change B — Zero-chunk path calls `markFileIndexed`.**
+
+In `Sources/VecKit/IndexingPipeline.swift:345-364` (the `if
+chunks.isEmpty` branch in extract), after the `accumulator.markFileTotal(...)`
+call and the existing close-out, add a `markFileIndexed` call so
+the file ends up with a completion record (linePageCount: 0).
+The exact placement needs to thread through the accumulator —
+zero-chunk files currently complete via the writer's "0 records
+to write" path at line 605-614, which records the skip but
+doesn't mark. We add the mark there, gated on the file being
+zero-chunk-via-extract (not zero-chunk-via-all-embeds-failed,
+which is the `.skippedEmbedFailure` case at line 591-604 — that
+path stays unchanged because embed failures should retry).
+
+**Why not also markIndexed on embed-failure.** Embed failures are
+likely-transient model/ANE issues that benefit from a retry,
+unlike "file has no text" which is a stable property of the file.
+Plan leaves that path alone.
+
+**Behavioral consequence of Fix 2.**
+
+- 18 transcript files in markdown-memory that today re-process on
+  every run will get `indexed_files` rows with `linePageCount: 0`.
+- `vec info` and `vec list` will report 18 more files in their
+  count. This is more honest — those files *have* been processed;
+  they just produced no embeddings — but the user-visible number
+  changes. README §"vec info" output description gets a one-line
+  note.
+- Truly transient unreadable files (permission glitch resolved
+  before next run) now retry correctly thanks to Change A. This
+  is a behavior *improvement* over today.
 
 ### Out of scope
 
@@ -210,18 +262,64 @@ for it).
 - The DB schema — `file_modified_at REAL` stays as is. No
   migration needed.
 
+## Tests
+
+The categorizer is currently inline in `UpdateIndexCommand.run`.
+Pull it into a small testable helper (e.g. `categorizeFiles(scanned:
+indexed:) -> (workItems: [...], unchanged: Int)`) so the boundary
+cases below can be unit-tested without spinning up a full pipeline.
+
+**Categorizer boundary tests** (`Tests/vecTests/UpdateIndexCategorizerTests.swift`):
+
+1. mtime equal to indexed value → `unchanged`.
+2. mtime newer by 1 ULP at the reference-date binade → `unchanged`
+   (the bug today; pinned by the fix).
+3. mtime newer by ~1 ms (just under threshold) → `unchanged`.
+4. mtime newer by 2 ms → `Updated`.
+5. mtime *older* than indexed value (clock-skew or
+   restored-from-backup) → `unchanged` (asymmetric `>` semantics).
+6. file absent from indexed map → `Added`.
+
+**Round-trip property test** (same file): generate ~1000 random
+plausible APFS mtimes spanning 2020-2030, push each through the
+`Date → timeIntervalSince1970 → Double round-trip → Date`
+sequence, run the categorizer with the round-tripped value as the
+indexed entry and the original as the scanned `FileInfo`. Assert
+**all** are categorized `unchanged`. This pins the precision claim
+across the entire mtime distribution we care about.
+
+**Pipeline integration tests** (`Tests/VecKitTests/IndexingPipelineTests.swift`
+or wherever the pipeline integration tests live):
+
+7. **Empty-file no-op on re-run.** Index a corpus containing one
+   genuinely-empty `.txt` file; run `update-index` twice; assert
+   the second run categorizes the file as `unchanged` (i.e. it
+   never reaches the extractor) and that `allIndexedFiles()`
+   contains the file with `linePageCount = 0`.
+8. **Permission-error file retries on re-run.** Index a corpus
+   containing one file with `chmod 000` (or otherwise unreadable);
+   assert the file does **not** get a row in `indexed_files` and
+   the second run re-attempts extraction. Skip the test if the
+   CI environment can't reliably make a file unreadable.
+9. **fileCount visibility.** After indexing a corpus with N
+   genuinely-empty files, `database.allIndexedFiles().count`
+   should include those N files. Pins the `info`/`list` count
+   behavior change.
+
 ## Acceptance criteria
 
 1. After a successful `vec update-index --db markdown-memory`,
    running it again immediately reports `0 added, 0 updated,
    0 removed` and prints zero non-English warnings.
-2. Editing one source file (`touch -a -m -t YYYYMMDDHHMM file`)
-   then running update-index reports exactly `0 added, 1 updated,
-   0 removed`.
-3. The 18 currently-unreadable transcript files show up as
-   `unchanged` (or are otherwise no longer re-extracted) on the
-   second run.
-4. No existing test regresses; new tests cover both causes.
+2. Editing one source file (e.g. `touch -m`) then running
+   update-index reports exactly `0 added, 1 updated, 0 removed`.
+3. The 18 currently-zero-chunk transcript files appear in
+   `indexed_files` with `linePageCount = 0` after one run, and
+   are categorized as `unchanged` on subsequent runs.
+4. A file made unreadable (`chmod 000`) is **not** marked indexed,
+   so it retries on the next run.
+5. All existing tests pass; new tests cover both causes per the
+   list above.
 
 ## Post-fix verification recipe
 
