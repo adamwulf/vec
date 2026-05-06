@@ -74,7 +74,7 @@ Options:
 vec list
 ```
 
-Shows all databases with their name, source directory, and indexed file count. Warns if a source directory no longer exists.
+Shows all databases with their name, source directory, and indexed file count. Warns if a source directory no longer exists. The file count includes files that produced zero chunks (genuinely empty, whitespace-only, binary read as text, malformed-but-readable PDFs); those files are recorded in the index with `linePageCount: 0` so they aren't re-extracted on every `update-index` run.
 
 ### Update the index
 

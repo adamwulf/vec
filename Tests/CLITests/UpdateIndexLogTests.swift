@@ -146,6 +146,57 @@ final class UpdateIndexLogTests: XCTestCase {
                        "skipped paths must be relative to source dir, not absolute")
     }
 
+    /// E9 acceptance pin: a second back-to-back run on a mixed corpus
+    /// (normal text + empty + whitespace-only) reports
+    /// `added=0, updated=0, removed=0` with **zero** files in
+    /// `skippedUnreadable`. Pre-E9 this would have surfaced both the
+    /// 1-ULP round-trip drift on the normal file (re-indexed every
+    /// run) and the missing-completion-record loop on the empty
+    /// files (re-extracted every run).
+    func testSecondRunOnMixedCorpus_isFullyNoOp() async throws {
+        let dbDir = try await initEmptyDB()
+        let docURL = try writeFile(
+            "doc.md",
+            content: "Some English content for the embedder.\n"
+        )
+        let emptyURL = try writeFile("empty.md", content: "")
+        let blankURL = try writeFile("blank.md", content: "   \n\t\n")
+
+        // Pin all three mtimes to a fixed point so any future
+        // FileManager touch quirks can't mask the test's intent.
+        let pinned = Date(timeIntervalSince1970: 1_700_000_000)
+        for url in [docURL, emptyURL, blankURL] {
+            try FileManager.default.setAttributes(
+                [.modificationDate: pinned],
+                ofItemAtPath: url.path
+            )
+        }
+
+        try await runUpdateIndex()
+
+        // Re-pin in case anything bumped mtime during indexing.
+        for url in [docURL, emptyURL, blankURL] {
+            try FileManager.default.setAttributes(
+                [.modificationDate: pinned],
+                ofItemAtPath: url.path
+            )
+        }
+
+        try await runUpdateIndex()
+        let entries = try readLog(dbDir)
+        XCTAssertEqual(entries.count, 2, "two runs = two log entries")
+        let second = entries[1]
+        XCTAssertEqual(second.added, 0, "no-op run: nothing added")
+        XCTAssertEqual(second.updated, 0, "no-op run: nothing updated")
+        XCTAssertEqual(second.removed, 0, "no-op run: nothing removed")
+        XCTAssertEqual(second.skippedUnreadable, [],
+                       "empty + whitespace files must NOT re-appear as skipped on the second run")
+        XCTAssertEqual(second.skippedEmbedFailures, [])
+        XCTAssertEqual(second.partialEmbedFailures, [])
+        XCTAssertEqual(second.unchanged, 3,
+                       "all three files should be `unchanged` on the second run")
+    }
+
     /// After a no-op run (all files unchanged from a prior run), the
     /// log still gets a fresh entry with `added=0, updated=0`. This is
     /// the "the log is per-invocation, not per-change" invariant.
@@ -156,13 +207,16 @@ final class UpdateIndexLogTests: XCTestCase {
             content: "Some English content for the embedder.\n"
         )
 
-        // Pin the file's mtime to a fixed point in the past so the
-        // "modificationDate > stored" check in UpdateIndexCommand
-        // deterministically reports unchanged. Without this pin,
-        // filesystem mtime precision (APFS nanoseconds vs SQLite
-        // Double round-trip) can land the comparison on the
-        // "updated" side of the threshold and the test reports
-        // updated=1 spuriously.
+        // Pin the file's mtime to a fixed point so the
+        // categorizer's tolerance comparison (see
+        // `categorizeForUpdate` / `mtimeRoundtripTolerance` in
+        // VecKit) deterministically reports unchanged on the
+        // second run. Pre-E9, filesystem mtime precision (APFS
+        // nanoseconds vs SQLite Double round-trip) could clear
+        // the strict-`>` threshold and report `updated=1`
+        // spuriously; post-E9 the tolerance handles that, but
+        // the pin still keeps the test stable against future
+        // filesystem-touch surprises.
         let pinned = Date(timeIntervalSince1970: 1_700_000_000)
         try FileManager.default.setAttributes(
             [.modificationDate: pinned],
