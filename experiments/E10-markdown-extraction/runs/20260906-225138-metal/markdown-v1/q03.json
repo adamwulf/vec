@@ -1,0 +1,327 @@
+{
+  "arm" : "markdown-v1",
+  "categories" : [
+    "item-coverage",
+    "vague-recollection",
+    "exact-phrase"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8715463280677795,
+      "file" : "Quotes/1dbf32f4-36c1-8005-84b9-e77330335df2.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.12845367193222046,
+          "score" : 0.8715463280677795
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7907487154006958,
+      "file" : "YouTube/__h_aNi5UeY.localized/content.md",
+      "match_count" : 15,
+      "matches" : [
+        {
+          "chunk_ordinal" : 28,
+          "chunk_type" : "chunk",
+          "distance" : 0.2092512845993042,
+          "line_end" : 740,
+          "line_start" : 708,
+          "score" : 0.7907487154006958
+        },
+        {
+          "chunk_ordinal" : 20,
+          "chunk_type" : "chunk",
+          "distance" : 0.21514970064163208,
+          "line_end" : 532,
+          "line_start" : 504,
+          "score" : 0.7848502993583679
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2166351079940796,
+          "line_end" : 144,
+          "line_start" : 117,
+          "score" : 0.7833648920059204
+        },
+        {
+          "chunk_ordinal" : 21,
+          "chunk_type" : "chunk",
+          "distance" : 0.21765470504760742,
+          "line_end" : 559,
+          "line_start" : 533,
+          "score" : 0.7823452949523926
+        },
+        {
+          "chunk_ordinal" : 15,
+          "chunk_type" : "chunk",
+          "distance" : 0.22118300199508667,
+          "line_end" : 386,
+          "line_start" : 360,
+          "score" : 0.7788169980049133
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.22607970237731934,
+          "line_end" : 333,
+          "line_start" : 307,
+          "score" : 0.7739202976226807
+        },
+        {
+          "chunk_ordinal" : 19,
+          "chunk_type" : "chunk",
+          "distance" : 0.22723448276519775,
+          "line_end" : 503,
+          "line_start" : 474,
+          "score" : 0.7727655172348022
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.22897642850875854,
+          "line_end" : 306,
+          "line_start" : 281,
+          "score" : 0.7710235714912415
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.23042547702789307,
+          "line_end" : 227,
+          "line_start" : 199,
+          "score" : 0.7695745229721069
+        },
+        {
+          "chunk_ordinal" : 25,
+          "chunk_type" : "chunk",
+          "distance" : 0.23210513591766357,
+          "line_end" : 665,
+          "line_start" : 638,
+          "score" : 0.7678948640823364
+        },
+        {
+          "chunk_ordinal" : 29,
+          "chunk_type" : "chunk",
+          "distance" : 0.23519200086593628,
+          "line_end" : 769,
+          "line_start" : 741,
+          "score" : 0.7648079991340637
+        },
+        {
+          "chunk_ordinal" : 17,
+          "chunk_type" : "chunk",
+          "distance" : 0.23536264896392822,
+          "line_end" : 444,
+          "line_start" : 414,
+          "score" : 0.7646373510360718
+        },
+        {
+          "chunk_ordinal" : 27,
+          "chunk_type" : "chunk",
+          "distance" : 0.23983919620513916,
+          "line_end" : 706,
+          "line_start" : 695,
+          "score" : 0.7601608037948608
+        },
+        {
+          "chunk_ordinal" : 23,
+          "chunk_type" : "chunk",
+          "distance" : 0.24132615327835083,
+          "line_end" : 611,
+          "line_start" : 585,
+          "score" : 0.7586738467216492
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.24342459440231323,
+          "line_end" : 280,
+          "line_start" : 254,
+          "score" : 0.7565754055976868
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7688367366790771,
+      "file" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.23116326332092285,
+          "line_end" : 86,
+          "line_start" : 82,
+          "score" : 0.7688367366790771
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7663296461105347,
+      "file" : "YouTube/__4ZMGgQqKE.localized/content.md",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.23367035388946533,
+          "line_end" : 136,
+          "line_start" : 123,
+          "score" : 0.7663296461105347
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2366238832473755,
+          "line_end" : 71,
+          "line_start" : 60,
+          "score" : 0.7633761167526245
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.24276089668273926,
+          "line_end" : 83,
+          "line_start" : 72,
+          "score" : 0.7572391033172607
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2429552674293518,
+          "line_end" : 48,
+          "line_start" : 37,
+          "score" : 0.7570447325706482
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7646418213844299,
+      "file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 24,
+          "chunk_type" : "chunk",
+          "distance" : 0.23535817861557007,
+          "line_end" : 612,
+          "line_start" : 588,
+          "score" : 0.7646418213844299
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.2417609691619873,
+          "line_end" : 351,
+          "line_start" : 325,
+          "score" : 0.7582390308380127
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7641081809997559,
+      "file" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md",
+      "match_count" : 7,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2156,
+          "chunk_type" : "chunk",
+          "distance" : 0.23589181900024414,
+          "line_end" : 26967,
+          "line_start" : 26967,
+          "score" : 0.7641081809997559
+        },
+        {
+          "chunk_ordinal" : 1224,
+          "chunk_type" : "chunk",
+          "distance" : 0.23837655782699585,
+          "line_end" : 16294,
+          "line_start" : 16293,
+          "score" : 0.7616234421730042
+        },
+        {
+          "chunk_ordinal" : 1085,
+          "chunk_type" : "chunk",
+          "distance" : 0.23945188522338867,
+          "line_end" : 14809,
+          "line_start" : 14809,
+          "score" : 0.7605481147766113
+        },
+        {
+          "chunk_ordinal" : 2139,
+          "chunk_type" : "chunk",
+          "distance" : 0.24158984422683716,
+          "line_end" : 26762,
+          "line_start" : 26758,
+          "score" : 0.7584101557731628
+        },
+        {
+          "chunk_ordinal" : 46,
+          "chunk_type" : "chunk",
+          "distance" : 0.24213826656341553,
+          "line_end" : 707,
+          "line_start" : 702,
+          "score" : 0.7578617334365845
+        },
+        {
+          "chunk_ordinal" : 1177,
+          "chunk_type" : "chunk",
+          "distance" : 0.2422434687614441,
+          "line_end" : 15822,
+          "line_start" : 15818,
+          "score" : 0.7577565312385559
+        },
+        {
+          "chunk_ordinal" : 618,
+          "chunk_type" : "chunk",
+          "distance" : 0.24299520254135132,
+          "line_end" : 9453,
+          "line_start" : 9447,
+          "score" : 0.7570047974586487
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q03",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 6,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8715463280677795,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "whole",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "fractal of thoughts"
+      }
+    ],
+    "distance" : 0.12845367193222046,
+    "file_rank" : 1,
+    "input_chars" : 461
+  },
+  "primary_file" : "Quotes/1dbf32f4-36c1-8005-84b9-e77330335df2.localized/content.md",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "Quotes/1dbf32f4-36c1-8005-84b9-e77330335df2.localized/content.md"
+  ],
+  "search_seconds" : 0.120396042,
+  "text" : "describing an idea to friends as a fractal of thoughts"
+}

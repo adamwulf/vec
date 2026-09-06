@@ -1,0 +1,300 @@
+{
+  "arm" : "markdown-v1",
+  "categories" : [
+    "no-answer"
+  ],
+  "groups" : [
+    {
+      "best_score" : 0.7696394920349121,
+      "file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "match_count" : 20,
+      "matches" : [
+        {
+          "chunk_ordinal" : 25,
+          "chunk_type" : "chunk",
+          "distance" : 0.2303605079650879,
+          "line_end" : 638,
+          "line_start" : 613,
+          "score" : 0.7696394920349121
+        },
+        {
+          "chunk_ordinal" : 21,
+          "chunk_type" : "chunk",
+          "distance" : 0.23106706142425537,
+          "line_end" : 536,
+          "line_start" : 508,
+          "score" : 0.7689329385757446
+        },
+        {
+          "chunk_ordinal" : 23,
+          "chunk_type" : "chunk",
+          "distance" : 0.23730039596557617,
+          "line_end" : 587,
+          "line_start" : 563,
+          "score" : 0.7626996040344238
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.23845422267913818,
+          "line_end" : 272,
+          "line_start" : 245,
+          "score" : 0.7615457773208618
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.23928385972976685,
+          "line_end" : 298,
+          "line_start" : 273,
+          "score" : 0.7607161402702332
+        },
+        {
+          "chunk_ordinal" : 33,
+          "chunk_type" : "chunk",
+          "distance" : 0.2397441267967224,
+          "line_end" : 822,
+          "line_start" : 797,
+          "score" : 0.7602558732032776
+        },
+        {
+          "chunk_ordinal" : 18,
+          "chunk_type" : "chunk",
+          "distance" : 0.2400379180908203,
+          "line_end" : 455,
+          "line_start" : 430,
+          "score" : 0.7599620819091797
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.24075740575790405,
+          "line_end" : 324,
+          "line_start" : 299,
+          "score" : 0.759242594242096
+        },
+        {
+          "chunk_ordinal" : 34,
+          "chunk_type" : "chunk",
+          "distance" : 0.24381834268569946,
+          "line_end" : 848,
+          "line_start" : 823,
+          "score" : 0.7561816573143005
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.24553793668746948,
+          "line_end" : 164,
+          "line_start" : 138,
+          "score" : 0.7544620633125305
+        },
+        {
+          "chunk_ordinal" : 15,
+          "chunk_type" : "chunk",
+          "distance" : 0.24588853120803833,
+          "line_end" : 377,
+          "line_start" : 352,
+          "score" : 0.7541114687919617
+        },
+        {
+          "chunk_ordinal" : 29,
+          "chunk_type" : "chunk",
+          "distance" : 0.24622583389282227,
+          "line_end" : 740,
+          "line_start" : 715,
+          "score" : 0.7537741661071777
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.24712353944778442,
+          "line_end" : 218,
+          "line_start" : 193,
+          "score" : 0.7528764605522156
+        },
+        {
+          "chunk_ordinal" : 20,
+          "chunk_type" : "chunk",
+          "distance" : 0.2488347291946411,
+          "line_end" : 507,
+          "line_start" : 482,
+          "score" : 0.7511652708053589
+        },
+        {
+          "chunk_ordinal" : 17,
+          "chunk_type" : "chunk",
+          "distance" : 0.24891269207000732,
+          "line_end" : 429,
+          "line_start" : 404,
+          "score" : 0.7510873079299927
+        },
+        {
+          "chunk_ordinal" : 32,
+          "chunk_type" : "chunk",
+          "distance" : 0.24911826848983765,
+          "line_end" : 795,
+          "line_start" : 792,
+          "score" : 0.7508817315101624
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2512615919113159,
+          "line_end" : 137,
+          "line_start" : 111,
+          "score" : 0.7487384080886841
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.2531723380088806,
+          "line_end" : 403,
+          "line_start" : 378,
+          "score" : 0.7468276619911194
+        },
+        {
+          "chunk_ordinal" : 24,
+          "chunk_type" : "chunk",
+          "distance" : 0.25492924451828003,
+          "line_end" : 612,
+          "line_start" : 588,
+          "score" : 0.74507075548172
+        },
+        {
+          "chunk_ordinal" : 31,
+          "chunk_type" : "chunk",
+          "distance" : 0.2550165057182312,
+          "line_end" : 791,
+          "line_start" : 766,
+          "score" : 0.7449834942817688
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7544190287590027,
+      "file" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.24558097124099731,
+          "line_end" : 65,
+          "line_start" : 35,
+          "score" : 0.7544190287590027
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2521171569824219,
+          "line_end" : 87,
+          "line_start" : 68,
+          "score" : 0.7478828430175781
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7531982064247131,
+      "file" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md",
+      "match_count" : 5,
+      "matches" : [
+        {
+          "chunk_ordinal" : 593,
+          "chunk_type" : "chunk",
+          "distance" : 0.24680179357528687,
+          "line_end" : 9120,
+          "line_start" : 9116,
+          "score" : 0.7531982064247131
+        },
+        {
+          "chunk_ordinal" : 1556,
+          "chunk_type" : "chunk",
+          "distance" : 0.24820363521575928,
+          "line_end" : 19607,
+          "line_start" : 19586,
+          "score" : 0.7517963647842407
+        },
+        {
+          "chunk_ordinal" : 1342,
+          "chunk_type" : "chunk",
+          "distance" : 0.2522721290588379,
+          "line_end" : 17587,
+          "line_start" : 17587,
+          "score" : 0.7477278709411621
+        },
+        {
+          "chunk_ordinal" : 128,
+          "chunk_type" : "chunk",
+          "distance" : 0.252341091632843,
+          "line_end" : 2032,
+          "line_start" : 2005,
+          "score" : 0.747658908367157
+        },
+        {
+          "chunk_ordinal" : 1200,
+          "chunk_type" : "chunk",
+          "distance" : 0.2549670934677124,
+          "line_end" : 16108,
+          "line_start" : 16090,
+          "score" : 0.7450329065322876
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7491083145141602,
+      "file" : "YouTube/__h_aNi5UeY.localized/content.md",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 21,
+          "chunk_type" : "chunk",
+          "distance" : 0.25089168548583984,
+          "line_end" : 559,
+          "line_start" : 533,
+          "score" : 0.7491083145141602
+        },
+        {
+          "chunk_ordinal" : 31,
+          "chunk_type" : "chunk",
+          "distance" : 0.25179189443588257,
+          "line_end" : 820,
+          "line_start" : 798,
+          "score" : 0.7482081055641174
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7448751330375671,
+      "file" : "YouTube/__4ZMGgQqKE.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.25512486696243286,
+          "line_end" : 136,
+          "line_start" : 123,
+          "score" : 0.7448751330375671
+        }
+      ],
+      "rank" : 5
+    }
+  ],
+  "hit_at_1" : false,
+  "hit_at_3" : false,
+  "hit_at_5" : false,
+  "id" : "q11",
+  "is_no_answer" : true,
+  "overfetch_distinct_files" : 5,
+  "reciprocal_rank" : 0,
+  "relevant_files" : [
+
+  ],
+  "search_seconds" : 0.105753791,
+  "text" : "sourdough bread starter hydration ratio"
+}

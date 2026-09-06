@@ -1,0 +1,182 @@
+{
+  "build" : {
+    "active_processor_count" : 10,
+    "configuration" : "release",
+    "git_dirty" : false,
+    "git_head" : "94f44fb0a6ab2800db2aa1386d4615b9d1950412",
+    "host_name" : "adams-macbook-pro-9.local",
+    "os_version" : "Version 26.6.2 (Build 25G83)",
+    "package_resolved_sha256" : "d3dad0550daef3df320799330ec5b6b8ee49e8772ce2fde1a1a0e3aa796bb10c",
+    "swift_version" : "Apple Swift version 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2)\nTarget: arm64-apple-macosx26.0"
+  },
+  "corpus_scope" : "Markdown-only (*.md). Includes the large NPR asset assets/riot-data.md (~2.5 MB). Excludes every non-Markdown asset: transcript.json, content.json, info.json, activities.json, properties.json, *.webloc, *.vtt, *.strings, and all images/OCR. No JSON and no OCR assets are indexed.",
+  "corpus_source" : "/private/tmp/LinksDatabase",
+  "experiment" : "E10-markdown-extraction",
+  "file_count" : 9,
+  "files" : [
+    {
+      "bytes" : 2570708,
+      "path" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md",
+      "sha256" : "66d92a97711dde768681824681c5b17282dad3b6f82c69fcce65a4b40ce9239a"
+    },
+    {
+      "bytes" : 4960,
+      "path" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/content.md",
+      "sha256" : "83dea8f5c0fd1fac6cb6ffc9971077553aece58efff60d97d3c953207e8b7651"
+    },
+    {
+      "bytes" : 1871,
+      "path" : "Notion/000fceb0-cc8c-4e17-b0eb-18df5026ff25.localized/content.md",
+      "sha256" : "9b981dde386fee10abd99244a3b6672b9e4f698e9990af1ffabe0183ad3c773c"
+    },
+    {
+      "bytes" : 5581,
+      "path" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+      "sha256" : "e48e455d8ba9555a80cd1deea1acc303eeec9796727746aca22682e906be32c8"
+    },
+    {
+      "bytes" : 7701,
+      "path" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+      "sha256" : "95c71bb6b6b1dd69255c7e0242c7faeda5ef4ef01180fd93af6dc9e39eb77033"
+    },
+    {
+      "bytes" : 546,
+      "path" : "Quotes/1dbf32f4-36c1-8005-84b9-e77330335df2.localized/content.md",
+      "sha256" : "f6a2d28327a49b43dc04890818942a2da9a35249bf1c4c5650d474cef00a3c1a"
+    },
+    {
+      "bytes" : 17144,
+      "path" : "YouTube/__4ZMGgQqKE.localized/content.md",
+      "sha256" : "0c1847ddb7978d168b05075fd42e745d9416f6f3b75c6eada7b455c4926580fd"
+    },
+    {
+      "bytes" : 86554,
+      "path" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "sha256" : "b9b48f45d63cde43dd72aebe02834ef0b9414ee630ace8bd4212bccd1e7e4703"
+    },
+    {
+      "bytes" : 75117,
+      "path" : "YouTube/__h_aNi5UeY.localized/content.md",
+      "sha256" : "3322f7c611543e76f547293828455b5191eaee2b47a71f95ffd97b58c4ee738c"
+    }
+  ],
+  "frozen_at" : "2026-09-06T22:51:38Z",
+  "model_directory" : "/private/tmp/vec-e10-model/f52bf8ec8c7124536f0efb74aca902b2995e5bcd",
+  "model_files" : [
+    {
+      "bytes" : 650,
+      "path" : "config.json",
+      "sha256" : "01cc39aa39538a8179aa131c8a16adc03b506c92009f091502e4eb0c702f5f78"
+    },
+    {
+      "bytes" : 437955512,
+      "path" : "model.safetensors",
+      "sha256" : "d0d559c47d5f71b1d280b13b62a2657f3e3bc70c0786f9ab91a36545e6a8f693"
+    },
+    {
+      "bytes" : 1023,
+      "path" : "snapshot-manifest.json",
+      "sha256" : "36ca1463784a5df35c5cd5baf1dbf5c5267e6a453705a99fed81e5ab3ea07030"
+    },
+    {
+      "bytes" : 125,
+      "path" : "special_tokens_map.json",
+      "sha256" : "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+    },
+    {
+      "bytes" : 711396,
+      "path" : "tokenizer.json",
+      "sha256" : "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66"
+    },
+    {
+      "bytes" : 314,
+      "path" : "tokenizer_config.json",
+      "sha256" : "ae83fa6ca0333117ff12606020af925d648667ef70d92ff7f27d781ba0ca4544"
+    },
+    {
+      "bytes" : 231508,
+      "path" : "vocab.txt",
+      "sha256" : "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+    }
+  ],
+  "model_revision" : "f52bf8ec8c7124536f0efb74aca902b2995e5bcd",
+  "normalization" : {
+    "per_file" : [
+      {
+        "normalized_chars" : 2527771,
+        "path" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md",
+        "raw_chars" : 2562586,
+        "reduction_ratio" : 0.013585885507842455
+      },
+      {
+        "normalized_chars" : 4399,
+        "path" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/content.md",
+        "raw_chars" : 4954,
+        "reduction_ratio" : 0.1120306822769479
+      },
+      {
+        "normalized_chars" : 1724,
+        "path" : "Notion/000fceb0-cc8c-4e17-b0eb-18df5026ff25.localized/content.md",
+        "raw_chars" : 1871,
+        "reduction_ratio" : 0.07856761090326025
+      },
+      {
+        "normalized_chars" : 3758,
+        "path" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+        "raw_chars" : 5575,
+        "reduction_ratio" : 0.3259192825112107
+      },
+      {
+        "normalized_chars" : 6842,
+        "path" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+        "raw_chars" : 7629,
+        "reduction_ratio" : 0.10315899855813349
+      },
+      {
+        "normalized_chars" : 454,
+        "path" : "Quotes/1dbf32f4-36c1-8005-84b9-e77330335df2.localized/content.md",
+        "raw_chars" : 538,
+        "reduction_ratio" : 0.15613382899628248
+      },
+      {
+        "normalized_chars" : 11012,
+        "path" : "YouTube/__4ZMGgQqKE.localized/content.md",
+        "raw_chars" : 16853,
+        "reduction_ratio" : 0.34658517771316677
+      },
+      {
+        "normalized_chars" : 39952,
+        "path" : "YouTube/__A2xtLF0AU.localized/content.md",
+        "raw_chars" : 86540,
+        "reduction_ratio" : 0.5383406517217472
+      },
+      {
+        "normalized_chars" : 34236,
+        "path" : "YouTube/__h_aNi5UeY.localized/content.md",
+        "raw_chars" : 75113,
+        "reduction_ratio" : 0.5442067285290163
+      }
+    ],
+    "total_normalized_chars" : 2630148,
+    "total_raw_chars" : 2761659,
+    "total_reduction_ratio" : 0.047620289108829095
+  },
+  "query_count" : 15,
+  "query_manifest_path" : "experiments/E10-markdown-extraction/queries/rubric-queries.json",
+  "query_manifest_sha256" : "4001957eef746b5bea3aa700abce15eace5da32049f25a22ffa5353ba7cdb457",
+  "run_identity" : "86bd27eb0be805d0bf81929c056aa76bbc92a3477d6b287cba9491b0bc160d6f",
+  "settings" : {
+    "batch_size" : 32,
+    "bucket_width" : 500,
+    "chunk_chars" : 1200,
+    "chunk_overlap" : 0,
+    "coalesce_limit" : 10,
+    "compute_policy" : "default(nil)",
+    "concurrency" : 8,
+    "dimension" : 768,
+    "embedder" : "e5-base-v2",
+    "profile_identity" : "e5-base@1200/0",
+    "raw_fetch_limit" : 30,
+    "search_limit" : 10
+  }
+}

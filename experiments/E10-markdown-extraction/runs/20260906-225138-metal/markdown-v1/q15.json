@@ -1,0 +1,302 @@
+{
+  "arm" : "markdown-v1",
+  "categories" : [
+    "deep-transcript-detail",
+    "exact-term"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8577895164489746,
+      "file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "match_count" : 30,
+      "matches" : [
+        {
+          "chunk_ordinal" : 29,
+          "chunk_type" : "chunk",
+          "distance" : 0.1422104835510254,
+          "line_end" : 740,
+          "line_start" : 715,
+          "score" : 0.8577895164489746
+        },
+        {
+          "chunk_ordinal" : 22,
+          "chunk_type" : "chunk",
+          "distance" : 0.14690494537353516,
+          "line_end" : 562,
+          "line_start" : 537,
+          "score" : 0.8530950546264648
+        },
+        {
+          "chunk_ordinal" : 21,
+          "chunk_type" : "chunk",
+          "distance" : 0.14707660675048828,
+          "line_end" : 536,
+          "line_start" : 508,
+          "score" : 0.8529233932495117
+        },
+        {
+          "chunk_ordinal" : 28,
+          "chunk_type" : "chunk",
+          "distance" : 0.15243422985076904,
+          "line_end" : 714,
+          "line_start" : 690,
+          "score" : 0.847565770149231
+        },
+        {
+          "chunk_ordinal" : 26,
+          "chunk_type" : "chunk",
+          "distance" : 0.15547215938568115,
+          "line_end" : 664,
+          "line_start" : 639,
+          "score" : 0.8445278406143188
+        },
+        {
+          "chunk_ordinal" : 31,
+          "chunk_type" : "chunk",
+          "distance" : 0.16153556108474731,
+          "line_end" : 791,
+          "line_start" : 766,
+          "score" : 0.8384644389152527
+        },
+        {
+          "chunk_ordinal" : 20,
+          "chunk_type" : "chunk",
+          "distance" : 0.1624944806098938,
+          "line_end" : 507,
+          "line_start" : 482,
+          "score" : 0.8375055193901062
+        },
+        {
+          "chunk_ordinal" : 25,
+          "chunk_type" : "chunk",
+          "distance" : 0.16585808992385864,
+          "line_end" : 638,
+          "line_start" : 613,
+          "score" : 0.8341419100761414
+        },
+        {
+          "chunk_ordinal" : 30,
+          "chunk_type" : "chunk",
+          "distance" : 0.1677573323249817,
+          "line_end" : 765,
+          "line_start" : 741,
+          "score" : 0.8322426676750183
+        },
+        {
+          "chunk_ordinal" : 34,
+          "chunk_type" : "chunk",
+          "distance" : 0.16914093494415283,
+          "line_end" : 848,
+          "line_start" : 823,
+          "score" : 0.8308590650558472
+        },
+        {
+          "chunk_ordinal" : 17,
+          "chunk_type" : "chunk",
+          "distance" : 0.1693098545074463,
+          "line_end" : 429,
+          "line_start" : 404,
+          "score" : 0.8306901454925537
+        },
+        {
+          "chunk_ordinal" : 33,
+          "chunk_type" : "chunk",
+          "distance" : 0.17202508449554443,
+          "line_end" : 822,
+          "line_start" : 797,
+          "score" : 0.8279749155044556
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.17241376638412476,
+          "line_end" : 192,
+          "line_start" : 165,
+          "score" : 0.8275862336158752
+        },
+        {
+          "chunk_ordinal" : 27,
+          "chunk_type" : "chunk",
+          "distance" : 0.17451047897338867,
+          "line_end" : 689,
+          "line_start" : 665,
+          "score" : 0.8254895210266113
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.17696672677993774,
+          "line_end" : 403,
+          "line_start" : 378,
+          "score" : 0.8230332732200623
+        },
+        {
+          "chunk_ordinal" : 23,
+          "chunk_type" : "chunk",
+          "distance" : 0.17727982997894287,
+          "line_end" : 587,
+          "line_start" : 563,
+          "score" : 0.8227201700210571
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.1799975037574768,
+          "line_end" : 298,
+          "line_start" : 273,
+          "score" : 0.8200024962425232
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.18024742603302002,
+          "line_end" : 244,
+          "line_start" : 219,
+          "score" : 0.81975257396698
+        },
+        {
+          "chunk_ordinal" : 19,
+          "chunk_type" : "chunk",
+          "distance" : 0.18255484104156494,
+          "line_end" : 481,
+          "line_start" : 456,
+          "score" : 0.8174451589584351
+        },
+        {
+          "chunk_ordinal" : 24,
+          "chunk_type" : "chunk",
+          "distance" : 0.18662256002426147,
+          "line_end" : 612,
+          "line_start" : 588,
+          "score" : 0.8133774399757385
+        },
+        {
+          "chunk_ordinal" : 36,
+          "chunk_type" : "chunk",
+          "distance" : 0.1884934902191162,
+          "line_end" : 900,
+          "line_start" : 874,
+          "score" : 0.8115065097808838
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.18953925371170044,
+          "line_end" : 58,
+          "line_start" : 32,
+          "score" : 0.8104607462882996
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.19062209129333496,
+          "line_end" : 351,
+          "line_start" : 325,
+          "score" : 0.809377908706665
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.19078487157821655,
+          "line_end" : 324,
+          "line_start" : 299,
+          "score" : 0.8092151284217834
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.1909189224243164,
+          "line_end" : 30,
+          "line_start" : 1,
+          "score" : 0.8090810775756836
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.19574308395385742,
+          "line_end" : 164,
+          "line_start" : 138,
+          "score" : 0.8042569160461426
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.19632971286773682,
+          "line_end" : 137,
+          "line_start" : 111,
+          "score" : 0.8036702871322632
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.2042868733406067,
+          "line_end" : 218,
+          "line_start" : 193,
+          "score" : 0.7957131266593933
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.20498043298721313,
+          "line_end" : 272,
+          "line_start" : 245,
+          "score" : 0.7950195670127869
+        },
+        {
+          "chunk_ordinal" : 18,
+          "chunk_type" : "chunk",
+          "distance" : 0.205055832862854,
+          "line_end" : 455,
+          "line_start" : 430,
+          "score" : 0.794944167137146
+        }
+      ],
+      "rank" : 1
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q15",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 1,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8577895164489746,
+    "chunk_ordinal" : 29,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "chip breaker"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "positive"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "rake"
+      }
+    ],
+    "distance" : 0.1422104835510254,
+    "file_rank" : 1,
+    "input_chars" : 1206,
+    "line_end" : 740,
+    "line_start" : 715
+  },
+  "primary_file" : "YouTube/__A2xtLF0AU.localized/content.md",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "YouTube/__A2xtLF0AU.localized/content.md"
+  ],
+  "search_seconds" : 0.106129166,
+  "text" : "How does grinding a chip breaker affect the rake of a lathe tool?"
+}

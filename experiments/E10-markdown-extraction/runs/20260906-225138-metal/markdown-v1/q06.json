@@ -1,0 +1,319 @@
+{
+  "arm" : "markdown-v1",
+  "categories" : [
+    "item-coverage",
+    "deep-transcript-detail",
+    "exact-name"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8537178635597229,
+      "file" : "YouTube/__4ZMGgQqKE.localized/content.md",
+      "match_count" : 11,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.1462821364402771,
+          "line_end" : 48,
+          "line_start" : 37,
+          "score" : 0.8537178635597229
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.14672565460205078,
+          "line_end" : 35,
+          "line_start" : 1,
+          "score" : 0.8532743453979492
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.1773918867111206,
+          "line_end" : 143,
+          "line_start" : 137,
+          "score" : 0.8226081132888794
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.1987438201904297,
+          "line_end" : 83,
+          "line_start" : 72,
+          "score" : 0.8012561798095703
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.20149123668670654,
+          "line_end" : 71,
+          "line_start" : 60,
+          "score" : 0.7985087633132935
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.21338814496994019,
+          "line_end" : 136,
+          "line_start" : 123,
+          "score" : 0.7866118550300598
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2144060730934143,
+          "line_end" : 59,
+          "line_start" : 49,
+          "score" : 0.7855939269065857
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.21492254734039307,
+          "line_end" : 96,
+          "line_start" : 84,
+          "score" : 0.7850774526596069
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.22028732299804688,
+          "line_end" : 109,
+          "line_start" : 97,
+          "score" : 0.7797126770019531
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.22301411628723145,
+          "score" : 0.7769858837127686
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.22302407026290894,
+          "line_end" : 122,
+          "line_start" : 110,
+          "score" : 0.7769759297370911
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7940635085105896,
+      "file" : "YouTube/__h_aNi5UeY.localized/content.md",
+      "match_count" : 6,
+      "matches" : [
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.2059364914894104,
+          "line_end" : 198,
+          "line_start" : 172,
+          "score" : 0.7940635085105896
+        },
+        {
+          "chunk_ordinal" : 20,
+          "chunk_type" : "chunk",
+          "distance" : 0.2116844654083252,
+          "line_end" : 532,
+          "line_start" : 504,
+          "score" : 0.7883155345916748
+        },
+        {
+          "chunk_ordinal" : 21,
+          "chunk_type" : "chunk",
+          "distance" : 0.22240537405014038,
+          "line_end" : 559,
+          "line_start" : 533,
+          "score" : 0.7775946259498596
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.22613638639450073,
+          "line_end" : 57,
+          "line_start" : 42,
+          "score" : 0.7738636136054993
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.2299424409866333,
+          "line_end" : 171,
+          "line_start" : 145,
+          "score" : 0.7700575590133667
+        },
+        {
+          "chunk_ordinal" : 31,
+          "chunk_type" : "chunk",
+          "distance" : 0.23198169469833374,
+          "line_end" : 820,
+          "line_start" : 798,
+          "score" : 0.7680183053016663
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7756854295730591,
+      "file" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.22431457042694092,
+          "line_end" : 76,
+          "line_start" : 58,
+          "score" : 0.7756854295730591
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7738232612609863,
+      "file" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md",
+      "match_count" : 12,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2364,
+          "chunk_type" : "chunk",
+          "distance" : 0.22617673873901367,
+          "line_end" : 29906,
+          "line_start" : 29906,
+          "score" : 0.7738232612609863
+        },
+        {
+          "chunk_ordinal" : 596,
+          "chunk_type" : "chunk",
+          "distance" : 0.22746670246124268,
+          "line_end" : 9152,
+          "line_start" : 9147,
+          "score" : 0.7725332975387573
+        },
+        {
+          "chunk_ordinal" : 2527,
+          "chunk_type" : "chunk",
+          "distance" : 0.22782742977142334,
+          "line_end" : 32898,
+          "line_start" : 32894,
+          "score" : 0.7721725702285767
+        },
+        {
+          "chunk_ordinal" : 898,
+          "chunk_type" : "chunk",
+          "distance" : 0.2278991937637329,
+          "line_end" : 12855,
+          "line_start" : 12854,
+          "score" : 0.7721008062362671
+        },
+        {
+          "chunk_ordinal" : 2038,
+          "chunk_type" : "chunk",
+          "distance" : 0.2281041145324707,
+          "line_end" : 25319,
+          "line_start" : 25315,
+          "score" : 0.7718958854675293
+        },
+        {
+          "chunk_ordinal" : 1154,
+          "chunk_type" : "chunk",
+          "distance" : 0.23000013828277588,
+          "line_end" : 15480,
+          "line_start" : 15480,
+          "score" : 0.7699998617172241
+        },
+        {
+          "chunk_ordinal" : 563,
+          "chunk_type" : "chunk",
+          "distance" : 0.23045891523361206,
+          "line_end" : 8750,
+          "line_start" : 8747,
+          "score" : 0.7695410847663879
+        },
+        {
+          "chunk_ordinal" : 2131,
+          "chunk_type" : "chunk",
+          "distance" : 0.230685293674469,
+          "line_end" : 26674,
+          "line_start" : 26654,
+          "score" : 0.769314706325531
+        },
+        {
+          "chunk_ordinal" : 538,
+          "chunk_type" : "chunk",
+          "distance" : 0.23104530572891235,
+          "line_end" : 8342,
+          "line_start" : 8341,
+          "score" : 0.7689546942710876
+        },
+        {
+          "chunk_ordinal" : 1201,
+          "chunk_type" : "chunk",
+          "distance" : 0.2311912178993225,
+          "line_end" : 16111,
+          "line_start" : 16110,
+          "score" : 0.7688087821006775
+        },
+        {
+          "chunk_ordinal" : 102,
+          "chunk_type" : "chunk",
+          "distance" : 0.2314031720161438,
+          "line_end" : 1580,
+          "line_start" : 1571,
+          "score" : 0.7685968279838562
+        },
+        {
+          "chunk_ordinal" : 1526,
+          "chunk_type" : "chunk",
+          "distance" : 0.23193681240081787,
+          "line_end" : 19351,
+          "line_start" : 19347,
+          "score" : 0.7680631875991821
+        }
+      ],
+      "rank" : 4
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q06",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 4,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8537178635597229,
+    "chunk_ordinal" : 3,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "jim pickens"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "call me kevin"
+      }
+    ],
+    "distance" : 0.1462821364402771,
+    "file_rank" : 1,
+    "input_chars" : 1171,
+    "line_end" : 48,
+    "line_start" : 37
+  },
+  "primary_file" : "YouTube/__4ZMGgQqKE.localized/content.md",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "YouTube/__4ZMGgQqKE.localized/content.md"
+  ],
+  "search_seconds" : 0.101468875,
+  "text" : "accidentally logged into CallMeKevin's account and played Minecraft as Jim Pickens"
+}

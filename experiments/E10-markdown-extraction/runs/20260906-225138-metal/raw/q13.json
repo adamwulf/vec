@@ -1,0 +1,309 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "no-answer",
+    "metadata-trap"
+  ],
+  "groups" : [
+    {
+      "best_score" : 0.7541754245758057,
+      "file" : "YouTube/__4ZMGgQqKE.localized/content.md",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.24582457542419434,
+          "line_end" : 35,
+          "line_start" : 33,
+          "score" : 0.7541754245758057
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.2641375660896301,
+          "line_end" : 65,
+          "line_start" : 59,
+          "score" : 0.7358624339103699
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7506539821624756,
+      "file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "match_count" : 12,
+      "matches" : [
+        {
+          "chunk_ordinal" : 68,
+          "chunk_type" : "chunk",
+          "distance" : 0.24934601783752441,
+          "line_end" : 795,
+          "line_start" : 795,
+          "score" : 0.7506539821624756
+        },
+        {
+          "chunk_ordinal" : 67,
+          "chunk_type" : "chunk",
+          "distance" : 0.25778311491012573,
+          "line_end" : 794,
+          "line_start" : 783,
+          "score" : 0.7422168850898743
+        },
+        {
+          "chunk_ordinal" : 41,
+          "chunk_type" : "chunk",
+          "distance" : 0.2582213282585144,
+          "line_end" : 495,
+          "line_start" : 485,
+          "score" : 0.7417786717414856
+        },
+        {
+          "chunk_ordinal" : 78,
+          "chunk_type" : "chunk",
+          "distance" : 0.2596660852432251,
+          "line_end" : 900,
+          "line_start" : 900,
+          "score" : 0.7403339147567749
+        },
+        {
+          "chunk_ordinal" : 38,
+          "chunk_type" : "chunk",
+          "distance" : 0.25992298126220703,
+          "line_end" : 461,
+          "line_start" : 451,
+          "score" : 0.740077018737793
+        },
+        {
+          "chunk_ordinal" : 74,
+          "chunk_type" : "chunk",
+          "distance" : 0.2622146010398865,
+          "line_end" : 864,
+          "line_start" : 854,
+          "score" : 0.7377853989601135
+        },
+        {
+          "chunk_ordinal" : 72,
+          "chunk_type" : "chunk",
+          "distance" : 0.2626594305038452,
+          "line_end" : 842,
+          "line_start" : 832,
+          "score" : 0.7373405694961548
+        },
+        {
+          "chunk_ordinal" : 50,
+          "chunk_type" : "chunk",
+          "distance" : 0.2631620764732361,
+          "line_end" : 600,
+          "line_start" : 590,
+          "score" : 0.7368379235267639
+        },
+        {
+          "chunk_ordinal" : 69,
+          "chunk_type" : "chunk",
+          "distance" : 0.2658965587615967,
+          "line_end" : 808,
+          "line_start" : 797,
+          "score" : 0.7341034412384033
+        },
+        {
+          "chunk_ordinal" : 58,
+          "chunk_type" : "chunk",
+          "distance" : 0.26618140935897827,
+          "line_end" : 691,
+          "line_start" : 681,
+          "score" : 0.7338185906410217
+        },
+        {
+          "chunk_ordinal" : 26,
+          "chunk_type" : "chunk",
+          "distance" : 0.26659828424453735,
+          "line_end" : 318,
+          "line_start" : 308,
+          "score" : 0.7334017157554626
+        },
+        {
+          "chunk_ordinal" : 29,
+          "chunk_type" : "chunk",
+          "distance" : 0.2668893337249756,
+          "line_end" : 354,
+          "line_start" : 343,
+          "score" : 0.7331106662750244
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7457264065742493,
+      "file" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.25427359342575073,
+          "line_end" : 76,
+          "line_start" : 61,
+          "score" : 0.7457264065742493
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.25749075412750244,
+          "line_end" : 80,
+          "line_start" : 78,
+          "score" : 0.7425092458724976
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.26412588357925415,
+          "line_end" : 50,
+          "line_start" : 40,
+          "score" : 0.7358741164207458
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.2662334442138672,
+          "line_end" : 86,
+          "line_start" : 82,
+          "score" : 0.7337665557861328
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7452301979064941,
+      "file" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.25476980209350586,
+          "line_end" : 87,
+          "line_start" : 85,
+          "score" : 0.7452301979064941
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7421303987503052,
+      "file" : "YouTube/__h_aNi5UeY.localized/content.md",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 57,
+          "chunk_type" : "chunk",
+          "distance" : 0.2578696012496948,
+          "line_end" : 694,
+          "line_start" : 683,
+          "score" : 0.7421303987503052
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2588040232658386,
+          "line_end" : 57,
+          "line_start" : 53,
+          "score" : 0.7411959767341614
+        },
+        {
+          "chunk_ordinal" : 40,
+          "chunk_type" : "chunk",
+          "distance" : 0.26670074462890625,
+          "line_end" : 494,
+          "line_start" : 483,
+          "score" : 0.7332992553710938
+        },
+        {
+          "chunk_ordinal" : 67,
+          "chunk_type" : "chunk",
+          "distance" : 0.2681325674057007,
+          "line_end" : 816,
+          "line_start" : 806,
+          "score" : 0.7318674325942993
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.737949550151825,
+      "file" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md",
+      "match_count" : 7,
+      "matches" : [
+        {
+          "chunk_ordinal" : 504,
+          "chunk_type" : "chunk",
+          "distance" : 0.26205044984817505,
+          "line_end" : 7800,
+          "line_start" : 7780,
+          "score" : 0.737949550151825
+        },
+        {
+          "chunk_ordinal" : 258,
+          "chunk_type" : "chunk",
+          "distance" : 0.265098512172699,
+          "line_end" : 4092,
+          "line_start" : 4086,
+          "score" : 0.734901487827301
+        },
+        {
+          "chunk_ordinal" : 2876,
+          "chunk_type" : "chunk",
+          "distance" : 0.26611584424972534,
+          "line_end" : 40973,
+          "line_start" : 40930,
+          "score" : 0.7338841557502747
+        },
+        {
+          "chunk_ordinal" : 2458,
+          "chunk_type" : "chunk",
+          "distance" : 0.26731956005096436,
+          "line_end" : 31215,
+          "line_start" : 31184,
+          "score" : 0.7326804399490356
+        },
+        {
+          "chunk_ordinal" : 233,
+          "chunk_type" : "chunk",
+          "distance" : 0.26745063066482544,
+          "line_end" : 3646,
+          "line_start" : 3622,
+          "score" : 0.7325493693351746
+        },
+        {
+          "chunk_ordinal" : 728,
+          "chunk_type" : "chunk",
+          "distance" : 0.2675114870071411,
+          "line_end" : 10761,
+          "line_start" : 10758,
+          "score" : 0.7324885129928589
+        },
+        {
+          "chunk_ordinal" : 123,
+          "chunk_type" : "chunk",
+          "distance" : 0.26847851276397705,
+          "line_end" : 1887,
+          "line_start" : 1882,
+          "score" : 0.731521487236023
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "hit_at_1" : false,
+  "hit_at_3" : false,
+  "hit_at_5" : false,
+  "id" : "q13",
+  "is_no_answer" : true,
+  "overfetch_distinct_files" : 6,
+  "reciprocal_rank" : 0,
+  "relevant_files" : [
+
+  ],
+  "search_seconds" : 0.099068458,
+  "text" : "Sicilian Najdorf chess opening theory"
+}

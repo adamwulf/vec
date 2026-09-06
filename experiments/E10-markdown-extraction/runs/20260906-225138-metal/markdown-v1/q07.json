@@ -1,0 +1,335 @@
+{
+  "arm" : "markdown-v1",
+  "categories" : [
+    "item-coverage",
+    "exact-term",
+    "deep-detail"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8664934039115906,
+      "file" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+      "match_count" : 8,
+      "matches" : [
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.13350659608840942,
+          "line_end" : 86,
+          "line_start" : 82,
+          "score" : 0.8664934039115906
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.14001882076263428,
+          "line_end" : 25,
+          "line_start" : 1,
+          "score" : 0.8599811792373657
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.14468294382095337,
+          "line_end" : 58,
+          "line_start" : 49,
+          "score" : 0.8553170561790466
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.15375375747680664,
+          "line_end" : 76,
+          "line_start" : 61,
+          "score" : 0.8462462425231934
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.17321771383285522,
+          "line_end" : 80,
+          "line_start" : 78,
+          "score" : 0.8267822861671448
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.1905820369720459,
+          "line_end" : 36,
+          "line_start" : 27,
+          "score" : 0.8094179630279541
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.20112353563308716,
+          "line_end" : 47,
+          "line_start" : 38,
+          "score" : 0.7988764643669128
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.23673194646835327,
+          "score" : 0.7632680535316467
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7831853628158569,
+      "file" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.21681463718414307,
+          "line_end" : 65,
+          "line_start" : 35,
+          "score" : 0.7831853628158569
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2214677929878235,
+          "line_end" : 94,
+          "line_start" : 90,
+          "score" : 0.7785322070121765
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.22916430234909058,
+          "line_end" : 32,
+          "line_start" : 1,
+          "score" : 0.7708356976509094
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2312558889389038,
+          "line_end" : 87,
+          "line_start" : 68,
+          "score" : 0.7687441110610962
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7691199779510498,
+      "file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "match_count" : 12,
+      "matches" : [
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.2308800220489502,
+          "line_end" : 218,
+          "line_start" : 193,
+          "score" : 0.7691199779510498
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.24240434169769287,
+          "line_end" : 351,
+          "line_start" : 325,
+          "score" : 0.7575956583023071
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.2432999610900879,
+          "line_end" : 164,
+          "line_start" : 138,
+          "score" : 0.7567000389099121
+        },
+        {
+          "chunk_ordinal" : 18,
+          "chunk_type" : "chunk",
+          "distance" : 0.24375641345977783,
+          "line_end" : 455,
+          "line_start" : 430,
+          "score" : 0.7562435865402222
+        },
+        {
+          "chunk_ordinal" : 24,
+          "chunk_type" : "chunk",
+          "distance" : 0.24446439743041992,
+          "line_end" : 612,
+          "line_start" : 588,
+          "score" : 0.7555356025695801
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.24498575925827026,
+          "line_end" : 298,
+          "line_start" : 273,
+          "score" : 0.7550142407417297
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.24523049592971802,
+          "line_end" : 324,
+          "line_start" : 299,
+          "score" : 0.754769504070282
+        },
+        {
+          "chunk_ordinal" : 31,
+          "chunk_type" : "chunk",
+          "distance" : 0.24539107084274292,
+          "line_end" : 791,
+          "line_start" : 766,
+          "score" : 0.7546089291572571
+        },
+        {
+          "chunk_ordinal" : 21,
+          "chunk_type" : "chunk",
+          "distance" : 0.24558568000793457,
+          "line_end" : 536,
+          "line_start" : 508,
+          "score" : 0.7544143199920654
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.24601036310195923,
+          "line_end" : 403,
+          "line_start" : 378,
+          "score" : 0.7539896368980408
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2466488480567932,
+          "line_end" : 110,
+          "line_start" : 85,
+          "score" : 0.7533511519432068
+        },
+        {
+          "chunk_ordinal" : 17,
+          "chunk_type" : "chunk",
+          "distance" : 0.2470303773880005,
+          "line_end" : 429,
+          "line_start" : 404,
+          "score" : 0.7529696226119995
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7602002620697021,
+      "file" : "Notion/000fceb0-cc8c-4e17-b0eb-18df5026ff25.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.23979973793029785,
+          "line_end" : 41,
+          "line_start" : 30,
+          "score" : 0.7602002620697021
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7556430101394653,
+      "file" : "YouTube/__h_aNi5UeY.localized/content.md",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.24435698986053467,
+          "line_end" : 413,
+          "line_start" : 387,
+          "score" : 0.7556430101394653
+        },
+        {
+          "chunk_ordinal" : 28,
+          "chunk_type" : "chunk",
+          "distance" : 0.24763703346252441,
+          "line_end" : 740,
+          "line_start" : 708,
+          "score" : 0.7523629665374756
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.24978584051132202,
+          "line_end" : 198,
+          "line_start" : 172,
+          "score" : 0.750214159488678
+        },
+        {
+          "chunk_ordinal" : 22,
+          "chunk_type" : "chunk",
+          "distance" : 0.24992656707763672,
+          "line_end" : 584,
+          "line_start" : 560,
+          "score" : 0.7500734329223633
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7544680833816528,
+      "file" : "YouTube/__4ZMGgQqKE.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.24553191661834717,
+          "line_end" : 96,
+          "line_start" : 84,
+          "score" : 0.7544680833816528
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q07",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 6,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8664934039115906,
+    "chunk_ordinal" : 8,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "fractional indexing"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "regex",
+        "value" : "operational transformation|ordered sequence"
+      }
+    ],
+    "distance" : 0.13350659608840942,
+    "file_rank" : 1,
+    "input_chars" : 663,
+    "line_end" : 86,
+    "line_start" : 82
+  },
+  "primary_file" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md"
+  ],
+  "search_seconds" : 0.107810417,
+  "text" : "fractional indexing to reorder items in a realtime collaborative editor"
+}

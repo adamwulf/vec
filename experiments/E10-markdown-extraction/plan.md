@@ -1,6 +1,6 @@
 # E10 — Markdown extraction before embedding
 
-Status: implementation and baseline preparation in progress.
+Status: comparison complete; final report review and agent cleanup pending. See [the report](report.md) and [successful run archive](runs/20260906-225138-metal/summary.md).
 
 ## Question
 
@@ -42,17 +42,12 @@ probes for inspection without inventing an uncalibrated similarity cutoff.
 
 ## Success criteria
 
-- [ ] Parser-backed normalization handles links/references, Unicode,
-      malformed input, code, frontmatter, multiline syntax and CRLF.
-- [ ] Opt-in extraction occurs before chunking, preserves source locations,
-      and leaves non-Markdown extraction unchanged.
-- [ ] Persist extraction mode, inherit it for updates/inserts, read legacy
-      profiles as raw, and reject incompatible incremental updates.
-- [ ] Relevant automated tests pass.
-- [ ] Freeze queries/corpus, run both real-model arms, archive reproducible
-      results and audit representative source ranges/passages.
-- [ ] Write a report distinguishing observed changes from hypotheses and
-      noting the small corpus and coverage limitations.
+- [x] Parser-backed normalization handles links/references, Unicode, malformed input, code, frontmatter, multiline syntax and CRLF.
+- [x] Opt-in extraction occurs before chunking, preserves source locations, and leaves non-Markdown extraction unchanged.
+- [x] Persist extraction mode, inherit it for updates/inserts, read legacy profiles as raw, and reject incompatible incremental updates.
+- [x] Relevant automated tests pass.
+- [x] Freeze queries/corpus, run both real-model arms, archive reproducible results and audit representative source ranges/passages.
+- [x] Write a report distinguishing observed changes from hypotheses and noting the small corpus and coverage limitations.
 - [ ] Two independent reviewers approve; all workers are merged or retired.
 
 An accuracy improvement is a hypothesis, not a completion requirement. A
