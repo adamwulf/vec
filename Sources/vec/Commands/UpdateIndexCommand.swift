@@ -40,6 +40,18 @@ enum ComputePolicyOption: String, ExpressibleByArgument, CaseIterable {
     }
 }
 
+enum TextExtractionOption: String, ExpressibleByArgument, CaseIterable {
+    case raw
+    case markdownV1 = "markdown-v1"
+
+    var mode: TextExtractionMode {
+        switch self {
+        case .raw: return .raw
+        case .markdownV1: return .markdownV1
+        }
+    }
+}
+
 /// Thread-safe writer for the per-DB PID/progress file at `<dbDir>/index.pid`.
 ///
 /// Two-line format:
@@ -376,6 +388,9 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Indexing profile alias (\(IndexingProfileFactory.knownAliases.joined(separator: ", "))). Default is \(IndexingProfileFactory.defaultAlias) on first index; must match the recorded profile on subsequent runs (or omit to reuse the recorded alias with its alias-default chunk params).")
     var embedder: String?
 
+    @Option(name: .long, help: "Document extraction: raw or markdown-v1. Defaults to raw on first index; omit to reuse the recorded mode. Changing modes requires reset and reindexing.")
+    var textExtraction: TextExtractionOption?
+
     @Option(name: .long, help: "Override embedder pool size (default: \(IndexingPipeline.defaultConcurrency), measured optimum on 10-perf-core M-series in E6.3). E6.3 indexing-speed knob.")
     var concurrency: Int?
 
@@ -430,7 +445,8 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             cliEmbedder: embedder,
             cliChunkChars: chunkChars,
             cliChunkOverlap: chunkOverlap,
-            cliComputePolicy: computePolicy.mlPolicy
+            cliComputePolicy: computePolicy.mlPolicy,
+            cliTextExtraction: textExtraction?.mode
         )
         let activeProfile = resolution.profile
 
@@ -442,7 +458,8 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             let newRecord = DatabaseConfig.ProfileRecord(
                 identity: activeProfile.identity,
                 embedderName: activeProfile.embedder.name,
-                dimension: activeProfile.embedder.dimension
+                dimension: activeProfile.embedder.dimension,
+                textExtraction: resolution.textExtraction
             )
             let updated = DatabaseConfig(
                 sourceDirectory: rawConfig.sourceDirectory,
@@ -534,7 +551,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         do {
             (results, stats) = try await pipeline.run(
                 workItems: workItems,
-                extractor: TextExtractor(splitter: activeProfile.splitter),
+                extractor: TextExtractor(splitter: activeProfile.splitter, textExtraction: resolution.textExtraction),
                 database: database,
                 progress: progress
             )
@@ -706,6 +723,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     /// `ProfileRecord` to config.json.
     struct ProfileResolution {
         let profile: IndexingProfile
+        let textExtraction: TextExtractionMode
         /// True on the first-index path (no `profile` recorded yet) —
         /// the command must persist the resolved `ProfileRecord` before
         /// running the pipeline. False on the recorded path — the
@@ -725,7 +743,8 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         cliEmbedder: String?,
         cliChunkChars: Int?,
         cliChunkOverlap: Int?,
-        cliComputePolicy: MLComputePolicy? = nil
+        cliComputePolicy: MLComputePolicy? = nil,
+        cliTextExtraction: TextExtractionMode? = nil
     ) throws -> ProfileResolution {
         // The caller must have already rejected partial overrides. Trap
         // any slip through so tests catch a regression in the check
@@ -736,6 +755,11 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         )
 
         if let recorded = config.profile {
+            let requestedExtraction = cliTextExtraction ?? recorded.textExtraction
+            guard requestedExtraction == recorded.textExtraction else {
+                throw TextExtractionError.mismatch(
+                    recorded: recorded.textExtraction, requested: requestedExtraction)
+            }
             // Step 4: recorded-profile path. Alias falls back to the
             // recorded alias when --embedder is omitted; chunk params
             // default to the *alias-default* chunk params (NOT the
@@ -769,7 +793,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
                 identity: recorded.identity,
                 computePolicy: cliComputePolicy
             )
-            return ProfileResolution(profile: profile, writeProfileRecord: false)
+            return ProfileResolution(profile: profile, textExtraction: requestedExtraction, writeProfileRecord: false)
         }
 
         // Steps 3–5: no recorded profile. Split on chunk count.
@@ -786,7 +810,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
             chunkOverlap: cliChunkOverlap,
             computePolicy: cliComputePolicy
         )
-        return ProfileResolution(profile: profile, writeProfileRecord: true)
+        return ProfileResolution(profile: profile, textExtraction: cliTextExtraction ?? .raw, writeProfileRecord: true)
     }
 
     /// Per-stage totals are summed across N concurrent workers, so they can

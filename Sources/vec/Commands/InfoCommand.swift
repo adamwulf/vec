@@ -59,6 +59,7 @@ struct InfoCommand: AsyncParsableCommand {
         print("Source:       \(sourceDir.path)")
         print("Created:      \(createdString)")
         print("Profile:      \(profileString)")
+        print("Extraction:   \(config.profile?.textExtraction.rawValue ?? "(not yet recorded)")")
         print("Files:        \(fileCount)")
         print("Chunks:       \(chunkCount)")
         print("DB size:      \(sizeString)")

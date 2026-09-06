@@ -21,12 +21,14 @@ public struct ExtractionResult: Sendable {
 public final class TextExtractor: @unchecked Sendable {
 
     private let splitter: TextSplitter
+    private let textExtraction: TextExtractionMode
 
     /// Construct with any `TextSplitter`. Callers pass the splitter from
     /// the active `IndexingProfile` so chunk sizing honors the recorded
     /// profile rather than a hardcoded default.
-    public init(splitter: TextSplitter) {
+    public init(splitter: TextSplitter, textExtraction: TextExtractionMode = .raw) {
         self.splitter = splitter
+        self.textExtraction = textExtraction
     }
 
     /// Convenience init that borrows the default built-in profile's
@@ -78,7 +80,17 @@ public final class TextExtractor: @unchecked Sendable {
         }
 
         let lineCount = countLines(in: content)
-        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Markdown normalization keeps each source newline in place. The
+        // splitter therefore reports original-file line numbers even though
+        // link destinations and presentation markup are omitted from embeddings.
+        let text: String
+        if textExtraction == .markdownV1,
+           ["md", "markdown"].contains(file.fileExtension.lowercased()) {
+            text = MarkdownTextNormalizer.normalize(content)
+        } else {
+            text = content
+        }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             return ExtractionResult(chunks: [], linePageCount: lineCount)
         }
@@ -87,7 +99,7 @@ public final class TextExtractor: @unchecked Sendable {
 
         chunks.append(TextChunk(text: trimmed, type: .whole))
 
-        chunks.append(contentsOf: splitter.split(content))
+        chunks.append(contentsOf: splitter.split(text))
 
         return ExtractionResult(chunks: chunks, linePageCount: lineCount)
     }
