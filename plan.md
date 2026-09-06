@@ -1005,6 +1005,10 @@ external scan. Both wasteful when the pipeline already knew.
 
 ## In progress
 
+### E10 — Markdown extraction experiment (2026-09-06)
+
+Compare opt-in, parser-backed Markdown text extraction against raw extraction with fixed E5 and chunk settings. Preserve original source locations and existing database behavior; no corpus-specific parsing or model change. See [the experiment plan](experiments/E10-markdown-extraction/plan.md) for success criteria and evaluation scope.
+
 **E5.9 phase complete.** All three refinements
 (E5.9a e5-base, E5.9b bge-base, E5.9c nomic) have shipped and
 no default changes were required — the per-model peaks all sit
