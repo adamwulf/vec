@@ -12,7 +12,12 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
-        .package(url: "https://github.com/jkrukowski/swift-embeddings", from: "0.0.26")
+        .package(url: "https://github.com/jkrukowski/swift-embeddings", from: "0.0.26"),
+        // swift-markdown publishes no semantic-version tags; it ships
+        // toolchain-aligned release branches instead. Track the branch that
+        // matches the Swift 6.2 toolchain; Package.resolved pins the exact
+        // revision for reproducible builds.
+        .package(url: "https://github.com/apple/swift-markdown", branch: "release/6.2")
     ],
     targets: [
         .systemLibrary(
@@ -26,7 +31,8 @@ let package = Package(
             name: "VecKit",
             dependencies: [
                 "CSQLiteVec",
-                .product(name: "Embeddings", package: "swift-embeddings")
+                .product(name: "Embeddings", package: "swift-embeddings"),
+                .product(name: "Markdown", package: "swift-markdown")
             ]
         ),
         .executableTarget(
