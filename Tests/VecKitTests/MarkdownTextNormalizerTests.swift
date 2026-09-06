@@ -203,6 +203,82 @@ final class MarkdownTextNormalizerTests: XCTestCase {
         assertNewlinesPreserved(input, output)
     }
 
+    func testFrontmatterLinkSyntaxIsPreservedVerbatim() {
+        let input = [
+            "---",
+            "title: Hello",
+            "hero: [click here](https://tracker.example.com/x)",
+            "---",
+            "",
+            "Body [visible](https://body.example.com).",
+            ""
+        ].joined(separator: "\n")
+        let output = normalize(input)
+        // Link-like strings inside frontmatter survive byte-for-byte.
+        XCTAssertTrue(output.contains("hero: [click here](https://tracker.example.com/x)"))
+        XCTAssertTrue(output.contains("title: Hello"))
+        // A genuine body link is still normalized.
+        XCTAssertTrue(output.contains("Body visible."))
+        XCTAssertFalse(output.contains("https://body.example.com"))
+        assertNewlinesPreserved(input, output)
+    }
+
+    func testFrontmatterReferenceDefinitionDoesNotLeakIntoBody() {
+        // The blank line makes `[ref]:` a block start, so it WOULD be parsed as
+        // a reference definition if the frontmatter were not excluded. It must
+        // not resolve the body's `[ref]`, which has to stay literal.
+        let input = [
+            "---",
+            "title: Hello",
+            "",
+            "[ref]: https://frontmatter-only.example.com",
+            "---",
+            "",
+            "Body uses [ref] and [visible](https://body.example.com).",
+            ""
+        ].joined(separator: "\n")
+        let output = normalize(input)
+        XCTAssertTrue(output.contains("[ref]: https://frontmatter-only.example.com"),
+                      "Frontmatter definition preserved verbatim")
+        XCTAssertTrue(output.contains("Body uses [ref] and"),
+                      "Body [ref] must stay literal (definition did not leak)")
+        XCTAssertFalse(output.contains("Body uses ref and"),
+                       "A leaked definition would have stripped the brackets")
+        XCTAssertTrue(output.contains("visible"))
+        XCTAssertFalse(output.contains("https://body.example.com"))
+        assertNewlinesPreserved(input, output)
+    }
+
+    func testFrontmatterClosedWithDotsIsProtected() {
+        let input = [
+            "---",
+            "link: [x](https://frontmatter.example.com)",
+            "...",
+            "",
+            "[y](https://body.example.com)",
+            ""
+        ].joined(separator: "\n")
+        let output = normalize(input)
+        XCTAssertTrue(output.contains("link: [x](https://frontmatter.example.com)"))
+        XCTAssertTrue(output.contains("\ny\n"))
+        XCTAssertFalse(output.contains("https://body.example.com"))
+        assertNewlinesPreserved(input, output)
+    }
+
+    func testLeadingDashesWithoutCloserAreNotFrontmatter() {
+        // No closing delimiter: treat as ordinary content, so the body link is
+        // still normalized.
+        let input = "---\n# Title\n\n[link](https://example.com)\n"
+        let output = normalize(input)
+        XCTAssertEqual(output, "---\n# Title\n\nlink\n")
+        assertNewlinesPreserved(input, output)
+    }
+
+    func testBareTripleDashWithoutNewlineIsNotFrontmatter() {
+        // A lone "---" with no following line is not a frontmatter opener.
+        XCTAssertEqual(normalize("---"), "---")
+    }
+
     // MARK: - CRLF
 
     func testCRLFNewlinesArePreserved() {

@@ -32,6 +32,25 @@ import Markdown
 /// code blocks, or raw HTML, those regions are inherently preserved — no
 /// special-casing is required.
 ///
+/// ## Frontmatter
+///
+/// A leading, delimited YAML frontmatter block (`---` … `---`/`...`) is split
+/// off and copied through verbatim before parsing. This both preserves its
+/// exact bytes and prevents a reference definition or link-like string inside
+/// the frontmatter from resolving or rewriting links in the body. Metadata is
+/// not interpreted (deferred). Detection is conservative — see
+/// `frontmatterBodyStart`.
+///
+/// ## Known limitations
+///
+/// - Reference link *definitions* in the body (e.g. `[id]: https://…`) are
+///   left verbatim, so their URL remains. `swift-markdown` consumes
+///   definitions during parsing and does not expose them as editable nodes,
+///   and deleting a whole definition line would risk the newline contract.
+///   Reference link *usages* are still resolved to their label.
+/// - Emphasis markers inside a kept label (e.g. `**bold**`) are retained; the
+///   scope is destinations only, and this drops no words.
+///
 /// ## Coordinate system
 ///
 /// `swift-markdown` reports `SourceLocation.column` as a 1-based count of
@@ -45,6 +64,27 @@ public enum MarkdownTextNormalizer {
     /// terminators, in the same order, as the input.
     public static func normalize(_ source: String) -> String {
         // Nothing to parse, and no allocation worth doing.
+        guard !source.isEmpty else { return source }
+
+        // A leading, delimited YAML frontmatter block is copied through
+        // verbatim and is never parsed. Excluding it from the parse also stops
+        // a frontmatter reference definition (or link-like string) from
+        // resolving or altering links in the body. Interpreting the metadata
+        // is deliberately out of scope for v1.
+        let allBytes = Array(source.utf8)
+        let bodyStart = frontmatterBodyStart(allBytes)
+        guard bodyStart > 0 else {
+            return normalizeBody(source)
+        }
+        let frontmatter = String(decoding: allBytes[0..<bodyStart], as: UTF8.self)
+        let body = String(decoding: allBytes[bodyStart...], as: UTF8.self)
+        return frontmatter + normalizeBody(body)
+    }
+
+    /// Removes link/image destinations from `source`, which must not contain a
+    /// leading frontmatter block (the caller strips that first). Preserves the
+    /// line-terminator sequence exactly.
+    private static func normalizeBody(_ source: String) -> String {
         guard !source.isEmpty else { return source }
 
         let bytes = Array(source.utf8)
@@ -139,6 +179,78 @@ public enum MarkdownTextNormalizer {
         if c < d {
             edits.append(Edit(start: c, end: d, replacement: lineTerminators(in: bytes, from: c, to: d)))
         }
+    }
+
+    // MARK: - Frontmatter
+
+    /// If `bytes` opens with a delimited YAML frontmatter block, returns the
+    /// byte index at which the body begins (just past the closing delimiter
+    /// line); otherwise returns 0.
+    ///
+    /// Detection is intentionally conservative: the very first line must be
+    /// exactly `---` (trailing spaces/tabs allowed), and there must be a later
+    /// line that is exactly `---` or `...` closing it. Any leading block that
+    /// matches this shape is protected — even if it is really a thematic-break
+    /// section — because keeping a URL is safer than dropping words, and no
+    /// document normally opens this way except with frontmatter. Without a
+    /// closing delimiter the input is treated as ordinary content.
+    private static func frontmatterBodyStart(_ bytes: [UInt8]) -> Int {
+        let n = bytes.count
+        let opener = lineSpan(bytes, from: 0)
+        // The opener must be `---` and must be followed by a real line ending
+        // (a lone `---` with no newline is not a frontmatter block).
+        guard opener.next > opener.contentEnd,
+              isDelimiter(bytes, from: 0, contentEnd: opener.contentEnd, allowDots: false) else {
+            return 0
+        }
+
+        var cursor = opener.next
+        while cursor < n {
+            let line = lineSpan(bytes, from: cursor)
+            if isDelimiter(bytes, from: cursor, contentEnd: line.contentEnd, allowDots: true) {
+                return line.next
+            }
+            cursor = line.next
+        }
+        return 0
+    }
+
+    /// Returns the content end (index of the first line-terminator byte, or the
+    /// buffer length) and the start of the next line for the line beginning at
+    /// `start`. Recognizes `\n`, `\r\n`, and a lone `\r`.
+    private static func lineSpan(_ bytes: [UInt8], from start: Int) -> (contentEnd: Int, next: Int) {
+        let n = bytes.count
+        var i = start
+        while i < n {
+            let b = bytes[i]
+            if b == 0x0A {
+                return (i, i + 1)
+            } else if b == 0x0D {
+                if i + 1 < n && bytes[i + 1] == 0x0A {
+                    return (i, i + 2)
+                }
+                return (i, i + 1)
+            }
+            i += 1
+        }
+        return (n, n)
+    }
+
+    /// Whether `bytes[from..<contentEnd]` is a frontmatter delimiter: three `-`
+    /// (or, when `allowDots`, three `.`) followed only by spaces or tabs.
+    private static func isDelimiter(_ bytes: [UInt8], from: Int, contentEnd: Int, allowDots: Bool) -> Bool {
+        guard contentEnd - from >= 3 else { return false }
+        let a = bytes[from], b = bytes[from + 1], c = bytes[from + 2]
+        let dashes = (a == 0x2D && b == 0x2D && c == 0x2D)          // ---
+        let dots = allowDots && (a == 0x2E && b == 0x2E && c == 0x2E) // ...
+        guard dashes || dots else { return false }
+        var i = from + 3
+        while i < contentEnd {
+            let ch = bytes[i]
+            if ch != 0x20 && ch != 0x09 { return false } // space or tab only
+            i += 1
+        }
+        return true
     }
 
     // MARK: - Coordinate mapping
