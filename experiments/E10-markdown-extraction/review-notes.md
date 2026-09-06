@@ -26,3 +26,9 @@ Both reviewers independently approved final harness tip `dc5ea4d`, merged into t
 Post-merge release validation passed 72 tests, with the heavy benchmark separately skipped as intended, using `swift test --disable-sandbox --disable-swift-testing -c release -j 4 --filter 'Markdown|TextExtractionModeTests|ProfileMismatchTests'`. All 12 Python scorer regressions passed. The XCTest-only flag avoids an existing release Swift Testing launcher error after XCTest completes.
 
 Review approval does not imply a retrieval improvement. The first real run is recorded separately as incomplete because even a minimal CoreML operation fails in the manager execution environment.
+
+## Final results and closeout
+
+Both reviewers approved the report and committed archive at `539b02a`: `agent-c7a7b35f` audited passage evidence and interpretation independently; `agent-98add89a` verified numeric claims, execution provenance, runtime explanation, timing scope, and units against the run it executed. Both confirmed the file-rank ceiling and advisory nature of the passage metric. The optional q13 interpretation was left to the existing score table; no benefit is claimed for that probe. Original generated archive labels saying MB are retained verbatim for provenance; the report correctly expresses those values in MiB.
+
+All corpus, model, and query hashes and all thirty query identities were independently checked by the manager. Both implementation workers were merged, both reviewers retired, and `ib list` confirmed no remaining subagents for this task. No default, query label, or inference setting changed after observing results.

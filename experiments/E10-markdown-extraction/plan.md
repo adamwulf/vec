@@ -1,6 +1,6 @@
 # E10 — Markdown extraction before embedding
 
-Status: comparison complete; final report review and agent cleanup pending. See [the report](report.md) and [successful run archive](runs/20260906-225138-metal/summary.md).
+Status: complete. Both implementations and the final results report passed independent review; all workers are merged or retired. See [the report](report.md), [review record](review-notes.md), and [successful run archive](runs/20260906-225138-metal/summary.md).
 
 ## Question
 
@@ -48,7 +48,7 @@ probes for inspection without inventing an uncalibrated similarity cutoff.
 - [x] Relevant automated tests pass.
 - [x] Freeze queries/corpus, run both real-model arms, archive reproducible results and audit representative source ranges/passages.
 - [x] Write a report distinguishing observed changes from hypotheses and noting the small corpus and coverage limitations.
-- [ ] Two independent reviewers approve; all workers are merged or retired.
+- [x] Two independent reviewers approve; all workers are merged or retired.
 
 An accuracy improvement is a hypothesis, not a completion requirement. A
 neutral or negative result is useful and must be reported without tuning
