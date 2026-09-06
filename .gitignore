@@ -8,3 +8,4 @@ DerivedData/
 /tmp-logs/
 .reindex-*.log
 .rubric-*/
+.codex/
