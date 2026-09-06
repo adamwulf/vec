@@ -5,7 +5,9 @@
 Two independent reviewers approved `4ec81e8..80a95ab` before the parser was merged:
 
 - `agent-c7a7b35f`: parsing, Unicode byte offsets, nested/reference links, code preservation, frontmatter isolation, and source locations. The 53 Markdown tests and 12 temporary edge-case probes passed.
-- `agent-98add89a`: persisted extraction modes, legacy config decoding, update/insert/reset behavior, CLI options, and dependency compatibility. All 68 tests in the four E10-related suites passed.
+- `agent-98add89a`: persisted extraction modes, legacy config decoding, update/insert/reset behavior, CLI options, and dependency compatibility. The E10-related suites passed.
+
+Manager post-merge validation: `swift test --disable-sandbox -j 4 --filter 'Markdown|TextExtractionModeTests|ProfileMismatchTests'` passed all 70 selected tests (50 normalizer/extraction, 11 profile mismatch, 6 extraction mode, and 3 existing Markdown extractor tests).
 
 The integration reviewer also ran the full suite: 351 tests executed, 2 skipped, with 6 assertion failures in 2 test cases. The following findings are recorded rather than changing unrelated behavior during the extraction comparison:
 
