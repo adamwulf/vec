@@ -12,7 +12,7 @@
   },
   "arms": [
     { "key": "raw", "text_extraction": "raw", "label": "raw / current extraction" },
-    { "key": "markdownV1", "text_extraction": "markdownV1", "label": "generic Markdown normalization (MarkdownV1)" }
+    { "key": "markdown-v1", "text_extraction": "markdown-v1", "label": "generic Markdown normalization (MarkdownV1)" }
   ],
   "fixed_settings": {
     "profile_identity": "e5-base@1200/0",
@@ -21,7 +21,10 @@
     "chunk_chars": 1200,
     "chunk_overlap": 0,
     "concurrency": 8,
-    "note": "Both arms share this exact profile, this exact snapshot, and this concurrency. Only the TextExtractor text-extraction mode differs. No format-specific database behavior is introduced."
+    "batch_size": 32,
+    "bucket_width": 500,
+    "compute_policy": "default (nil)",
+    "note": "Both arms share this exact profile, snapshot, concurrency, batch/bucket, and compute policy. Only the TextExtractor text-extraction mode differs. No format-specific database behavior is introduced. The arm text_extraction values are the exact TextExtractionMode raw values (raw, markdown-v1); the harness preflights every arm mode before any indexing."
   },
   "metrics": {
     "primary": ["rank1", "top3", "top5", "mrr"],
@@ -32,9 +35,10 @@
     "method": "relevant_files and passage_criteria were assigned from document content BEFORE any ranking output was seen. File rank is the automatic, authoritative signal. Passage criteria are advisory, human-checkable strings the best-matching passage should contain. The harness runs a best-effort, case-insensitive check of each criterion against the retrieved passage (reconstructed from its source line range) and the stored content preview, and records that result SEPARATELY from file rank."
   },
   "search": {
+    "limit": 10,
     "coalesce_limit": 10,
-    "raw_fetch_limit": 50,
-    "note": "Uses the real file-group search semantics (SearchResultCoalescer.coalesce). raw_fetch_limit overfetches chunk hits so overfetch diversity and source ranges can be recorded WITHOUT changing the coalesced file ranking."
+    "raw_fetch_limit": 30,
+    "note": "Mirrors the real CLI search semantics exactly: fetch limit*3 raw chunk hits (30) then coalesce to limit (10) file groups via SearchResultCoalescer.coalesce. The overfetch pool records overfetch diversity and source ranges WITHOUT changing the coalesced ranking. The harness archives ALL coalesced groups (each with every match and its source range) so file rank can be recomputed independently."
   },
   "queries": [
     {
@@ -180,6 +184,32 @@
       "relevant_files": [],
       "passage_criteria": [],
       "rationale": "No document is ABOUT chess. The Anna Rudolf item (q06) carries incidental promotional chess links (chessable.com, @anna_chess) in its raw text. Designed to expose whether raw extraction surfaces promotional link text that markdownV1 normalization drops. Record which files surface and their scores; no cutoff assumed."
+    },
+    {
+      "id": "q14",
+      "text": "Why does a more positive rake need less power but leave a weaker cutting edge?",
+      "categories": ["deep-transcript-detail", "exact-term"],
+      "primary_file": "YouTube/__A2xtLF0AU.localized/content.md",
+      "relevant_files": ["YouTube/__A2xtLF0AU.localized/content.md"],
+      "passage_criteria": [
+        { "type": "contains", "value": "positive", "case_sensitive": false, "note": "rake angle direction" },
+        { "type": "contains", "value": "weaker", "case_sensitive": false, "note": "edge strength trade-off" },
+        { "type": "contains", "value": "less power", "case_sensitive": false, "note": "cutting-power trade-off" }
+      ],
+      "rationale": "Deep transcript detail (not title/opening). Source around 18:30-19:04 (lines 496-514) explicitly explains both trade-offs of a more positive rake."
+    },
+    {
+      "id": "q15",
+      "text": "How does grinding a chip breaker affect the rake of a lathe tool?",
+      "categories": ["deep-transcript-detail", "exact-term"],
+      "primary_file": "YouTube/__A2xtLF0AU.localized/content.md",
+      "relevant_files": ["YouTube/__A2xtLF0AU.localized/content.md"],
+      "passage_criteria": [
+        { "type": "contains", "value": "chip breaker", "case_sensitive": false, "note": "feature ground into the tool" },
+        { "type": "contains", "value": "positive", "case_sensitive": false, "note": "increased positive rake" },
+        { "type": "contains", "value": "rake", "case_sensitive": false, "note": "rake angle" }
+      ],
+      "rationale": "Deep transcript detail. Source around 26:42-26:56 (lines 720-727) and 27:37+ explains how a ground chip breaker increases positive rake."
     }
   ]
 }

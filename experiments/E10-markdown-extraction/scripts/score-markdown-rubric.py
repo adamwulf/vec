@@ -1,72 +1,59 @@
 #!/usr/bin/env python3
-"""Re-score an E10 Markdown-extraction benchmark archive.
+"""Re-score an E10 Markdown-extraction benchmark archive — strictly.
 
 Reads a run directory produced by MarkdownRetrievalExperimentTests and
-recomputes the retrieval metrics from the per-query JSON — independent of
-the numbers the Swift harness wrote, so an archive can be re-scored later
-if the scoring rule is questioned. The per-query `file_rank` is the
-authoritative signal; passage criteria are advisory.
+recomputes retrieval metrics INDEPENDENTLY of the numbers the Swift
+harness wrote:
+
+  * The set of arms and query IDs it expects comes from the committed
+    manifest (queries/rubric-queries.json), NOT from whatever files happen
+    to be present. A missing, duplicate/unexpected, or corrupt result file
+    is a hard error (exit 1) — the scorer never silently scores a partial
+    archive.
+  * File rank is recomputed from each query's archived ORDERED groups (the
+    1-based position of primary_file), not read from the stored file_rank.
+    A disagreement with the stored value is reported.
+
+Metrics (over ANSWERED queries only; 9 files, so top10 recall is NOT
+reported): rank1, top3, top5, MRR, and an advisory passage 'pass' rate
+(all criteria matched in the embedded chunk text).
 
 Usage:
     python3 score-markdown-rubric.py <run-dir>
-
-Metrics (over ANSWERED queries only; the corpus has 9 files, so top10
-recall is deliberately NOT reported):
-    rank1  - primary file ranked #1
-    top3   - primary file in the top 3 file groups
-    top5   - primary file in the top 5 file groups
-    MRR    - mean reciprocal rank of the primary file
-    pass   - fraction whose advisory passage criteria all matched
-
-No-answer probes are listed separately with their top file + score; no
-cosine cutoff is applied.
 """
 import json
 import os
 import sys
 
-
-def load_arm(arm_dir):
-    """Load every q*.json in an arm directory, sorted by query id."""
-    results = []
-    for name in sorted(os.listdir(arm_dir)):
-        if not (name.startswith("q") and name.endswith(".json")):
-            continue
-        with open(os.path.join(arm_dir, name)) as fh:
-            results.append(json.load(fh))
-    return results
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+MANIFEST = os.path.join(SCRIPT_DIR, "..", "queries", "rubric-queries.json")
 
 
-def score_arm(results):
-    answered = [r for r in results if not r.get("is_no_answer")]
-    n = len(answered) or 1
-    rank1 = sum(1 for r in answered if r.get("file_rank") == 1)
-    top3 = sum(1 for r in answered if (r.get("file_rank") or 99) <= 3)
-    top5 = sum(1 for r in answered if (r.get("file_rank") or 99) <= 5)
-    mrr = sum((1.0 / r["file_rank"]) if r.get("file_rank") else 0.0 for r in answered)
-    passed = sum(
-        1 for r in answered
-        if (r.get("primary_audit") or {}).get("all_criteria_met") is True
-    )
-    return {
-        "answered": len(answered),
-        "rank1": rank1,
-        "top3": top3,
-        "top5": top5,
-        "mrr": mrr / n,
-        "pass": passed,
-    }
+def die(msg):
+    print(f"error: {msg}", file=sys.stderr)
+    sys.exit(1)
 
 
-def find_arm_dirs(run_dir):
-    arms = []
-    for name in sorted(os.listdir(run_dir)):
-        path = os.path.join(run_dir, name)
-        if not os.path.isdir(path):
-            continue
-        if any(f.startswith("q") and f.endswith(".json") for f in os.listdir(path)):
-            arms.append((name, path))
-    return arms
+def load_manifest():
+    with open(MANIFEST) as fh:
+        m = json.load(fh)
+    arms = [a["key"] for a in m["arms"]]
+    queries = [(q["id"], q.get("primary_file")) for q in m["queries"]]
+    if len(set(arms)) != len(arms):
+        die("manifest has duplicate arm keys")
+    ids = [q[0] for q in queries]
+    if len(set(ids)) != len(ids):
+        die("manifest has duplicate query ids")
+    return arms, queries
+
+
+def recompute_rank(primary, groups):
+    """1-based position of primary_file among the archived ordered groups."""
+    ordered = sorted(groups, key=lambda g: g.get("rank", 1 << 30))
+    for g in ordered:
+        if g.get("file") == primary:
+            return g.get("rank")
+    return None
 
 
 def main():
@@ -75,83 +62,136 @@ def main():
         sys.exit(2)
     run_dir = sys.argv[1]
     if not os.path.isdir(run_dir):
-        print(f"error: {run_dir} is not a directory")
-        sys.exit(2)
+        die(f"{run_dir} is not a directory")
 
-    frozen_path = os.path.join(run_dir, "frozen-input-manifest.json")
-    if os.path.exists(frozen_path):
-        with open(frozen_path) as fh:
-            frozen = json.load(fh)
-        print(f"run_identity: {frozen.get('run_identity', '?')}")
-        s = frozen.get("settings", {})
-        print(f"settings:     {s.get('profile_identity','?')} "
-              f"chunk {s.get('chunk_chars','?')}/{s.get('chunk_overlap','?')} "
-              f"concurrency {s.get('concurrency','?')}")
-        print(f"corpus:       {frozen.get('file_count','?')} markdown files")
+    arms, queries = load_manifest()
+    expected_ids = [qid for qid, _ in queries]
+    expected_files = {f"{qid}.json" for qid in expected_ids}
+    primary_by_id = dict(queries)
+
+    frozen = os.path.join(run_dir, "frozen-input-manifest.json")
+    if os.path.exists(frozen):
+        with open(frozen) as fh:
+            fm = json.load(fh)
+        print(f"run_identity: {fm.get('run_identity', '?')}")
+        s = fm.get("settings", {})
+        print(f"settings:     {s.get('profile_identity','?')} chunk "
+              f"{s.get('chunk_chars','?')}/{s.get('chunk_overlap','?')} "
+              f"concurrency {s.get('concurrency','?')} "
+              f"fetch {s.get('raw_fetch_limit','?')}/coalesce {s.get('coalesce_limit','?')}")
+        print(f"model files hashed: {len(fm.get('model_files', []))}")
         print()
 
-    arms = find_arm_dirs(run_dir)
-    if not arms:
-        print(f"error: no arm directories with q*.json under {run_dir}")
-        sys.exit(2)
+    errors = []
+    per_arm = {}
+    for arm in arms:
+        armdir = os.path.join(run_dir, arm)
+        if not os.path.isdir(armdir):
+            errors.append(f"arm '{arm}': directory missing")
+            continue
+        present = {f for f in os.listdir(armdir)
+                   if f.startswith("q") and f.endswith(".json")}
+        missing = expected_files - present
+        unexpected = present - expected_files
+        if missing:
+            errors.append(f"arm '{arm}': missing results {sorted(missing)}")
+        if unexpected:
+            errors.append(f"arm '{arm}': unexpected results {sorted(unexpected)}")
 
-    scored = {}
-    per_query_ranks = {}
-    no_answer = {}
-    for arm, path in arms:
-        results = load_arm(path)
-        scored[arm] = score_arm(results)
-        for r in results:
-            if r.get("is_no_answer"):
-                top = (r.get("top_groups") or [{}])[0]
-                no_answer.setdefault(r["id"], {})[arm] = (
-                    os.path.basename(top.get("file", "-") or "-"),
-                    top.get("best_score"),
-                )
-            else:
-                per_query_ranks.setdefault(r["id"], {})[arm] = r.get("file_rank")
+        results = {}
+        for qid in expected_ids:
+            path = os.path.join(armdir, f"{qid}.json")
+            if not os.path.exists(path):
+                continue
+            try:
+                with open(path) as fh:
+                    results[qid] = json.load(fh)
+            except (json.JSONDecodeError, OSError) as exc:
+                errors.append(f"arm '{arm}' {qid}: corrupt ({exc})")
+        per_arm[arm] = results
 
-    arm_names = [a for a, _ in arms]
+    if errors:
+        for e in errors:
+            print(f"error: {e}", file=sys.stderr)
+        die("archive is incomplete or corrupt; refusing to score")
 
-    # Aggregate table.
-    print("== Aggregate (answered queries only) ==")
-    header = f"{'arm':<12} {'rank1':>6} {'top3':>6} {'top5':>6} {'MRR':>7} {'pass':>6}  n"
+    # Recompute ranks and metrics.
+    print("== Aggregate (answered queries only; rank recomputed from archived groups) ==")
+    header = f"{'arm':<14} {'rank1':>6} {'top3':>6} {'top5':>6} {'MRR':>7} {'pass':>6}  n"
     print(header)
     print("-" * len(header))
-    for arm in arm_names:
-        m = scored[arm]
-        print(f"{arm:<12} {m['rank1']:>6} {m['top3']:>6} {m['top5']:>6} "
-              f"{m['mrr']:>7.3f} {m['pass']:>6}  {m['answered']}")
+    per_query_ranks = {}
+    no_answer = {}
+    mismatches = []
+    for arm in arms:
+        results = per_arm[arm]
+        answered = 0
+        r1 = r3 = r5 = passed = 0
+        mrr = 0.0
+        for qid in expected_ids:
+            r = results[qid]
+            primary = primary_by_id[qid]
+            if primary is None:
+                top = (sorted(r.get("groups", []), key=lambda g: g.get("rank", 1 << 30)) or [{}])
+                top = top[0] if top else {}
+                no_answer.setdefault(qid, {})[arm] = (
+                    os.path.basename(top.get("file", "-") or "-"), top.get("best_score"))
+                continue
+            answered += 1
+            rank = recompute_rank(primary, r.get("groups", []))
+            stored = r.get("file_rank")
+            if rank != stored:
+                mismatches.append(f"{arm} {qid}: recomputed rank {rank} != stored {stored}")
+            per_query_ranks.setdefault(qid, {})[arm] = rank
+            if rank is not None:
+                mrr += 1.0 / rank
+                if rank == 1:
+                    r1 += 1
+                if rank <= 3:
+                    r3 += 1
+                if rank <= 5:
+                    r5 += 1
+            if (r.get("primary_audit") or {}).get("all_criteria_met") is True:
+                passed += 1
+        n = answered or 1
+        print(f"{arm:<14} {r1:>6} {r3:>6} {r5:>6} {mrr / n:>7.3f} {passed:>6}  {answered}")
     print()
 
-    # Per-query file rank.
     print("== Per-query file rank (answered) ==")
-    hdr = f"{'query':<8}" + "".join(f"{a:>14}" for a in arm_names)
+    hdr = f"{'query':<8}" + "".join(f"{a:>16}" for a in arms)
     print(hdr)
     print("-" * len(hdr))
-    for qid in sorted(per_query_ranks):
+    for qid in expected_ids:
+        if qid not in per_query_ranks:
+            continue
         row = f"{qid:<8}"
-        for arm in arm_names:
+        for arm in arms:
             rk = per_query_ranks[qid].get(arm)
-            row += f"{(rk if rk is not None else '—'):>14}"
+            row += f"{(rk if rk is not None else '—'):>16}"
         print(row)
     print()
 
-    # No-answer probes.
     if no_answer:
         print("== No-answer probes (top file / score; no cutoff) ==")
-        for qid in sorted(no_answer):
+        for qid in expected_ids:
+            if qid not in no_answer:
+                continue
             print(f"{qid}:")
-            for arm in arm_names:
+            for arm in arms:
                 cell = no_answer[qid].get(arm)
                 if cell:
                     fname, score = cell
                     score_s = f"{score:.3f}" if isinstance(score, (int, float)) else "-"
-                    print(f"    {arm:<12} {fname}  ({score_s})")
+                    print(f"    {arm:<14} {fname}  ({score_s})")
         print()
 
-    print("File rank is authoritative. 'pass' is an advisory passage-criteria "
-          "check and does not gate rank.")
+    if mismatches:
+        print("WARNING: recomputed rank disagrees with stored file_rank:", file=sys.stderr)
+        for m in mismatches:
+            print(f"  {m}", file=sys.stderr)
+
+    print("File rank is authoritative (recomputed from archived groups). "
+          "'pass' is an advisory embedded-text passage check and does not gate rank.")
 
 
 if __name__ == "__main__":
