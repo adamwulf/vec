@@ -54,13 +54,19 @@ authoritative signal. `passage_criteria` are advisory, human-checkable
 strings the best passage should contain. The harness records TWO
 case-insensitive checks per criterion, kept distinct:
 
-* `matched_in_embedded` — the criterion against the **effective embedded
-  text** of the retrieved chunk. The chunk is re-extracted by its ordinal
-  and capped at the E5 char limit (2000), exactly what the model saw. This
-  is the one `all_criteria_met` uses, so a whole-document chunk truncated
-  to its first 2000 chars can never falsely claim deep evidence.
+* `matched_in_pre_tokenizer_input` — the criterion against the
+  **pre-tokenizer model input** for the retrieved chunk: the chunk is
+  re-extracted by its ordinal and passed through the same
+  `normalizeBertInputs` the embedder uses (content capped at the E5 char
+  limit, then the `passage: ` prefix). This is the one `all_criteria_met`
+  uses. **Caveat:** the BERT tokenizer then truncates to 512 tokens
+  (fewer characters than the char cap), so a match here is *necessary but
+  not sufficient* evidence the model encoded the term — the harness does
+  not run the tokenizer, so it never claims exact effective-embedded
+  evidence. It still prevents a whole-document chunk from claiming deep
+  evidence beyond the char cap.
 * `matched_in_source_range` — the criterion against the chunk's source
-  line range (a **superset** of the embedded chunk; the whole file for a
+  line range (a **superset** of the chunk; the whole file for a
   whole-document chunk). Advisory only.
 
 A human audits a passage by opening the source file at the recorded
@@ -117,8 +123,10 @@ the plain `swift test` sandbox blocks the local model read.
   in the model directory** — is hashed into `frozen-input-manifest.json`
   **before** any indexing or search runs. The model files are hashed
   directly (a claimed revision string alone is not trusted). Build
-  identity (debug/release, OS, host, cores) is recorded too. A
-  `run_identity` SHA binds corpus + model + manifest + settings together.
+  identity is recorded too: debug/release, OS, host, cores, `swift
+  --version`, git HEAD, git dirty status (tracked files only), and the
+  `Package.resolved` SHA256. The `run_identity` SHA binds corpus + model
+  + manifest + ALL settings (encoded with sorted keys) together.
 * **Fail on partial index.** After each arm the runner requires EVERY file
   to be `.indexed` with zero failed chunks; any skip or partial embed
   failure aborts the run rather than emitting a quality result on a

@@ -292,33 +292,38 @@ final class MarkdownRetrievalExperimentTests: XCTestCase {
                 let ords = try await ordinals(primary)
                 let ordinal = ords[best.chunkId]
 
-                // Content evidence: the EFFECTIVE embedded text of the retrieved
-                // chunk (re-extracted via ordinal, capped at the E5 char limit —
-                // exactly what normalizeBertInputs fed the model). This avoids
-                // falsely claiming deep evidence for a whole-doc chunk that was
-                // truncated to the first \(E5BaseEmbedder.maxInputCharacters) chars.
-                var embedded = ""
+                // Pre-tokenizer model input for the retrieved chunk: EXACTLY
+                // the string the indexing path fed the tokenizer — content
+                // capped at the E5 char limit, then the "passage: " document
+                // prefix — produced by the SAME normalizeBertInputs the embedder
+                // uses. This is a PRE-TOKENIZER check: the BERT tokenizer then
+                // truncates to 512 tokens (fewer chars than the char cap), so a
+                // match here is NECESSARY but NOT SUFFICIENT evidence the model
+                // encoded the term. It never over-claims a whole-doc chunk that
+                // was truncated, and it is advisory (does not gate file rank).
+                var preTokenizerInput = ""
                 if let ordinal, ordinal >= 1 {
                     let chunks = try extractedChunks(primary)
                     if ordinal <= chunks.count {
-                        let t = chunks[ordinal - 1].text.trimmingCharacters(in: .whitespacesAndNewlines)
-                        embedded = String(t.prefix(E5BaseEmbedder.maxInputCharacters))
+                        preTokenizerInput = normalizeBertInputs(
+                            [chunks[ordinal - 1].text], prefix: "passage: ",
+                            maxChars: E5BaseEmbedder.maxInputCharacters).liveInputs.first ?? ""
                     }
                 }
-                // Advisory source-range text (superset of the embedded chunk).
+                // Advisory source-range text (a superset of the chunk).
                 let sourceRange = reconstructSourceRange(primary: primary, match: best, snapshotRoot: snapshotRoot, cache: &lineCache)
 
                 var crits: [CriterionResult] = []
                 for c in q.passage_criteria {
                     crits.append(CriterionResult(type: c.type, value: c.value,
-                                                 matched_in_embedded: matches(c, in: embedded),
+                                                 matched_in_pre_tokenizer_input: matches(c, in: preTokenizerInput),
                                                  matched_in_source_range: matches(c, in: sourceRange)))
                 }
                 audit = PrimaryAudit(
                     file_rank: idx + 1, best_score: groups[idx].bestScore, distance: best.distance,
                     chunk_type: best.chunkType.rawValue, line_start: best.lineStart, line_end: best.lineEnd,
-                    chunk_ordinal: ordinal, embedded_chars: embedded.count, criteria: crits,
-                    all_criteria_met: !crits.isEmpty && crits.allSatisfy { $0.matched_in_embedded })
+                    chunk_ordinal: ordinal, input_chars: preTokenizerInput.count, criteria: crits,
+                    all_criteria_met: !crits.isEmpty && crits.allSatisfy { $0.matched_in_pre_tokenizer_input })
             }
 
             let result = QueryResult(
@@ -425,10 +430,36 @@ final class MarkdownRetrievalExperimentTests: XCTestCase {
         #else
         let config = "release"
         #endif
-        return BuildIdentity(configuration: config,
-                             os_version: ProcessInfo.processInfo.operatingSystemVersionString,
-                             active_processor_count: ProcessInfo.processInfo.activeProcessorCount,
-                             host_name: ProcessInfo.processInfo.hostName)
+        let repo = Self.repoRoot()
+        let head = runCommand("/usr/bin/git", ["rev-parse", "HEAD"], cwd: repo)
+        // `-uno`: ignore untracked files (e.g. an in-repo output dir) so the
+        // flag reflects the reviewed SOURCE tree, not run artifacts.
+        let dirty = runCommand("/usr/bin/git", ["status", "--porcelain", "-uno"], cwd: repo).map { !$0.isEmpty }
+        let resolved = repo.appendingPathComponent("Package.resolved")
+        let resolvedSHA = FileManager.default.fileExists(atPath: resolved.path) ? (try? sha256File(resolved).hex) : nil
+        return BuildIdentity(
+            configuration: config,
+            os_version: ProcessInfo.processInfo.operatingSystemVersionString,
+            active_processor_count: ProcessInfo.processInfo.activeProcessorCount,
+            host_name: ProcessInfo.processInfo.hostName,
+            swift_version: runCommand("/usr/bin/env", ["swift", "--version"]),
+            git_head: head, git_dirty: dirty, package_resolved_sha256: resolvedSHA)
+    }
+
+    /// Best-effort subprocess capture (nil on any failure or non-zero exit).
+    private func runCommand(_ launchPath: String, _ args: [String], cwd: URL? = nil) -> String? {
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: launchPath)
+        p.arguments = args
+        if let cwd { p.currentDirectoryURL = cwd }
+        let out = Pipe()
+        p.standardOutput = out
+        p.standardError = FileHandle.nullDevice
+        do { try p.run() } catch { return nil }
+        let data = out.fileHandleForReading.readDataToEndOfFile()
+        p.waitUntilExit()
+        guard p.terminationStatus == 0 else { return nil }
+        return String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     // MARK: - Audit helpers
@@ -503,7 +534,7 @@ final class MarkdownRetrievalExperimentTests: XCTestCase {
             s += "\(fmt3(a.metrics.mean_reciprocal_rank)) | \(pct(a.metrics.passage_all_met_rate)) | \(a.total_chunks) | "
             s += "\(fmt2(a.index_seconds)) | \(fmt2(a.search_seconds)) | \(fmtMB(a.rss_after_index_bytes)) |\n"
         }
-        s += "\n> File rank is authoritative. `passage-all-met` is an advisory, case-insensitive check of the criteria against the EFFECTIVE embedded chunk text (capped at the E5 char limit); it does not gate file rank.\n\n"
+        s += "\n> File rank is authoritative. `passage-all-met` is an advisory, case-insensitive check of the criteria against the PRE-TOKENIZER model input (content capped at the E5 char limit, then the `passage: ` prefix). The BERT tokenizer truncates further to 512 tokens, so a match here is necessary but NOT sufficient evidence the model encoded the term; it does not gate file rank.\n\n"
 
         let keys = comparison.arms
         s += "## Per-query file rank (answered)\n\n| query | " + keys.map { "\($0) rank" }.joined(separator: " | ") + " |\n"
@@ -587,7 +618,13 @@ final class MarkdownRetrievalExperimentTests: XCTestCase {
         var parts = files.map { "corpus:\($0.path):\($0.sha256)" }
         parts += modelFiles.map { "model:\($0.path):\($0.sha256)" }
         parts.append("manifest:\(manifestSHA)")
-        parts.append("settings:\(settings.profile_identity)/\(settings.chunk_chars)/\(settings.chunk_overlap)/\(settings.concurrency)/\(settings.batch_size)/\(settings.bucket_width)")
+        // Encode ALL settings via sorted-key JSON so every field (dimension,
+        // compute_policy, search/coalesce/fetch limits, batch/bucket, …) is
+        // bound into the identity — not a hand-picked subset.
+        let enc = JSONEncoder()
+        enc.outputFormatting = [.sortedKeys]
+        let settingsJSON = (try? enc.encode(settings)).flatMap { String(data: $0, encoding: .utf8) } ?? ""
+        parts.append("settings:\(settingsJSON)")
         return sha256Hex(Data(parts.sorted().joined(separator: "\n").utf8))
     }
 
@@ -734,6 +771,7 @@ struct FrozenSettings: Codable {
 
 struct BuildIdentity: Codable {
     let configuration: String; let os_version: String; let active_processor_count: Int; let host_name: String
+    let swift_version: String?; let git_head: String?; let git_dirty: Bool?; let package_resolved_sha256: String?
 }
 
 struct NormalizationFile: Codable { let path: String; let raw_chars: Int; let normalized_chars: Int; let reduction_ratio: Double }
@@ -759,11 +797,19 @@ struct ArchivedGroup: Codable {
 }
 
 struct CriterionResult: Codable {
-    let type: String; let value: String; let matched_in_embedded: Bool; let matched_in_source_range: Bool
+    let type: String; let value: String
+    /// Matched in the PRE-TOKENIZER model input (content capped at the E5
+    /// char limit + "passage: " prefix). The tokenizer truncates further to
+    /// 512 tokens, so this is necessary-but-not-sufficient evidence.
+    let matched_in_pre_tokenizer_input: Bool
+    /// Matched in the chunk's source line range (a superset). Advisory.
+    let matched_in_source_range: Bool
 }
 struct PrimaryAudit: Codable {
     let file_rank: Int; let best_score: Double; let distance: Double; let chunk_type: String
-    let line_start: Int?; let line_end: Int?; let chunk_ordinal: Int?; let embedded_chars: Int
+    let line_start: Int?; let line_end: Int?; let chunk_ordinal: Int?
+    /// Length of the pre-tokenizer input string audited (content + prefix).
+    let input_chars: Int
     let criteria: [CriterionResult]; let all_criteria_met: Bool
 }
 
