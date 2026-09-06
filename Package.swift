@@ -13,11 +13,10 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
         .package(url: "https://github.com/jkrukowski/swift-embeddings", from: "0.0.26"),
-        // swift-markdown publishes no semantic-version tags; it ships
-        // toolchain-aligned release branches instead. Track the branch that
-        // matches the Swift 6.2 toolchain; Package.resolved pins the exact
-        // revision for reproducible builds.
-        .package(url: "https://github.com/apple/swift-markdown", branch: "release/6.2")
+        // swift-markdown publishes SemVer tags alongside its toolchain
+        // release branches. 0.8.0 declares swift-tools-version 6.2, matching
+        // our toolchain; Package.resolved pins the exact resolved version.
+        .package(url: "https://github.com/swiftlang/swift-markdown", from: "0.8.0")
     ],
     targets: [
         .systemLibrary(
