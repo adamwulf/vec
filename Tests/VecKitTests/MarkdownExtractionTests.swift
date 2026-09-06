@@ -59,7 +59,13 @@ final class MarkdownExtractionTests: XCTestCase {
                 let end = try XCTUnwrap(passage.lineEnd)
                 XCTAssertTrue((1...lines.count).contains(start))
                 XCTAssertTrue((start...lines.count).contains(end))
-                for number in 1...12 where passage.text.contains("cue\(number) ") {
+                // A chunk can end immediately after a cue label. Check whole
+                // tokens rather than requiring whitespace inside the chunk.
+                let labels = passage.text.split { !$0.isLetter && !$0.isNumber }.compactMap { token -> Int? in
+                    guard token.hasPrefix("cue") else { return nil }
+                    return Int(token.dropFirst(3))
+                }
+                for number in labels {
                     XCTAssertTrue((start...end).contains(number), "Wrong source range for cue\(number): \(start)-\(end)")
                     seen.insert(number)
                 }
