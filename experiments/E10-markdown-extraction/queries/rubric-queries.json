@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "experiment": "E10-markdown-extraction",
+  "description": "Fixed retrieval-query manifest for E10. Compares two TextExtractor arms (raw / markdownV1) against ONE identical corpus snapshot, embedder, chunk geometry and concurrency. Labels (relevant files + passage criteria) were assigned by reading each document BEFORE any ranking was observed, and are frozen once committed. This file is the single source of truth for the queries; the harness reads it, never the prose.",
+  "corpus": {
+    "source_default": "/tmp/LinksDatabase",
+    "source_env": "VEC_MARKDOWN_CORPUS_DIRECTORY",
+    "scope": "Markdown-only (*.md). Includes the large NPR asset assets/riot-data.md (~2.5 MB). Excludes every non-Markdown asset: transcript.json, content.json, info.json, activities.json, properties.json, *.webloc, *.vtt, *.strings, and all images/OCR. No JSON and no OCR assets are indexed.",
+    "expected_markdown_files": 9,
+    "saved_items": 8,
+    "notes": "Each of the 8 saved items exposes one content.md. riot-data.md is a 9th Markdown file (an asset of the NPR Jan-6 item). Nine files total: top10 recall is uninformative at this size, so scoring uses rank1 / top3 / top5 / MRR only."
+  },
+  "arms": [
+    { "key": "raw", "text_extraction": "raw", "label": "raw / current extraction" },
+    { "key": "markdownV1", "text_extraction": "markdownV1", "label": "generic Markdown normalization (MarkdownV1)" }
+  ],
+  "fixed_settings": {
+    "profile_identity": "e5-base@1200/0",
+    "embedder": "e5-base-v2",
+    "dimension": 768,
+    "chunk_chars": 1200,
+    "chunk_overlap": 0,
+    "concurrency": 8,
+    "note": "Both arms share this exact profile, this exact snapshot, and this concurrency. Only the TextExtractor text-extraction mode differs. No format-specific database behavior is introduced."
+  },
+  "metrics": {
+    "primary": ["rank1", "top3", "top5", "mrr"],
+    "avoid": ["top10 recall (only 9 files; uninformative)"],
+    "no_answer_handling": "For a no-answer probe the harness records the top file groups and their scores (score = 1 - cosine distance) for manual inspection. It does NOT apply a cosine cutoff and makes no automatic pass/fail claim about absence."
+  },
+  "labeling": {
+    "method": "relevant_files and passage_criteria were assigned from document content BEFORE any ranking output was seen. File rank is the automatic, authoritative signal. Passage criteria are advisory, human-checkable strings the best-matching passage should contain. The harness runs a best-effort, case-insensitive check of each criterion against the retrieved passage (reconstructed from its source line range) and the stored content preview, and records that result SEPARATELY from file rank."
+  },
+  "search": {
+    "coalesce_limit": 10,
+    "raw_fetch_limit": 50,
+    "note": "Uses the real file-group search semantics (SearchResultCoalescer.coalesce). raw_fetch_limit overfetches chunk hits so overfetch diversity and source ranges can be recorded WITHOUT changing the coalesced file ranking."
+  },
+  "queries": [
+    {
+      "id": "q01",
+      "text": "How many people were federally charged in the January 6 Capitol riot?",
+      "categories": ["item-coverage", "exact-count"],
+      "primary_file": "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/content.md",
+      "relevant_files": ["Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/content.md"],
+      "passage_criteria": [
+        { "type": "contains", "value": "1,575", "case_sensitive": false, "note": "aggregate federal-charge count lives only in the summary" },
+        { "type": "regex", "value": "Number of people charged", "case_sensitive": false, "note": "summary overview line" }
+      ],
+      "rationale": "The aggregate counts (1,575 charged, 1,030 pleaded guilty, median 240 days) appear in the NPR item summary content.md, NOT in the per-defendant riot-data.md. Tests summary-vs-raw-data separation."
+    },
+    {
+      "id": "q02",
+      "text": "January 6 defendants affiliated with the American Patriot 3% anti-government militia",
+      "categories": ["item-coverage", "deep-detail", "exact-term", "large-file-passage"],
+      "primary_file": "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md",
+      "relevant_files": ["Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md"],
+      "passage_criteria": [
+        { "type": "contains", "value": "American Patriot 3%", "case_sensitive": false, "note": "group name appears only in the per-defendant records" }
+      ],
+      "rationale": "The specific militia affiliation is a per-defendant detail found only in the 2.5 MB riot-data.md, not the summary. Probes whether a small relevant passage in a very large file can be retrieved, and whether it coalesces to the right file despite many chunks."
+    },
+    {
+      "id": "q03",
+      "text": "describing an idea to friends as a fractal of thoughts",
+      "categories": ["item-coverage", "vague-recollection", "exact-phrase"],
+      "primary_file": "Quotes/1dbf32f4-36c1-8005-84b9-e77330335df2.localized/content.md",
+      "relevant_files": ["Quotes/1dbf32f4-36c1-8005-84b9-e77330335df2.localized/content.md"],
+      "passage_criteria": [
+        { "type": "contains", "value": "fractal of thoughts", "case_sensitive": false, "note": "the saved quote" }
+      ],
+      "rationale": "Short saved quote. Chosen partly to sit near the 'Fractional Indexing' Figma item (fractal / fractional token overlap) as a discrimination test."
+    },
+    {
+      "id": "q04",
+      "text": "Minecraft building episode about creating atmosphere after a Thanksgiving break",
+      "categories": ["item-coverage", "deep-transcript-detail"],
+      "primary_file": "YouTube/__h_aNi5UeY.localized/content.md",
+      "relevant_files": ["YouTube/__h_aNi5UeY.localized/content.md"],
+      "passage_criteria": [
+        { "type": "contains", "value": "atmosphere", "case_sensitive": false, "note": "episode title / theme" },
+        { "type": "contains", "value": "Thanksgiving", "case_sensitive": false, "note": "spoken detail near the start of the transcript" }
+      ],
+      "rationale": "BdoubleO100 'Creating Atmosphere :: ep 313'. Sits next to the other Minecraft video (q06) as a discrimination test; 'Thanksgiving' is a deep spoken detail, not in the title."
+    },
+    {
+      "id": "q05",
+      "text": "grinding your own high-speed steel lathe tool bits on a bench grinder",
+      "categories": ["item-coverage", "deep-transcript-detail", "exact-term"],
+      "primary_file": "YouTube/__A2xtLF0AU.localized/content.md",
+      "relevant_files": ["YouTube/__A2xtLF0AU.localized/content.md"],
+      "passage_criteria": [
+        { "type": "contains", "value": "high-speed steel", "case_sensitive": false, "note": "core subject of the video" },
+        { "type": "contains", "value": "bench grinder", "case_sensitive": false, "note": "spoken tooling detail" }
+      ],
+      "rationale": "This Old Tony 'Grinding HSS Tools'. Machining terminology as an exact-term probe."
+    },
+    {
+      "id": "q06",
+      "text": "accidentally logged into CallMeKevin's account and played Minecraft as Jim Pickens",
+      "categories": ["item-coverage", "deep-transcript-detail", "exact-name"],
+      "primary_file": "YouTube/__4ZMGgQqKE.localized/content.md",
+      "relevant_files": ["YouTube/__4ZMGgQqKE.localized/content.md"],
+      "passage_criteria": [
+        { "type": "contains", "value": "jim pickens", "case_sensitive": false, "note": "persona played in the video (transcript is lower-cased)" },
+        { "type": "contains", "value": "call me kevin", "case_sensitive": false, "note": "account/persona referenced throughout" }
+      ],
+      "rationale": "Anna Rudolf 'I accidentally stole CallMeKevin's account'. Second Minecraft video: tests discrimination against q04. Exact persona names present only in lower-cased transcript text."
+    },
+    {
+      "id": "q07",
+      "text": "fractional indexing to reorder items in a realtime collaborative editor",
+      "categories": ["item-coverage", "exact-term", "deep-detail"],
+      "primary_file": "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+      "relevant_files": ["Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md"],
+      "passage_criteria": [
+        { "type": "contains", "value": "fractional indexing", "case_sensitive": false, "note": "the technique named in the article" },
+        { "type": "regex", "value": "operational transformation|ordered sequence", "case_sensitive": false, "note": "related concepts in the same article" }
+      ],
+      "rationale": "Figma 'Realtime Editing of Ordered Sequences'. Exact technical-term probe; contrasts with the 'fractal of thoughts' quote (q03)."
+    },
+    {
+      "id": "q08",
+      "text": "how to set LOCALIZED_STRING_MACRO_NAMES for a Swift package target",
+      "categories": ["item-coverage", "exact-term", "code-term"],
+      "primary_file": "Notion/000fceb0-cc8c-4e17-b0eb-18df5026ff25.localized/content.md",
+      "relevant_files": ["Notion/000fceb0-cc8c-4e17-b0eb-18df5026ff25.localized/content.md"],
+      "passage_criteria": [
+        { "type": "contains", "value": "LOCALIZED_STRING_MACRO_NAMES", "case_sensitive": false, "note": "verbatim build-setting name" },
+        { "type": "regex", "value": "Bundle\\.module|String Catalog", "case_sensitive": false, "note": "supporting code/context terms" }
+      ],
+      "rationale": "Apple Developer Forums thread. Verbatim uppercase code identifier as an exact-code-term probe."
+    },
+    {
+      "id": "q09",
+      "text": "Runestone iOS text editor using Tree-sitter for syntax highlighting",
+      "categories": ["item-coverage", "exact-name", "code-term"],
+      "primary_file": "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+      "relevant_files": ["Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md"],
+      "passage_criteria": [
+        { "type": "contains", "value": "Runestone", "case_sensitive": false, "note": "project name" },
+        { "type": "contains", "value": "Tree-sitter", "case_sensitive": false, "note": "parser dependency named in the README" }
+      ],
+      "rationale": "simonbs/Runestone README. Proper-noun / library-name exact-match probe."
+    },
+    {
+      "id": "q10",
+      "text": "how do you keep a shared list in the same order when several people rearrange it at the same time",
+      "categories": ["vague-recollection"],
+      "primary_file": "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+      "relevant_files": ["Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md"],
+      "passage_criteria": [
+        { "type": "regex", "value": "ordered sequence|reorder|fractional|operational transformation|eventual", "case_sensitive": false, "note": "advisory: concept words the passage should contain" }
+      ],
+      "rationale": "Pure natural-language phrasing of the Figma article's problem, with no jargon. Tests whether the concept is retrievable without the exact terms used in q07."
+    },
+    {
+      "id": "q11",
+      "text": "sourdough bread starter hydration ratio",
+      "categories": ["no-answer"],
+      "primary_file": null,
+      "relevant_files": [],
+      "passage_criteria": [],
+      "rationale": "Far-from-corpus no-answer probe. Record top file groups + scores only; no cosine cutoff assumed."
+    },
+    {
+      "id": "q12",
+      "text": "set up a Kubernetes ingress controller with TLS termination",
+      "categories": ["no-answer", "adjacent-tech"],
+      "primary_file": null,
+      "relevant_files": [],
+      "passage_criteria": [],
+      "rationale": "No-answer probe adjacent to the software items but on a topic (devops/k8s) no document covers. Record scores; no cutoff assumed."
+    },
+    {
+      "id": "q13",
+      "text": "Sicilian Najdorf chess opening theory",
+      "categories": ["no-answer", "metadata-trap"],
+      "primary_file": null,
+      "relevant_files": [],
+      "passage_criteria": [],
+      "rationale": "No document is ABOUT chess. The Anna Rudolf item (q06) carries incidental promotional chess links (chessable.com, @anna_chess) in its raw text. Designed to expose whether raw extraction surfaces promotional link text that markdownV1 normalization drops. Record which files surface and their scores; no cutoff assumed."
+    }
+  ]
+}
