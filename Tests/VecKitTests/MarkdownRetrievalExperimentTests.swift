@@ -598,7 +598,10 @@ final class MarkdownRetrievalExperimentTests: XCTestCase {
         s += "| query | " + armKeys.map { "\($0) rank" }.joined(separator: " | ") + " |\n"
         s += "|---|" + armKeys.map { _ in "---" }.joined(separator: "|") + "|\n"
         for row in comparison.per_query where !row.is_no_answer {
-            let cells = armKeys.map { row.arms[$0]?.file_rank.map(String.init) ?? "—" }
+            let cells = armKeys.map { key -> String in
+                if let rank = row.arms[key]?.file_rank { return String(rank) }
+                return "—"
+            }
             s += "| \(row.id) | " + cells.joined(separator: " | ") + " |\n"
         }
 
