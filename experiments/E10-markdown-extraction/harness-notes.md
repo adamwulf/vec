@@ -104,12 +104,25 @@ VEC_E10_BENCHMARK=1 \
 VEC_MARKDOWN_MODEL_DIRECTORY=/private/tmp/vec-e10-model/<revision> \
 VEC_MARKDOWN_MODEL_REVISION=<revision> \
 VEC_E10_OUTPUT_DIRECTORY="$PWD/experiments/E10-markdown-extraction/runs/$(date +%Y%m%d-%H%M%S)" \
-swift test --disable-sandbox \
+swift test --disable-sandbox --disable-swift-testing -c release -j 4 \
   --filter VecKitTests.MarkdownRetrievalExperimentTests
 ```
 
-`--disable-sandbox` matches the parent dependency-resolve flag; use it if
-the plain `swift test` sandbox blocks the local model read.
+Flags:
+* `--disable-sandbox` matches the parent dependency-resolve flag; use it if
+  the plain `swift test` sandbox blocks the local model read.
+* `--disable-swift-testing` avoids a release-runner issue: with `-c release`
+  the extra Swift Testing launcher invokes the `vec` executable with an
+  unknown `--test-bundle-path`, so the process exits 1 *after* the XCTest
+  cases already passed. This benchmark (and every E10 test) is XCTest-only,
+  so disabling Swift Testing removes no E10 tests. `-c release` also makes
+  the heavy run materially faster (debug builds pay the O(n²) line-recovery
+  cost on the large `riot-data.md` far more).
+
+The non-gated preflight tests run the same way without the env vars:
+`swift test --disable-sandbox --disable-swift-testing --filter MarkdownRetrievalManifestTests`.
+Re-score / regression-test the Python scorer with
+`python3 scripts/test_score_markdown_rubric.py`.
 
 ## Freeze, resume, and provenance
 

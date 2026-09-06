@@ -24,7 +24,7 @@
     "batch_size": 32,
     "bucket_width": 500,
     "compute_policy": "default (nil)",
-    "note": "Both arms share this exact profile, snapshot, concurrency, batch/bucket, and compute policy. Only the TextExtractor text-extraction mode differs. No format-specific database behavior is introduced. The arm text_extraction values are the exact TextExtractionMode raw values (raw, markdown-v1); the harness preflights every arm mode before any indexing."
+    "note": "PLANNED/REFERENCE settings for humans; they may drift from the library's IndexingPipeline defaults over time. The AUTHORITATIVE actual values for any run are recorded in that run's frozen-input-manifest.json (settings block), captured before ranking. Both arms share one profile, snapshot, concurrency, batch/bucket, and compute policy; only the TextExtractor text-extraction mode differs, and no format-specific database behavior is introduced. The arm text_extraction values are the exact TextExtractionMode raw values (raw, markdown-v1); the harness preflights every arm mode before any indexing."
   },
   "metrics": {
     "primary": ["rank1", "top3", "top5", "mrr"],

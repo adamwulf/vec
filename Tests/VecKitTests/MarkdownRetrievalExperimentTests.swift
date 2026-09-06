@@ -301,6 +301,12 @@ final class MarkdownRetrievalExperimentTests: XCTestCase {
                 // match here is NECESSARY but NOT SUFFICIENT evidence the model
                 // encoded the term. It never over-claims a whole-doc chunk that
                 // was truncated, and it is advisory (does not gate file rank).
+                //
+                // NOTE: "passage: " duplicates E5BaseEmbedder.documentPrefix,
+                // which is private, so it cannot be referenced here. It matches
+                // the current frozen E5 source; if E5's document prefix or char
+                // cap ever changes, this audit literal must be updated in step.
+                // Production inference is left untouched.
                 var preTokenizerInput = ""
                 if let ordinal, ordinal >= 1 {
                     let chunks = try extractedChunks(primary)
