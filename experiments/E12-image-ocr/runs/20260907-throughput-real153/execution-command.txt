@@ -1,0 +1,19 @@
+# E12 execution command + resolved provenance
+command (representative):
+  VEC_E12_BENCHMARK=1 \
+  VEC_E12_OCR_CORPUS_DIRECTORY=/private/tmp/claude-501/-Users-adamwulf-Developer-swift-packages-vec--ittybitty-agents-agent-f8aa66db-repo/91835659-86b0-4cd7-ac45-ee4ecc3c0c19/scratchpad/real-sample-150 \
+  VEC_E12_OCR_JOBS=1,4,8 VEC_E12_TARGET_COUNT=325000 \
+  VEC_E12_OCR_OUTPUT_DIRECTORY=/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/experiments/E12-image-ocr/runs/20260907-throughput-real153 \
+  swift test --disable-sandbox --disable-swift-testing -c release -j 4 \
+    --filter VecKitTests.ImageOCRRetrievalExperimentTests/testImageOCRThroughputBenchmark
+
+corpus: /private/tmp/claude-501/-Users-adamwulf-Developer-swift-packages-vec--ittybitty-agents-agent-f8aa66db-repo/91835659-86b0-4cd7-ac45-ee4ecc3c0c19/scratchpad/real-sample-150  images: 153
+git_head: 69dec5caaa9ec10452928123533544be2edaa3c9  git_dirty: Optional(false)
+package_resolved_sha256: d3dad0550daef3df320799330ec5b6b8ee49e8772ce2fde1a1a0e3aa796bb10c
+os_version: Version 26.6.2 (Build 25G83)  cores: 10  host: adams-macbook-pro-9.local
+swift: Apple Swift version 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2)
+Target: arm64-apple-macosx26.0
+recognizer_version: 1  request_revision: 3  max_pixel_dimension: 4096  jobs: [1, 4, 8]
+frozen images: 153 (sha256-pinned snapshot; both passes read identical bytes)
+cache mode: cold = fresh dir + fresh cache instance; warm = same dir + FRESH ImageOCRCache instance (resident LRU empty -> disk-sidecar reads). NOT a fresh process: RSS + Vision caches persist across cold/warm/jobs.
+memory scope: process-wide RSS sampled on a background thread every 20 ms; peak = max(before, sampledPeak, after); includes Vision's own caches, NOT an OCR-only allocation figure. Jobs run sequentially (order bias); N is tiny by default.
