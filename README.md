@@ -139,6 +139,8 @@ available memory. Undecodable or unreadable images are retried on later updates
 rather than cached as blank; permanently corrupt images can therefore incur
 repeated decode attempts.
 
+E12 measured 6.85 / 10.34 / 11.27 images per second at 1 / 4 / 8 OCR jobs on a deterministic 153-image real sample (240–275 MiB peak process RSS). That implies about 13.2 / 8.7 / 8.0 hours of OCR for 325,000 similar images, excluding embedding and database writes. A separate 18-image sample dominated by dense synthetic text took 112–133 extrapolated hours. These are sample-dependent estimates, not a full-corpus forecast. On the frozen 15-query retrieval rubric, OCR reached hit@1 14/15, hit@5 15/15, and MRR 0.967; the baseline had no image chunks, and 11 queries targeted synthetic images.
+
 See the [E12 plan](experiments/E12-image-ocr/plan.md) and
 [measurement report](experiments/E12-image-ocr/report.md) for the frozen sample,
 retrieval scores, throughput, memory observations, and synthetic-sample limits.
