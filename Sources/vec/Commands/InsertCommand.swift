@@ -81,7 +81,7 @@ struct InsertCommand: AsyncParsableCommand {
             case .indexed(_, _, let chunkCount, _):
                 print("Indexed \(chunkCount) chunks from \(relativePath)")
             case .skippedUnreadable:
-                print("Warning: could not read \(relativePath)")
+                print("No text indexed (unreadable, unsupported, or empty): \(relativePath)")
             case .skippedEmbedFailure:
                 // Same silent-failure guard as `update-index`. A single
                 // insert that produces zero vectors must exit non-zero so

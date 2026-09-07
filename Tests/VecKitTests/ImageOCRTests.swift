@@ -281,23 +281,59 @@ final class ImageOCRTests: XCTestCase {
                        "misses count both attempts; ocrCalls counts only the completed one")
     }
 
+    func testCacheEvictsLeastRecentlyUsedResultsAtResidentLimit() throws {
+        let files = try ["a.png", "b.png", "c.png"].map { try writeDummyImage(named: $0) }
+        let recognizer = CountingRecognizer(result: .words("bounded cache"))
+        let cache = ImageOCRCache(directory: tempDir, recognizer: recognizer, maxResidentEntries: 2)
+        _ = try cache.recognizeText(in: files[0])
+        _ = try cache.recognizeText(in: files[1])
+        _ = try cache.recognizeText(in: files[0]) // A becomes most recent.
+        _ = try cache.recognizeText(in: files[2]) // B must be evicted.
+        XCTAssertEqual(recognizer.callCount, 3)
+
+        // Remove sidecars so a hit can only come from the resident tier.
+        for file in files.prefix(2) {
+            let hash = try ImageOCRCache.contentKey(for: file)
+            try FileManager.default.removeItem(at: tempDir.appendingPathComponent("image-ocr-cache/\(hash).json"))
+        }
+        _ = try cache.recognizeText(in: files[0])
+        XCTAssertEqual(recognizer.callCount, 3, "Recently touched A remains resident")
+        _ = try cache.recognizeText(in: files[1])
+        XCTAssertEqual(recognizer.callCount, 4, "Evicted B with no sidecar must be recomputed")
+        _ = try cache.recognizeText(in: files[2])
+        XCTAssertEqual(recognizer.callCount, 4, "Evicted C is recovered from its disk sidecar")
+    }
+
     func testCacheSingleFlightsConcurrentDuplicateColdCalls() throws {
         let file = try writeDummyImage(named: "concurrent.png")
-        // A deliberate delay widens the window so all workers overlap on the
-        // in-flight key before the first completes.
-        let recognizer = CountingRecognizer(result: .words("single flight"), delay: 0.25)
+        let releaseRecognition = DispatchSemaphore(value: 0)
+        let recognizer = CountingRecognizer(result: .words("single flight"), onRecognize: { _ in
+            releaseRecognition.wait()
+        })
         let cache = ImageOCRCache(directory: tempDir, recognizer: recognizer)
 
         let workers = 8
-        DispatchQueue.concurrentPerform(iterations: workers) { _ in
-            _ = try? cache.recognizeText(in: file)
+        let group = DispatchGroup()
+        for _ in 0..<workers {
+            group.enter()
+            DispatchQueue.global().async {
+                defer { group.leave() }
+                _ = try? cache.recognizeText(in: file)
+            }
         }
-
-        XCTAssertEqual(recognizer.callCount, 1, "Concurrent identical-content calls OCR exactly once")
-        let stats = cache.statistics
-        XCTAssertEqual(stats.ocrCalls, 1)
-        XCTAssertEqual(stats.misses, 1)
-        XCTAssertEqual(stats.hits, workers - 1)
+        // Hold recognition until every other request reaches the in-flight
+        // wait. Serial execution cannot satisfy this assertion.
+        let deadline = Date().addingTimeInterval(3)
+        while cache.statistics.coalescedRequests < workers - 1 && Date() < deadline {
+            Thread.sleep(forTimeInterval: 0.001)
+        }
+        XCTAssertEqual(cache.statistics.coalescedRequests, workers - 1)
+        // Release all permits even if a regression invoked OCR N times.
+        for _ in 0..<workers { releaseRecognition.signal() }
+        XCTAssertEqual(group.wait(timeout: .now() + 5), .success)
+        XCTAssertEqual(recognizer.callCount, 1)
+        XCTAssertEqual(cache.statistics, ImageOCRCacheStatistics(
+            hits: workers - 1, misses: 1, ocrCalls: 1, coalescedRequests: workers - 1))
     }
 
     // MARK: - TextExtractor image routing

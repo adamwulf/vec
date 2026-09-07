@@ -415,8 +415,8 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Override embedder pool size (default: \(IndexingPipeline.defaultConcurrency), measured optimum on 10-perf-core M-series in E6.3). E6.3 indexing-speed knob.")
     var concurrency: Int?
 
-    @Option(name: .long, help: "Maximum simultaneous image OCR jobs (default: 1). Independent of embedder concurrency; requires image-ocr-v1 to discover images.")
-    var ocrConcurrency: Int = 1
+    @Option(name: .long, help: "Maximum simultaneous image OCR jobs (default: 1). Each job can use about 64 MiB for decoded pixels plus Vision working memory; start with 1-4 and increase only with available memory. Independent of embedder concurrency; requires image-ocr-v1.")
+    var ocrConcurrency: Int = IndexingPipeline.defaultOCRConcurrency
 
     @Option(name: .long, help: "Override max chunks per embedDocuments batch (default: \(IndexingPipeline.defaultBatchSize), cap 32). E6.3 indexing-speed knob.")
     var batchSize: Int?
@@ -737,7 +737,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     static func makePipeline(
         profile: IndexingProfile,
         concurrency: Int?,
-        ocrConcurrency: Int = 1,
+        ocrConcurrency: Int = IndexingPipeline.defaultOCRConcurrency,
         batchSize: Int?,
         bucketWidth: Int?
     ) -> IndexingPipeline {

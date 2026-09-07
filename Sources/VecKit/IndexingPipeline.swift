@@ -948,8 +948,8 @@ actor FileAccumulator {
         linePageCount: Int?,
         extractSucceeded: Bool
     ) {
-        // First contact for this file. Extract is single-threaded so
-        // markFileTotal always runs before any add() for the same file.
+        // Each file has one extraction task, which awaits markFileTotal
+        // before yielding any chunk that could reach add() for this path.
         files[path] = PartialFile(
             file: file,
             label: label,

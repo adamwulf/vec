@@ -132,7 +132,12 @@ reuse cached OCR. Reset removes the cache with the database. `--ocr-concurrency`
 (default 1) bounds simultaneous image jobs independently of embedding
 `--concurrency`; each image releases temporary decoding and Vision objects
 inside an autorelease pool. Frames are downscaled to a maximum edge of 4,096
-pixels; tiny text in very large images can be lost.
+pixels; tiny text in very large images can be lost. A 4,096 × 4,096 RGBA
+frame alone uses about 64 MiB per job, in addition to Vision working memory.
+Start with 1–4 jobs and use the E12 measurements to choose a value that fits
+available memory. Undecodable or unreadable images are retried on later updates
+rather than cached as blank; permanently corrupt images can therefore incur
+repeated decode attempts.
 
 See the [E12 plan](experiments/E12-image-ocr/plan.md) and
 [measurement report](experiments/E12-image-ocr/report.md) for the frozen sample,

@@ -340,14 +340,10 @@ final class ImageOCRPipelineTests: XCTestCase {
             "pipeline.run must tear down promptly on cancellation, not hang")
     }
 
-    /// A downstream DB-writer error (here a dimension mismatch on insert)
-    /// must surface out of `run()` and terminate promptly — the extract and
-    /// embed stages are cancelled rather than left running. The embed stage
-    /// stays healthy (it releases the backpressure gate as usual), so this
-    /// exercises the outer group's fail-fast error path: `for try await`
-    /// surfaces the DB error on the first errored child and cancels the rest,
-    /// where a drain-all `waitForAll()` would keep every stage running to the
-    /// end before rethrowing. The 5s race guards against a hang.
+    /// A downstream DB-writer error must surface and terminate within the
+    /// timeout. Embedding stays healthy and releases backpressure permits;
+    /// this verifies error propagation and teardown, but does not distinguish
+    /// fail-fast iteration from a drain-all implementation on this small run.
     func testDownstreamDBErrorSurfacesAndTerminates() async throws {
         // Embedder emits 512-dim vectors; the DB is opened at 768, so the DB
         // writer's insert throws `VecError.dimensionMismatch`.
@@ -625,10 +621,13 @@ private actor ConcurrencyRecorder {
 /// target`, so `peak` deterministically reaches `target` without any sleep.
 /// Callers after the barrier opens proceed immediately. Suspension (not
 /// blocking) means it reaches the peak even on a single-thread executor.
+/// A two-second deadline opens an under-filled latch too: peak assertions
+/// then fail instead of hanging if a regression schedules too few tasks.
 private actor RendezvousLatch {
     private let target: Int
     private var arrived = 0
     private var opened = false
+    private var timeoutTask: Task<Void, Never>?
     private var waiters: [CheckedContinuation<Void, Never>] = []
     private var active = 0
     private(set) var peak = 0
@@ -643,15 +642,29 @@ private actor RendezvousLatch {
         if opened { return }
         arrived += 1
         if arrived >= target {
-            opened = true
-            let resume = waiters
-            waiters.removeAll()
-            for continuation in resume { continuation.resume() }
+            open()
             return
+        }
+        if timeoutTask == nil {
+            timeoutTask = Task {
+                do { try await Task.sleep(nanoseconds: 2_000_000_000) }
+                catch { return }
+                open()
+            }
         }
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             waiters.append(continuation)
         }
+    }
+
+    private func open() {
+        guard !opened else { return }
+        opened = true
+        timeoutTask?.cancel()
+        timeoutTask = nil
+        let resume = waiters
+        waiters.removeAll()
+        for continuation in resume { continuation.resume() }
     }
 
     func end() { active -= 1 }

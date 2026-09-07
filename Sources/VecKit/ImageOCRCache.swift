@@ -12,11 +12,14 @@ public struct ImageOCRCacheStatistics: Sendable, Equatable {
     public var hits: Int
     public var misses: Int
     public var ocrCalls: Int
+    /// Requests that waited for another caller recognizing identical bytes.
+    public var coalescedRequests: Int
 
-    public init(hits: Int = 0, misses: Int = 0, ocrCalls: Int = 0) {
+    public init(hits: Int = 0, misses: Int = 0, ocrCalls: Int = 0, coalescedRequests: Int = 0) {
         self.hits = hits
         self.misses = misses
         self.ocrCalls = ocrCalls
+        self.coalescedRequests = coalescedRequests
     }
 }
 
@@ -82,6 +85,7 @@ public final class ImageOCRCache: ImageTextRecognizer, @unchecked Sendable {
         let key = try Self.contentKey(for: imageURL)
 
         // Claim the right to compute this key, or wait for whoever holds it.
+        var didCoalesce = false
         condition.lock()
         while true {
             if let cached = resident[key] {
@@ -91,7 +95,11 @@ public final class ImageOCRCache: ImageTextRecognizer, @unchecked Sendable {
                 return cached
             }
             if inFlight.contains(key) {
-                // Someone else is computing the same content; wait and re-check.
+                // Count a request once even if another key wakes it up.
+                if !didCoalesce {
+                    stats.coalescedRequests += 1
+                    didCoalesce = true
+                }
                 condition.wait()
                 continue
             }
