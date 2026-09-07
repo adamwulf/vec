@@ -114,7 +114,8 @@ output, and summary.md. Write report.md with plain measured results,
 including neutral or negative results and the synthetic-sample,
 distinct-topic, tokenizer, arm-order, and inference limitations.
 
-Completion checks: reviewed/committed inputs and harness before ranking;
-complete indexing in both arms; independent scoring and provenance audit;
-two reviewers approve the results; README and this plan link the measured
-report rather than calling accuracy unmeasured.
+Completion checks: reviewed/committed inputs and harness before ranking; complete indexing in both arms; independent scoring and provenance audit; two reviewers approve the results; README and this plan link the measured report rather than calling accuracy unmeasured.
+
+Pre-run review decisions: passage-string checks are structure-sensitive, because raw tags, entities and cue fragmentation can break an otherwise relevant phrase. Report these separately from file rank and do not call them an arm-neutral semantic-accuracy measure. Speaker criteria q03 and q14 were checked to share a short turn with their answers; future speaker/detail labels must verify that co-location. The scorer deliberately imports the E10 ranking validator to reuse the same scoring rules; preserve that relative dependency if either experiment is moved.
+
+The complete sample is frozen in sample/manifest.json: 16 files (1 real, 15 synthetic), with hashes and structural inventory. Both deterministic generators reproduced the committed caption bytes after integration, and freeze-sample.py --check verified every hash and sampling requirement before indexing. The q15 accent correction was made during review, before any rankings, to accept both crepeline and the decoded crêpeline spelling.
