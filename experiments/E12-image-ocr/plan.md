@@ -110,11 +110,19 @@ default stays `raw`.
 
 Each retrieval run archives `frozen-input-manifest.json` (corpus + model +
 manifest hashes, `run_identity`, build id incl. git HEAD / dirty /
-`Package.resolved` sha256, OS / cores / host, resolved settings),
+`Package.resolved` sha256, OS / cores / host, resolved settings incl. the OCR
+recognizer version, `requestRevision`, and `maxPixelDimension`),
 `sample-manifest.json` (byte copy), `execution-command.txt` (exact command
 + resolved provenance + memory-measurement scope), `comparison.json`,
-`summary.md`, and per-arm `arm-summary.json` + per-query `<arm>/q*.json`.
-Each throughput run archives `ocr-throughput.json`, `ocr-throughput.md`, and
+`summary.md`, and per-arm `arm-summary.json` (with the OCR-cache counters
+snapshotted at end-of-indexing and after the audit) + per-query
+`<arm>/q*.json`. The retrieval run also verifies that
+`VectorDatabase.allIndexedFiles()` records every scanned image (a blank image
+is marked indexed; a transient read error is not), so a failed read can never
+be mistaken for a successful blank. Each throughput run freezes a
+sha256-pinned image snapshot before any timing (archived as `frozen_images`,
+so cold and warm read identical bytes), throws on any recognizer error, and
+archives `ocr-throughput.json`, `ocr-throughput.md`, and
 `execution-command.txt`. Runs live under `runs/<timestamp>/`.
 
 See [`harness-notes.md`](harness-notes.md) for how to run and why the

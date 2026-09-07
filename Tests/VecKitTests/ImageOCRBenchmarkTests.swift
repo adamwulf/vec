@@ -175,7 +175,8 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
             ocr_concurrency: ocrConcurrency, batch_size: IndexingPipeline.defaultBatchSize,
             bucket_width: IndexingPipeline.defaultBucketWidth, compute_policy: "default(nil)",
             search_limit: Self.searchLimit, coalesce_limit: Self.coalesceLimit, raw_fetch_limit: Self.rawFetchLimit,
-            ocr_recognizer_version: ImageOCR.version, ocr_max_pixel_dimension: ImageOCR.maxPixelDimension)
+            ocr_recognizer_version: ImageOCR.version, ocr_request_revision: ImageOCR.requestRevision,
+            ocr_max_pixel_dimension: ImageOCR.maxPixelDimension)
         let runIdentity = computeRunIdentity(files: frozenFiles, modelFiles: modelFiles,
                                              manifestSHA: manifestSHA, sampleManifestSHA: sampleManifestSHA,
                                              settings: settings)
@@ -210,6 +211,7 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
             "swift: \(frozen.build.swift_version ?? "?")",
             "model_directory: \(modelDir.path)  revision: \(modelRevision)  model_files_hashed: \(modelFiles.count)",
             "settings: \(Self.profileIdentity), chunk \(Self.chunkChars)/\(Self.chunkOverlap), concurrency \(concurrency), ocrConcurrency \(ocrConcurrency), batch \(IndexingPipeline.defaultBatchSize), bucket \(IndexingPipeline.defaultBucketWidth)",
+            "ocr: ImageOCR v\(ImageOCR.version), requestRevision \(ImageOCR.requestRevision), maxPixelDimension \(ImageOCR.maxPixelDimension)",
             "memory scope: process-wide RSS via task_info, before/after indexing only (NOT OCR-isolated).",
         ], to: outputDir.appendingPathComponent("execution-command.txt"))
         logLine("[e12] freeze complete — run_identity=\(runIdentity). Ranking begins now.")
@@ -307,6 +309,29 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
         }
         let totalChunks = try await db.totalChunkCount()
 
+        // OCR-cache counters AS OF THE END OF INDEXING — captured BEFORE the
+        // audit re-extraction below adds cache hits, so this reflects the
+        // indexing phase alone (misses/ocrCalls during the real pipeline run).
+        let cacheAfterIndex = Self.cacheStats(extractor.ocrCacheStatistics)
+
+        // Authoritative completeness guard: EVERY scanned file must be
+        // recorded in the DB's indexed set, INCLUDING a zero-chunk blank
+        // image (a text-less image OCRs to blank and is still markFileIndexed).
+        // A transient read error does NOT mark the file indexed, so it would
+        // be missing here — this catches the read-error case directly at the
+        // DB, so a "blank" audit can never mask a failed read. It also rejects
+        // any file indexed that was not scanned (a contaminated DB).
+        let indexedSet = Set(try await db.allIndexedFiles().keys)
+        let scannedSet = Set(files.map { $0.relativePath })
+        let notIndexed = scannedSet.subtracting(indexedSet)
+        guard notIndexed.isEmpty else {
+            throw E12HarnessError("arm \(arm.key): scanned but NOT recorded as indexed (transient read error?): \(notIndexed.sorted().joined(separator: ", "))")
+        }
+        let unexpectedIndexed = indexedSet.subtracting(scannedSet)
+        guard unexpectedIndexed.isEmpty else {
+            throw E12HarnessError("arm \(arm.key): DB recorded files that were never scanned: \(unexpectedIndexed.sorted().joined(separator: ", "))")
+        }
+
         // Re-extract each file with the arm's extractor so we can audit
         // passages by ordinal. The extractor resolves through the SAME OCR
         // cache dir the pipeline used, so re-extraction is a deterministic
@@ -331,7 +356,10 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
                                                   ocr_chars: ocrChars, is_blank: chunks.isEmpty))
         }
         perFileChunks.sort { $0.path < $1.path }
-        logLine("[e12] arm \(arm.key): scanned=\(files.count) indexed=\(indexedCount) blank=\(blankCount) chunks=\(totalChunks) index=\(fmt2(indexSeconds))s extract=\(fmt2(stats.extractSeconds))s embedSpan=\(fmt2(stats.embedSeconds))s db=\(fmt2(stats.dbSeconds))s rss=\(fmtMB(rssAfter))")
+        // Cache counters AFTER the audit re-extraction (which turns every
+        // indexed image into a cache hit). Kept separate from cacheAfterIndex.
+        let cacheAfterAudit = Self.cacheStats(extractor.ocrCacheStatistics)
+        logLine("[e12] arm \(arm.key): scanned=\(files.count) indexed=\(indexedCount) blank=\(blankCount) chunks=\(totalChunks) index=\(fmt2(indexSeconds))s extract=\(fmt2(stats.extractSeconds))s embedSpan=\(fmt2(stats.embedSeconds))s db=\(fmt2(stats.dbSeconds))s rss=\(fmtMB(rssAfter)) ocrCache(afterIndex)=\(cacheAfterIndex.map { "h\($0.hits)/m\($0.misses)/o\($0.ocr_calls)" } ?? "nil")")
 
         // ---- Search (persist each query immediately) ----
         var results: [E12QueryResult] = []
@@ -437,7 +465,7 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
             blank_count: blankCount, total_chunks: totalChunks, per_file_chunks: perFileChunks, index_seconds: indexSeconds,
             extract_seconds: stats.extractSeconds, embed_span_seconds: stats.embedSeconds, db_seconds: stats.dbSeconds,
             search_seconds: searchSecondsTotal, rss_before_index_bytes: rssBefore, rss_after_index_bytes: rssAfter,
-            metrics: metrics)
+            ocr_cache_after_index: cacheAfterIndex, ocr_cache_after_audit: cacheAfterAudit, metrics: metrics)
         try writeJSON(summary, to: armOut.appendingPathComponent("arm-summary.json"))
         return (summary, results)
     }
@@ -455,16 +483,24 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
         guard FileManager.default.fileExists(atPath: corpusDir.path) else {
             throw E12HarnessError("OCR corpus directory \(corpusDir.path) does not exist (override with \(Env.ocrCorpusDirectory)).")
         }
-        let images = try discoverImages(in: corpusDir)
-        guard !images.isEmpty else {
-            throw E12HarnessError("no images found under \(corpusDir.path) (extensions: \(ImageOCR.supportedExtensions.sorted().joined(separator: ", ")))")
-        }
         let jobsSweep = try parseJobs(env[Env.ocrJobs]) ?? Self.defaultJobs
         let targetCount = try positiveIntEnv(env[Env.targetCount], name: Env.targetCount, fallback: Self.defaultTargetCount)
 
         let outputDir = try prepareOutputDirectory(env[Env.ocrOutputDirectory], prefix: "vec-e12-ocr")
         scratchRoot = try makeScratchRoot(env[Env.scratchDirectory])
-        logLine("[e12-ocr] corpus=\(corpusDir.path) images=\(images.count) jobs=\(jobsSweep) target=\(targetCount)")
+
+        // FREEZE the corpus into a sha256-pinned snapshot BEFORE any timing,
+        // then OCR the SNAPSHOT — so cold and warm passes (and every job
+        // count) read byte-identical inputs, and the exact bytes timed are
+        // recorded in the archive.
+        let snapshotRoot = scratchRoot.appendingPathComponent("ocr-snapshot", isDirectory: true)
+        let frozenImages = try freezeImageSnapshot(from: corpusDir, to: snapshotRoot)
+        let images = try discoverImages(in: snapshotRoot)
+        guard !images.isEmpty else {
+            throw E12HarnessError("no images found under \(corpusDir.path) (extensions: \(ImageOCR.supportedExtensions.sorted().joined(separator: ", ")))")
+        }
+        XCTAssertEqual(images.count, frozenImages.count, "frozen snapshot count must match discovered images")
+        logLine("[e12-ocr] corpus=\(corpusDir.path) froze \(frozenImages.count) images jobs=\(jobsSweep) target=\(targetCount)")
 
         var jobResults: [E12ThroughputJobResult] = []
         for jobs in jobsSweep {
@@ -472,14 +508,16 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
             let coldDir = scratchRoot.appendingPathComponent("ocr-cold-\(jobs)-\(UUID().uuidString)", isDirectory: true)
             try FileManager.default.createDirectory(at: coldDir, withIntermediateDirectories: true)
             let coldCache = ImageOCRCache(directory: coldDir)
-            let cold = runOCRPass(cache: coldCache, images: images, jobs: jobs, targetCount: targetCount)
-            logLine("[e12-ocr] jobs=\(jobs) COLD wall=\(fmt2(cold.wall_seconds))s rate=\(fmt2(cold.images_per_second))/s hits=\(cold.cache_hits) misses=\(cold.cache_misses) ocrCalls=\(cold.ocr_calls) peakRSS=\(fmtMB(cold.rss_peak_bytes))")
+            let cold = try runOCRPass(cache: coldCache, images: images, jobs: jobs, targetCount: targetCount)
+            logLine("[e12-ocr] jobs=\(jobs) COLD wall=\(fmt2(cold.wall_seconds))s rate=\(fmt2(cold.images_per_second))/s ok=\(cold.images_succeeded)/\(cold.images_attempted) fail=\(cold.images_failed) hits=\(cold.cache_hits) misses=\(cold.cache_misses) ocrCalls=\(cold.ocr_calls) peakRSS=\(fmtMB(cold.rss_peak_bytes))")
 
-            // WARM: SAME directory, a FRESH cache instance (empty resident LRU
-            // → disk-sidecar reads), representative of a fresh process.
+            // WARM: the SAME directory read by a FRESH cache instance whose
+            // resident LRU starts empty, so every result is served from the
+            // disk sidecar. This measures the disk-hit path only — it does NOT
+            // reset process RSS or Vision's internal caches (see notes).
             let warmCache = ImageOCRCache(directory: coldDir)
-            let warm = runOCRPass(cache: warmCache, images: images, jobs: jobs, targetCount: targetCount)
-            logLine("[e12-ocr] jobs=\(jobs) WARM wall=\(fmt2(warm.wall_seconds))s rate=\(fmt2(warm.images_per_second))/s hits=\(warm.cache_hits) misses=\(warm.cache_misses) ocrCalls=\(warm.ocr_calls) peakRSS=\(fmtMB(warm.rss_peak_bytes))")
+            let warm = try runOCRPass(cache: warmCache, images: images, jobs: jobs, targetCount: targetCount)
+            logLine("[e12-ocr] jobs=\(jobs) WARM wall=\(fmt2(warm.wall_seconds))s rate=\(fmt2(warm.images_per_second))/s ok=\(warm.images_succeeded)/\(warm.images_attempted) fail=\(warm.images_failed) hits=\(warm.cache_hits) misses=\(warm.cache_misses) ocrCalls=\(warm.ocr_calls) peakRSS=\(fmtMB(warm.rss_peak_bytes))")
 
             // Truth checks: for N distinct-byte images, cold does N OCR calls
             // and warm (fresh instance) does zero. Only assert when the corpus
@@ -496,8 +534,10 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
 
         let archive = E12ThroughputArchive(
             experiment: "E12-image-ocr", frozen_at: ISO8601DateFormatter().string(from: Date()),
-            corpus_source: corpusDir.path, image_count: images.count,
-            recognizer_version: ImageOCR.version, max_pixel_dimension: ImageOCR.maxPixelDimension,
+            corpus_source: corpusDir.path, image_count: images.count, frozen_images: frozenImages,
+            recognizer_version: ImageOCR.version, request_revision: ImageOCR.requestRevision,
+            max_pixel_dimension: ImageOCR.maxPixelDimension,
+            os_version: ProcessInfo.processInfo.operatingSystemVersionString,
             jobs_sweep: jobsSweep, target_estimate_count: targetCount, build: buildIdentity(),
             results: jobResults, notes: Self.throughputNotes)
         try writeJSON(archive, to: outputDir.appendingPathComponent("ocr-throughput.json"))
@@ -516,52 +556,73 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
             "package_resolved_sha256: \(archive.build.package_resolved_sha256 ?? "?")",
             "os_version: \(archive.build.os_version)  cores: \(archive.build.active_processor_count)  host: \(archive.build.host_name)",
             "swift: \(archive.build.swift_version ?? "?")",
-            "recognizer_version: \(archive.recognizer_version)  max_pixel_dimension: \(archive.max_pixel_dimension)  jobs: \(jobsSweep)",
-            "cache mode: cold = fresh dir + fresh cache instance; warm = same dir + FRESH ImageOCRCache instance (resident LRU empty -> disk-sidecar reads).",
-            "memory scope: process-wide RSS sampled on a background thread every 20 ms; peak floored by immediate before/after reads; includes Vision's own caches, NOT an OCR-only allocation figure.",
+            "recognizer_version: \(archive.recognizer_version)  request_revision: \(archive.request_revision)  max_pixel_dimension: \(archive.max_pixel_dimension)  jobs: \(jobsSweep)",
+            "frozen images: \(archive.image_count) (sha256-pinned snapshot; both passes read identical bytes)",
+            "cache mode: cold = fresh dir + fresh cache instance; warm = same dir + FRESH ImageOCRCache instance (resident LRU empty -> disk-sidecar reads). NOT a fresh process: RSS + Vision caches persist across cold/warm/jobs.",
+            "memory scope: process-wide RSS sampled on a background thread every 20 ms; peak = max(before, sampledPeak, after); includes Vision's own caches, NOT an OCR-only allocation figure. Jobs run sequentially (order bias); N is tiny by default.",
         ], to: outputDir.appendingPathComponent("execution-command.txt"))
         logLine("[e12-ocr] done. Archive at \(outputDir.path)")
     }
 
     private static let throughputNotes = [
-        "Wall-clock and RSS are on the OCR recognizer only (ImageOCRCache + ImageOCR), driven by the harness at the stated job count; they do NOT include embedding or DB writes.",
-        "Cold = fresh cache directory + fresh cache instance. Warm = the SAME directory read by a FRESH ImageOCRCache instance, so the resident LRU is empty and every result is served from the disk sidecar — representative of a fresh process, not a same-process resident-cache reuse.",
-        "RSS is process-wide (the whole test process, including Vision's own caches), sampled on a background thread at a fixed interval; the reported peak can miss a spike shorter than the sample interval. It is a coarse proxy, not an OCR-only allocation figure.",
-        "The 325k estimate is a LINEAR extrapolation of the measured images/second and assumes the sample's image mix is representative — it is not (see the retrieval report's selection-bias note). Real corpus images vary widely in size and text density, and ANE/Vision contention changes with scale, so treat the estimate as order-of-magnitude only.",
+        "Wall-clock and RSS are on the OCR recognizer only (ImageOCRCache + ImageOCR), driven by the harness at the stated job count; they do NOT include embedding or DB writes. All passes OCR a frozen, sha256-pinned snapshot (see frozen_images), so the bytes timed are provable and identical across cold, warm, and every job count.",
+        "Cold = a fresh cache directory + a fresh ImageOCRCache instance. Warm = the SAME directory read by a FRESH ImageOCRCache instance whose resident LRU starts empty, so every result is served from the on-disk sidecar. This measures ONLY the disk-cache-hit path; it is NOT a fresh OS process. Process RSS and Vision's own internal caches PERSIST across the cold pass, the warm pass, and every job count within this single test process — so warm RSS is not a cold-start figure and cross-pass RSS deltas are not independent.",
+        "Job counts run SEQUENTIALLY (1, then 4, then 8) in one process, so later iterations benefit from Vision/ANE warmup and OS file caches primed by earlier ones — a sequential-order bias that flatters higher job counts. With the tiny default corpus (18 frozen images) each pass is short and the rate is noisy; point VEC_E12_OCR_CORPUS_DIRECTORY at a larger frozen corpus for a stabler rate.",
+        "RSS is process-wide (the whole test process, including Vision's caches and any resident OCR-cache entries), sampled on a background thread every ~20 ms; the reported peak is the max of the sampled peak and the immediate before/after reads, so a spike shorter than the sample interval can still be under-reported. It is a coarse proxy, not an OCR-only allocation figure.",
+        "The target-count estimate is a LINEAR extrapolation of the measured images/second and assumes the frozen sample's image mix is representative — it is not (see the retrieval selection-bias note). Real-corpus images vary widely in size and text density, and ANE/Vision contention changes with scale, so treat the estimate as order-of-magnitude only.",
         "ImageOCR downscales any image whose largest side exceeds maxPixelDimension (4096) before recognition; small text in a very large image can be lost. This throughput number does not measure that fidelity loss.",
     ]
 
     /// One cold or warm pass: OCR every image at `jobs` concurrent OS threads,
-    /// sampling RSS on a background thread. Returns wall-clock, throughput,
+    /// sampling RSS on a background thread. Tracks per-image success/failure
+    /// and THROWS if any recognizer call errored (a blank OCR result is a
+    /// SUCCESS, not a failure) — so a swallowed error can never inflate the
+    /// rate. Returns wall-clock, throughput over succeeded images,
     /// authoritative cache statistics, RSS, and the target-count extrapolation.
-    private func runOCRPass(cache: ImageOCRCache, images: [URL], jobs: Int, targetCount: Int) -> E12ThroughputPass {
+    private func runOCRPass(cache: ImageOCRCache, images: [URL], jobs: Int, targetCount: Int) throws -> E12ThroughputPass {
         let sampler = E12RSSSampler(intervalMillis: 20)
         let rssBefore = residentBytes()
         sampler.start()
         let queue = DispatchQueue(label: "e12.ocr.jobs", attributes: .concurrent)
         let sem = DispatchSemaphore(value: jobs)
         let group = DispatchGroup()
+        let lock = NSLock()
+        var succeeded = 0
+        var failures: [String] = []
         let start = DispatchTime.now()
         for url in images {
             sem.wait()
             group.enter()
             queue.async {
                 defer { sem.signal(); group.leave() }
-                _ = try? cache.recognizeText(in: url)
+                do {
+                    _ = try cache.recognizeText(in: url)
+                    lock.lock(); succeeded += 1; lock.unlock()
+                } catch {
+                    lock.lock(); failures.append("\(url.lastPathComponent): \(error)"); lock.unlock()
+                }
             }
         }
         group.wait()
         let wall = Self.elapsed(since: start)
         let rss = sampler.stop()
         let rssAfter = residentBytes()
-        let imagesPerSec = wall > 0 ? Double(images.count) / wall : 0
+        guard failures.isEmpty else {
+            throw E12HarnessError("OCR pass (jobs=\(jobs)) had \(failures.count) recognizer failure(s) of \(images.count): \(failures.prefix(5).joined(separator: "; "))")
+        }
+        let imagesPerSec = wall > 0 ? Double(succeeded) / wall : 0
         let estimate = imagesPerSec > 0 ? Double(targetCount) / imagesPerSec : 0
         let stats = cache.statistics
+        // Peak is the max of the sampled peak and the immediate before/after
+        // reads, so a spike missed between samples is still bounded below by
+        // the endpoints.
+        let peak = max(rssBefore, max(rss.peak, rssAfter))
         return E12ThroughputPass(
-            images: images.count, jobs: jobs, wall_seconds: wall,
-            images_per_second: imagesPerSec, cache_hits: stats.hits, cache_misses: stats.misses,
-            ocr_calls: stats.ocrCalls, rss_before_bytes: rssBefore, rss_peak_bytes: max(rss.peak, rssAfter),
-            rss_after_bytes: rssAfter, rss_sample_count: rss.count, rss_mean_bytes: rss.mean,
+            images_attempted: images.count, images_succeeded: succeeded, images_failed: failures.count,
+            jobs: jobs, wall_seconds: wall, images_per_second: imagesPerSec,
+            cache_hits: stats.hits, cache_misses: stats.misses, ocr_calls: stats.ocrCalls,
+            rss_before_bytes: rssBefore, rss_peak_bytes: peak, rss_after_bytes: rssAfter,
+            rss_sample_count: rss.count, rss_mean_bytes: rss.mean,
             estimate_target_seconds: estimate, estimate_target_count: targetCount)
     }
 
@@ -725,8 +786,8 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
         s += "Run identity: `\(frozen.run_identity)`  \nFrozen at: \(frozen.frozen_at)\n\n"
         s += "Corpus: `\(frozen.corpus_source)` — \(frozen.file_count) image(s). "
         s += "Manifest sha256 `\(frozen.query_manifest_sha256.prefix(12))…` (\(frozen.query_count) queries). "
-        s += "Model files hashed: \(frozen.model_files.count). Build: \(frozen.build.configuration). "
-        s += "OCR recognizer v\(frozen.settings.ocr_recognizer_version), maxPixelDim \(frozen.settings.ocr_max_pixel_dimension).\n\n"
+        s += "Model files hashed: \(frozen.model_files.count). Build: \(frozen.build.configuration), OS \(frozen.build.os_version). "
+        s += "OCR recognizer v\(frozen.settings.ocr_recognizer_version), requestRevision \(frozen.settings.ocr_request_revision), maxPixelDim \(frozen.settings.ocr_max_pixel_dimension).\n\n"
         s += "Settings: `\(frozen.settings.profile_identity)`, chunk \(frozen.settings.chunk_chars)/\(frozen.settings.chunk_overlap), "
         s += "concurrency \(frozen.settings.concurrency), ocrConcurrency \(frozen.settings.ocr_concurrency), batch \(frozen.settings.batch_size), bucket \(frozen.settings.bucket_width).\n\n"
 
@@ -760,14 +821,16 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
 
     private func writeThroughputMarkdown(_ a: E12ThroughputArchive, to url: URL) throws {
         var s = "# E12 image-OCR throughput / cold-warm-cache benchmark\n\n"
-        s += "Frozen at: \(a.frozen_at)  \nCorpus: `\(a.corpus_source)` — \(a.image_count) image(s). "
-        s += "Recognizer v\(a.recognizer_version), maxPixelDim \(a.max_pixel_dimension). Build: \(a.build.configuration), "
-        s += "\(a.build.active_processor_count) cores. Target extrapolation: \(a.target_estimate_count) images.\n\n"
-        s += "| jobs | pass | wall s | img/s | hits | misses | ocrCalls | peak RSS | mean RSS | est. \(a.target_estimate_count) |\n"
-        s += "|---|---|---|---|---|---|---|---|---|---|\n"
+        s += "Frozen at: \(a.frozen_at)  \nCorpus: `\(a.corpus_source)` — \(a.image_count) frozen (sha256-pinned) image(s). "
+        s += "Recognizer v\(a.recognizer_version), requestRevision \(a.request_revision), maxPixelDim \(a.max_pixel_dimension). "
+        s += "OS: \(a.os_version). Build: \(a.build.configuration), \(a.build.active_processor_count) cores. "
+        s += "Target extrapolation: \(a.target_estimate_count) images.\n\n"
+        s += "| jobs | pass | ok/att | fail | wall s | img/s | hits | misses | ocrCalls | peak RSS | mean RSS | est. \(a.target_estimate_count) |\n"
+        s += "|---|---|---|---|---|---|---|---|---|---|---|---|\n"
         for r in a.results {
             for (label, p) in [("cold", r.cold), ("warm", r.warm)] {
-                s += "| \(r.jobs) | \(label) | \(fmt2(p.wall_seconds)) | \(fmt2(p.images_per_second)) | "
+                s += "| \(r.jobs) | \(label) | \(p.images_succeeded)/\(p.images_attempted) | \(p.images_failed) | "
+                s += "\(fmt2(p.wall_seconds)) | \(fmt2(p.images_per_second)) | "
                 s += "\(p.cache_hits) | \(p.cache_misses) | \(p.ocr_calls) | \(fmtMB(p.rss_peak_bytes)) | "
                 s += "\(fmtMB(p.rss_mean_bytes)) | \(fmtHours(p.estimate_target_seconds)) |\n"
             }
@@ -894,6 +957,13 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
         enc.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         try enc.encode(value).write(to: url)
+    }
+
+    /// Maps the engine's (non-Codable) statistics snapshot into our Codable
+    /// archive shape. nil when the extractor had no OCR cache configured.
+    private static func cacheStats(_ s: ImageOCRCacheStatistics?) -> E12CacheStats? {
+        guard let s else { return nil }
+        return E12CacheStats(hits: s.hits, misses: s.misses, ocr_calls: s.ocrCalls)
     }
 
     private func residentBytes() -> UInt64 { E12Memory.residentBytes() }
@@ -1290,7 +1360,7 @@ struct E12FrozenSettings: Codable {
     let chunk_chars: Int; let chunk_overlap: Int; let concurrency: Int; let ocr_concurrency: Int
     let batch_size: Int; let bucket_width: Int; let compute_policy: String
     let search_limit: Int; let coalesce_limit: Int; let raw_fetch_limit: Int
-    let ocr_recognizer_version: Int; let ocr_max_pixel_dimension: Int
+    let ocr_recognizer_version: Int; let ocr_request_revision: Int; let ocr_max_pixel_dimension: Int
 }
 
 struct E12BuildIdentity: Codable {
@@ -1337,6 +1407,10 @@ struct E12QueryResult: Codable {
     let groups: [E12ArchivedGroup]; let primary_audit: E12PrimaryAudit?
 }
 
+/// Codable mirror of the engine's `ImageOCRCacheStatistics` (which is not
+/// Codable) so cache counters can be archived.
+struct E12CacheStats: Codable { let hits: Int; let misses: Int; let ocr_calls: Int }
+
 struct E12PerFileChunks: Codable { let path: String; let chunks: Int; let ocr_chars: Int; let is_blank: Bool }
 struct E12ArmMetrics: Codable {
     let answered_queries: Int; let rank1_rate: Double; let top3_rate: Double; let top5_rate: Double
@@ -1351,6 +1425,10 @@ struct E12ArmSummary: Codable {
     let index_seconds: Double; let extract_seconds: Double; let embed_span_seconds: Double
     let db_seconds: Double; let search_seconds: Double
     let rss_before_index_bytes: UInt64; let rss_after_index_bytes: UInt64
+    /// OCR-cache counters at the end of indexing (before the audit re-extract)
+    /// and after the audit; nil when the arm ran no OCR cache.
+    let ocr_cache_after_index: E12CacheStats?
+    let ocr_cache_after_audit: E12CacheStats?
     let metrics: E12ArmMetrics
 }
 
@@ -1363,7 +1441,8 @@ struct E12Comparison: Codable { let arms: [String]; let per_query: [E12Compariso
 
 // Throughput / cold-warm archive.
 struct E12ThroughputPass: Codable {
-    let images: Int; let jobs: Int; let wall_seconds: Double; let images_per_second: Double
+    let images_attempted: Int; let images_succeeded: Int; let images_failed: Int
+    let jobs: Int; let wall_seconds: Double; let images_per_second: Double
     let cache_hits: Int; let cache_misses: Int; let ocr_calls: Int
     let rss_before_bytes: UInt64; let rss_peak_bytes: UInt64; let rss_after_bytes: UInt64
     let rss_sample_count: Int; let rss_mean_bytes: UInt64
@@ -1372,7 +1451,11 @@ struct E12ThroughputPass: Codable {
 struct E12ThroughputJobResult: Codable { let jobs: Int; let cold: E12ThroughputPass; let warm: E12ThroughputPass }
 struct E12ThroughputArchive: Codable {
     let experiment: String; let frozen_at: String; let corpus_source: String; let image_count: Int
-    let recognizer_version: Int; let max_pixel_dimension: Int
+    /// The frozen, sha256-pinned image snapshot both the cold and warm passes
+    /// read (path/bytes/sha256), so the timed bytes are provable and identical.
+    let frozen_images: [E12FrozenFile]
+    let recognizer_version: Int; let request_revision: Int; let max_pixel_dimension: Int
+    let os_version: String
     let jobs_sweep: [Int]; let target_estimate_count: Int
     let build: E12BuildIdentity; let results: [E12ThroughputJobResult]; let notes: [String]
 }

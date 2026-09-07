@@ -32,9 +32,13 @@ image text is unreachable without OCR — not a bug, and it is never faked:
 the harness runs the real `FileScanner(directory:textExtraction:)` and lets
 it return an empty set. A text-less image (e.g. the app-icon distractor)
 OCRs to blank → zero chunks → the pipeline records `.skippedUnreadable`;
-the harness counts that as a legitimate BLANK, not a failure, but the
-per-file re-extraction loop re-opens every scanned file and THROWS on a
-genuine read error, so a true failure still aborts.
+the harness counts that as a legitimate BLANK, not a failure. To make sure a
+blank is never confused with a failed read, the harness then asserts that
+`VectorDatabase.allIndexedFiles()` contains EVERY scanned image (a blank
+image is still `markFileIndexed`, but a transient read error is NOT, so it
+would be missing) and contains no file that was not scanned; the per-file
+re-extraction loop additionally re-opens every scanned file and THROWS on a
+genuine read error. Both a genuine failure and a contaminated DB abort.
 
 Documents embed through the batch pipeline; queries through
 `E5BaseEmbedder.embedQuery`. Only the extraction mode differs; no inference
@@ -43,24 +47,36 @@ change.
 ### 2. Throughput / cold-warm cache — `testImageOCRThroughputBenchmark`
 
 Drives `ImageOCRCache` directly (real `ImageOCR` recognizer) so it can
-report authoritative statistics and needs NO embedder/model. For each job
-count in the sweep (default 1, 4, 8):
+report authoritative statistics and needs NO embedder/model. The corpus is
+FROZEN into a sha256-pinned snapshot before any timing, and every pass OCRs
+that snapshot, so cold and warm (and every job count) read byte-identical
+inputs, recorded in the archive's `frozen_images`. For each job count in the
+sweep (default 1, 4, 8):
 
 - **cold**: a fresh cache directory + a fresh `ImageOCRCache` instance; every
   image is OCR'd (for N distinct-byte images: misses = N, ocrCalls = N,
   hits = 0);
-- **warm**: the SAME directory read by a FRESH `ImageOCRCache` instance, so
-  the resident LRU is empty and every result is served from the disk sidecar
-  (hits = N, misses = 0, ocrCalls = 0) — representative of a fresh process,
-  not same-process resident reuse.
+- **warm**: the SAME directory read by a FRESH `ImageOCRCache` instance whose
+  resident LRU starts empty, so every result is served from the on-disk
+  sidecar (hits = N, misses = 0, ocrCalls = 0). This measures ONLY the
+  disk-cache-hit path. It is NOT a fresh OS process: process RSS and Vision's
+  own internal caches PERSIST across the cold pass, the warm pass, and every
+  job count in this single test process, so warm RSS is not a cold-start
+  figure.
 
 Concurrency is driven in the harness: each image's `recognizeText(in:)` (a
 sync throwing call) runs on a concurrent `DispatchQueue` bounded by a
-`DispatchSemaphore(value: jobs)`. A background thread samples process RSS
-every 20 ms; the reported peak is floored by the immediate before/after
-reads. Each pass records wall-clock, images/second, the cache statistics,
-RSS (before/peak/after/mean), and a LINEAR extrapolation to a target corpus
-(default 325,000 images), cold and warm.
+`DispatchSemaphore(value: jobs)`. Each call's success/failure is tracked;
+ANY recognizer error THROWS (a blank OCR result is a success), so a swallowed
+error can never inflate the rate — attempted/succeeded/failed are archived.
+Job counts run SEQUENTIALLY (1, then 4, then 8) in one process, so later
+iterations benefit from Vision/ANE warmup and OS caches primed by earlier
+ones (a sequential-order bias), and with the tiny default corpus (18 frozen
+images) the per-pass rate is noisy — point `VEC_E12_OCR_CORPUS_DIRECTORY` at
+a larger frozen corpus for a stabler estimate. Each pass records wall-clock,
+images/second (over succeeded), the cache statistics, RSS
+(before/peak/after/mean, peak = max(before, sampledPeak, after)), and a
+LINEAR extrapolation to a target corpus (default 325,000 images).
 
 ## Environment contract
 
@@ -100,12 +116,17 @@ FAILS if the directory is missing.
 ## RSS / memory-measurement scope (state it in the report)
 
 RSS is process-wide (`mach_task_basic_info` for the whole test process,
-including Vision's own caches and, in the retrieval benchmark, the loaded
-embedder). The throughput sampler runs on a background thread at a fixed
-20 ms interval, so a spike shorter than the interval can be missed; the peak
-is floored by the immediate before/after reads. These are coarse proxies,
-NOT OCR-only allocation figures. The retrieval benchmark records only
-before/after indexing RSS (not OCR-isolated).
+including Vision's own caches and any resident OCR-cache entries and, in the
+retrieval benchmark, the loaded embedder). The throughput sampler runs on a
+background thread at a fixed 20 ms interval, so a spike shorter than the
+interval can be missed; the reported peak is `max(before, sampledPeak,
+after)`. Crucially, RSS is NOT reset between the cold pass, the warm pass, or
+successive job counts — they share one process, so cross-pass RSS deltas are
+not independent measurements. These are coarse proxies, NOT OCR-only
+allocation figures. The retrieval benchmark records only before/after
+indexing RSS (not OCR-isolated); it also snapshots the OCR-cache counters at
+the end of indexing (before the audit re-extraction adds hits) and again
+after the audit, both in the arm summary.
 
 ## Large-image downscale caveat
 
