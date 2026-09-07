@@ -193,11 +193,12 @@ public final class PDFOCRReader: @unchecked Sendable {
     public var cacheStatistics: PDFOCRCacheStatistics? { cache?.statistics }
 
     public func read(from url: URL) throws -> PDFOCRDocumentResult {
-        // Hash exactly once while taking an immutable in-memory byte snapshot.
-        // PDFKit reads the snapshot rather than reopening the path, so a later
-        // replacement cannot cause results for different bytes to be written
-        // under this hash. File identity before/after the stream catches a
-        // writer changing the source during the snapshot itself.
+        // Hash once for the extraction while taking an immutable in-memory
+        // byte snapshot (and once more after extraction solely as a TOCTOU
+        // guard). PDFKit reads the snapshot rather than reopening the path, so
+        // results for different bytes can never be written under this hash.
+        // File identity before/after the stream cheaply catches most writers
+        // changing the source during the snapshot itself.
         let snapshot = try Self.snapshot(from: url)
         guard let document = PDFDocument(data: snapshot.data) else {
             throw PDFOCRReaderError.invalidPDF(url)
@@ -206,8 +207,10 @@ public final class PDFOCRReader: @unchecked Sendable {
         var pages: [PDFOCRPageResult] = []
         pages.reserveCapacity(document.pageCount)
         for pageIndex in 0..<document.pageCount {
-            guard let page = document.page(at: pageIndex) else { continue }
             let pageNumber = pageIndex + 1
+            guard let page = document.page(at: pageIndex) else {
+                throw PDFOCRReaderError.missingPageReference(pageNumber: pageNumber)
+            }
             let result = try autoreleasepool {
                 try limiter.withPermit {
                     try read(page: page, pageNumber: pageNumber, documentHash: snapshot.hash)
@@ -336,12 +339,13 @@ public final class PDFOCRReader: @unchecked Sendable {
     }
 
     private static func readingOrder(_ lhs: PositionedLine, _ rhs: PositionedLine) -> Bool {
-        // Normalized boxes use bottom-left origin. A 0.35-line-height band
-        // treats small baseline jitter as one row, then orders left-to-right.
+        // Normalized boxes use bottom-left origin. Exact coordinate keys form
+        // a strict weak ordering (an epsilon comparator is non-transitive and
+        // can crash Swift sort). Vision already returns line observations, so
+        // no fuzzy regrouping is needed here.
         let lhsTop = 1 - lhs.box.maxY
         let rhsTop = 1 - rhs.box.maxY
-        let tolerance = 0.35 * min(lhs.box.height, rhs.box.height)
-        if abs(lhsTop - rhsTop) > tolerance { return lhsTop < rhsTop }
+        if lhsTop != rhsTop { return lhsTop < rhsTop }
         if lhs.box.minX != rhs.box.minX { return lhs.box.minX < rhs.box.minX }
         // Prefer native text for an exact geometric tie.
         if lhs.source != rhs.source { return lhs.source == .native }
@@ -491,13 +495,18 @@ public final class PDFOCRReader: @unchecked Sendable {
         let width = Int(geometry.pixelSize.width)
         let height = Int(geometry.pixelSize.height)
         let colorSpace = CGColorSpaceCreateDeviceRGB()
+        // BGRA is the native macOS 32-bit pixel layout and can be wrapped by
+        // Vision/CoreVideo without an intermediate unsupported RGBA-to-420f
+        // conversion (which fails on some native test hosts).
+        let bitmapInfo = CGBitmapInfo.byteOrder32Little.rawValue
+            | CGImageAlphaInfo.premultipliedFirst.rawValue
         guard let context = CGContext(data: nil,
                                       width: width,
                                       height: height,
                                       bitsPerComponent: 8,
                                       bytesPerRow: 0,
                                       space: colorSpace,
-                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+                                      bitmapInfo: bitmapInfo) else {
             throw PDFOCRReaderError.couldNotRender(pageNumber: pageNumber, width: width, height: height)
         }
         context.setFillColor(CGColor(gray: 1, alpha: 1))
