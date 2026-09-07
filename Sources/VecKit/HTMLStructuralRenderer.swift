@@ -345,12 +345,15 @@ enum HTMLStructuralRenderer {
         var output: [String] = []
         output.reserveCapacity(normalizedNewlines.count / 32)
         var previousWasBlank = false
+        var insideCodeFence = false
         for rawLine in normalizedNewlines.split(separator: "\n", omittingEmptySubsequences: false) {
-            let line = rawLine.trimmingCharacters(in: .whitespaces)
+            let trimmed = rawLine.trimmingCharacters(in: .whitespaces)
+            let line = insideCodeFence ? String(rawLine) : trimmed
             let isBlank = line.isEmpty
-            if isBlank, previousWasBlank { continue }
+            if isBlank, previousWasBlank, !insideCodeFence { continue }
             output.append(line)
             previousWasBlank = isBlank
+            if trimmed == "```" { insideCodeFence.toggle() }
         }
         return output.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
     }

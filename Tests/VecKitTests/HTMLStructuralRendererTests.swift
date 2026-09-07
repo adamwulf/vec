@@ -140,5 +140,31 @@ final class HTMLStructuralRendererTests: XCTestCase {
         XCTAssertTrue(output.contains("Kept by selected article mode"))
         XCTAssertTrue(output.contains("Article body."))
     }
-}
 
+    func testPreformattedTextKeepsIndentationAndBlankLines() throws {
+        let output = text(try render("""
+        <pre>if ready {
+            first()
+
+            second()
+        }</pre>
+        """))
+        XCTAssertEqual(output, """
+        ```
+        if ready {
+            first()
+
+            second()
+        }
+        ```
+        """)
+    }
+
+    func testEmptyAndExecutableOnlyFragmentsProduceNoSegments() throws {
+        XCTAssertEqual(try render("").segments, [])
+        XCTAssertEqual(
+            try render("<script>steal()</script><style>body { display: none }</style>").segments,
+            []
+        )
+    }
+}
