@@ -147,15 +147,32 @@ struct SaveWork: Sendable {
 
 /// A three-stage producer/consumer pipeline that parallelizes file indexing.
 ///
-/// **Stage 1 — Extract (single task).** Pulls files off the input queue
-/// serially, calls `TextExtractor.extract(from:)`, stamps each chunk with
-/// `(filePath, ordinal, totalChunks)`, and pushes one `EmbedWork` per chunk
-/// onto the embed stream. Single-threaded by design: extract is cheap
-/// relative to embed, and a serial extractor keeps order deterministic per
-/// file (so the accumulator's sort is stable). Files that produce zero
-/// chunks (unreadable / empty) push a synthetic `EmbedWork` with
-/// `totalChunks == 0` so the accumulator can fire an empty save and close
-/// out the file.
+/// **Stage 1 — Extract (two lanes).** Calls `TextExtractor.extract(from:)`,
+/// stamps each chunk with `(filePath, ordinal, totalChunks)`, and pushes one
+/// `EmbedWork` per chunk onto the embed stream. Files that produce zero
+/// chunks (unreadable / empty) close out directly against the accumulator so
+/// it can fire an empty save. Per-file the logic is identical; the lanes
+/// differ only in concurrency:
+///
+/// - **Text lane (serial, N = 1).** Text and PDF files extract one at a
+///   time. Extract is cheap relative to embed, and serial keeps intra-file
+///   ordinal monotonicity trivial. This lane is unaffected by
+///   `ocrConcurrency` and always serial.
+/// - **Image lane (bounded, N = `ocrConcurrency`).** Image files (exactly
+///   those `extractor.isImageOCRFile(_:)` reports, i.e. the files
+///   `extract` will OCR) fan out through `forEachBounded`, running up to
+///   `ocrConcurrency` OCR extractions at once. The bound is a hard cap on
+///   live tasks and in-flight decoded images, so a 325k-image corpus never
+///   spawns 325k tasks or decodes more than `ocrConcurrency` images at
+///   once. Each image's chunks are stamped with per-file ordinals before
+///   they leave this lane, so the accumulator's ordinal sort stays stable
+///   despite the concurrent arrival order.
+///
+/// Both lanes run concurrently, share the same per-chunk `extractGate`
+/// backpressure, and feed the same embed stream and per-file accumulator
+/// (keyed by path, so cross-lane interleaving is safe). `markFileTotal`
+/// always precedes any of a file's chunks within the shared per-file body,
+/// so the accumulator sees a file's total before its first chunk.
 ///
 /// **Stage 2 — Embed (one task per chunk, pool-gated).** Each `EmbedWork`
 /// spawns its own task inside a TaskGroup. The task awaits an embedder
@@ -182,6 +199,19 @@ public final class IndexingPipeline: Sendable {
     /// the embed stage (every embed task acquires one). Exposed so callers
     /// can size progress displays against the same value the pool uses.
     public let workerCount: Int
+
+    /// Maximum number of image OCR extractions allowed to run at once in
+    /// the extract stage. Independent of `workerCount` (the embedder-pool
+    /// size): OCR runs during extract, embedding runs in a later stage, so
+    /// the two knobs size different resources. Defaults to 1 — a
+    /// conservative serial default, since Vision text recognition is
+    /// memory- and accelerator-heavy and the common corpus is
+    /// text-dominated. The text / PDF extract path is unaffected and stays
+    /// strictly serial regardless of this value; only image files fan out,
+    /// and never beyond this bound — so at most `ocrConcurrency` images
+    /// decode (and at most `ocrConcurrency` extract tasks live) at once,
+    /// even for a 325k-file corpus.
+    public let ocrConcurrency: Int
 
     /// Max number of chunks per batch passed to `Embedder.embedDocuments`.
     /// The batch-former length-buckets chunks and flushes when a bucket
@@ -222,11 +252,21 @@ public final class IndexingPipeline: Sendable {
     /// this default will need re-measurement.
     public static let defaultConcurrency: Int = 8
 
+    /// Default image-OCR extraction concurrency. Conservative serial
+    /// default (1): OCR is the optional, memory- and accelerator-heavy
+    /// extract path, and most corpora are text-dominated, so fanning it
+    /// out is opt-in via `--ocr-concurrency`. A serial default also keeps
+    /// first-index behavior identical to the pre-OCR-concurrency pipeline.
+    /// Exposed as a named constant so callers refer to it by name instead
+    /// of re-declaring the literal.
+    public static let defaultOCRConcurrency: Int = 1
+
     /// Bounded pool of N embedder instances sized to `workerCount`.
     private let pool: EmbedderPool
 
     public init(
         concurrency: Int = IndexingPipeline.defaultConcurrency,
+        ocrConcurrency: Int = IndexingPipeline.defaultOCRConcurrency,
         batchSize: Int = IndexingPipeline.defaultBatchSize,
         bucketWidth: Int = IndexingPipeline.defaultBucketWidth,
         profile: IndexingProfile
@@ -235,7 +275,10 @@ public final class IndexingPipeline: Sendable {
                      "batchSize must be in 1…32 (BNNS cap per swift-embeddings #17)")
         precondition(bucketWidth >= 1,
                      "bucketWidth must be >= 1 (chunk.text.count / bucketWidth is the bucket key)")
+        precondition(ocrConcurrency >= 1,
+                     "ocrConcurrency must be >= 1 (image OCR extract-lane fan-out cap)")
         self.workerCount = concurrency
+        self.ocrConcurrency = ocrConcurrency
         self.batchSize = batchSize
         self.bucketWidth = bucketWidth
         self.pool = EmbedderPool(factory: profile.embedderFactory, count: concurrency)
@@ -312,21 +355,38 @@ public final class IndexingPipeline: Sendable {
         let extractGate = ExtractBackpressure(capacity: workerCount * batchSize * 2)
         let batchSize = self.batchSize
         let bucketWidth = self.bucketWidth
+        let ocrConcurrency = self.ocrConcurrency
 
         try await withThrowingTaskGroup(of: Void.self) { group in
 
-            // Stage 1: Extract (single serial task).
+            // Stage 1: Extract (two lanes — serial text, bounded image).
             //
-            // N_extract = 1 by design. Extract is cheap and keeping it
-            // single-threaded preserves intra-file ordinal monotonicity
-            // and removes any need to lock a shared queue.
+            // The per-file body is identical for both lanes; only the
+            // concurrency differs. Text/PDF files run serially; image
+            // (OCR) files run up to `ocrConcurrency` at once. Both feed the
+            // same embed stream + `extractGate` backpressure, and each file
+            // is marked with its total before any of its chunks leave, so
+            // the per-file accumulator (keyed by path) sees a stable
+            // total→chunks order regardless of cross-lane interleaving.
             group.addTask {
-                for item in workItems {
+                // Close the embed stream on every exit path (success or a
+                // cancellation throw out of a lane), mirroring the
+                // embed-spawner's `defer` so downstream stages always drain
+                // and exit cleanly.
+                defer { embedContinuation.finish() }
+
+                // Shared per-file extraction. `@Sendable` so the image lane
+                // can run copies concurrently; captures only Sendable state
+                // (the extractor, actors, continuations, progress closure).
+                let extractOne: @Sendable (FileInfo, String) async throws -> Void = { file, label in
+                    // Prompt cancellation: skip work once the group is
+                    // tearing down instead of extracting one more file.
+                    try Task.checkCancellation()
                     progress?(.extractEnqueued)
                     let extractStart = DispatchTime.now()
                     let extraction: ExtractionResult
                     do {
-                        extraction = try extractor.extract(from: item.file)
+                        extraction = try extractor.extract(from: file)
                     } catch {
                         let extractSeconds = Self.elapsed(since: extractStart)
                         // Unreadable file: register a zero-total file with
@@ -337,21 +397,21 @@ public final class IndexingPipeline: Sendable {
                         // *not* mark the file indexed — the next run will
                         // retry, since the failure was likely transient.
                         await accumulator.markFileTotal(
-                            path: item.file.relativePath,
-                            file: item.file,
-                            label: item.label,
+                            path: file.relativePath,
+                            file: file,
+                            label: label,
                             total: 0,
                             extractSeconds: extractSeconds,
                             firstChunkAt: nil,
                             linePageCount: nil,
                             extractSucceeded: false
                         )
-                        if let work = await accumulator.closeIfComplete(path: item.file.relativePath) {
+                        if let work = await accumulator.closeIfComplete(path: file.relativePath) {
                             progress?(.saveEnqueued)
                             saveContinuation.yield(work)
                         }
                         progress?(.extractDequeued)
-                        continue
+                        return
                     }
                     let chunks = extraction.chunks
                     let extractSeconds = Self.elapsed(since: extractStart)
@@ -365,21 +425,21 @@ public final class IndexingPipeline: Sendable {
                         // its no-text-ness is a stable property until
                         // the source mtime advances.
                         await accumulator.markFileTotal(
-                            path: item.file.relativePath,
-                            file: item.file,
-                            label: item.label,
+                            path: file.relativePath,
+                            file: file,
+                            label: label,
                             total: 0,
                             extractSeconds: extractSeconds,
                             firstChunkAt: nil,
                             linePageCount: extraction.linePageCount,
                             extractSucceeded: true
                         )
-                        if let work = await accumulator.closeIfComplete(path: item.file.relativePath) {
+                        if let work = await accumulator.closeIfComplete(path: file.relativePath) {
                             progress?(.saveEnqueued)
                             saveContinuation.yield(work)
                         }
                         progress?(.extractDequeued)
-                        continue
+                        return
                     }
 
                     // Language-detect on the first chunk. Pre-H7 this
@@ -391,7 +451,7 @@ public final class IndexingPipeline: Sendable {
                            let lang = NLLanguageRecognizer.dominantLanguage(for: trimmed),
                            lang != .english, lang != .undetermined {
                             progress?(.nonEnglishDetected(
-                                filePath: item.file.relativePath,
+                                filePath: file.relativePath,
                                 language: lang.rawValue
                             ))
                         }
@@ -399,9 +459,9 @@ public final class IndexingPipeline: Sendable {
 
                     let firstChunkAt = DispatchTime.now()
                     await accumulator.markFileTotal(
-                        path: item.file.relativePath,
-                        file: item.file,
-                        label: item.label,
+                        path: file.relativePath,
+                        file: file,
+                        label: label,
                         total: chunks.count,
                         extractSeconds: extractSeconds,
                         firstChunkAt: firstChunkAt,
@@ -413,11 +473,12 @@ public final class IndexingPipeline: Sendable {
                         // Block until the embed queue has room. Permit
                         // released in the embed task after handoff to the
                         // accumulator. Keeps extract from running ahead
-                        // of embed on large corpora.
+                        // of embed on large corpora. Shared across both
+                        // lanes, so it bounds total in-flight chunks.
                         try await extractGate.acquire()
                         let work = EmbedWork(
-                            file: item.file,
-                            label: item.label,
+                            file: file,
+                            label: label,
                             chunk: chunk,
                             ordinal: index,
                             totalChunks: chunks.count,
@@ -428,9 +489,42 @@ public final class IndexingPipeline: Sendable {
                     }
                     progress?(.extractDequeued)
                 }
-                // All files extracted; close the embed stream so the
-                // embed-spawner stage knows it's done.
-                embedContinuation.finish()
+
+                // Partition by the extractor's own OCR routing decision so
+                // the image lane receives exactly the files `extract` will
+                // OCR (mode-aware; matches `TextExtractor.extract`). Order
+                // is preserved within each lane. This is a single serial
+                // pass over the work items (a cheap extension + mode check
+                // per file) before either lane starts.
+                var textItems: [(file: FileInfo, label: String)] = []
+                var imageItems: [(file: FileInfo, label: String)] = []
+                for item in workItems {
+                    if extractor.isImageOCRFile(item.file) {
+                        imageItems.append(item)
+                    } else {
+                        textItems.append(item)
+                    }
+                }
+
+                try await withThrowingTaskGroup(of: Void.self) { lanes in
+                    // Text lane — strictly serial (N = 1), independent of
+                    // `ocrConcurrency`.
+                    lanes.addTask {
+                        for item in textItems {
+                            try await extractOne(item.file, item.label)
+                        }
+                    }
+                    // Image lane — bounded to `ocrConcurrency`. At most that
+                    // many OCR extractions (and decoded images, and live
+                    // tasks) exist at once, so a huge image corpus stays
+                    // memory-bounded.
+                    lanes.addTask {
+                        try await Self.forEachBounded(imageItems, limit: ocrConcurrency) { item in
+                            try await extractOne(item.file, item.label)
+                        }
+                    }
+                    try await lanes.waitForAll()
+                }
             }
 
             // Stage 1.5: Batch-former. Drains embedStream, length-buckets
@@ -704,6 +798,53 @@ public final class IndexingPipeline: Sendable {
     fileprivate static func elapsed(since start: DispatchTime) -> Double {
         let nanos = DispatchTime.now().uptimeNanoseconds &- start.uptimeNanoseconds
         return Double(nanos) / 1_000_000_000
+    }
+
+    /// Runs `body` over `items` with **at most `limit`** invocations in
+    /// flight at any time. This is the bound behind the image OCR lane:
+    /// OCR is the memory- and accelerator-heavy extract path, so it must
+    /// never decode more images (or spawn more tasks) than the caller
+    /// asked for, no matter how many images the corpus holds.
+    ///
+    /// A sliding window keeps exactly `limit` tasks live: it primes the
+    /// group with `min(limit, count)` tasks, then starts one more each
+    /// time a running one completes. So a 325k-item corpus at `limit == 4`
+    /// runs with 4 tasks live at once, not 325k — bounded tasks, bounded
+    /// decoded images, bounded chunks (each `body` gates its own chunks
+    /// through the shared `extractGate`).
+    ///
+    /// Completion order is arbitrary; callers must not depend on it. The
+    /// first `body` error (including `CancellationError`) propagates out
+    /// of the group, which cancels the still-running siblings — so a
+    /// downstream failure that cancels this stage tears the window down
+    /// promptly rather than draining the remaining items.
+    static func forEachBounded<Element: Sendable>(
+        _ items: [Element],
+        limit: Int,
+        _ body: @escaping @Sendable (Element) async throws -> Void
+    ) async throws {
+        precondition(limit >= 1, "forEachBounded limit must be >= 1")
+        guard !items.isEmpty else { return }
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            var next = 0
+            let primed = min(limit, items.count)
+            while next < primed {
+                let element = items[next]
+                group.addTask { try await body(element) }
+                next += 1
+            }
+            // Each completed child frees one window slot; refill it with the
+            // next item, if any. `group.next()` also rethrows the first
+            // child error here, which then cancels the remaining children on
+            // scope exit.
+            while try await group.next() != nil {
+                if next < items.count {
+                    let element = items[next]
+                    group.addTask { try await body(element) }
+                    next += 1
+                }
+            }
+        }
     }
 }
 
