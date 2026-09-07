@@ -2,6 +2,12 @@
 
 Manager: `image-ocr`, branch `agent/image-ocr`. Work only in this worktree. Use single-command tool calls and `ib`; never access main/other worktree paths. Rebase onto main if main advances; never merge main or squash. Coordinator's latest instruction: **do not merge anything**. Final line when idle: `WAITING`; when the whole goal is done: `I HAVE COMPLETED THE GOAL`.
 
+## Latest measured milestones
+
+Runner commits: `69dec5c` frozen18 throughput; `9db38f7` real153 throughput; `79716ce` TH1 fault injection. Real153 cold jobs 1/4/8: 6.8535/10.3401/11.2697 images/s; 325k extrapolation 13.17/8.73/8.01 hours. Cold peak RSS 251871232/280248320/287948800 bytes (240.20/267.27/274.61 MiB). Frozen18 cold 0.68/0.80/0.69 images/s implies roughly 133/112/131 hours. All actual passes had zero failures; warm passes hit every sidecar without OCR. TH1 injected one invalid PNG and verified partial failure JSON written before expected exit1, with no valid full throughput archive. Original lost-run failure was not reproduced; no causal claim.
+
+Runner is rebasing/running full suite then writing report.md and E12 plan. Manager requested force-adding actual execution logs (global log ignore may omit them), exact hardware model/RAM, and correcting generated memory labels from MB to MiB without altering raw byte/timing data. Both reviewers have been sent regenerated retrieval and throughput SHAs; final artifacts/report approval pending. Real153 is a modest stride sample, so 8-13h is conditional, not an established full-corpus prediction. Warm timing lasts only milliseconds and RSS has 1-2 samples; do not sell warm extrapolation as reliable.
+
 ## Current state
 
 - Main last checked at `664b3e8`; manager implementation/frozen-harness tip before this note is `105cbab`. Engine: `172764f`, `f1652ba`, integrated at `1bf450d`; shared image classification `77b328e`; pinned Vision request revision 3 `4ed96d8`; bounded OCR pipeline `638a1db`; review fixes `a78cf0b`.
