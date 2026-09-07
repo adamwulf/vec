@@ -9,3 +9,5 @@ DerivedData/
 .reindex-*.log
 .rubric-*/
 .codex/
+/AGENTS.md
+/.agents/
