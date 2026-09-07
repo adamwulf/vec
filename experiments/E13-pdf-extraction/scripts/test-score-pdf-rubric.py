@@ -37,6 +37,15 @@ class PDFRubricScorerTests(unittest.TestCase):
         self.assertEqual(SCORER.bucket([1, 2, None]),
                          {"n": 3, "rank1": 1, "top3": 2, "mrr": 0.5})
 
+    def test_correct_page_hit_counts_wrong_page_as_miss(self):
+        matches = [{"chunk_type": "pdf_page", "page_number": 1}]
+        self.assertFalse(SCORER.correct_page_hit(matches, 2))
+        self.assertTrue(SCORER.correct_page_hit(matches, 1))
+
+    def test_correct_page_hit_rejects_missing_provenance(self):
+        with self.assertRaises(SCORER.ScoreError):
+            SCORER.correct_page_hit([{"chunk_type": "pdf_page"}], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

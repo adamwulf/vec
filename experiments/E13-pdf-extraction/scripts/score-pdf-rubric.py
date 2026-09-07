@@ -55,6 +55,13 @@ def bucket(ranks):
     }
 
 
+def correct_page_hit(matches, primary_page):
+    for match in matches:
+        if match.get("chunk_type") == "pdf_page" and not isinstance(match.get("page_number"), int):
+            raise ScoreError("PDF page match lacks page provenance")
+    return primary_page in {match.get("page_number") for match in matches}
+
+
 def score(run_directory, manifest_path=DEFAULT_MANIFEST):
     run = Path(run_directory)
     manifest_bytes = Path(manifest_path).read_bytes()
@@ -73,6 +80,7 @@ def score(run_directory, manifest_path=DEFAULT_MANIFEST):
 
     output = {"run_identity": frozen.get("run_identity"), "arms": {}, "per_query": []}
     per_query = {query_id: {} for query_id in query_ids}
+    per_query_page_hits = {query_id: {} for query_id in query_ids}
     expected_json = {f"{query_id}.json" for query_id in query_ids}
     for arm in manifest["arms"]:
         key = arm["key"]
@@ -97,6 +105,7 @@ def score(run_directory, manifest_path=DEFAULT_MANIFEST):
 
         ranks = []
         passage_passes = 0
+        page_hits = 0
         for query in manifest["queries"]:
             result = read_json(arm_dir / f"{query['id']}.json")
             if result.get("id") != query["id"] or result.get("text") != query["text"]:
@@ -110,18 +119,24 @@ def score(run_directory, manifest_path=DEFAULT_MANIFEST):
                 raise ScoreError(f"arm {key} {query['id']}: stored rank differs from derived rank")
             primary_matches = next((group.get("matches", []) for group in groups
                                     if group.get("file") == query["primary_file"]), [])
-            archived_pages = {match.get("page_number") for match in primary_matches}
-            if rank is not None and query["primary_page"] not in archived_pages:
-                raise ScoreError(f"arm {key} {query['id']}: target result lacks page provenance")
+            try:
+                page_hit = rank is not None and correct_page_hit(primary_matches, query["primary_page"])
+            except ScoreError as error:
+                raise ScoreError(f"arm {key} {query['id']}: {error}") from error
+            if page_hit:
+                page_hits += 1
             ranks.append(rank)
             if result.get("passage_criteria_met") is True:
                 passage_passes += 1
             per_query[query["id"]][key] = rank
+            per_query_page_hits[query["id"]][key] = page_hit
         output["arms"][key] = {"metrics": bucket(ranks), "passage_passes": passage_passes,
+                               "correct_page_hits": page_hits,
                                "total_chunks": summary.get("total_chunks"), "cache": cache}
 
     output["per_query"] = [{"id": query["id"], "primary_file": query["primary_file"],
-                             "primary_page": query["primary_page"], "ranks": per_query[query["id"]]}
+                             "primary_page": query["primary_page"], "ranks": per_query[query["id"]],
+                             "page_hits": per_query_page_hits[query["id"]]}
                             for query in manifest["queries"]]
     return output
 
@@ -142,6 +157,7 @@ def main():
         metrics = arm["metrics"]
         print(f"TOTAL {key}: rank1 {metrics['rank1']}/{metrics['n']} "
               f"top3 {metrics['top3']}/{metrics['n']} MRR {metrics['mrr']:.3f} "
+              f"correct-page {arm['correct_page_hits']}/{metrics['n']} "
               f"passage {arm['passage_passes']}/{metrics['n']}")
 
 
