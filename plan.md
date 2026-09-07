@@ -108,6 +108,14 @@ if the cross-corpus ranking diverges, the default may revisit. See
 
 ---
 
+## In progress — E12 image OCR (2026-09-07)
+
+Opt-in `image-ocr-v1` and all canonical Markdown/VTT combinations are implemented. Scanner discovery, updates and inserts honor the recorded mode; switching modes requires reset. Vision revision 3 and ImageIO extract readable paragraphs before chunking, with a content-hash/version cache, per-image autorelease pools, a 4096-pixel cap, and configurable OCR concurrency (default 1).
+
+Native implementation validation passed 131 focused tests. The frozen 18-image retrieval run (6 real, 12 synthetic; 15 queries) measured raw hit@1 0/15 versus OCR 14/15, hit@5 15/15, MRR 0.967, and 19 chunks. Real-image targets scored 3/4 at rank one; synthetic targets 11/11. This small, selected sample and empty baseline do not estimate full-corpus retrieval accuracy.
+
+Remaining: throughput and memory measurements at 1/4/8 jobs with a 325k-image extrapolation, final full-suite validation after review fixes, archived experiment report, and two independent final approvals. [Experiment plan](experiments/E12-image-ocr/plan.md) · [Report](experiments/E12-image-ocr/report.md).
+
 ## Done
 
 All shipped on the current branch, in rough chronological order.
