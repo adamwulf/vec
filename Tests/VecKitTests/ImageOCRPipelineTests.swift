@@ -285,6 +285,23 @@ final class ImageOCRPipelineTests: XCTestCase {
     /// streams/gates and return promptly rather than deadlock. The race
     /// against a 5s timeout fails the test on a hang instead of stalling the
     /// suite.
+    ///
+    /// Scope note on the cancellation contract: this validates *external*
+    /// task cancellation, which is the reachable path — the extract gate and
+    /// embedder pool are cancellation-aware, so a cancelled run unwinds. It
+    /// does NOT cover a pre-existing, unrelated embed-stage limitation: if an
+    /// `Embedder` were to throw `CancellationError` from `embedDocuments`
+    /// *without* the surrounding task actually being cancelled, the embed
+    /// task skips its per-chunk `extractGate.release()` while the
+    /// embed-spawner is still parked in its `for await batchStream` loop (so
+    /// the error never surfaces), and extract stays gate-blocked — a self
+    /// deadlock independent of the outer loop's `for try await` vs
+    /// `waitForAll()` choice. This is not production-reachable: real embedder
+    /// failures throw `EmbedderError`, which the embed stage catches and
+    /// turns into nil vectors (still releasing the gate); an embedder only
+    /// observes `CancellationError` when its task is genuinely cancelled, in
+    /// which case extract is cancelled too and unblocks. Redesigning that
+    /// stage is out of scope for OCR concurrency.
     func testPipelineCancellationTearsDownWithoutHang() async throws {
         let extractor = TextExtractor(
             splitter: RecursiveCharacterSplitter(chunkSize: 1200, chunkOverlap: 240),
@@ -321,6 +338,67 @@ final class ImageOCRPipelineTests: XCTestCase {
         }
         XCTAssertTrue(finishedInTime,
             "pipeline.run must tear down promptly on cancellation, not hang")
+    }
+
+    /// A downstream DB-writer error (here a dimension mismatch on insert)
+    /// must surface out of `run()` and terminate promptly — the extract and
+    /// embed stages are cancelled rather than left running. The embed stage
+    /// stays healthy (it releases the backpressure gate as usual), so this
+    /// exercises the outer group's fail-fast error path: `for try await`
+    /// surfaces the DB error on the first errored child and cancels the rest,
+    /// where a drain-all `waitForAll()` would keep every stage running to the
+    /// end before rethrowing. The 5s race guards against a hang.
+    func testDownstreamDBErrorSurfacesAndTerminates() async throws {
+        // Embedder emits 512-dim vectors; the DB is opened at 768, so the DB
+        // writer's insert throws `VecError.dimensionMismatch`.
+        let factory: @Sendable () -> any Embedder = { WrongDimensionEmbedder() }
+        let profile = IndexingProfile(
+            identity: "wrongdim@1200/240",
+            embedder: factory(),
+            embedderFactory: factory,
+            splitter: RecursiveCharacterSplitter(chunkSize: 1200, chunkOverlap: 240),
+            chunkSize: 1200,
+            chunkOverlap: 240,
+            isBuiltIn: false
+        )
+        let extractor = TextExtractor(
+            splitter: RecursiveCharacterSplitter(chunkSize: 1200, chunkOverlap: 240),
+            textExtraction: .imageOCRV1,
+            ocrRecognizer: DeterministicRecognizer(text: "ocr caption"),
+            ocrCacheDirectory: nil
+        )
+
+        var workItems: [(file: FileInfo, label: String)] = []
+        for i in 0..<8 {
+            workItems.append((file: try makeImageFile("d_\(i).png"), label: "Added"))
+        }
+        for i in 0..<8 {
+            workItems.append((file: try makeFile("d_\(i).txt", content: Data("body \(i)".utf8)), label: "Added"))
+        }
+
+        let database = VectorDatabase(databaseDirectory: dbDir, sourceDirectory: sourceDir, dimension: 768)
+        try await database.initialize()
+        let pipeline = IndexingPipeline(
+            concurrency: 2, ocrConcurrency: 2, batchSize: 4, bucketWidth: 500, profile: profile
+        )
+
+        let runTask = Task { () -> Error? in
+            do {
+                _ = try await pipeline.run(workItems: workItems, extractor: extractor, database: database)
+                return nil
+            } catch {
+                return error
+            }
+        }
+
+        let finished = await raceCompletion(within: 5.0) { _ = await runTask.value }
+        XCTAssertTrue(finished, "a downstream DB error must terminate the run, not hang")
+        if finished {
+            let thrown = await runTask.value
+            XCTAssertNotNil(thrown, "run() must surface the downstream DB error")
+        } else {
+            runTask.cancel()
+        }
     }
 
     // MARK: - End-to-end: mixed-corpus regression + per-file ordering
@@ -503,6 +581,23 @@ private actor MockEmbedder: Embedder {
     }
     func embedDocuments(_ texts: [String]) async throws -> [[Float]] {
         texts.map { _ in Array(repeating: Float(0.1), count: 768) }
+    }
+}
+
+/// 768-dim mock that emits the *wrong* dimension (512), so the DB writer's
+/// insert throws `VecError.dimensionMismatch` — a realistic downstream error
+/// where the embed stage itself stays healthy (releases the gate).
+private actor WrongDimensionEmbedder: Embedder {
+    nonisolated var name: String { "wrongdim-512" }
+    nonisolated var dimension: Int { 512 }
+    func embedDocument(_ text: String) async throws -> [Float] {
+        Array(repeating: Float(0.1), count: 512)
+    }
+    func embedQuery(_ text: String) async throws -> [Float] {
+        Array(repeating: Float(0.1), count: 512)
+    }
+    func embedDocuments(_ texts: [String]) async throws -> [[Float]] {
+        texts.map { _ in Array(repeating: Float(0.1), count: 512) }
     }
 }
 

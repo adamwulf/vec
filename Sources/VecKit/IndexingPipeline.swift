@@ -496,15 +496,20 @@ public final class IndexingPipeline: Sendable {
                 // is preserved within each lane. This is a single serial
                 // pass over the work items (a cheap extension + mode check
                 // per file) before either lane starts.
-                var textItems: [(file: FileInfo, label: String)] = []
-                var imageItems: [(file: FileInfo, label: String)] = []
+                var textPartition: [(file: FileInfo, label: String)] = []
+                var imagePartition: [(file: FileInfo, label: String)] = []
                 for item in workItems {
                     if extractor.isImageOCRFile(item.file) {
-                        imageItems.append(item)
+                        imagePartition.append(item)
                     } else {
-                        textItems.append(item)
+                        textPartition.append(item)
                     }
                 }
+                // Bind the finished partitions to immutable `let`s before the
+                // lanes capture them: Swift's region isolation refuses to send
+                // a task closure that captures a still-mutable `var`.
+                let textItems = textPartition
+                let imageItems = imagePartition
 
                 try await withThrowingTaskGroup(of: Void.self) { lanes in
                     // Text lane — strictly serial (N = 1), independent of
@@ -790,7 +795,15 @@ public final class IndexingPipeline: Sendable {
                 }
             }
 
-            try await group.waitForAll()
+            // Iterate results rather than `waitForAll()`: on a child throw
+            // (e.g. the DB writer erroring, or the embed stage re-throwing
+            // CancellationError) this surfaces immediately and cancels the
+            // remaining stages on scope exit. `waitForAll()` on Swift 5.9+
+            // drains every child before rethrowing, which would leave the
+            // extract lanes parked on `extractGate` (waiting for permits the
+            // dead embed stage will never release) — a hang. Fail-fast
+            // cancellation unblocks the cancellation-aware gate instead.
+            for try await _ in group {}
         }
 
         let results = await resultCollector.allResults()
