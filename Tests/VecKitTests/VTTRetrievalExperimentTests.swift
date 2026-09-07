@@ -41,13 +41,16 @@ import CryptoKit
 ///   sample is a fixed, committed 16-file corpus, so a drift means the
 ///   sample is wrong, not operator-triggered growth;
 /// - per-arm and per-file "noise" statistics record how much WebVTT
-///   scaffolding (timing lines / inline cue tags) survives into the chunks
-///   that are actually embedded — the whole point of comparing raw vs
+///   scaffolding (timing lines / inline cue tags) survives into the FULL
+///   extracted chunk texts — an upper-bound heuristic measured BEFORE E5's
+///   char cap and the tokenizer's 512-token truncation, so it bounds (does
+///   not confirm) what reaches the vectors — the point of comparing raw vs
 ///   vtt-v1 (see `VTTNoiseDetector`);
 /// - the pre-tokenizer passage audit reconstructs the retrieved chunk BY
-///   ORDINAL from the arm's own extractor, so a reflowed vtt-v1 chunk is
-///   checked against the text that was actually embedded — never against
-///   the raw cue source range (which still carries timestamps and tags).
+///   ORDINAL from the arm's own extractor via `E5BaseEmbedder.normalizeInputs`,
+///   so a reflowed vtt-v1 chunk is checked against the pre-tokenizer input
+///   the E5 document path builds — never against the raw cue source range
+///   (which still carries timestamps and tags).
 final class VTTRetrievalExperimentTests: XCTestCase {
 
     private enum Env {
@@ -276,10 +279,11 @@ final class VTTRetrievalExperimentTests: XCTestCase {
         let totalChunks = try await db.totalChunkCount()
 
         // Re-extract each file with the arm's extractor so we can (a) audit
-        // passages by ordinal and (b) measure noise on the exact chunk texts
-        // that were embedded. The extractor is deterministic, so the
-        // re-extracted chunk list matches the indexed set 1:1 in order — we
-        // assert that below so the ordinal-based audit stays trustworthy.
+        // passages by ordinal and (b) measure noise on the FULL extracted
+        // chunk texts (before E5's char cap / tokenizer truncation). The
+        // extractor is deterministic, so the re-extracted chunk list matches
+        // the indexed set 1:1 in order — we assert that below so the
+        // ordinal-based audit and the noise counts stay trustworthy.
         var chunkCache: [String: [TextChunk]] = [:]
         func extractedChunks(_ path: String) throws -> [TextChunk] {
             if let c = chunkCache[path] { return c }
@@ -633,7 +637,7 @@ final class VTTRetrievalExperimentTests: XCTestCase {
             s += "| \(a.arm) | \(all.noisy_chunks)/\(all.chunk_count) | \(pct(all.noisy_share)) | "
             s += "\(pass.noisy_chunks)/\(pass.chunk_count) | \(pct(pass.noisy_share)) |\n"
         }
-        s += "\n> Noise is a syntactic heuristic on the exact chunk texts that were embedded: a timing LINE is a full cue timing line (`HH:MM:SS.fff --> HH:MM:SS.fff`, leading whitespace allowed); an inline tag is a narrow WebVTT tag (`<v …>`, `</v>`, `<c…>`, `<i>`, `<br>`, an inline `<HH:MM:SS.fff>` timestamp, …). A decoded literal `<i>` in genuine prose counts as syntactic noise. It measures residual scaffolding, not retrieval quality.\n\n"
+        s += "\n> Noise is a syntactic heuristic on the FULL extracted chunk texts, computed BEFORE E5's 2000-char cap and the tokenizer's 512-token truncation — an upper bound on scaffolding reaching the model, not a guarantee it is in the vectors. A timing LINE is a full cue timing line (`HH:MM:SS.fff --> HH:MM:SS.fff`, leading whitespace allowed); an inline tag is a narrow WebVTT tag (`<v …>`, `</v>`, `<c…>`, `<i>`, `<br>`, an inline `<HH:MM:SS.fff>` timestamp, …). A decoded literal `<i>` in genuine prose counts as syntactic noise. It measures residual scaffolding, not retrieval quality.\n\n"
 
         let keys = comparison.arms
         s += "## Per-query file rank (answered)\n\n| query | " + keys.map { "\($0) rank" }.joined(separator: " | ") + " |\n"
@@ -1051,10 +1055,13 @@ enum VTTSampleManifestCheck {
 
 // MARK: - Scaffolding-noise detection (file-scope so the cheap tests exercise it)
 
-/// Syntactic detector for residual WebVTT scaffolding in an embedded chunk.
-/// It runs on the EXACT chunk text that was embedded (raw for the raw arm,
-/// normalized for vtt-v1), so it measures how much cue scaffolding survives
-/// into the vectors — the point of comparing the two arms.
+/// Syntactic detector for residual WebVTT scaffolding in an extracted chunk.
+/// It runs on the FULL extracted chunk text (raw for the raw arm, normalized
+/// for vtt-v1), BEFORE E5's 2000-char cap and the tokenizer's 512-token
+/// truncation, so it is an UPPER-BOUND heuristic for how much cue scaffolding
+/// could reach the vectors (content past the cap or token limit — notably in
+/// the whole-document chunk and the tail of a long chunk — may never be
+/// embedded) — the point of comparing the two arms.
 ///
 /// Two independent signals, defined precisely so the counts are reproducible:
 ///

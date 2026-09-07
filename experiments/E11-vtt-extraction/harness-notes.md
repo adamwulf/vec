@@ -33,22 +33,27 @@ via the batch embedding pipeline (`IndexingPipeline` →
 `Embedder.embedDocuments`), queries via the single-query path
 (`E5BaseEmbedder.embedQuery`). Only the `TextExtractor` mode differs.
 
-**Baseline: current-main inference (post parity fix).** This branch is
-merged onto current main, which includes the single/batch embedding-parity
-fix. For E5 the batch document path now prepends `passage: ` within the
-2,000-character cap on the SAME shared helper the single/query paths use
-(`E5BaseEmbedder.normalizeInputs`, prefix-then-cap), so a batch document
-vector matches its single-document vector, and E5 query/single vectors are
-unchanged. The five pre-existing single-vs-batch parity assertions recorded
-in the E10-era `validation.md` therefore no longer apply to this run.
+**Baseline: main `5ee92ab563d348924312747e6631a639b96f1b35`, post parity
+fix.** This branch is **rebased** onto that main commit, which includes the
+single/batch embedding-parity fix. For E5 the batch document path now
+prepends `passage: ` within the 2,000-character cap using the SAME shared
+helper the single/query paths use (`E5BaseEmbedder.normalizeInputs`,
+prefix-then-cap), so the single and batch document paths apply identical
+input preprocessing, and E5 query/single vectors are unchanged by the fix.
+The fix brings single and batch into agreement within the tested 0.9999
+cosine tolerance (see `BertBatchParityTests` and
+`data/embedding-batch-parity.md`); this run does not itself re-verify parity
+and makes **no** claim that single-vs-batch divergence is mathematically
+impossible in general beyond that tested fix. The five pre-existing
+single-vs-batch parity assertions recorded in the E10-era `validation.md`
+were addressed by this fix and no longer apply as failures to this run.
 
-Because of that fix, **this improved current-main baseline differs from the
-E10 inference revision**: E11 absolute scores are NOT comparable to E10's,
-and E11 must be read as raw-vs-vtt-v1 on the current inference. The harness
-itself changes no inference code; it merely runs on the merged baseline.
-Running documents through the batch path and queries through the single path
-still reflects the real CLI, and under the parity fix that is no longer a
-source of single-vs-batch divergence for E5.
+Because of that fix, **this baseline differs from the E10 inference
+revision**: E11 absolute scores are NOT comparable to E10's, and E11 must be
+read as raw-vs-vtt-v1 on this inference. The harness itself changes no
+inference code; it merely runs on the rebased baseline. Running documents
+through the batch path and queries through the single path reflects the real
+CLI.
 
 ## The corpus and its scope
 
@@ -63,8 +68,10 @@ snapshot.
 
 Sixteen files is a small corpus, so **top10 recall is uninformative** — a
 run would trivially retrieve most files. Scoring therefore emphasizes
-`rank1`, `top3`, `top5`, and `MRR`, plus separate no-answer probes, exactly
-as in E10.
+`rank1`, `top3`, `top5`, and `MRR`. The planned rubric has **15 answered
+queries and no no-answer queries**, so there are no no-answer probes to
+report (the harness still supports them generally, per the E10 rule, if a
+future manifest adds one).
 
 ### Sample manifest — anti-drift gate
 
@@ -106,10 +113,11 @@ sha256 of the manifest itself.
 and their labels, in the same shape as E10. Labels (`primary_file`,
 `relevant_files`, `passage_criteria`) are assigned by reading each file's
 content **before** any ranking is observed, and are frozen once committed.
-The parent plans 15 answered queries (each pointing at one caption file),
-leaving one file as an unlabeled distractor; there is no fixed no-answer
-count (no-answer probes, if any, follow the E10 rule: empty
-`relevant_files`).
+The parent plans 15 answered queries (each pointing at one caption file) and
+**no no-answer queries**; the 16th file is an unlabeled distractor, never a
+`primary_file`, exercised only as a competing candidate. (The harness still
+supports no-answer queries generally — a no-answer query has empty
+`relevant_files`, per the E10 rule — but the planned E11 rubric has none.)
 
 **File rank vs. passage quality.** File rank is the automatic,
 authoritative signal. `passage_criteria` are advisory, human-checkable
@@ -147,9 +155,15 @@ design).
 ## Scaffolding-noise statistics (E11-specific)
 
 The whole point of comparing `raw` vs `vtt-v1` is whether normalization
-keeps WebVTT scaffolding out of the vectors. The harness measures this
-directly on the **exact chunk texts that were embedded** (raw text for the
-`raw` arm, normalized text for `vtt-v1`) via `VTTNoiseDetector`.
+keeps WebVTT scaffolding out of the embedding input. The harness measures
+this on the **full extracted chunk texts** (raw text for the `raw` arm,
+normalized text for `vtt-v1`) via `VTTNoiseDetector`. This is an
+**extracted-text heuristic, computed BEFORE E5's 2,000-character cap and the
+BERT tokenizer's 512-token truncation** — so a timing line or tag counted
+here is an *upper bound* on what reaches the model: content past the char
+cap or the token limit (notably in the whole-document chunk, and the tail of
+any long chunk) may never be embedded. It measures residual scaffolding
+shape in the extracted text, not a guarantee of what is in the vectors.
 
 A chunk is **noisy** if it contains at least one of:
 
@@ -203,10 +217,10 @@ chunks). The arm aggregate is the exact **sum** of the per-file buckets
 re-derive the arm total by summing per-file counts and validating the
 ratios.
 
-Expect the `raw` arm to be heavily noisy (every timing line and tag is in
-the vectors) and `vtt-v1` to be near-zero; residual `vtt-v1` noise is the
-useful signal (e.g. a decoded literal angle-bracket, or a construct the
-normalizer left intact).
+Expect the `raw` arm to be heavily noisy (its extracted chunks are riddled
+with timing lines and tags) and `vtt-v1` to be near-zero; residual `vtt-v1`
+noise is the useful signal (e.g. a decoded literal angle-bracket, or a
+construct the normalizer left intact).
 
 ## Environment contract
 
