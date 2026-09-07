@@ -17,13 +17,6 @@ public class FileScanner {
         "jsonl", "jsonc", "cjs"
     ]
 
-    /// Recognize unsupported image names too, so text sniffing never
-    /// indexes SVG markup or unregistered raster formats accidentally.
-    private static let imageExtensions: Set<String> = [
-        "jpg", "jpeg", "png", "webp", "gif", "heic", "heif", "tif", "tiff",
-        "bmp", "avif", "svg", "svgz"
-    ]
-
     /// Well-known text filenames that have no file extension.
     private static let knownTextFilenames: Set<String> = [
         "Makefile", "Dockerfile", "LICENSE", "Gemfile",
@@ -100,7 +93,7 @@ public class FileScanner {
             // Handle raster/vector image names before text sniffing: SVG is
             // XML and some unsupported formats have no registered UTType.
             // Neither should leak into a raw index as apparent text.
-            if isImage || Self.imageExtensions.contains(ext) {
+            if isImage || ImageOCR.imageLikeExtensions.contains(ext) {
                 if textExtraction.includesImageOCR && ImageOCR.supportedExtensions.contains(ext) {
                     results.append(fileInfo(url: url, modDate: modDate, ext: ext))
                 }

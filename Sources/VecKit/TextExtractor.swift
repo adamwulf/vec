@@ -29,16 +29,6 @@ public final class TextExtractor: @unchecked Sendable {
     /// Kept separately so `ocrCacheStatistics` can expose its counters.
     private let ocrCache: ImageOCRCache?
 
-    /// Extensions the extractor treats as image-like even when `UTType` does
-    /// not report `.image` (SVGZ has no registered type; AVIF may not on older
-    /// runtimes). Kept in sync with `FileScanner`'s image set so the direct
-    /// extractor and the scanner agree on which files are images and must
-    /// never be read as text.
-    private static let imageLikeExtensions: Set<String> = [
-        "jpg", "jpeg", "png", "webp", "gif", "heic", "heif",
-        "tif", "tiff", "bmp", "avif", "svg", "svgz"
-    ]
-
     /// Construct with any `TextSplitter` and image-OCR recognizer. Callers
     /// pass the splitter from the active `IndexingProfile` so chunk sizing
     /// honors the recorded profile rather than a hardcoded default.
@@ -129,7 +119,7 @@ public final class TextExtractor: @unchecked Sendable {
         // apparent text, contradicting the scanner's skip policy and leaking
         // through the direct-insert path.
         let ext = file.fileExtension.lowercased()
-        if utType?.conforms(to: .image) == true || Self.imageLikeExtensions.contains(ext) {
+        if utType?.conforms(to: .image) == true || ImageOCR.imageLikeExtensions.contains(ext) {
             if textExtraction.includesImageOCR && ImageOCR.supportedExtensions.contains(ext) {
                 return ExtractionResult(chunks: try extractFromImage(file), linePageCount: nil)
             }

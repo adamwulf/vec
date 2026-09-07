@@ -131,7 +131,8 @@ normal modification-date tracking; changed or reinserted identical bytes can
 reuse cached OCR. Reset removes the cache with the database. `--ocr-concurrency`
 (default 1) bounds simultaneous image jobs independently of embedding
 `--concurrency`; each image releases temporary decoding and Vision objects
-inside an autorelease pool.
+inside an autorelease pool. Frames are downscaled to a maximum edge of 4,096
+pixels; tiny text in very large images can be lost.
 
 See the [E12 plan](experiments/E12-image-ocr/plan.md) and
 [measurement report](experiments/E12-image-ocr/report.md) for the frozen sample,

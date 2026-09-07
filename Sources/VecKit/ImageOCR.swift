@@ -71,8 +71,15 @@ public struct ImageOCR: ImageTextRecognizer {
     /// Lowercase file extensions (no leading dot) the engine can decode.
     /// The fixed raster set is always present; `avif` is added only when the
     /// running ImageIO advertises AVIF decode support. `svg` is deliberately
-    /// absent — vector XML is handled on the text path, not by OCR.
+    /// absent — vector images are skipped by the scanner and extractor.
     public static let supportedExtensions: Set<String> = ImageOCR.detectSupportedExtensions()
+
+    /// Includes unsupported image names so scanner discovery and direct
+    /// extraction share one rule for excluding image bytes from text sniffing.
+    static let imageLikeExtensions: Set<String> = [
+        "jpg", "jpeg", "png", "webp", "gif", "heic", "heif", "tif", "tiff",
+        "bmp", "avif", "svg", "svgz"
+    ]
 
     public init() {}
 
@@ -270,7 +277,7 @@ public struct ImageOCR: ImageTextRecognizer {
 
     private static func detectSupportedExtensions() -> Set<String> {
         // Frozen raster set for E12. `heif` is intentionally excluded (heic is
-        // the frozen HEVC-still extension); `svg`/`svgz` are handled as text.
+        // the frozen HEVC-still extension); `svg`/`svgz` are skipped.
         var extensions: Set<String> = [
             "jpg", "jpeg", "png", "webp", "gif", "heic", "tiff", "tif", "bmp"
         ]
