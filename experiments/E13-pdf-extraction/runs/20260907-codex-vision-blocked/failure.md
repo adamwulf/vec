@@ -26,4 +26,3 @@ E12 PNG test failing identically establishes that this Codex session cannot be
 used to judge the PDF renderer or OCR result. Tests remain assert-or-fail; no
 availability skip or fallback masks the failure. The manager arranged a native
 runtime execution.
-

@@ -99,4 +99,3 @@ Each final run directory must contain:
   RSS, and cache counters archived.
 - [ ] After integration only: run both retrieval arms, independently score,
   document results/caveats, and complete external review.
-
