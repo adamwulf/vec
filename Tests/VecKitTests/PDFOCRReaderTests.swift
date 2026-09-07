@@ -202,6 +202,29 @@ final class PDFOCRReaderTests: XCTestCase {
                        "One shared reader must never retain more page operations than configured")
     }
 
+    func testCacheSingleFlightsConcurrentSamePDFPage() throws {
+        let url = tempDirectory.appendingPathComponent("single-flight.pdf")
+        try writePDF([PageFixture()], to: url)
+        let recognizer = ConcurrencyTrackingRecognizer()
+        let reader = PDFOCRReader(recognizer: recognizer,
+                                  cacheDirectory: tempDirectory.appendingPathComponent("single-flight-cache"),
+                                  maximumConcurrentPageOperations: 2)
+        let group = DispatchGroup()
+        for _ in 0..<2 {
+            group.enter()
+            DispatchQueue.global().async {
+                defer { group.leave() }
+                _ = try? reader.read(from: url)
+            }
+        }
+        XCTAssertEqual(group.wait(timeout: .now() + 5), .success)
+        XCTAssertEqual(recognizer.attemptCount, 1,
+                       "Concurrent requests for identical PDF bytes/page/settings must share OCR")
+        XCTAssertEqual(reader.cacheStatistics,
+                       PDFOCRCacheStatistics(hits: 1, misses: 1, ocrCalls: 1,
+                                             coalescedRequests: 1))
+    }
+
     /// Bounded, opt-in cost measurement for the reader itself. The separate
     /// retrieval ranking waits for the manager's shared mode/pipeline wiring.
     /// This benchmark never downloads and fails (rather than silently
