@@ -4,6 +4,25 @@ import XCTest
 @testable import VecKit
 
 final class BertBatchDiagnosisTests: XCTestCase {
+    func testAttentionMaskPrecisionProbe() async throws {
+        for repo in ["thenlper/gte-base", "mixedbread-ai/mxbai-embed-large-v1", "BAAI/bge-base-en-v1.5", "intfloat/e5-base-v2"] {
+            let bundle = try await Bert.loadModelBundle(from: repo)
+            let tokens = try bundle.tokenizer.tokenizeText("The trademark deal closed at 1.5 million.", maxLength: 512)
+            let input = MLTensor(shape: [1, tokens.count], scalars: tokens)
+            let floatMask = MLTensor(shape: [1, tokens.count], scalars: Array(repeating: Float(1), count: tokens.count))
+            let halfMask = floatMask.cast(to: Float16.self)
+            let noMask = bundle.model(inputIds: input).sequenceOutput
+            let withFloat = bundle.model(inputIds: input, attentionMask: floatMask).sequenceOutput
+            let withHalf = bundle.model(inputIds: input, attentionMask: halfMask).sequenceOutput
+            let a = l2Normalize(await noMask[0, 0, 0...].cast(to: Float.self).shapedArray(of: Float.self).scalars)
+            let b = l2Normalize(await withFloat[0, 0, 0...].cast(to: Float.self).shapedArray(of: Float.self).scalars)
+            let c = l2Normalize(await withHalf[0, 0, 0...].cast(to: Float.self).shapedArray(of: Float.self).scalars)
+            let floatCos = zip(a, b).reduce(0.0) { $0 + Double($1.0) * Double($1.1) }
+            let halfCos = zip(a, c).reduce(0.0) { $0 + Double($1.0) * Double($1.1) }
+            print("PRECISION \(repo) noMask=\(noMask.scalarType) floatMask=\(withFloat.scalarType) halfMask=\(withHalf.scalarType) floatCos=\(floatCos) halfCos=\(halfCos)")
+        }
+    }
+
     func testGTEInputAndMaskProbe() async throws {
         let bundle = try await Bert.loadModelBundle(from: "thenlper/gte-base")
         let text = "The trademark deal closed at 1.5 million."
