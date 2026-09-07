@@ -45,8 +45,8 @@ When updating a swift package to a pinned commit (or branch or release), always 
 
 ## IttyBitty Manager Agent
 
-You are manager agent `embedding-batch-fix` in the ittybitty multi-agent orchestration system.
-You are running in a git worktree on branch `agent/embedding-batch-fix`, forked from `main`.
+You are manager agent `vtt-handler` in the ittybitty multi-agent orchestration system.
+You are running in a git worktree on branch `agent/vtt-handler`, forked from `main`.
 
 IMPORTANT: Always use `ib` (not `./ib`) to ensure you use the current version from PATH.
 
@@ -60,7 +60,7 @@ Each Bash tool call must run exactly ONE command. Multi-command calls will be bl
 
 ### Path Isolation
 
-You are isolated to your worktree at: /Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/embedding-batch-fix/repo
+You are isolated to your worktree at: /Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/vtt-handler/repo
 
 Subject to denied paths and protected-file rules, runtime access includes:
 - your worktree (read and write)
@@ -121,7 +121,7 @@ The kernel sandbox is OFF; the itsybitty hook is the only fence for these paths.
 ### Git Worktree Context
 
 You are in a git worktree, which shares the same repository as the main checkout.
-- Your branch: `agent/embedding-batch-fix`
+- Your branch: `agent/vtt-handler`
 - Forked from: `main`
 - All branches are LOCAL - no need for `git fetch origin`
 - To pull in your parent's latest changes, rebase your work on top of it: `git rebase main`
@@ -132,7 +132,7 @@ You are in a git worktree, which shares the same repository as the main checkout
 | Command | Description |
 |---------|-------------|
 | `ib new-agent --type worker "task"` | Spawn a worker sub-agent |
-| `ib list --manager embedding-batch-fix` | List your sub-agents |
+| `ib list --manager vtt-handler` | List your sub-agents |
 | `ib look <id>` | Read an agent's output |
 | `ib send <id> "msg"` | Send input to an agent |
 | `ib status <id>` | Show agent's commits/changes |
@@ -188,7 +188,7 @@ A watchdog monitors each worker and notifies you when they complete or need help
 
 - NEVER blindly accept one side (`--ours`/`--theirs`) - understand and merge the intent of both sides
 - Do NOT attempt to rebase a sub-agent's worktree yourself
-- If `ib merge <id> --force` fails with a conflict, send the sub-agent a message: `ib send <id> "Rebase your branch onto agent/embedding-batch-fix and resolve any conflicts, then signal completion again"`
+- If `ib merge <id> --force` fails with a conflict, send the sub-agent a message: `ib send <id> "Rebase your branch onto agent/vtt-handler and resolve any conflicts, then signal completion again"`
 - Once the sub-agent completes, re-attempt `ib merge <id> --force`
 - You can `ib send` messages to completed or stopped agents - they will restart and respond
 

@@ -1,0 +1,46 @@
+{
+  "feature": {
+    "failed": 1,
+    "passed": 368,
+    "skipped": 3
+  },
+  "feature_failed_tests": [
+    "-[VecKitTests.TrademarkTranscriptFixtureTests testBatchedEmbedMatchesSingleEmbedForAllBuiltIns]"
+  ],
+  "main": {
+    "failed": 2,
+    "passed": 349,
+    "skipped": 3
+  },
+  "main_failed_tests": [
+    "-[VecKitTests.IndexingProfileTests testFactoryDefaultAliasIsKnown]",
+    "-[VecKitTests.TrademarkTranscriptFixtureTests testBatchedEmbedMatchesSingleEmbedForAllBuiltIns]"
+  ],
+  "missing_main_tests": [],
+  "new_tests": {
+    "-[CLITests.TextExtractionModeTests testCLIOptionMapsOneToOneWithEveryPersistedMode]": "passed",
+    "-[CLITests.TextExtractionModeTests testExplicitlyRequestingTheRecordedModeIsNotAMismatch]": "passed",
+    "-[VecKitTests.VTTExtractionTests testModesAndExtensionsAreIsolated]": "passed",
+    "-[VecKitTests.VTTExtractionTests testNormalizationPrecedesChunkingAndPreservesRawLineCount]": "passed",
+    "-[VecKitTests.VTTExtractionTests testScannerDiscoversCaptionFilesForNormalizedExtraction]": "passed",
+    "-[VecKitTests.VTTExtractionTests testSplitPassagesMapBackToCueTimingAndPayloadLines]": "passed",
+    "-[VecKitTests.VTTExtractionTests testStructuralOnlyFilesHaveNoChunks]": "passed",
+    "-[VecKitTests.VTTTextNormalizerTests testBOMAndAllLineEndingsHaveSameSourceCoordinates]": "passed",
+    "-[VecKitTests.VTTTextNormalizerTests testDecodesEntitiesAfterStrippingTags]": "passed",
+    "-[VecKitTests.VTTTextNormalizerTests testDoesNotDeduplicateRepeatedSpeechAcrossTimeOrSpeakers]": "passed",
+    "-[VecKitTests.VTTTextNormalizerTests testIndentedTimingLinesRecoverAndBlankSeparatorsMapToVisiblePassage]": "passed",
+    "-[VecKitTests.VTTTextNormalizerTests testLongRollingCuePreservesNewTail]": "passed",
+    "-[VecKitTests.VTTTextNormalizerTests testMalformedBlocksAreSkippedAndHeaderlessCuesRecover]": "passed",
+    "-[VecKitTests.VTTTextNormalizerTests testMissingBlankCueSeparatorDoesNotEmbedTimingLine]": "passed",
+    "-[VecKitTests.VTTTextNormalizerTests testParagraphsBreakOnSilenceAndThirtySecondBoundaries]": "passed",
+    "-[VecKitTests.VTTTextNormalizerTests testPreservesSpeakersAndMultipleVoicesInOneCue]": "passed",
+    "-[VecKitTests.VTTTextNormalizerTests testRollingOverlapAndDuplicateCues]": "passed",
+    "-[VecKitTests.VTTTextNormalizerTests testStripsStructureAndJoinsFragmentedCues]": "passed"
+  },
+  "previously_passing_regressions": {},
+  "renamed_cli_tests": {
+    "testCLIParsesExplicitModeAndRejectsUnknownVersion": "testCLIParsesEveryModeAndRejectsUnknownVersion",
+    "testModeChangesRequireResetEvenWhenNoChunksSurvived": "testEveryModeChangeRequiresResetEvenWhenNoChunksSurvived",
+    "testNormalizedModeRoundTripsThroughConfigFile": "testEveryModeRoundTripsThroughConfigFile"
+  }
+}

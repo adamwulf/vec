@@ -1,0 +1,960 @@
+[1/1] Compiling plugin GenerateManual
+[2/2] Compiling plugin GenerateDoccReference
+Building for debugging...
+[2/7] Write sources
+[3/7] Write swift-version--58304C5D6DBC2206.txt
+[5/7] Emitting module VecKitTests
+[6/7] Compiling VecKitTests VTTRetrievalExperimentTests.swift
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-4feb5149/repo/Tests/VecKitTests/VTTRetrievalExperimentTests.swift:718:70: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 716 |     private func resolvedURL(_ path: String) -> URL {
+ 717 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+ 718 |         if realpath(path, &buf) != nil { return URL(fileURLWithPath: String(cString: buf)) }
+     |                                                                      `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 719 |         return URL(fileURLWithPath: path)
+ 720 |     }
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+Build complete! (2.48s)
+Test Suite 'All tests' started at 2026-09-07 01:03:41.353.
+Test Suite 'vecPackageTests.xctest' started at 2026-09-07 01:03:41.354.
+Test Suite 'BGEBaseEmbedderConcurrencyTests' started at 2026-09-07 01:03:41.354.
+Test Case '-[VecKitTests.BGEBaseEmbedderConcurrencyTests test20ConcurrentEmbedDocumentCallsAllReturn768Dims]' started.
+Test Case '-[VecKitTests.BGEBaseEmbedderConcurrencyTests test20ConcurrentEmbedDocumentCallsAllReturn768Dims]' passed (10.060 seconds).
+Test Suite 'BGEBaseEmbedderConcurrencyTests' passed at 2026-09-07 01:03:51.414.
+	 Executed 1 test, with 0 failures (0 unexpected) in 10.060 (10.060) seconds
+Test Suite 'BGEBaseEmbedderTests' started at 2026-09-07 01:03:51.414.
+Test Case '-[VecKitTests.BGEBaseEmbedderTests testDimensionIs768]' started.
+Test Case '-[VecKitTests.BGEBaseEmbedderTests testDimensionIs768]' passed (0.000 seconds).
+Test Case '-[VecKitTests.BGEBaseEmbedderTests testNameMatchesCanonicalIdentifier]' started.
+Test Case '-[VecKitTests.BGEBaseEmbedderTests testNameMatchesCanonicalIdentifier]' passed (0.000 seconds).
+Test Suite 'BGEBaseEmbedderTests' passed at 2026-09-07 01:03:51.415.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'BertBatchParityTests' started at 2026-09-07 01:03:51.415.
+Test Case '-[VecKitTests.BertBatchParityTests testE5ParityAcrossCharacterLimit]' started.
+Test Case '-[VecKitTests.BertBatchParityTests testE5ParityAcrossCharacterLimit]' passed (8.754 seconds).
+Test Case '-[VecKitTests.BertBatchParityTests testE5PrefixFitsWithinCharacterBudget]' started.
+Test Case '-[VecKitTests.BertBatchParityTests testE5PrefixFitsWithinCharacterBudget]' passed (0.010 seconds).
+Test Case '-[VecKitTests.BertBatchParityTests testGTEParityWithAndWithoutPadding]' started.
+Test Case '-[VecKitTests.BertBatchParityTests testGTEParityWithAndWithoutPadding]' passed (8.793 seconds).
+Test Case '-[VecKitTests.BertBatchParityTests testMxbaiParityWithAndWithoutPadding]' started.
+Test Case '-[VecKitTests.BertBatchParityTests testMxbaiParityWithAndWithoutPadding]' passed (20.201 seconds).
+Test Case '-[VecKitTests.BertBatchParityTests testMxbaiQueryRetainsPrefixAndEmptyInputBehavior]' started.
+Test Case '-[VecKitTests.BertBatchParityTests testMxbaiQueryRetainsPrefixAndEmptyInputBehavior]' passed (2.315 seconds).
+Test Suite 'BertBatchParityTests' passed at 2026-09-07 01:04:31.489.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 40.073 (40.074) seconds
+Test Suite 'CLITests' started at 2026-09-07 01:04:31.489.
+Test Case '-[CLITests.CLITests testDefaultSubcommandRoutesToSearch]' started.
+Test Case '-[CLITests.CLITests testDefaultSubcommandRoutesToSearch]' passed (0.012 seconds).
+Test Case '-[CLITests.CLITests testDeinitCommandFailsWithoutDbName]' started.
+Test Case '-[CLITests.CLITests testDeinitCommandFailsWithoutDbName]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testDeinitCommandParsesDbName]' started.
+Test Case '-[CLITests.CLITests testDeinitCommandParsesDbName]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testDeinitCommandParsesWithForceFlag]' started.
+Test Case '-[CLITests.CLITests testDeinitCommandParsesWithForceFlag]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testExplicitListSubcommandTakesPrecedenceOverDefaultSearch]' started.
+Test Case '-[CLITests.CLITests testExplicitListSubcommandTakesPrecedenceOverDefaultSearch]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testInfoCommandParsesDbFlag]' started.
+Test Case '-[CLITests.CLITests testInfoCommandParsesDbFlag]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testInfoCommandParsesLongDbFlag]' started.
+Test Case '-[CLITests.CLITests testInfoCommandParsesLongDbFlag]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testInfoCommandParsesWithNoArgs]' started.
+Test Case '-[CLITests.CLITests testInfoCommandParsesWithNoArgs]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testInitCommandParsesDbName]' started.
+Test Case '-[CLITests.CLITests testInitCommandParsesDbName]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testInitCommandParsesWithForceFlag]' started.
+Test Case '-[CLITests.CLITests testInitCommandParsesWithForceFlag]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testInitCommandParsesWithoutDbName]' started.
+Test Case '-[CLITests.CLITests testInitCommandParsesWithoutDbName]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testInitCommandSanitizeCollapsesAndTrimsDashes]' started.
+Test Case '-[CLITests.CLITests testInitCommandSanitizeCollapsesAndTrimsDashes]' passed (0.000 seconds).
+Test Case '-[CLITests.CLITests testInitCommandSanitizeEmptyResult]' started.
+Test Case '-[CLITests.CLITests testInitCommandSanitizeEmptyResult]' passed (0.000 seconds).
+Test Case '-[CLITests.CLITests testInitCommandSanitizePreservesValidName]' started.
+Test Case '-[CLITests.CLITests testInitCommandSanitizePreservesValidName]' passed (0.000 seconds).
+Test Case '-[CLITests.CLITests testInitCommandSanitizeReplacesDisallowedCharacters]' started.
+Test Case '-[CLITests.CLITests testInitCommandSanitizeReplacesDisallowedCharacters]' passed (0.000 seconds).
+Test Case '-[CLITests.CLITests testInsertCommandFailsWithoutPath]' started.
+Test Case '-[CLITests.CLITests testInsertCommandFailsWithoutPath]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testInsertCommandParsesDbFlagAndPath]' started.
+Test Case '-[CLITests.CLITests testInsertCommandParsesDbFlagAndPath]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testInsertCommandParsesPathOnly]' started.
+Test Case '-[CLITests.CLITests testInsertCommandParsesPathOnly]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testListCommandParsesWithNoArguments]' started.
+Test Case '-[CLITests.CLITests testListCommandParsesWithNoArguments]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testRemoveCommandFailsWithoutPath]' started.
+Test Case '-[CLITests.CLITests testRemoveCommandFailsWithoutPath]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testRemoveCommandParsesDbFlagAndPath]' started.
+Test Case '-[CLITests.CLITests testRemoveCommandParsesDbFlagAndPath]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testRemoveCommandParsesPathOnly]' started.
+Test Case '-[CLITests.CLITests testRemoveCommandParsesPathOnly]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testRenderProfileLineForBuiltInProfile]' started.
+Test Case '-[CLITests.CLITests testRenderProfileLineForBuiltInProfile]' passed (0.001 seconds).
+Test Case '-[CLITests.CLITests testRenderProfileLineForCustomProfile]' started.
+Test Case '-[CLITests.CLITests testRenderProfileLineForCustomProfile]' passed (0.000 seconds).
+Test Case '-[CLITests.CLITests testRenderProfileLineForFreshDB]' started.
+Test Case '-[CLITests.CLITests testRenderProfileLineForFreshDB]' passed (0.000 seconds).
+Test Case '-[CLITests.CLITests testRenderProfileLineForPreProfileDB]' started.
+Test Case '-[CLITests.CLITests testRenderProfileLineForPreProfileDB]' passed (0.000 seconds).
+Test Case '-[CLITests.CLITests testRenderProfileLinePropagatesMalformedIdentity]' started.
+Test Case '-[CLITests.CLITests testRenderProfileLinePropagatesMalformedIdentity]' passed (0.000 seconds).
+Test Case '-[CLITests.CLITests testRenderProfileLinePropagatesUnknownAlias]' started.
+Test Case '-[CLITests.CLITests testRenderProfileLinePropagatesUnknownAlias]' passed (0.000 seconds).
+Test Case '-[CLITests.CLITests testSearchCommandDefaultFormatIsText]' started.
+Test Case '-[CLITests.CLITests testSearchCommandDefaultFormatIsText]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testSearchCommandFailsWithoutQuery]' started.
+Test Case '-[CLITests.CLITests testSearchCommandFailsWithoutQuery]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testSearchCommandParsesAllFlags]' started.
+Test Case '-[CLITests.CLITests testSearchCommandParsesAllFlags]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testSearchCommandParsesDbFlagAndQuery]' started.
+Test Case '-[CLITests.CLITests testSearchCommandParsesDbFlagAndQuery]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testSearchCommandParsesFormatJson]' started.
+Test Case '-[CLITests.CLITests testSearchCommandParsesFormatJson]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testSearchCommandParsesFormatText]' started.
+Test Case '-[CLITests.CLITests testSearchCommandParsesFormatText]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testSearchCommandParsesLongDbFlag]' started.
+Test Case '-[CLITests.CLITests testSearchCommandParsesLongDbFlag]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testSearchCommandParsesQueryOnly]' started.
+Test Case '-[CLITests.CLITests testSearchCommandParsesQueryOnly]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testSearchCommandParsesShortLimitFlag]' started.
+Test Case '-[CLITests.CLITests testSearchCommandParsesShortLimitFlag]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testSearchCommandSizeUnitIsLForTextFiles]' started.
+Test Case '-[CLITests.CLITests testSearchCommandSizeUnitIsLForTextFiles]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testSearchCommandSizeUnitIsPForPDF]' started.
+Test Case '-[CLITests.CLITests testSearchCommandSizeUnitIsPForPDF]' passed (0.000 seconds).
+Test Case '-[CLITests.CLITests testUpdateIndexCommandParsesAllowHiddenFlag]' started.
+Test Case '-[CLITests.CLITests testUpdateIndexCommandParsesAllowHiddenFlag]' passed (0.003 seconds).
+Test Case '-[CLITests.CLITests testUpdateIndexCommandParsesDbFlag]' started.
+Test Case '-[CLITests.CLITests testUpdateIndexCommandParsesDbFlag]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testUpdateIndexCommandParsesWithNoArgs]' started.
+Test Case '-[CLITests.CLITests testUpdateIndexCommandParsesWithNoArgs]' passed (0.002 seconds).
+Test Case '-[CLITests.CLITests testVecHasExpectedSubcommands]' started.
+Test Case '-[CLITests.CLITests testVecHasExpectedSubcommands]' passed (0.000 seconds).
+Test Suite 'CLITests' passed at 2026-09-07 01:04:31.550.
+	 Executed 43 tests, with 0 failures (0 unexpected) in 0.058 (0.061) seconds
+Test Suite 'ChunkingStrategyTests' started at 2026-09-07 01:04:31.550.
+Test Case '-[VecKitTests.ChunkingStrategyTests testCustomChunkAndOverlapSizes]' started.
+Test Case '-[VecKitTests.ChunkingStrategyTests testCustomChunkAndOverlapSizes]' passed (0.003 seconds).
+Test Case '-[VecKitTests.ChunkingStrategyTests testHeadingBoundarySplitting]' started.
+Test Case '-[VecKitTests.ChunkingStrategyTests testHeadingBoundarySplitting]' passed (0.001 seconds).
+Test Case '-[VecKitTests.ChunkingStrategyTests testOverlappingChunksSecondChunkStartsAtLine41]' started.
+Test Case '-[VecKitTests.ChunkingStrategyTests testOverlappingChunksSecondChunkStartsAtLine41]' passed (0.001 seconds).
+Test Suite 'ChunkingStrategyTests' passed at 2026-09-07 01:04:31.556.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.005 (0.006) seconds
+Test Suite 'ConcurrencySweepTests' started at 2026-09-07 01:04:31.556.
+Test Case '-[VecKitTests.ConcurrencySweepTests testConcurrencySweep_syntheticCorpus]' started.
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-4feb5149/repo/Tests/VecKitTests/ConcurrencySweepTests.swift:177: -[VecKitTests.ConcurrencySweepTests testConcurrencySweep_syntheticCorpus] : Test skipped - Perf test — set VEC_PERF_TESTS=1 to run (takes ~4 minutes)
+Test Case '-[VecKitTests.ConcurrencySweepTests testConcurrencySweep_syntheticCorpus]' skipped (0.002 seconds).
+Test Suite 'ConcurrencySweepTests' passed at 2026-09-07 01:04:31.558.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'DatabaseLocatorTests' started at 2026-09-07 01:04:31.558.
+Test Case '-[VecKitTests.DatabaseLocatorTests testAllDatabasesDoesNotCrash]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testAllDatabasesDoesNotCrash]' passed (0.006 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testAllDatabasesFindsWrittenConfig]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testAllDatabasesFindsWrittenConfig]' passed (0.004 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testAllDatabasesSkipsDirsWithoutConfig]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testAllDatabasesSkipsDirsWithoutConfig]' passed (0.002 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testDatabaseDirectoryReturnsCorrectPath]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testDatabaseDirectoryReturnsCorrectPath]' passed (0.001 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testDatabaseDirectoryUnderBaseDirectory]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testDatabaseDirectoryUnderBaseDirectory]' passed (0.000 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testReadConfigThrowsOnIncompleteConfig]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testReadConfigThrowsOnIncompleteConfig]' passed (0.002 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testReadConfigThrowsOnMalformedJSON]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testReadConfigThrowsOnMalformedJSON]' passed (0.002 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testReadConfigThrowsWhenFileIsMissing]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testReadConfigThrowsWhenFileIsMissing]' passed (0.002 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveFromCurrentDirectoryMultipleMatchesThrows]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveFromCurrentDirectoryMultipleMatchesThrows]' passed (0.003 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveFromCurrentDirectoryNoMatchThrows]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveFromCurrentDirectoryNoMatchThrows]' passed (0.001 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveFromCurrentDirectorySingleMatch]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveFromCurrentDirectorySingleMatch]' passed (0.003 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveThrowsSourceDirectoryMissingWhenDirDeleted]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveThrowsSourceDirectoryMissingWhenDirDeleted]' passed (0.002 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveWithInvalidNameThrowsInvalidDatabaseName]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveWithInvalidNameThrowsInvalidDatabaseName]' passed (0.001 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveWithNonExistentNameThrowsDatabaseNotFound]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveWithNonExistentNameThrowsDatabaseNotFound]' passed (0.000 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveWithValidNameReturnsCorrectTuple]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testResolveWithValidNameReturnsCorrectTuple]' passed (0.001 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameAcceptsAlphanumeric]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameAcceptsAlphanumeric]' passed (0.001 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameAcceptsHyphensAndUnderscores]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameAcceptsHyphensAndUnderscores]' passed (0.001 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameRejectsEmptyString]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameRejectsEmptyString]' passed (0.001 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameRejectsPathTraversalNames]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameRejectsPathTraversalNames]' passed (0.001 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameRejectsReservedCommandNames]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameRejectsReservedCommandNames]' passed (0.001 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameRejectsSlashes]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameRejectsSlashes]' passed (0.000 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameRejectsSpaces]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameRejectsSpaces]' passed (0.000 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameRejectsSpecialCharacters]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testValidateNameRejectsSpecialCharacters]' passed (0.001 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testWriteConfigAndReadConfigRoundtrip]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testWriteConfigAndReadConfigRoundtrip]' passed (0.002 seconds).
+Test Case '-[VecKitTests.DatabaseLocatorTests testWriteConfigCreatesConfigJsonFile]' started.
+Test Case '-[VecKitTests.DatabaseLocatorTests testWriteConfigCreatesConfigJsonFile]' passed (0.001 seconds).
+Test Suite 'DatabaseLocatorTests' passed at 2026-09-07 01:04:31.599.
+	 Executed 25 tests, with 0 failures (0 unexpected) in 0.039 (0.041) seconds
+Test Suite 'E9ZeroChunkAndUnreadableTests' started at 2026-09-07 01:04:31.599.
+Test Case '-[VecKitTests.E9ZeroChunkAndUnreadableTests testEmptyFile_marksIndexed_secondRunIsNoOp]' started.
+Test Case '-[VecKitTests.E9ZeroChunkAndUnreadableTests testEmptyFile_marksIndexed_secondRunIsNoOp]' passed (0.147 seconds).
+Test Case '-[VecKitTests.E9ZeroChunkAndUnreadableTests testFileCount_includesZeroChunkFiles]' started.
+Test Case '-[VecKitTests.E9ZeroChunkAndUnreadableTests testFileCount_includesZeroChunkFiles]' passed (0.067 seconds).
+Test Case '-[VecKitTests.E9ZeroChunkAndUnreadableTests testUnreadableFile_isNotMarkedIndexed_secondRunRetries]' started.
+Test Case '-[VecKitTests.E9ZeroChunkAndUnreadableTests testUnreadableFile_isNotMarkedIndexed_secondRunRetries]' passed (0.065 seconds).
+Test Case '-[VecKitTests.E9ZeroChunkAndUnreadableTests testWhitespaceOnlyFile_marksIndexed]' started.
+Test Case '-[VecKitTests.E9ZeroChunkAndUnreadableTests testWhitespaceOnlyFile_marksIndexed]' passed (0.059 seconds).
+Test Suite 'E9ZeroChunkAndUnreadableTests' passed at 2026-09-07 01:04:31.937.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.338 (0.338) seconds
+Test Suite 'EmbedderBatchContractTests' started at 2026-09-07 01:04:31.937.
+Test Case '-[VecKitTests.EmbedderBatchContractTests testDefaultEmbedDocumentsExtensionReturnsEmptyForEmptyInput]' started.
+Test Case '-[VecKitTests.EmbedderBatchContractTests testDefaultEmbedDocumentsExtensionReturnsEmptyForEmptyInput]' passed (0.000 seconds).
+Test Case '-[VecKitTests.EmbedderBatchContractTests testEveryBuiltInReturnsEmptyForEmptyInput]' started.
+Test Case '-[VecKitTests.EmbedderBatchContractTests testEveryBuiltInReturnsEmptyForEmptyInput]' passed (0.005 seconds).
+Test Suite 'EmbedderBatchContractTests' passed at 2026-09-07 01:04:31.943.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
+Test Suite 'EmbedderPoolTests' started at 2026-09-07 01:04:31.943.
+Test Case '-[VecKitTests.EmbedderPoolTests testAcquireReturnsAllNDistinctInstances]' started.
+Test Case '-[VecKitTests.EmbedderPoolTests testAcquireReturnsAllNDistinctInstances]' passed (0.001 seconds).
+Test Case '-[VecKitTests.EmbedderPoolTests testNameAndDimensionMirrorFirstInstance]' started.
+Test Case '-[VecKitTests.EmbedderPoolTests testNameAndDimensionMirrorFirstInstance]' passed (0.000 seconds).
+Test Case '-[VecKitTests.EmbedderPoolTests testParkedWaiterThrowsCancellationErrorWhenCancelled]' started.
+Test Case '-[VecKitTests.EmbedderPoolTests testParkedWaiterThrowsCancellationErrorWhenCancelled]' passed (0.061 seconds).
+Test Case '-[VecKitTests.EmbedderPoolTests testReleaseRecyclesInstanceForNextAcquire]' started.
+Test Case '-[VecKitTests.EmbedderPoolTests testReleaseRecyclesInstanceForNextAcquire]' passed (0.000 seconds).
+Test Case '-[VecKitTests.EmbedderPoolTests testWaiterIsResumedWithReleasedInstance]' started.
+Test Case '-[VecKitTests.EmbedderPoolTests testWaiterIsResumedWithReleasedInstance]' passed (0.060 seconds).
+Test Suite 'EmbedderPoolTests' passed at 2026-09-07 01:04:32.066.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.122 (0.123) seconds
+Test Suite 'FileScannerTests' started at 2026-09-07 01:04:32.066.
+Test Case '-[VecKitTests.FileScannerTests testFileInfoForRelativeTo]' started.
+Test Case '-[VecKitTests.FileScannerTests testFileInfoForRelativeTo]' passed (0.002 seconds).
+Test Case '-[VecKitTests.FileScannerTests testNoVecignoreFileWorksNormally]' started.
+Test Case '-[VecKitTests.FileScannerTests testNoVecignoreFileWorksNormally]' passed (0.002 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanCanDisableGitignoreFiltering]' started.
+Initialized empty Git repository in /private/var/folders/n3/nm2j2qb55ss7ystx9_vps3lw0000gn/T/VecKitScanTests-9EB3B353-2A8B-49ED-91B7-A7D09E059BDB/.git/
+Test Case '-[VecKitTests.FileScannerTests testScanCanDisableGitignoreFiltering]' passed (0.079 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanEmptyDirectoryReturnsEmptyArray]' started.
+Test Case '-[VecKitTests.FileScannerTests testScanEmptyDirectoryReturnsEmptyArray]' passed (0.001 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanFindsFilesWithSpacesInNames]' started.
+Test Case '-[VecKitTests.FileScannerTests testScanFindsFilesWithSpacesInNames]' passed (0.017 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanFindsFilesWithUnicodeInNames]' started.
+Test Case '-[VecKitTests.FileScannerTests testScanFindsFilesWithUnicodeInNames]' passed (0.088 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanFindsImageFiles]' started.
+Test Case '-[VecKitTests.FileScannerTests testScanFindsImageFiles]' passed (0.089 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanFindsTextFilesAndSkipsGitDirectory]' started.
+Test Case '-[VecKitTests.FileScannerTests testScanFindsTextFilesAndSkipsGitDirectory]' passed (0.088 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanIncludesHiddenFilesWhenEnabled]' started.
+Test Case '-[VecKitTests.FileScannerTests testScanIncludesHiddenFilesWhenEnabled]' passed (0.085 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanRespectsGitignore]' started.
+Initialized empty Git repository in /private/var/folders/n3/nm2j2qb55ss7ystx9_vps3lw0000gn/T/VecKitScanTests-D3384F71-1024-4DFF-BA6E-5DCBF0812D5E/.git/
+Test Case '-[VecKitTests.FileScannerTests testScanRespectsGitignore]' passed (0.164 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanSkipsBinaryFiles]' started.
+Test Case '-[VecKitTests.FileScannerTests testScanSkipsBinaryFiles]' passed (0.017 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanSkipsBinaryFilesWithNoExtension]' started.
+Test Case '-[VecKitTests.FileScannerTests testScanSkipsBinaryFilesWithNoExtension]' passed (0.087 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanSkipsHiddenFilesByDefault]' started.
+Test Case '-[VecKitTests.FileScannerTests testScanSkipsHiddenFilesByDefault]' passed (0.091 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanSkipsNodeModules]' started.
+Test Case '-[VecKitTests.FileScannerTests testScanSkipsNodeModules]' passed (0.017 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanStillSkipsGitDirWhenHiddenEnabled]' started.
+Test Case '-[VecKitTests.FileScannerTests testScanStillSkipsGitDirWhenHiddenEnabled]' passed (0.083 seconds).
+Test Case '-[VecKitTests.FileScannerTests testScanWorksWithoutGitRepo]' started.
+Test Case '-[VecKitTests.FileScannerTests testScanWorksWithoutGitRepo]' passed (0.086 seconds).
+Test Case '-[VecKitTests.FileScannerTests testVecignoreBlankLinesAreIgnored]' started.
+Test Case '-[VecKitTests.FileScannerTests testVecignoreBlankLinesAreIgnored]' passed (0.003 seconds).
+Test Case '-[VecKitTests.FileScannerTests testVecignoreCommentLinesAreIgnored]' started.
+Test Case '-[VecKitTests.FileScannerTests testVecignoreCommentLinesAreIgnored]' passed (0.002 seconds).
+Test Case '-[VecKitTests.FileScannerTests testVecignoreDirectoryPatternExcludesContents]' started.
+Test Case '-[VecKitTests.FileScannerTests testVecignoreDirectoryPatternExcludesContents]' passed (0.002 seconds).
+Test Case '-[VecKitTests.FileScannerTests testVecignoreRootRelativePatternMatchesOnlyAtRoot]' started.
+Test Case '-[VecKitTests.FileScannerTests testVecignoreRootRelativePatternMatchesOnlyAtRoot]' passed (0.002 seconds).
+Test Case '-[VecKitTests.FileScannerTests testVecignoreWildcardExcludesMatchingFiles]' started.
+Test Case '-[VecKitTests.FileScannerTests testVecignoreWildcardExcludesMatchingFiles]' passed (0.003 seconds).
+Test Suite 'FileScannerTests' passed at 2026-09-07 01:04:33.077.
+	 Executed 21 tests, with 0 failures (0 unexpected) in 1.008 (1.011) seconds
+Test Suite 'IndexLogTests' started at 2026-09-07 01:04:33.077.
+Test Case '-[VecKitTests.IndexLogTests testAppendToFreshDirectoryProducesOneRecord]' started.
+Test Case '-[VecKitTests.IndexLogTests testAppendToFreshDirectoryProducesOneRecord]' passed (0.003 seconds).
+Test Case '-[VecKitTests.IndexLogTests testAppendTwiceProducesTwoOrderedRecords]' started.
+Test Case '-[VecKitTests.IndexLogTests testAppendTwiceProducesTwoOrderedRecords]' passed (0.004 seconds).
+Test Case '-[VecKitTests.IndexLogTests testAtomicReplaceLeavesNoTmpArtifact]' started.
+Test Case '-[VecKitTests.IndexLogTests testAtomicReplaceLeavesNoTmpArtifact]' passed (0.002 seconds).
+Test Case '-[VecKitTests.IndexLogTests testEveryLineIsValidJSONOneLine]' started.
+Test Case '-[VecKitTests.IndexLogTests testEveryLineIsValidJSONOneLine]' passed (0.004 seconds).
+Test Case '-[VecKitTests.IndexLogTests testLastNRotationKeepsPriorTail]' started.
+Test Case '-[VecKitTests.IndexLogTests testLastNRotationKeepsPriorTail]' passed (0.011 seconds).
+Test Case '-[VecKitTests.IndexLogTests testRoundTripEncodeDecode]' started.
+Test Case '-[VecKitTests.IndexLogTests testRoundTripEncodeDecode]' passed (0.003 seconds).
+Test Suite 'IndexLogTests' passed at 2026-09-07 01:04:33.103.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.026 (0.026) seconds
+Test Suite 'IndexingProfileConfigTests' started at 2026-09-07 01:04:33.103.
+Test Case '-[VecKitTests.IndexingProfileConfigTests testDatabaseConfigDecodesLegacyJSONWithNilProfile]' started.
+Test Case '-[VecKitTests.IndexingProfileConfigTests testDatabaseConfigDecodesLegacyJSONWithNilProfile]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileConfigTests testDatabaseConfigRoundTripsProfileRecordFromFactoryAlias]' started.
+Test Case '-[VecKitTests.IndexingProfileConfigTests testDatabaseConfigRoundTripsProfileRecordFromFactoryAlias]' passed (0.001 seconds).
+Test Case '-[VecKitTests.IndexingProfileConfigTests testDatabaseConfigRoundTripsWithNilProfile]' started.
+Test Case '-[VecKitTests.IndexingProfileConfigTests testDatabaseConfigRoundTripsWithNilProfile]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileConfigTests testDatabaseConfigRoundTripsWithProfileRecord]' started.
+Test Case '-[VecKitTests.IndexingProfileConfigTests testDatabaseConfigRoundTripsWithProfileRecord]' passed (0.000 seconds).
+Test Suite 'IndexingProfileConfigTests' passed at 2026-09-07 01:04:33.105.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'IndexingProfileTests' started at 2026-09-07 01:04:33.105.
+Test Case '-[VecKitTests.IndexingProfileTests testConstructsWithBuiltInFlag]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testConstructsWithBuiltInFlag]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testConstructsWithFullOverrideFields]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testConstructsWithFullOverrideFields]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testConstructsWithOverlapJustUnderChunkSize]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testConstructsWithOverlapJustUnderChunkSize]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testConstructsWithZeroOverlap]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testConstructsWithZeroOverlap]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryBuiltInForAliasLookup_bgeBase]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryBuiltInForAliasLookup_bgeBase]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryBuiltInForAliasLookup_nlContextual]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryBuiltInForAliasLookup_nlContextual]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryBuiltInForAliasLookup]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryBuiltInForAliasLookup]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryDefaultAliasIsKnown]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryDefaultAliasIsKnown]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryFullOverrideProducesCustomProfile]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryFullOverrideProducesCustomProfile]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryMakeBuiltInForAliasUnknownAliasThrowsUnknownProfile]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryMakeBuiltInForAliasUnknownAliasThrowsUnknownProfile]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryMakeNegativeOverlapThrowsInvalidChunkParams]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryMakeNegativeOverlapThrowsInvalidChunkParams]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryMakeOverlapEqualToSizeThrowsInvalidChunkParams]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryMakeOverlapEqualToSizeThrowsInvalidChunkParams]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryMakeUnknownAliasThrowsUnknownProfile]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryMakeUnknownAliasThrowsUnknownProfile]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryMakeZeroOverlapSucceeds]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryMakeZeroOverlapSucceeds]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolveAliasDefaultIdentityIsBuiltIn]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolveAliasDefaultIdentityIsBuiltIn]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolveBGEBaseDefaultIdentity]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolveBGEBaseDefaultIdentity]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolveCustomIdentityIsNotBuiltIn]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolveCustomIdentityIsNotBuiltIn]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolveMalformedIdentityThrowsMalformed]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolveMalformedIdentityThrowsMalformed]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolveNLContextualDefaultIdentity]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolveNLContextualDefaultIdentity]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolvesNLBuiltIn]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolvesNLBuiltIn]' passed (0.001 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolvesNomicBuiltIn]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolvesNomicBuiltIn]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolveUnknownAliasThrowsUnknownProfile]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testFactoryResolveUnknownAliasThrowsUnknownProfile]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityAllowsHyphenInAlias]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityAllowsHyphenInAlias]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityAllowsZeroOverlap]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityAllowsZeroOverlap]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityBuiltInAliasDefault]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityBuiltInAliasDefault]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityCustomOverride]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityCustomOverride]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsBareAlias]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsBareAlias]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsEmptyOverlap]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsEmptyOverlap]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsEmptyString]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsEmptyString]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsExtraSegment]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsExtraSegment]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsGarbled]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsGarbled]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsLeadingSpace]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsLeadingSpace]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsLeadingWhitespaceOnWholeString]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsLeadingWhitespaceOnWholeString]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsLeadingZeroSize]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsLeadingZeroSize]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsMissingAlias]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsMissingAlias]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsMissingOverlap]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsMissingOverlap]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsNegativeSize]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsNegativeSize]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsNonNumericSizes]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsNonNumericSizes]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsTrailingSpace]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsTrailingSpace]' passed (0.000 seconds).
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsUppercaseAlias]' started.
+Test Case '-[VecKitTests.IndexingProfileTests testParseIdentityRejectsUppercaseAlias]' passed (0.000 seconds).
+Test Suite 'IndexingProfileTests' passed at 2026-09-07 01:04:33.114.
+	 Executed 40 tests, with 0 failures (0 unexpected) in 0.006 (0.009) seconds
+Test Suite 'IntegrationTests' started at 2026-09-07 01:04:33.114.
+Test Case '-[VecKitTests.IntegrationTests testFullPipelineScanExtractEmbedStoreSearch]' started.
+Test Case '-[VecKitTests.IntegrationTests testFullPipelineScanExtractEmbedStoreSearch]' passed (5.229 seconds).
+Test Case '-[VecKitTests.IntegrationTests testInsertThenSearchUsingSingleFileInfo]' started.
+Test Case '-[VecKitTests.IntegrationTests testInsertThenSearchUsingSingleFileInfo]' passed (2.096 seconds).
+Test Case '-[VecKitTests.IntegrationTests testRemoveThenSearchVerifiesContentGone]' started.
+Test Case '-[VecKitTests.IntegrationTests testRemoveThenSearchVerifiesContentGone]' passed (3.548 seconds).
+Test Case '-[VecKitTests.IntegrationTests testUpdateFlowDeletedFile]' started.
+Test Case '-[VecKitTests.IntegrationTests testUpdateFlowDeletedFile]' passed (2.837 seconds).
+Test Case '-[VecKitTests.IntegrationTests testUpdateFlowModifiedFile]' started.
+Test Case '-[VecKitTests.IntegrationTests testUpdateFlowModifiedFile]' passed (3.832 seconds).
+Test Case '-[VecKitTests.IntegrationTests testUpdateFlowNewFileAdded]' started.
+Test Case '-[VecKitTests.IntegrationTests testUpdateFlowNewFileAdded]' passed (2.903 seconds).
+Test Suite 'IntegrationTests' passed at 2026-09-07 01:04:53.559.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 20.444 (20.445) seconds
+Test Suite 'LineBasedSplitterTests' started at 2026-09-07 01:04:53.559.
+Test Case '-[VecKitTests.LineBasedSplitterTests testFileUnderChunkSizeProducesNoChunks]' started.
+Test Case '-[VecKitTests.LineBasedSplitterTests testFileUnderChunkSizeProducesNoChunks]' passed (0.000 seconds).
+Test Case '-[VecKitTests.LineBasedSplitterTests testHeadingBoundaryIsPreferredNearTargetEnd]' started.
+Test Case '-[VecKitTests.LineBasedSplitterTests testHeadingBoundaryIsPreferredNearTargetEnd]' passed (0.000 seconds).
+Test Case '-[VecKitTests.LineBasedSplitterTests testProducesOverlappingChunks]' started.
+Test Case '-[VecKitTests.LineBasedSplitterTests testProducesOverlappingChunks]' passed (0.000 seconds).
+Test Suite 'LineBasedSplitterTests' passed at 2026-09-07 01:04:53.559.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'MarkdownExtractionTests' started at 2026-09-07 01:04:53.559.
+Test Case '-[VecKitTests.MarkdownExtractionTests testMarkdownExtensionIsRecognized]' started.
+Test Case '-[VecKitTests.MarkdownExtractionTests testMarkdownExtensionIsRecognized]' passed (0.004 seconds).
+Test Case '-[VecKitTests.MarkdownExtractionTests testModeDoesNotChangeOtherTextFormats]' started.
+Test Case '-[VecKitTests.MarkdownExtractionTests testModeDoesNotChangeOtherTextFormats]' passed (0.004 seconds).
+Test Case '-[VecKitTests.MarkdownExtractionTests testNormalizationPrecedesChunkingAndRetainsSourceLineCount]' started.
+Test Case '-[VecKitTests.MarkdownExtractionTests testNormalizationPrecedesChunkingAndRetainsSourceLineCount]' passed (0.002 seconds).
+Test Case '-[VecKitTests.MarkdownExtractionTests testNormalizedPassagesPointToOriginalSourceLines]' started.
+Test Case '-[VecKitTests.MarkdownExtractionTests testNormalizedPassagesPointToOriginalSourceLines]' passed (0.003 seconds).
+Test Suite 'MarkdownExtractionTests' passed at 2026-09-07 01:04:53.574.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.014 (0.014) seconds
+Test Suite 'MarkdownRetrievalExperimentTests' started at 2026-09-07 01:04:53.574.
+Test Case '-[VecKitTests.MarkdownRetrievalExperimentTests testMarkdownExtractionRetrievalBenchmark]' started.
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-4feb5149/repo/Tests/VecKitTests/MarkdownRetrievalExperimentTests.swift:69: -[VecKitTests.MarkdownRetrievalExperimentTests testMarkdownExtractionRetrievalBenchmark] : Test skipped - Heavy opt-in benchmark — set VEC_E10_BENCHMARK=1 to run (needs the pinned E5 model; see harness-notes.md).
+Test Case '-[VecKitTests.MarkdownRetrievalExperimentTests testMarkdownExtractionRetrievalBenchmark]' skipped (0.001 seconds).
+Test Suite 'MarkdownRetrievalExperimentTests' passed at 2026-09-07 01:04:53.575.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'MarkdownRetrievalManifestTests' started at 2026-09-07 01:04:53.575.
+Test Case '-[VecKitTests.MarkdownRetrievalManifestTests testCommittedManifestPreflights]' started.
+Test Case '-[VecKitTests.MarkdownRetrievalManifestTests testCommittedManifestPreflights]' passed (0.002 seconds).
+Test Case '-[VecKitTests.MarkdownRetrievalManifestTests testScratchChildIsOwnedNotCaller]' started.
+Test Case '-[VecKitTests.MarkdownRetrievalManifestTests testScratchChildIsOwnedNotCaller]' passed (0.001 seconds).
+Test Suite 'MarkdownRetrievalManifestTests' passed at 2026-09-07 01:04:53.578.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'MarkdownTextNormalizerTests' started at 2026-09-07 01:04:53.578.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testAngleBracketedDestination]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testAngleBracketedDestination]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testAutolinkKeepsUrlText]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testAutolinkKeepsUrlText]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testBareTripleDashWithoutNewlineIsNotFrontmatter]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testBareTripleDashWithoutNewlineIsNotFrontmatter]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testBareUrlIsPreservedLiterally]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testBareUrlIsPreservedLiterally]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testBasicImageKeepsAltDropsSource]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testBasicImageKeepsAltDropsSource]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testBasicLinkKeepsLabelDropsDestination]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testBasicLinkKeepsLabelDropsDestination]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testCRLFNewlinesArePreserved]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testCRLFNewlinesArePreserved]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testDanglingBracketsArePreserved]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testDanglingBracketsArePreserved]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testDestinationContainingLineBreakIsNotALink]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testDestinationContainingLineBreakIsNotALink]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEachOutputLineCorrespondsToItsSourceLine]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEachOutputLineCorrespondsToItsSourceLine]' passed (0.001 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEmojiImmediatelyBeforeLink]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEmojiImmediatelyBeforeLink]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEmptyAltImageProducesEmptyOutput]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEmptyAltImageProducesEmptyOutput]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEmptyLabelLinkBetweenTextCollapses]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEmptyLabelLinkBetweenTextCollapses]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEmptyLabelLinkProducesEmptyOutput]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEmptyLabelLinkProducesEmptyOutput]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEmptyStringReturnsEmpty]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEmptyStringReturnsEmpty]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEscapedLinkSyntaxIsNotTreatedAsLink]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testEscapedLinkSyntaxIsNotTreatedAsLink]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testFencedCodeBlockIsPreserved]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testFencedCodeBlockIsPreserved]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testFrontmatterClosedWithDotsIsProtected]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testFrontmatterClosedWithDotsIsProtected]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testFrontmatterContentIsPreserved]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testFrontmatterContentIsPreserved]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testFrontmatterLinkSyntaxIsPreservedVerbatim]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testFrontmatterLinkSyntaxIsPreservedVerbatim]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testFrontmatterReferenceDefinitionDoesNotLeakIntoBody]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testFrontmatterReferenceDefinitionDoesNotLeakIntoBody]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testImageNestedInLinkLabel]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testImageNestedInLinkLabel]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testIndentedCodeBlockIsPreserved]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testIndentedCodeBlockIsPreserved]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testInlineCodeContainingLinkSyntaxIsPreserved]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testInlineCodeContainingLinkSyntaxIsPreserved]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLabelWithInlineCodeIsKept]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLabelWithInlineCodeIsKept]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLabelWithInnerEmphasisIsKeptVerbatim]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLabelWithInnerEmphasisIsKeptVerbatim]' passed (0.001 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLeadingDashesWithoutCloserAreNotFrontmatter]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLeadingDashesWithoutCloserAreNotFrontmatter]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLinkInSentenceKeepsSurroundingText]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLinkInSentenceKeepsSurroundingText]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLinkInsideHeadingKeepsHeadingMarker]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLinkInsideHeadingKeepsHeadingMarker]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLinkInsideListItemKeepsBullet]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLinkInsideListItemKeepsBullet]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLinkLabelSpanningTwoLinesKeepsBothLines]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLinkLabelSpanningTwoLinesKeepsBothLines]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLinkWithTitleDropsTitle]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testLinkWithTitleDropsTitle]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testMixedCRLFAndLFPreserved]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testMixedCRLFAndLFPreserved]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testMultilineInlineLinkWithTitleOnNextLinePreservesNewline]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testMultilineInlineLinkWithTitleOnNextLinePreservesNewline]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testMultilineReferenceDefinitionUsageResolvesAndLinesPreserved]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testMultilineReferenceDefinitionUsageResolvesAndLinesPreserved]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testMultipleLinksOnOneLine]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testMultipleLinksOnOneLine]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testNestedParenthesesInDestination]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testNestedParenthesesInDestination]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testNewlineStructurePreservedAcrossManyInputs]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testNewlineStructurePreservedAcrossManyInputs]' passed (0.001 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testParagraphAndHeadingBoundariesPreserved]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testParagraphAndHeadingBoundariesPreserved]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testReferenceLinkUsageIsResolvedToLabel]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testReferenceLinkUsageIsResolvedToLabel]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testShortcutReferenceLinkIsResolvedToLabel]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testShortcutReferenceLinkIsResolvedToLabel]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testTabIndentedCodeBlockIsPreserved]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testTabIndentedCodeBlockIsPreserved]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testUnclosedLinkIsPreserved]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testUnclosedLinkIsPreserved]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testUnicodeBeforeAndInsideLink]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testUnicodeBeforeAndInsideLink]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testUnresolvedReferenceIsPreserved]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testUnresolvedReferenceIsPreserved]' passed (0.000 seconds).
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testWhitespaceOnlyIsUnchanged]' started.
+Test Case '-[VecKitTests.MarkdownTextNormalizerTests testWhitespaceOnlyIsUnchanged]' passed (0.000 seconds).
+Test Suite 'MarkdownTextNormalizerTests' passed at 2026-09-07 01:04:53.590.
+	 Executed 46 tests, with 0 failures (0 unexpected) in 0.009 (0.012) seconds
+Test Suite 'NLContextualEmbedderConcurrencyTests' started at 2026-09-07 01:04:53.590.
+Test Case '-[VecKitTests.NLContextualEmbedderConcurrencyTests test20ConcurrentEmbedDocumentCallsAllReturn512Dims]' started.
+Test Case '-[VecKitTests.NLContextualEmbedderConcurrencyTests test20ConcurrentEmbedDocumentCallsAllReturn512Dims]' passed (0.444 seconds).
+Test Suite 'NLContextualEmbedderConcurrencyTests' passed at 2026-09-07 01:04:54.034.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.444 (0.444) seconds
+Test Suite 'NLContextualEmbedderTests' started at 2026-09-07 01:04:54.034.
+Test Case '-[VecKitTests.NLContextualEmbedderTests testDimension]' started.
+Test Case '-[VecKitTests.NLContextualEmbedderTests testDimension]' passed (0.000 seconds).
+Test Case '-[VecKitTests.NLContextualEmbedderTests testName]' started.
+Test Case '-[VecKitTests.NLContextualEmbedderTests testName]' passed (0.000 seconds).
+Test Suite 'NLContextualEmbedderTests' passed at 2026-09-07 01:04:54.034.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'NLEmbedderConcurrencyTests' started at 2026-09-07 01:04:54.034.
+Test Case '-[VecKitTests.NLEmbedderConcurrencyTests test20ConcurrentEmbedDocumentCallsAllReturn512Dims]' started.
+Test Case '-[VecKitTests.NLEmbedderConcurrencyTests test20ConcurrentEmbedDocumentCallsAllReturn512Dims]' passed (0.060 seconds).
+Test Suite 'NLEmbedderConcurrencyTests' passed at 2026-09-07 01:04:54.095.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.060 (0.061) seconds
+Test Suite 'NomicEmbedderConcurrencyTests' started at 2026-09-07 01:04:54.095.
+Test Case '-[VecKitTests.NomicEmbedderConcurrencyTests test20ConcurrentEmbedDocumentCallsAllReturn768Dims]' started.
+Test Case '-[VecKitTests.NomicEmbedderConcurrencyTests test20ConcurrentEmbedDocumentCallsAllReturn768Dims]' passed (13.211 seconds).
+Test Suite 'NomicEmbedderConcurrencyTests' passed at 2026-09-07 01:05:07.307.
+	 Executed 1 test, with 0 failures (0 unexpected) in 13.211 (13.212) seconds
+Test Suite 'NomicEmbedderTests' started at 2026-09-07 01:05:07.307.
+Test Case '-[VecKitTests.NomicEmbedderTests testDimensionIs768]' started.
+Test Case '-[VecKitTests.NomicEmbedderTests testDimensionIs768]' passed (0.002 seconds).
+Test Case '-[VecKitTests.NomicEmbedderTests testEmbedDocumentReturnsArrayOfDimension768]' started.
+Test Case '-[VecKitTests.NomicEmbedderTests testEmbedDocumentReturnsArrayOfDimension768]' passed (2.394 seconds).
+Test Case '-[VecKitTests.NomicEmbedderTests testEmbedEmptyStringReturnsEmpty]' started.
+Test Case '-[VecKitTests.NomicEmbedderTests testEmbedEmptyStringReturnsEmpty]' passed (0.000 seconds).
+Test Case '-[VecKitTests.NomicEmbedderTests testEmbedQueryReturnsArrayOfDimension768]' started.
+Test Case '-[VecKitTests.NomicEmbedderTests testEmbedQueryReturnsArrayOfDimension768]' passed (1.678 seconds).
+Test Case '-[VecKitTests.NomicEmbedderTests testEmbedVeryLongTextDoesNotCrashAndReturns768]' started.
+Test Case '-[VecKitTests.NomicEmbedderTests testEmbedVeryLongTextDoesNotCrashAndReturns768]' passed (2.094 seconds).
+Test Case '-[VecKitTests.NomicEmbedderTests testEmbedWhitespaceOnlyReturnsEmpty]' started.
+Test Case '-[VecKitTests.NomicEmbedderTests testEmbedWhitespaceOnlyReturnsEmpty]' passed (0.000 seconds).
+Test Suite 'NomicEmbedderTests' passed at 2026-09-07 01:05:13.477.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 6.169 (6.170) seconds
+Test Suite 'PathUtilitiesTests' started at 2026-09-07 01:05:13.477.
+Test Case '-[VecKitTests.PathUtilitiesTests testBothHaveTrailingSlashes]' started.
+Test Case '-[VecKitTests.PathUtilitiesTests testBothHaveTrailingSlashes]' passed (0.000 seconds).
+Test Case '-[VecKitTests.PathUtilitiesTests testDeeplyNestedPath]' started.
+Test Case '-[VecKitTests.PathUtilitiesTests testDeeplyNestedPath]' passed (0.000 seconds).
+Test Case '-[VecKitTests.PathUtilitiesTests testDirectoryNamePrefixCollision]' started.
+Test Case '-[VecKitTests.PathUtilitiesTests testDirectoryNamePrefixCollision]' passed (0.000 seconds).
+Test Case '-[VecKitTests.PathUtilitiesTests testDirectoryWithDotDot]' started.
+Test Case '-[VecKitTests.PathUtilitiesTests testDirectoryWithDotDot]' passed (0.000 seconds).
+Test Case '-[VecKitTests.PathUtilitiesTests testFileDirectlyInDirectory]' started.
+Test Case '-[VecKitTests.PathUtilitiesTests testFileDirectlyInDirectory]' passed (0.000 seconds).
+Test Case '-[VecKitTests.PathUtilitiesTests testFileOutsideDirectory]' started.
+Test Case '-[VecKitTests.PathUtilitiesTests testFileOutsideDirectory]' passed (0.000 seconds).
+Test Case '-[VecKitTests.PathUtilitiesTests testNormalRelativePath]' started.
+Test Case '-[VecKitTests.PathUtilitiesTests testNormalRelativePath]' passed (0.000 seconds).
+Test Case '-[VecKitTests.PathUtilitiesTests testRootDirectory]' started.
+Test Case '-[VecKitTests.PathUtilitiesTests testRootDirectory]' passed (0.000 seconds).
+Test Case '-[VecKitTests.PathUtilitiesTests testSamePathReturnsEmpty]' started.
+Test Case '-[VecKitTests.PathUtilitiesTests testSamePathReturnsEmpty]' passed (0.000 seconds).
+Test Case '-[VecKitTests.PathUtilitiesTests testTrailingSlashOnDirectory]' started.
+Test Case '-[VecKitTests.PathUtilitiesTests testTrailingSlashOnDirectory]' passed (0.000 seconds).
+Test Suite 'PathUtilitiesTests' passed at 2026-09-07 01:05:13.479.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'ProfileMismatchTests' started at 2026-09-07 01:05:13.479.
+Test Case '-[CLITests.ProfileMismatchTests testFreshDBFirstIndexWritesProfileRecord]' started.
+Test Case '-[CLITests.ProfileMismatchTests testFreshDBFirstIndexWritesProfileRecord]' passed (0.001 seconds).
+Test Case '-[CLITests.ProfileMismatchTests testInsertOnFreshDBHardFails]' started.
+Test Case '-[CLITests.ProfileMismatchTests testInsertOnFreshDBHardFails]' passed (0.000 seconds).
+Test Case '-[CLITests.ProfileMismatchTests testInsertOnPreProfileDBHardFails]' started.
+Test Case '-[CLITests.ProfileMismatchTests testInsertOnPreProfileDBHardFails]' passed (0.000 seconds).
+Test Case '-[CLITests.ProfileMismatchTests testPartialChunkOverrideHardFailsBeforeDBWork]' started.
+Test Case '-[CLITests.ProfileMismatchTests testPartialChunkOverrideHardFailsBeforeDBWork]' passed (0.000 seconds).
+Test Case '-[CLITests.ProfileMismatchTests testPreProfileDatabaseHardFails]' started.
+Test Case '-[CLITests.ProfileMismatchTests testPreProfileDatabaseHardFails]' passed (0.000 seconds).
+Test Case '-[CLITests.ProfileMismatchTests testRecordedNomicAcceptsAliasMatchNoOverrides]' started.
+Test Case '-[CLITests.ProfileMismatchTests testRecordedNomicAcceptsAliasMatchNoOverrides]' passed (0.000 seconds).
+Test Case '-[CLITests.ProfileMismatchTests testRecordedNomicRejectsCustomChunkOverride]' started.
+Test Case '-[CLITests.ProfileMismatchTests testRecordedNomicRejectsCustomChunkOverride]' passed (0.000 seconds).
+Test Case '-[CLITests.ProfileMismatchTests testRecordedNomicRejectsNlRequest]' started.
+Test Case '-[CLITests.ProfileMismatchTests testRecordedNomicRejectsNlRequest]' passed (0.000 seconds).
+Test Case '-[CLITests.ProfileMismatchTests testRequireRecordedProfileReturnsRecorded]' started.
+Test Case '-[CLITests.ProfileMismatchTests testRequireRecordedProfileReturnsRecorded]' passed (0.000 seconds).
+Test Case '-[CLITests.ProfileMismatchTests testSearchOnFreshDBHardFails]' started.
+Test Case '-[CLITests.ProfileMismatchTests testSearchOnFreshDBHardFails]' passed (0.000 seconds).
+Test Case '-[CLITests.ProfileMismatchTests testSearchOnPreProfileDBHardFails]' started.
+Test Case '-[CLITests.ProfileMismatchTests testSearchOnPreProfileDBHardFails]' passed (0.000 seconds).
+Test Suite 'ProfileMismatchTests' passed at 2026-09-07 01:05:13.482.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'RecursiveCharacterSplitterTests' started at 2026-09-07 01:05:13.482.
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testAllProducedChunksAreTypeChunk]' started.
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testAllProducedChunksAreTypeChunk]' passed (0.002 seconds).
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testEmptyTextProducesNoChunks]' started.
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testEmptyTextProducesNoChunks]' passed (0.000 seconds).
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testFallsBackToSentenceBoundariesWhenNoParagraphs]' started.
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testFallsBackToSentenceBoundariesWhenNoParagraphs]' passed (0.001 seconds).
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testLineNumbersAreMonotonicAndOneBased]' started.
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testLineNumbersAreMonotonicAndOneBased]' passed (0.000 seconds).
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testOverlapProducesCharacterOverlapBetweenAdjacentChunks]' started.
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testOverlapProducesCharacterOverlapBetweenAdjacentChunks]' passed (0.001 seconds).
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testOversizeSingleAtomicLineIsEmittedWhole]' started.
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testOversizeSingleAtomicLineIsEmittedWhole]' passed (0.001 seconds).
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testSplitsOnParagraphBreaksFirst]' started.
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testSplitsOnParagraphBreaksFirst]' passed (0.000 seconds).
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testTextUnderChunkSizeProducesNoChunks]' started.
+Test Case '-[VecKitTests.RecursiveCharacterSplitterTests testTextUnderChunkSizeProducesNoChunks]' passed (0.000 seconds).
+Test Suite 'RecursiveCharacterSplitterTests' passed at 2026-09-07 01:05:13.488.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.005 (0.005) seconds
+Test Suite 'ResetCommandTests' started at 2026-09-07 01:05:13.488.
+Test Case '-[CLITests.ResetCommandTests testResetDeletesIndexLog]' started.
+Test Case '-[CLITests.ResetCommandTests testResetDeletesIndexLog]' passed (0.011 seconds).
+Test Suite 'ResetCommandTests' passed at 2026-09-07 01:05:13.499.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.011 (0.011) seconds
+Test Suite 'SearchResultCoalescerTests' started at 2026-09-07 01:05:13.499.
+Test Case '-[VecKitTests.SearchResultCoalescerTests testEmptyInputReturnsEmptyOutput]' started.
+Test Case '-[VecKitTests.SearchResultCoalescerTests testEmptyInputReturnsEmptyOutput]' passed (0.000 seconds).
+Test Case '-[VecKitTests.SearchResultCoalescerTests testGroupsSortedByBestScoreDescending]' started.
+Test Case '-[VecKitTests.SearchResultCoalescerTests testGroupsSortedByBestScoreDescending]' passed (0.000 seconds).
+Test Case '-[VecKitTests.SearchResultCoalescerTests testLimitControlsMaxNumberOfGroups]' started.
+Test Case '-[VecKitTests.SearchResultCoalescerTests testLimitControlsMaxNumberOfGroups]' passed (0.000 seconds).
+Test Case '-[VecKitTests.SearchResultCoalescerTests testLimitLargerThanGroupCountReturnsAllGroups]' started.
+Test Case '-[VecKitTests.SearchResultCoalescerTests testLimitLargerThanGroupCountReturnsAllGroups]' passed (0.000 seconds).
+Test Case '-[VecKitTests.SearchResultCoalescerTests testLimitOfZeroReturnsEmpty]' started.
+Test Case '-[VecKitTests.SearchResultCoalescerTests testLimitOfZeroReturnsEmpty]' passed (0.000 seconds).
+Test Case '-[VecKitTests.SearchResultCoalescerTests testMatchesSortedByScoreDescending]' started.
+Test Case '-[VecKitTests.SearchResultCoalescerTests testMatchesSortedByScoreDescending]' passed (0.000 seconds).
+Test Case '-[VecKitTests.SearchResultCoalescerTests testMixedFilesGroupedAndSortedCorrectly]' started.
+Test Case '-[VecKitTests.SearchResultCoalescerTests testMixedFilesGroupedAndSortedCorrectly]' passed (0.000 seconds).
+Test Case '-[VecKitTests.SearchResultCoalescerTests testMultipleResultsFromSameFileGetGrouped]' started.
+Test Case '-[VecKitTests.SearchResultCoalescerTests testMultipleResultsFromSameFileGetGrouped]' passed (0.000 seconds).
+Test Case '-[VecKitTests.SearchResultCoalescerTests testScoresClampedToNonNegative]' started.
+Test Case '-[VecKitTests.SearchResultCoalescerTests testScoresClampedToNonNegative]' passed (0.000 seconds).
+Test Case '-[VecKitTests.SearchResultCoalescerTests testSingleResultReturnsSingleGroup]' started.
+Test Case '-[VecKitTests.SearchResultCoalescerTests testSingleResultReturnsSingleGroup]' passed (0.000 seconds).
+Test Case '-[VecKitTests.SearchResultCoalescerTests testZeroDistanceProducesScoreOfOne]' started.
+Test Case '-[VecKitTests.SearchResultCoalescerTests testZeroDistanceProducesScoreOfOne]' passed (0.000 seconds).
+Test Suite 'SearchResultCoalescerTests' passed at 2026-09-07 01:05:13.501.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'SilentFailureGuardTests' started at 2026-09-07 01:05:13.501.
+Test Case '-[VecKitTests.SilentFailureGuardTests testIndexingProducedNoVectorsErrorDescriptionCarriesBothCounts]' started.
+Test Case '-[VecKitTests.SilentFailureGuardTests testIndexingProducedNoVectorsErrorDescriptionCarriesBothCounts]' passed (0.001 seconds).
+Test Case '-[VecKitTests.SilentFailureGuardTests testMixedOutcomeDoesNotTripGuard]' started.
+Test Case '-[VecKitTests.SilentFailureGuardTests testMixedOutcomeDoesNotTripGuard]' passed (0.038 seconds).
+Test Case '-[VecKitTests.SilentFailureGuardTests testPipelineReportsSkippedEmbedFailureWhenEveryBatchReturnsEmpty]' started.
+Test Case '-[VecKitTests.SilentFailureGuardTests testPipelineReportsSkippedEmbedFailureWhenEveryBatchReturnsEmpty]' passed (0.027 seconds).
+Test Case '-[VecKitTests.SilentFailureGuardTests testUnreadableOnlyDoesNotTripGuard]' started.
+Test Case '-[VecKitTests.SilentFailureGuardTests testUnreadableOnlyDoesNotTripGuard]' passed (0.020 seconds).
+Test Suite 'SilentFailureGuardTests' passed at 2026-09-07 01:05:13.587.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.086 (0.086) seconds
+Test Suite 'SmokeTest' started at 2026-09-07 01:05:13.587.
+Test Case '-[VecKitTests.SmokeTest testThreeFileIndexProduces768DimBlobs]' started.
+Test Case '-[VecKitTests.SmokeTest testThreeFileIndexProduces768DimBlobs]' passed (13.985 seconds).
+Test Suite 'SmokeTest' passed at 2026-09-07 01:05:27.572.
+	 Executed 1 test, with 0 failures (0 unexpected) in 13.985 (13.985) seconds
+Test Suite 'SweepCommandTests' started at 2026-09-07 01:05:27.572.
+Test Case '-[CLITests.SweepCommandTests testManifestDecodes]' started.
+Test Case '-[CLITests.SweepCommandTests testManifestDecodes]' passed (0.002 seconds).
+Test Case '-[CLITests.SweepCommandTests testParseGrid_dedupesRoundedOverlaps]' started.
+Test Case '-[CLITests.SweepCommandTests testParseGrid_dedupesRoundedOverlaps]' passed (0.000 seconds).
+Test Case '-[CLITests.SweepCommandTests testParseGrid_rejectsEmpty]' started.
+Test Case '-[CLITests.SweepCommandTests testParseGrid_rejectsEmpty]' passed (0.000 seconds).
+Test Case '-[CLITests.SweepCommandTests testParseGrid_rejectsInvalidOverlap]' started.
+Test Case '-[CLITests.SweepCommandTests testParseGrid_rejectsInvalidOverlap]' passed (0.000 seconds).
+Test Case '-[CLITests.SweepCommandTests testParseGrid_trimsWhitespace]' started.
+Test Case '-[CLITests.SweepCommandTests testParseGrid_trimsWhitespace]' passed (0.000 seconds).
+Test Case '-[CLITests.SweepCommandTests testParseGrid_twoDimensions]' started.
+Test Case '-[CLITests.SweepCommandTests testParseGrid_twoDimensions]' passed (0.000 seconds).
+Test Case '-[CLITests.SweepCommandTests testScoreArchive_handlesAbsent]' started.
+Test Case '-[CLITests.SweepCommandTests testScoreArchive_handlesAbsent]' passed (0.009 seconds).
+Test Case '-[CLITests.SweepCommandTests testScoreArchive_matchesReferenceData]' started.
+Test Case '-[CLITests.SweepCommandTests testScoreArchive_matchesReferenceData]' passed (0.007 seconds).
+Test Suite 'SweepCommandTests' passed at 2026-09-07 01:05:27.591.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.019 (0.020) seconds
+Test Suite 'TextExtractionModeTests' started at 2026-09-07 01:05:27.591.
+Test Case '-[CLITests.TextExtractionModeTests testCLIOptionMapsOneToOneWithEveryPersistedMode]' started.
+Test Case '-[CLITests.TextExtractionModeTests testCLIOptionMapsOneToOneWithEveryPersistedMode]' passed (0.000 seconds).
+Test Case '-[CLITests.TextExtractionModeTests testCLIParsesEveryModeAndRejectsUnknownVersion]' started.
+Test Case '-[CLITests.TextExtractionModeTests testCLIParsesEveryModeAndRejectsUnknownVersion]' passed (0.018 seconds).
+Test Case '-[CLITests.TextExtractionModeTests testEveryModeChangeRequiresResetEvenWhenNoChunksSurvived]' started.
+Test Case '-[CLITests.TextExtractionModeTests testEveryModeChangeRequiresResetEvenWhenNoChunksSurvived]' passed (0.001 seconds).
+Test Case '-[CLITests.TextExtractionModeTests testEveryModeRoundTripsThroughConfigFile]' started.
+Test Case '-[CLITests.TextExtractionModeTests testEveryModeRoundTripsThroughConfigFile]' passed (0.004 seconds).
+Test Case '-[CLITests.TextExtractionModeTests testExplicitlyRequestingTheRecordedModeIsNotAMismatch]' started.
+Test Case '-[CLITests.TextExtractionModeTests testExplicitlyRequestingTheRecordedModeIsNotAMismatch]' passed (0.000 seconds).
+Test Case '-[CLITests.TextExtractionModeTests testLegacyRecordDefaultsToRawAndUnknownModeFailsDecoding]' started.
+Test Case '-[CLITests.TextExtractionModeTests testLegacyRecordDefaultsToRawAndUnknownModeFailsDecoding]' passed (0.000 seconds).
+Test Case '-[CLITests.TextExtractionModeTests testNewDatabaseDefaultsToRawAndCanOptIn]' started.
+Test Case '-[CLITests.TextExtractionModeTests testNewDatabaseDefaultsToRawAndCanOptIn]' passed (0.000 seconds).
+Test Case '-[CLITests.TextExtractionModeTests testRecordedModeIsInheritedOnUpdatesAndReturnedForInsert]' started.
+Test Case '-[CLITests.TextExtractionModeTests testRecordedModeIsInheritedOnUpdatesAndReturnedForInsert]' passed (0.000 seconds).
+Test Suite 'TextExtractionModeTests' passed at 2026-09-07 01:05:27.616.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.024 (0.025) seconds
+Test Suite 'TextExtractorTests' started at 2026-09-07 01:05:27.617.
+Test Case '-[VecKitTests.TextExtractorTests testBinaryFileReturnsEmptyArray]' started.
+Test Case '-[VecKitTests.TextExtractorTests testBinaryFileReturnsEmptyArray]' passed (0.002 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testEmptyFileProducesNoChunks]' started.
+Test Case '-[VecKitTests.TextExtractorTests testEmptyFileProducesNoChunks]' passed (0.001 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testImageExtractionDoesNotCrashAndReturnsImageChunks]' started.
+Test Case '-[VecKitTests.TextExtractorTests testImageExtractionDoesNotCrashAndReturnsImageChunks]' passed (0.384 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testLineBasedSplitterLongSingleLineProducesNoChunks]' started.
+Test Case '-[VecKitTests.TextExtractorTests testLineBasedSplitterLongSingleLineProducesNoChunks]' passed (0.001 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testMarkdownLargeFileProducesWholeAndChunks]' started.
+Test Case '-[VecKitTests.TextExtractorTests testMarkdownLargeFileProducesWholeAndChunks]' passed (0.003 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testMarkdownWhereEveryLineIsAHeading]' started.
+Test Case '-[VecKitTests.TextExtractorTests testMarkdownWhereEveryLineIsAHeading]' passed (0.003 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testMarkdownWithOnlyHeadingsProducesChunks]' started.
+Test Case '-[VecKitTests.TextExtractorTests testMarkdownWithOnlyHeadingsProducesChunks]' passed (0.001 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testPDFExtractionProducesPageChunks]' started.
+Test Case '-[VecKitTests.TextExtractorTests testPDFExtractionProducesPageChunks]' passed (0.127 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testPDFPageChunksContainNonEmptyText]' started.
+Test Case '-[VecKitTests.TextExtractorTests testPDFPageChunksContainNonEmptyText]' passed (0.077 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testPDFPageChunksHaveCorrectPageNumbers]' started.
+Test Case '-[VecKitTests.TextExtractorTests testPDFPageChunksHaveCorrectPageNumbers]' passed (0.077 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testPDFPageChunksHaveNoLineRanges]' started.
+Test Case '-[VecKitTests.TextExtractorTests testPDFPageChunksHaveNoLineRanges]' passed (0.078 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testPDFWholeChunkContainsContent]' started.
+Test Case '-[VecKitTests.TextExtractorTests testPDFWholeChunkContainsContent]' passed (0.079 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testSmallFileProducesOnlyWholeChunk]' started.
+Test Case '-[VecKitTests.TextExtractorTests testSmallFileProducesOnlyWholeChunk]' passed (0.001 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testTxtFileAlsoProducesChunks]' started.
+Test Case '-[VecKitTests.TextExtractorTests testTxtFileAlsoProducesChunks]' passed (0.003 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testVeryLongSingleLineProducesWholeAndSentenceChunks]' started.
+Test Case '-[VecKitTests.TextExtractorTests testVeryLongSingleLineProducesWholeAndSentenceChunks]' passed (0.015 seconds).
+Test Case '-[VecKitTests.TextExtractorTests testWhitespaceOnlyFileProducesNoChunks]' started.
+Test Case '-[VecKitTests.TextExtractorTests testWhitespaceOnlyFileProducesNoChunks]' passed (0.001 seconds).
+Test Suite 'TextExtractorTests' passed at 2026-09-07 01:05:28.471.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.853 (0.855) seconds
+Test Suite 'ThreeStagePipelineTests' started at 2026-09-07 01:05:28.471.
+Test Case '-[VecKitTests.ThreeStagePipelineTests testThreeStage_hugeFirstFile]' started.
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-4feb5149/repo/Tests/VecKitTests/ThreeStagePipelineTests.swift:218: -[VecKitTests.ThreeStagePipelineTests testThreeStage_hugeFirstFile] : Test skipped - Perf test — set VEC_PERF_TESTS=1 to run (1 warm-up + 2 timed runs against real NLEmbedding)
+Test Case '-[VecKitTests.ThreeStagePipelineTests testThreeStage_hugeFirstFile]' skipped (0.001 seconds).
+Test Suite 'ThreeStagePipelineTests' passed at 2026-09-07 01:05:28.472.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'TrademarkTranscriptFixtureTests' started at 2026-09-07 01:05:28.472.
+Test Case '-[VecKitTests.TrademarkTranscriptFixtureTests testBatchedEmbedMatchesSingleEmbedForAllBuiltIns]' started.
+Test Case '-[VecKitTests.TrademarkTranscriptFixtureTests testBatchedEmbedMatchesSingleEmbedForAllBuiltIns]' passed (60.319 seconds).
+Test Case '-[VecKitTests.TrademarkTranscriptFixtureTests testEveryBuiltInEmbedsEveryChunkToCanonicalDimension]' started.
+Test Case '-[VecKitTests.TrademarkTranscriptFixtureTests testEveryBuiltInEmbedsEveryChunkToCanonicalDimension]' passed (60.763 seconds).
+Test Case '-[VecKitTests.TrademarkTranscriptFixtureTests testExtractorProducesNonEmptyChunksForEveryBuiltIn]' started.
+Test Case '-[VecKitTests.TrademarkTranscriptFixtureTests testExtractorProducesNonEmptyChunksForEveryBuiltIn]' passed (0.038 seconds).
+Test Suite 'TrademarkTranscriptFixtureTests' passed at 2026-09-07 01:07:29.593.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 121.120 (121.120) seconds
+Test Suite 'UpdateCategorizerTests' started at 2026-09-07 01:07:29.593.
+Test Case '-[VecKitTests.UpdateCategorizerTests testExactlyEqualMtime_isUnchanged]' started.
+Test Case '-[VecKitTests.UpdateCategorizerTests testExactlyEqualMtime_isUnchanged]' passed (0.000 seconds).
+Test Case '-[VecKitTests.UpdateCategorizerTests testFileNotInIndex_isAdded]' started.
+Test Case '-[VecKitTests.UpdateCategorizerTests testFileNotInIndex_isAdded]' passed (0.000 seconds).
+Test Case '-[VecKitTests.UpdateCategorizerTests testJustOverTolerance_isUpdated]' started.
+Test Case '-[VecKitTests.UpdateCategorizerTests testJustOverTolerance_isUpdated]' passed (0.000 seconds).
+Test Case '-[VecKitTests.UpdateCategorizerTests testJustUnderTolerance_isUnchanged]' started.
+Test Case '-[VecKitTests.UpdateCategorizerTests testJustUnderTolerance_isUnchanged]' passed (0.000 seconds).
+Test Case '-[VecKitTests.UpdateCategorizerTests testMixOfAddedUpdatedUnchanged]' started.
+Test Case '-[VecKitTests.UpdateCategorizerTests testMixOfAddedUpdatedUnchanged]' passed (0.000 seconds).
+Test Case '-[VecKitTests.UpdateCategorizerTests testOlderThanIndexed_isUnchanged]' started.
+Test Case '-[VecKitTests.UpdateCategorizerTests testOlderThanIndexed_isUnchanged]' passed (0.000 seconds).
+Test Case '-[VecKitTests.UpdateCategorizerTests testOneULPDrift_isUnchanged]' started.
+Test Case '-[VecKitTests.UpdateCategorizerTests testOneULPDrift_isUnchanged]' passed (0.000 seconds).
+Test Case '-[VecKitTests.UpdateCategorizerTests testRoundtripPropertyAcrossYearRange]' started.
+Test Case '-[VecKitTests.UpdateCategorizerTests testRoundtripPropertyAcrossYearRange]' passed (0.006 seconds).
+Test Suite 'UpdateCategorizerTests' passed at 2026-09-07 01:07:29.600.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.007 (0.008) seconds
+Test Suite 'UpdateIndexLogTests' started at 2026-09-07 01:07:29.601.
+Test Case '-[CLITests.UpdateIndexLogTests testBestEffortFailureDoesNotChangeExitStatus]' started.
+Warning: failed to write index.log: The file “index.log” couldn’t be opened.
+Test Case '-[CLITests.UpdateIndexLogTests testBestEffortFailureDoesNotChangeExitStatus]' passed (0.066 seconds).
+Test Case '-[CLITests.UpdateIndexLogTests testEmbedderIsAliasAndProfileIsIdentity]' started.
+Test Case '-[CLITests.UpdateIndexLogTests testEmbedderIsAliasAndProfileIsIdentity]' passed (0.065 seconds).
+Test Case '-[CLITests.UpdateIndexLogTests testLogRecordsRelativeSkippedPath]' started.
+Test Case '-[CLITests.UpdateIndexLogTests testLogRecordsRelativeSkippedPath]' passed (0.066 seconds).
+Test Case '-[CLITests.UpdateIndexLogTests testNoOpRunStillWritesLogEntry]' started.
+Test Case '-[CLITests.UpdateIndexLogTests testNoOpRunStillWritesLogEntry]' passed (0.103 seconds).
+Test Case '-[CLITests.UpdateIndexLogTests testPartialChunkFailuresAreLogged]' started.
+Test Case '-[CLITests.UpdateIndexLogTests testPartialChunkFailuresAreLogged]' passed (0.004 seconds).
+Test Case '-[CLITests.UpdateIndexLogTests testSecondRunOnMixedCorpus_isFullyNoOp]' started.
+Test Case '-[CLITests.UpdateIndexLogTests testSecondRunOnMixedCorpus_isFullyNoOp]' passed (0.095 seconds).
+Test Case '-[CLITests.UpdateIndexLogTests testSilentFailureLogEntryShape]' started.
+Test Case '-[CLITests.UpdateIndexLogTests testSilentFailureLogEntryShape]' passed (0.004 seconds).
+Test Suite 'UpdateIndexLogTests' passed at 2026-09-07 01:07:30.004.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.403 (0.404) seconds
+Test Suite 'VTTExtractionTests' started at 2026-09-07 01:07:30.004.
+Test Case '-[VecKitTests.VTTExtractionTests testModesAndExtensionsAreIsolated]' started.
+Test Case '-[VecKitTests.VTTExtractionTests testModesAndExtensionsAreIsolated]' passed (0.011 seconds).
+Test Case '-[VecKitTests.VTTExtractionTests testNormalizationPrecedesChunkingAndPreservesRawLineCount]' started.
+Test Case '-[VecKitTests.VTTExtractionTests testNormalizationPrecedesChunkingAndPreservesRawLineCount]' passed (0.004 seconds).
+Test Case '-[VecKitTests.VTTExtractionTests testScannerDiscoversCaptionFilesForNormalizedExtraction]' started.
+Test Case '-[VecKitTests.VTTExtractionTests testScannerDiscoversCaptionFilesForNormalizedExtraction]' passed (0.002 seconds).
+Test Case '-[VecKitTests.VTTExtractionTests testSplitPassagesMapBackToCueTimingAndPayloadLines]' started.
+Test Case '-[VecKitTests.VTTExtractionTests testSplitPassagesMapBackToCueTimingAndPayloadLines]' passed (0.010 seconds).
+Test Case '-[VecKitTests.VTTExtractionTests testStructuralOnlyFilesHaveNoChunks]' started.
+Test Case '-[VecKitTests.VTTExtractionTests testStructuralOnlyFilesHaveNoChunks]' passed (0.001 seconds).
+Test Suite 'VTTExtractionTests' passed at 2026-09-07 01:07:30.034.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.029 (0.029) seconds
+Test Suite 'VTTRetrievalExperimentTests' started at 2026-09-07 01:07:30.034.
+Test Case '-[VecKitTests.VTTRetrievalExperimentTests testVTTExtractionRetrievalBenchmark]' started.
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-4feb5149/repo/Tests/VecKitTests/VTTRetrievalExperimentTests.swift:93: -[VecKitTests.VTTRetrievalExperimentTests testVTTExtractionRetrievalBenchmark] : Test skipped - Heavy opt-in benchmark — set VEC_E11_BENCHMARK=1 to run (needs the pinned E5 model; see harness-notes.md).
+Test Case '-[VecKitTests.VTTRetrievalExperimentTests testVTTExtractionRetrievalBenchmark]' skipped (0.001 seconds).
+Test Suite 'VTTRetrievalExperimentTests' passed at 2026-09-07 01:07:30.035.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'VTTRetrievalManifestTests' started at 2026-09-07 01:07:30.035.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testCommittedManifestPreflights]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testCommittedManifestPreflights]' passed (0.002 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testEmptyNoiseBucketShareIsZero]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testEmptyNoiseBucketShareIsZero]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testInlineTagRegex]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testInlineTagRegex]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testNoiseBucketCounts]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testNoiseBucketCounts]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testNoiseSumMatchesPerFile]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testNoiseSumMatchesPerFile]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestByteMismatchThrows]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestByteMismatchThrows]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestCountMismatchThrows]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestCountMismatchThrows]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestExtraSnapshotFileThrows]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestExtraSnapshotFileThrows]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestHashMismatchThrows]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestHashMismatchThrows]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestIgnoresExtraFields]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestIgnoresExtraFields]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestMatches]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestMatches]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestMissingSnapshotFileThrows]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testSampleManifestMissingSnapshotFileThrows]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testScratchChildIsOwnedNotCaller]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testScratchChildIsOwnedNotCaller]' passed (0.001 seconds).
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testTimestampLineRegex]' started.
+Test Case '-[VecKitTests.VTTRetrievalManifestTests testTimestampLineRegex]' passed (0.000 seconds).
+Test Suite 'VTTRetrievalManifestTests' passed at 2026-09-07 01:07:30.040.
+	 Executed 14 tests, with 0 failures (0 unexpected) in 0.005 (0.006) seconds
+Test Suite 'VTTTextNormalizerTests' started at 2026-09-07 01:07:30.040.
+Test Case '-[VecKitTests.VTTTextNormalizerTests testBOMAndAllLineEndingsHaveSameSourceCoordinates]' started.
+Test Case '-[VecKitTests.VTTTextNormalizerTests testBOMAndAllLineEndingsHaveSameSourceCoordinates]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTTextNormalizerTests testDecodesEntitiesAfterStrippingTags]' started.
+Test Case '-[VecKitTests.VTTTextNormalizerTests testDecodesEntitiesAfterStrippingTags]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTTextNormalizerTests testDoesNotDeduplicateRepeatedSpeechAcrossTimeOrSpeakers]' started.
+Test Case '-[VecKitTests.VTTTextNormalizerTests testDoesNotDeduplicateRepeatedSpeechAcrossTimeOrSpeakers]' passed (0.001 seconds).
+Test Case '-[VecKitTests.VTTTextNormalizerTests testIndentedTimingLinesRecoverAndBlankSeparatorsMapToVisiblePassage]' started.
+Test Case '-[VecKitTests.VTTTextNormalizerTests testIndentedTimingLinesRecoverAndBlankSeparatorsMapToVisiblePassage]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTTextNormalizerTests testLongRollingCuePreservesNewTail]' started.
+Test Case '-[VecKitTests.VTTTextNormalizerTests testLongRollingCuePreservesNewTail]' passed (0.025 seconds).
+Test Case '-[VecKitTests.VTTTextNormalizerTests testMalformedBlocksAreSkippedAndHeaderlessCuesRecover]' started.
+Test Case '-[VecKitTests.VTTTextNormalizerTests testMalformedBlocksAreSkippedAndHeaderlessCuesRecover]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTTextNormalizerTests testMissingBlankCueSeparatorDoesNotEmbedTimingLine]' started.
+Test Case '-[VecKitTests.VTTTextNormalizerTests testMissingBlankCueSeparatorDoesNotEmbedTimingLine]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTTextNormalizerTests testParagraphsBreakOnSilenceAndThirtySecondBoundaries]' started.
+Test Case '-[VecKitTests.VTTTextNormalizerTests testParagraphsBreakOnSilenceAndThirtySecondBoundaries]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTTextNormalizerTests testPreservesSpeakersAndMultipleVoicesInOneCue]' started.
+Test Case '-[VecKitTests.VTTTextNormalizerTests testPreservesSpeakersAndMultipleVoicesInOneCue]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTTextNormalizerTests testRollingOverlapAndDuplicateCues]' started.
+Test Case '-[VecKitTests.VTTTextNormalizerTests testRollingOverlapAndDuplicateCues]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VTTTextNormalizerTests testStripsStructureAndJoinsFragmentedCues]' started.
+Test Case '-[VecKitTests.VTTTextNormalizerTests testStripsStructureAndJoinsFragmentedCues]' passed (0.000 seconds).
+Test Suite 'VTTTextNormalizerTests' passed at 2026-09-07 01:07:30.069.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.028 (0.029) seconds
+Test Suite 'VecKitTests' started at 2026-09-07 01:07:30.069.
+Test Case '-[VecKitTests.VecKitTests testChunkTypeRawValues]' started.
+Test Case '-[VecKitTests.VecKitTests testChunkTypeRawValues]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VecKitTests testTextChunkCreation]' started.
+Test Case '-[VecKitTests.VecKitTests testTextChunkCreation]' passed (0.000 seconds).
+Test Case '-[VecKitTests.VecKitTests testTextChunkWithLineRange]' started.
+Test Case '-[VecKitTests.VecKitTests testTextChunkWithLineRange]' passed (0.000 seconds).
+Test Suite 'VecKitTests' passed at 2026-09-07 01:07:30.070.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'VectorDatabaseTests' started at 2026-09-07 01:07:30.070.
+Test Case '-[VecKitTests.VectorDatabaseTests testAllIndexedFilesOnEmptyDBReturnsEmptyDict]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testAllIndexedFilesOnEmptyDBReturnsEmptyDict]' passed (0.002 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testAllIndexedFilesReturnsCorrectPathsAndDates]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testAllIndexedFilesReturnsCorrectPathsAndDates]' passed (2.588 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testInitializeCreatesDatabaseDirAndDatabase]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testInitializeCreatesDatabaseDirAndDatabase]' passed (0.002 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testInsertReturnsValidRowID]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testInsertReturnsValidRowID]' passed (1.543 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testInsertWithNilOptionalFields]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testInsertWithNilOptionalFields]' passed (1.536 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testMultipleFilesInsertTwoRemoveOneOtherRemains]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testMultipleFilesInsertTwoRemoveOneOtherRemains]' passed (1.949 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testOpenOnCorruptedDBThrowsDatabaseCorrupted]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testOpenOnCorruptedDBThrowsDatabaseCorrupted]' passed (0.003 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testOpenOnInitializedDBSucceeds]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testOpenOnInitializedDBSucceeds]' passed (0.002 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testOpenOnNonExistentDBThrowsDatabaseNotInitialized]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testOpenOnNonExistentDBThrowsDatabaseNotInitialized]' passed (0.001 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testPartiallyIndexedFileNotReturnedByAllIndexedFiles]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testPartiallyIndexedFileNotReturnedByAllIndexedFiles]' passed (1.845 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testRemoveEntriesForNonExistentPathReturnsZero]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testRemoveEntriesForNonExistentPathReturnsZero]' passed (0.004 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testRemoveEntriesRemovesAndReturnsCorrectCount]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testRemoveEntriesRemovesAndReturnsCorrectCount]' passed (1.887 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchAccuracyWithLargerCorpus]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchAccuracyWithLargerCorpus]' passed (8.411 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchFullRankingOrderDiverseTopics]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchFullRankingOrderDiverseTopics]' passed (7.311 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchOnEmptyDBReturnsEmptyArray]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchOnEmptyDBReturnsEmptyArray]' passed (1.615 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchRankingAcrossRelatedProfessionalDomains]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchRankingAcrossRelatedProfessionalDomains]' passed (4.561 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchRespectsLimitParameter]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchRespectsLimitParameter]' passed (3.417 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchResultFieldsMapCorrectly]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchResultFieldsMapCorrectly]' passed (1.796 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchResultFieldsWithPDFPage]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchResultFieldsWithPDFPage]' passed (2.210 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchResultsOrderedByAscendingDistance]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchResultsOrderedByAscendingDistance]' passed (5.385 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchReturnsDeterministicRanking]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchReturnsDeterministicRanking]' passed (4.068 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchSimilarTextHasLowerDistance]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchSimilarTextHasLowerDistance]' passed (2.697 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchVerifiesCompleteRankingOrder]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testSearchVerifiesCompleteRankingOrder]' passed (3.649 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testTotalChunkCountOnEmptyDB]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testTotalChunkCountOnEmptyDB]' passed (0.002 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testTotalChunkCountWithMultipleFilesAndChunks]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testTotalChunkCountWithMultipleFilesAndChunks]' passed (2.532 seconds).
+Test Case '-[VecKitTests.VectorDatabaseTests testUnmarkFileIndexedRemovesCompletionRecord]' started.
+Test Case '-[VecKitTests.VectorDatabaseTests testUnmarkFileIndexedRemovesCompletionRecord]' passed (1.758 seconds).
+Test Suite 'VectorDatabaseTests' passed at 2026-09-07 01:08:30.847.
+	 Executed 26 tests, with 0 failures (0 unexpected) in 60.774 (60.777) seconds
+Test Suite 'vecPackageTests.xctest' passed at 2026-09-07 01:08:30.847.
+	 Executed 392 tests, with 4 tests skipped and 0 failures (0 unexpected) in 289.453 (289.493) seconds
+Test Suite 'All tests' passed at 2026-09-07 01:08:30.847.
+	 Executed 392 tests, with 4 tests skipped and 0 failures (0 unexpected) in 289.453 (289.494) seconds
+Reset database 'vectest-reset-4C5F749E-AFE2-44AE-A1BD-FF870D154E9C' at /Users/adamwulf/.vec/vectest-reset-4C5F749E-AFE2-44AE-A1BD-FF870D154E9C
+Source: /var/folders/n3/nm2j2qb55ss7ystx9_vps3lw0000gn/T/ResetCommandTests-7A93F81F-5624-4060-9A71-EC1B5A24BCCD
+Run 'vec update-index' to re-index files.
+[smoke] process RSS after pipeline: 4.66 GiB
+Update complete: 1 added, 0 updated, 0 removed.
+Update complete: 1 added, 0 updated, 0 removed.
+Update complete: 1 added, 0 updated, 0 removed (1 skipped: 1 unreadable).
+Update complete: 1 added, 0 updated, 0 removed.
+Update complete: 0 added, 0 updated, 0 removed.
+Update complete: 1 added, 0 updated, 0 removed (2 skipped: 2 unreadable).
+Update complete: 0 added, 0 updated, 0 removed.

@@ -1,0 +1,335 @@
+{
+  "arm" : "vtt-v1",
+  "categories" : [
+    "rolling-captions",
+    "specific-spoken-claim",
+    "multi-cue-topic"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8530117869377136,
+      "file" : "generated-a/cooking-sourdough-flatbread.vtt",
+      "match_count" : 7,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.14698821306228638,
+          "line_end" : 718,
+          "line_start" : 543,
+          "score" : 0.8530117869377136
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.15993142127990723,
+          "line_end" : 894,
+          "line_start" : 721,
+          "score" : 0.8400685787200928
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.17566508054733276,
+          "score" : 0.8243349194526672
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.17990994453430176,
+          "line_end" : 540,
+          "line_start" : 367,
+          "score" : 0.8200900554656982
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.18193697929382324,
+          "line_end" : 1110,
+          "line_start" : 897,
+          "score" : 0.8180630207061768
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.18564635515213013,
+          "line_end" : 364,
+          "line_start" : 191,
+          "score" : 0.8143536448478699
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.18950486183166504,
+          "line_end" : 188,
+          "line_start" : 13,
+          "score" : 0.810495138168335
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7952927947044373,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 8,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.20470720529556274,
+          "line_end" : 376,
+          "line_start" : 258,
+          "score" : 0.7952927947044373
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2154443860054016,
+          "line_end" : 496,
+          "line_start" : 378,
+          "score" : 0.7845556139945984
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.22118711471557617,
+          "line_end" : 618,
+          "line_start" : 498,
+          "score" : 0.7788128852844238
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.2217552661895752,
+          "score" : 0.7782447338104248
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.22537493705749512,
+          "line_end" : 864,
+          "line_start" : 740,
+          "score" : 0.7746250629425049
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.226637065410614,
+          "line_end" : 256,
+          "line_start" : 136,
+          "score" : 0.773362934589386
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.23553335666656494,
+          "line_end" : 134,
+          "line_start" : 16,
+          "score" : 0.7644666433334351
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.2363223433494568,
+          "line_end" : 738,
+          "line_start" : 620,
+          "score" : 0.7636776566505432
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7873954772949219,
+      "file" : "generated-b/ceramic-glaze-studio.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.21260452270507812,
+          "line_end" : 194,
+          "line_start" : 97,
+          "score" : 0.7873954772949219
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.23752671480178833,
+          "score" : 0.7624732851982117
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7821484804153442,
+      "file" : "generated-b/bike-brake-clinic.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.21785151958465576,
+          "line_end" : 1161,
+          "line_start" : 1132,
+          "score" : 0.7821484804153442
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.22619980573654175,
+          "line_end" : 765,
+          "line_start" : 584,
+          "score" : 0.7738001942634583
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.22719526290893555,
+          "line_end" : 941,
+          "line_start" : 768,
+          "score" : 0.7728047370910645
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7732473015785217,
+      "file" : "generated-a/woodworking-floating-shelf.vtt",
+      "match_count" : 6,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.22675269842147827,
+          "line_end" : 608,
+          "line_start" : 459,
+          "score" : 0.7732473015785217
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.22800201177597046,
+          "line_end" : 456,
+          "line_start" : 319,
+          "score" : 0.7719979882240295
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.23046272993087769,
+          "line_end" : 748,
+          "line_start" : 611,
+          "score" : 0.7695372700691223
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.23176908493041992,
+          "line_end" : 1024,
+          "line_start" : 935,
+          "score" : 0.7682309150695801
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.23239058256149292,
+          "line_end" : 172,
+          "line_start" : 17,
+          "score" : 0.7676094174385071
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.23383373022079468,
+          "score" : 0.7661662697792053
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.771808922290802,
+      "file" : "generated-a/photography-window-light.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.228191077709198,
+          "score" : 0.771808922290802
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2320815920829773,
+          "line_end" : 107,
+          "line_start" : 13,
+          "score" : 0.7679184079170227
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.23668593168258667,
+          "line_end" : 188,
+          "line_start" : 110,
+          "score" : 0.7633140683174133
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7706275582313538,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.22937244176864624,
+          "line_end" : 166,
+          "line_start" : 87,
+          "score" : 0.7706275582313538
+        }
+      ],
+      "rank" : 7
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q02",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 7,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8530117869377136,
+    "chunk_ordinal" : 5,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "rolling pin"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "bubbles"
+      }
+    ],
+    "distance" : 0.14698821306228638,
+    "file_rank" : 1,
+    "input_chars" : 921,
+    "line_end" : 718,
+    "line_start" : 543
+  },
+  "primary_file" : "generated-a/cooking-sourdough-flatbread.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-a/cooking-sourdough-flatbread.vtt"
+  ],
+  "search_seconds" : 0.106159333,
+  "text" : "Why does the flatbread cook advise hand stretching instead of using a rolling pin?"
+}

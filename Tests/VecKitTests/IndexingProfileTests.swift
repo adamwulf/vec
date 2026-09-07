@@ -201,7 +201,7 @@ final class IndexingProfileTests: XCTestCase {
     }
 
     func testFactoryDefaultAliasIsKnown() {
-        XCTAssertEqual(IndexingProfileFactory.defaultAlias, "bge-base")
+        XCTAssertEqual(IndexingProfileFactory.defaultAlias, "e5-base")
         XCTAssertTrue(IndexingProfileFactory.knownAliases.contains(IndexingProfileFactory.defaultAlias))
     }
 

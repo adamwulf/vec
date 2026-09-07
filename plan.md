@@ -112,6 +112,10 @@ if the cross-corpus ranking diverges, the default may revisit. See
 
 All shipped on the current branch, in rough chronological order.
 
+### E11 — Opt-in WebVTT extraction (2026-09-06)
+
+`--text-extraction vtt-v1` removes caption structure, decodes text, preserves speakers, and joins/de-duplicates rolling cues before the existing chunker. `markdown-v1+vtt-v1` supports mixed corpora; modes are recorded and inherited, and raw remains the default. Chunks retain coarse source cue line ranges without a schema change. The 2026-09-07 measurement used 16 frozen captions (1 real, 15 synthetic): rank-1 accuracy 14/15 → 15/15, MRR 0.956 → 1.000, chunks 205 → 88, timestamp/tag noise 100% → 0%. The sole rank gain was synthetic; this is not a full-corpus accuracy estimate. Both arms used the same inference on main `5ee92ab`, adopted by rebase; the full suite passes 392 tests with 4 opt-in skips and zero failures. [Plan](experiments/E11-vtt-extraction/plan.md) · [Measured report](experiments/E11-vtt-extraction/report.md) · [Historical baseline validation](experiments/E11-vtt-extraction/validation.md).
+
 ### E10 — Opt-in Markdown extraction (2026-09-06)
 
 Parser-backed link/image destination removal now runs before chunking with `--text-extraction markdown-v1`. The database persists and inherits the mode; raw remains the default. The fixed E5 comparison indexed nine Markdown files in both arms: correct file at rank 1 for 12/12 queries in both; advisory passage checks improved 6/12 → 8/12, and transcript chunks fell 163 → 78. No measured file-accuracy or indexing-speed gain; keep opt-in and expand the evaluation before changing defaults. [Report](experiments/E10-markdown-extraction/report.md) · [Plan](experiments/E10-markdown-extraction/plan.md) · [Results](experiments/E10-markdown-extraction/runs/20260906-225138-metal/summary.md).

@@ -1,0 +1,261 @@
+{
+  "build" : {
+    "active_processor_count" : 10,
+    "configuration" : "release",
+    "git_dirty" : false,
+    "git_head" : "0d013d1bfa9015a498615e0d51f5e4771d80d21c",
+    "host_name" : "adams-macbook-pro-9.local",
+    "os_version" : "Version 26.6.2 (Build 25G83)",
+    "package_resolved_sha256" : "d3dad0550daef3df320799330ec5b6b8ee49e8772ce2fde1a1a0e3aa796bb10c",
+    "swift_version" : "Apple Swift version 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2)\nTarget: arm64-apple-macosx26.0"
+  },
+  "corpus_scope" : "Recursively index .vtt files only: one unchanged real caption file from /tmp/LinksDatabase and fifteen committed synthetic captions. Exclude source prose, generators, README files and manifest.json.",
+  "corpus_source" : "/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-98cdd5df/repo/experiments/E11-vtt-extraction/sample",
+  "experiment" : "E11-vtt-extraction",
+  "file_count" : 16,
+  "files" : [
+    {
+      "bytes" : 4185,
+      "path" : "generated-a/balcony-tomato-gardening.vtt",
+      "sha256" : "fcd921cd0b0e6c37e582f37edd9de4899b688e92508e2177c1e972688abca215"
+    },
+    {
+      "bytes" : 3948,
+      "path" : "generated-a/battery-product-review.vtt",
+      "sha256" : "3f9b982b4223612f738e1f1c474b91d99f750690a1141643cbb20f217ad0e418"
+    },
+    {
+      "bytes" : 30892,
+      "path" : "generated-a/cooking-sourdough-flatbread.vtt",
+      "sha256" : "032130d16ab99963244a1fadf606a253047f19d4041c0238c5ec411c90d0cb0c"
+    },
+    {
+      "bytes" : 4929,
+      "path" : "generated-a/history-lighthouse-podcast.vtt",
+      "sha256" : "cdf9395a2a4fd57433a88be3b888f814a53a8e0cbc92ef72ed9e4a917376a40d"
+    },
+    {
+      "bytes" : 4869,
+      "path" : "generated-a/photography-window-light.vtt",
+      "sha256" : "5b901da11537e2bf8594520ace6e67d8477ea6993091f9fa536649851c02c780"
+    },
+    {
+      "bytes" : 31041,
+      "path" : "generated-a/physics-pendulum-lecture.vtt",
+      "sha256" : "7aa9191dea641c9515f94621bd0f95385eee8c942c6c21a4c8c3de26b689c0f3"
+    },
+    {
+      "bytes" : 20223,
+      "path" : "generated-a/startup-support-interview.vtt",
+      "sha256" : "97c03ac7df2d7d97bf96fdfc43d59ced5d548cee0940810c3c86dea8b49876e6"
+    },
+    {
+      "bytes" : 25138,
+      "path" : "generated-a/woodworking-floating-shelf.vtt",
+      "sha256" : "c2efa93e10ae53dff9e28a06239aaa5c2a2c8d1bf64b0da38daa112bea6e1700"
+    },
+    {
+      "bytes" : 22000,
+      "path" : "generated-b/bike-brake-clinic.vtt",
+      "sha256" : "3f67549835de727e731ee555e079c5181e860bf9e2bd54fdcfa5c4a9a153d913"
+    },
+    {
+      "bytes" : 3875,
+      "path" : "generated-b/ceramic-glaze-studio.vtt",
+      "sha256" : "1a8215aa82e4c5c3e715a8d2de93c61955b84d9f35c21f7a01ac608834ac473d"
+    },
+    {
+      "bytes" : 6310,
+      "path" : "generated-b/field-recording-basics.vtt",
+      "sha256" : "5347d30e0814d35a20f41270c15422673e076b9d2eea1786cb3ad1e8135648de"
+    },
+    {
+      "bytes" : 6143,
+      "path" : "generated-b/telescope-polar-alignment.vtt",
+      "sha256" : "9eeb823ed5b961298bc15b53c1a6d2183ed85319571613f84f4f296dd6130f17"
+    },
+    {
+      "bytes" : 5041,
+      "path" : "generated-b/textile-conservation-talk.vtt",
+      "sha256" : "7d2c16cf56b3514c2f4ebb5d7ec2b89b906404197c6183d7460d556957406f07"
+    },
+    {
+      "bytes" : 5097,
+      "path" : "generated-b/tram-scheduling-interview.vtt",
+      "sha256" : "c62681784b4eef484bfa4da644f6b1e48cde1ddf0b0cffd7ddc04b47655a26b8"
+    },
+    {
+      "bytes" : 19486,
+      "path" : "generated-b/wetland-ecology-lecture.vtt",
+      "sha256" : "71b8ef075e1eb76b1ddceeccbc8783996fea2e1834e170cc448c390115297c4d"
+    },
+    {
+      "bytes" : 13911,
+      "path" : "real/anna-rudolf-minecraft.vtt",
+      "sha256" : "89ad9879b518d56b6085ee6d0952486a6f67dda1ce330c34ca609b76a764b409"
+    }
+  ],
+  "frozen_at" : "2026-09-07T06:10:33Z",
+  "model_directory" : "/private/tmp/vec-e10-model/f52bf8ec8c7124536f0efb74aca902b2995e5bcd",
+  "model_files" : [
+    {
+      "bytes" : 650,
+      "path" : "config.json",
+      "sha256" : "01cc39aa39538a8179aa131c8a16adc03b506c92009f091502e4eb0c702f5f78"
+    },
+    {
+      "bytes" : 437955512,
+      "path" : "model.safetensors",
+      "sha256" : "d0d559c47d5f71b1d280b13b62a2657f3e3bc70c0786f9ab91a36545e6a8f693"
+    },
+    {
+      "bytes" : 1023,
+      "path" : "snapshot-manifest.json",
+      "sha256" : "36ca1463784a5df35c5cd5baf1dbf5c5267e6a453705a99fed81e5ab3ea07030"
+    },
+    {
+      "bytes" : 125,
+      "path" : "special_tokens_map.json",
+      "sha256" : "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+    },
+    {
+      "bytes" : 711396,
+      "path" : "tokenizer.json",
+      "sha256" : "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66"
+    },
+    {
+      "bytes" : 314,
+      "path" : "tokenizer_config.json",
+      "sha256" : "ae83fa6ca0333117ff12606020af925d648667ef70d92ff7f27d781ba0ca4544"
+    },
+    {
+      "bytes" : 231508,
+      "path" : "vocab.txt",
+      "sha256" : "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+    }
+  ],
+  "model_revision" : "f52bf8ec8c7124536f0efb74aca902b2995e5bcd",
+  "normalization" : {
+    "per_file" : [
+      {
+        "normalized_chars" : 2131,
+        "path" : "generated-a/balcony-tomato-gardening.vtt",
+        "raw_chars" : 4181,
+        "reduction_ratio" : 0.4903133221717293
+      },
+      {
+        "normalized_chars" : 1809,
+        "path" : "generated-a/battery-product-review.vtt",
+        "raw_chars" : 3944,
+        "reduction_ratio" : 0.5413286004056795
+      },
+      {
+        "normalized_chars" : 5735,
+        "path" : "generated-a/cooking-sourdough-flatbread.vtt",
+        "raw_chars" : 30888,
+        "reduction_ratio" : 0.8143291893291893
+      },
+      {
+        "normalized_chars" : 2219,
+        "path" : "generated-a/history-lighthouse-podcast.vtt",
+        "raw_chars" : 4925,
+        "reduction_ratio" : 0.5494416243654823
+      },
+      {
+        "normalized_chars" : 2168,
+        "path" : "generated-a/photography-window-light.vtt",
+        "raw_chars" : 4865,
+        "reduction_ratio" : 0.5543679342240493
+      },
+      {
+        "normalized_chars" : 6095,
+        "path" : "generated-a/physics-pendulum-lecture.vtt",
+        "raw_chars" : 31033,
+        "reduction_ratio" : 0.8035961718170979
+      },
+      {
+        "normalized_chars" : 6590,
+        "path" : "generated-a/startup-support-interview.vtt",
+        "raw_chars" : 20219,
+        "reduction_ratio" : 0.6740689450516841
+      },
+      {
+        "normalized_chars" : 6689,
+        "path" : "generated-a/woodworking-floating-shelf.vtt",
+        "raw_chars" : 25134,
+        "reduction_ratio" : 0.7338664756903
+      },
+      {
+        "normalized_chars" : 6782,
+        "path" : "generated-b/bike-brake-clinic.vtt",
+        "raw_chars" : 22000,
+        "reduction_ratio" : 0.6917272727272727
+      },
+      {
+        "normalized_chars" : 2094,
+        "path" : "generated-b/ceramic-glaze-studio.vtt",
+        "raw_chars" : 3875,
+        "reduction_ratio" : 0.4596129032258065
+      },
+      {
+        "normalized_chars" : 1551,
+        "path" : "generated-b/field-recording-basics.vtt",
+        "raw_chars" : 6310,
+        "reduction_ratio" : 0.7541996830427893
+      },
+      {
+        "normalized_chars" : 1623,
+        "path" : "generated-b/telescope-polar-alignment.vtt",
+        "raw_chars" : 6143,
+        "reduction_ratio" : 0.7357968419339085
+      },
+      {
+        "normalized_chars" : 2309,
+        "path" : "generated-b/textile-conservation-talk.vtt",
+        "raw_chars" : 5041,
+        "reduction_ratio" : 0.5419559611188256
+      },
+      {
+        "normalized_chars" : 2386,
+        "path" : "generated-b/tram-scheduling-interview.vtt",
+        "raw_chars" : 5097,
+        "reduction_ratio" : 0.531881498920934
+      },
+      {
+        "normalized_chars" : 9820,
+        "path" : "generated-b/wetland-ecology-lecture.vtt",
+        "raw_chars" : 19486,
+        "reduction_ratio" : 0.4960484450374628
+      },
+      {
+        "normalized_chars" : 8938,
+        "path" : "real/anna-rudolf-minecraft.vtt",
+        "raw_chars" : 13911,
+        "reduction_ratio" : 0.3574868808856301
+      }
+    ],
+    "total_normalized_chars" : 68939,
+    "total_raw_chars" : 207052,
+    "total_reduction_ratio" : 0.6670449935281958
+  },
+  "query_count" : 15,
+  "query_manifest_path" : "experiments/E11-vtt-extraction/queries/rubric-queries.json",
+  "query_manifest_sha256" : "da9aabff0b4da78ce356c5f66490ea82386dc2d25000efdeb07585b72cd3d289",
+  "run_identity" : "5b7bbf3787fd7606e6ef99701fd2d17a444408849917e9471bd3896a4b223a2c",
+  "sample_manifest_path" : "/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-98cdd5df/repo/experiments/E11-vtt-extraction/sample/manifest.json",
+  "sample_manifest_sha256" : "510d57ac23e5c44b03cdc72488e57056a529653e7eb0b67222b94c022e767a4c",
+  "settings" : {
+    "batch_size" : 32,
+    "bucket_width" : 500,
+    "chunk_chars" : 1200,
+    "chunk_overlap" : 0,
+    "coalesce_limit" : 10,
+    "compute_policy" : "default(nil)",
+    "concurrency" : 8,
+    "dimension" : 768,
+    "embedder" : "e5-base-v2",
+    "profile_identity" : "e5-base@1200/0",
+    "raw_fetch_limit" : 30,
+    "search_limit" : 10
+  }
+}

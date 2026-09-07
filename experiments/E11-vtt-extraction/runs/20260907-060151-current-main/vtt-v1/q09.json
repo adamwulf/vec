@@ -1,0 +1,351 @@
+{
+  "arm" : "vtt-v1",
+  "categories" : [
+    "named-speaker",
+    "dialogue",
+    "specific-spoken-claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8698512315750122,
+      "file" : "generated-b/bike-brake-clinic.vtt",
+      "match_count" : 8,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.1301487684249878,
+          "line_end" : 941,
+          "line_start" : 768,
+          "score" : 0.8698512315750122
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.15308672189712524,
+          "line_end" : 581,
+          "line_start" : 381,
+          "score" : 0.8469132781028748
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.1570568084716797,
+          "line_end" : 378,
+          "line_start" : 205,
+          "score" : 0.8429431915283203
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.15841388702392578,
+          "line_end" : 1161,
+          "line_start" : 1132,
+          "score" : 0.8415861129760742
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.1620463728904724,
+          "score" : 0.8379536271095276
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.16376984119415283,
+          "line_end" : 1129,
+          "line_start" : 944,
+          "score" : 0.8362301588058472
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.16488927602767944,
+          "line_end" : 765,
+          "line_start" : 584,
+          "score" : 0.8351107239723206
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.18135058879852295,
+          "line_end" : 202,
+          "line_start" : 17,
+          "score" : 0.818649411201477
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.773079514503479,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.226920485496521,
+          "line_end" : 166,
+          "line_start" : 87,
+          "score" : 0.773079514503479
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.25722312927246094,
+          "score" : 0.7427768707275391
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7620517611503601,
+      "file" : "generated-a/startup-support-interview.vtt",
+      "match_count" : 6,
+      "matches" : [
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.2379482388496399,
+          "line_end" : 778,
+          "line_start" : 631,
+          "score" : 0.7620517611503601
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.24978196620941162,
+          "line_end" : 628,
+          "line_start" : 506,
+          "score" : 0.7502180337905884
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.24984216690063477,
+          "score" : 0.7501578330993652
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2505224347114563,
+          "line_end" : 160,
+          "line_start" : 13,
+          "score" : 0.7494775652885437
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.2602100372314453,
+          "line_end" : 870,
+          "line_start" : 781,
+          "score" : 0.7397899627685547
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2608339786529541,
+          "line_end" : 393,
+          "line_start" : 268,
+          "score" : 0.7391660213470459
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7576567530632019,
+      "file" : "real/anna-rudolf-minecraft.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.2423432469367981,
+          "line_end" : 400,
+          "line_start" : 344,
+          "score" : 0.7576567530632019
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7554278373718262,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 5,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.24457216262817383,
+          "line_end" : 256,
+          "line_start" : 136,
+          "score" : 0.7554278373718262
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.24936378002166748,
+          "line_end" : 618,
+          "line_start" : 498,
+          "score" : 0.7506362199783325
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2523882985115051,
+          "line_end" : 496,
+          "line_start" : 378,
+          "score" : 0.7476117014884949
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.256950318813324,
+          "score" : 0.743049681186676
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.25904417037963867,
+          "line_end" : 376,
+          "line_start" : 258,
+          "score" : 0.7409558296203613
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.753588080406189,
+      "file" : "generated-a/cooking-sourdough-flatbread.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.24641191959381104,
+          "line_end" : 540,
+          "line_start" : 367,
+          "score" : 0.753588080406189
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2558286190032959,
+          "line_end" : 364,
+          "line_start" : 191,
+          "score" : 0.7441713809967041
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2602764368057251,
+          "line_end" : 718,
+          "line_start" : 543,
+          "score" : 0.7397235631942749
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7513425350189209,
+      "file" : "generated-a/woodworking-floating-shelf.vtt",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2486574649810791,
+          "line_end" : 748,
+          "line_start" : 611,
+          "score" : 0.7513425350189209
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.24932336807250977,
+          "line_end" : 456,
+          "line_start" : 319,
+          "score" : 0.7506766319274902
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2530747056007385,
+          "line_end" : 608,
+          "line_start" : 459,
+          "score" : 0.7469252943992615
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2598758339881897,
+          "line_end" : 172,
+          "line_start" : 17,
+          "score" : 0.7401241660118103
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7391561269760132,
+      "file" : "generated-b/telescope-polar-alignment.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2608438730239868,
+          "line_end" : 172,
+          "line_start" : 111,
+          "score" : 0.7391561269760132
+        }
+      ],
+      "rank" : 8
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q09",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 8,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8698512315750122,
+    "chunk_ordinal" : 6,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "Larson twist"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "flick the lever"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "tap the caliper"
+      }
+    ],
+    "distance" : 0.1301487684249878,
+    "file_rank" : 1,
+    "input_chars" : 1089,
+    "line_end" : 941,
+    "line_start" : 768
+  },
+  "primary_file" : "generated-b/bike-brake-clinic.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-b/bike-brake-clinic.vtt"
+  ],
+  "search_seconds" : 0.091313458,
+  "text" : "What does Priya Raman do in the Larson twist to free stubborn bubbles after bleeding the bicycle brake?"
+}

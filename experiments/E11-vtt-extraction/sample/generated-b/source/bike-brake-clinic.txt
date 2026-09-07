@@ -1,0 +1,79 @@
+# SYNTHETIC source prose — bicycle brake repair workshop (dialogue)
+# Fictional demonstration for the E11 retrieval experiment. Not a recording
+# of any real event, person, or product. Names and specifications are invented.
+# Voice mode: dialogue. Speakers: Priya Raman (instructor), Dave Okafor, Tomas.
+# One blank-line-separated block per speaker turn; block starts "Name: ...".
+
+Priya Raman: Alright everyone, welcome to the Tuesday night maintenance clinic here at the Ridgeline Community Bike Co-op. Tonight we are servicing brakes, and by the time you leave you should be able to bleed a hydraulic disc brake and swap a set of worn pads without any panic.
+
+Priya Raman: The bike on the stand is my own commuter. It runs Halcyon XT hydraulic brakes, which are a mineral oil system, so please hold onto that detail because it matters enormously for everything we do tonight.
+
+Dave Okafor: Why does the fluid type matter so much? Isn't brake fluid just brake fluid?
+
+Priya Raman: Great question, Dave. Mineral oil and DOT fluid are not interchangeable. DOT 5.1 will destroy the seals in a mineral oil caliper, and mineral oil will swell the seals in a DOT system. Mixing them is the single most expensive mistake in this room.
+
+Priya Raman: DOT fluid also strips paint. If you drip it on the frame, wipe it immediately with isopropyl alcohol. Mineral oil is gentler on paint, but you still keep it well off the rotor & pads.
+
+Tomas: How do I even know which system my bike has?
+
+Priya Raman: The lever body is usually printed with either the word mineral or the DOT rating. When in doubt, check the manufacturer bleed manual before you open a single port.
+
+Priya Raman: Let's look at wear first, because most people bleed when they actually just need pads. A fresh pad is about 2.3 mm thick including the metal backing. Once the friction material is worn down near the backing, the braking turns grabby and loud.
+
+Dave Okafor: This one is definitely singing.
+
+Priya Raman: That squeal is your early warning. Now, the rotor. A new 160 mm rotor on this bike starts around 1.8 mm thick. The minimum thickness stamped right on the rotor is 1.5 mm. Below that you replace it, no arguments, because a thin rotor can warp or crack under braking heat.
+
+Priya Raman: To pull the pads, first remove the wheel, then the retaining pin or the split pin, and then pinch the pads together and slide them out along with the spring clip. Notice they come out as a little sandwich.
+
+Tomas: Mine are uneven. One side looks a lot thinner than the other.
+
+Priya Raman: That usually means a sticky piston on the thin side. We will push both pistons back and clean them before the new pads go in, otherwise the new set wears crooked too.
+
+Priya Raman: Here is a habit that saves rotors and tempers. Never squeeze the lever with the pads out and no spacer in place. The pistons will pop right out of the caliper, the fluid follows, and then you are into a much bigger repair.
+
+Dave Okafor: So we put a bleed block in first.
+
+Priya Raman: Exactly. The yellow bleed block, or the plastic spacer that shipped in the box. It holds the pistons at the correct spacing while the caliper is open, so nothing walks out on you.
+
+Priya Raman: Now let's talk about why we bleed at all. If the lever pulls almost to the bar and feels soft, like a banana, that spongy dead travel is air trapped in the line. Air compresses, fluid does not, so every bubble steals braking power.
+
+Tomas: Mine has a bite point that keeps moving. Some stops it grabs early, some stops it grabs late.
+
+Priya Raman: A wandering bite point is the classic symptom of a small air bubble migrating around the system as the fluid warms and cools. A proper bleed will settle that right down.
+
+Priya Raman: The tools tonight are a bleed kit with two syringes, the correct mineral oil, a 2.5 mm and a 3 mm hex key, a torque wrench, nitrile gloves, and a big stack of blue shop towels. Brake fluid and skin are not friends.
+
+Priya Raman: The bleed direction on this Halcyon caliper is bottom to top. We push clean fluid up from the caliper bleed port and let the old dark fluid and the bubbles rise out through the funnel screwed into the lever.
+
+Dave Okafor: Why bottom to top and not the other way?
+
+Priya Raman: Because air rises. If you push fluid the same direction the bubbles already want to travel, you sweep everything out the top in one clean pass instead of chasing bubbles around in circles for an hour.
+
+Priya Raman: Step one, level the lever so the funnel at the top is the highest point in the whole system. Step two, crack the bleed nipple at the caliper about a quarter turn. Step three, push the lower syringe slowly. Watch the funnel fill and watch closely for bubbles.
+
+Tomas: I can already see little bubbles coming up into the funnel.
+
+Priya Raman: Perfect, that is exactly the trapped air leaving. Keep the pressure slow and steady. When the fluid arriving in the funnel runs clean and bubble free, close the bleed nipple before you ever pull the syringe off.
+
+Priya Raman: Now a trick we call the Larson twist, named after a mechanic who taught in this room for years. With the funnel still on top, flick the lever quickly a dozen times, then gently tap the caliper and the hose with a plastic handle. The vibration shakes loose the stubborn bubbles clinging in the corners.
+
+Dave Okafor: That knocked out a whole burst of bubbles at once.
+
+Priya Raman: Every single time. Those corner bubbles are exactly what people miss when a bleed feels almost right but never quite firm. Once they are gone, seal the lever port, unscrew the funnel, and wipe the entire system down.
+
+Priya Raman: Torque matters when you button everything back up. The two caliper mounting bolts on this frame go to 6 Nm. The bleed nipple itself is delicate, only about 4 Nm, so do not gorilla it or you will round off the flats and cry later.
+
+Priya Raman: New pads go in with clean dry hands only. If you touch the friction surface, the oil from your fingertips contaminates the pad, and a contaminated pad squeals forever and never grips right again. If that happens, the pad is scrap, full stop.
+
+Tomas: How do I clean the rotor before I fit the new pads?
+
+Priya Raman: Isopropyl alcohol on a clean rag, nothing else. No spray degreaser that leaves a residue, no automotive brake cleaner. Just plain alcohol and a lint free cloth, both sides of the rotor.
+
+Priya Raman: The last step is the bed-in, and this is the step everyone skips. Find a quiet flat street. Bring the bike up to about 30 km/h and brake firmly but without skidding, roughly thirty times in a row. You are transferring an even layer of pad material onto the rotor face.
+
+Dave Okafor: So the faint burning smell is normal during that?
+
+Priya Raman: A little smell is completely normal on the bed-in, yes. What you are doing is called burnishing. Skip it and your brakes feel weak and grabby for weeks. Do it properly and the bite is smooth and strong from the very first ride.
+
+Priya Raman: Alright, hands on. Grab a bike, put a bleed block in before you touch anything else, and call me over before you crack a single bleed nipple. Slow and steady wins this one.

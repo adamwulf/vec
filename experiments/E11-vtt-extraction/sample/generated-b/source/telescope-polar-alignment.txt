@@ -1,0 +1,20 @@
+# SYNTHETIC source prose — astronomy telescope alignment tutorial (monologue)
+# Fictional demonstration for the E11 retrieval experiment. Not a recording of
+# any real tutorial, person, or product. Gear names and figures are invented.
+# Voice mode: monologue, single unnamed speaker. Blank-line-separated paragraphs.
+
+Tonight we polar align the Meridian GEM-28 equatorial mount, and then collimate the Corvus eight inch Newtonian that rides on top of it.
+
+Start with the mount level and pointed at true north. Set the latitude scale on the altitude bolt to 41.5 degrees for our site here at Larkspur Ridge, and lock it.
+
+Now look through the polar scope in the axis of the mount. You will see an etched reticle with a small offset circle. Place Polaris exactly on that circle, not in the center, using only the two adjustment bolts.
+
+The azimuth bolts swing the whole mount left and right, and the altitude bolt nudges it up and down. Work back and forth until Polaris drops right onto the mark. That gets you within a few arcminutes.
+
+For long exposure photography we go further with drift alignment. Point at a star near the meridian, watch it drift north or south over a minute, and correct until the drift stops cold. When the guiding software finally reports total error under 0.6 arcseconds, the polar alignment is done.
+
+Now the optics. Drop a Cheshire sighting tube into the focuser and look for the reflections stacked like a tunnel of rings. Center the secondary mirror under the focuser with its small central screw until its outline looks round.
+
+Then use the three collimation screws on the back of the primary to walk the little doughnut, the ring marker glued to the center of the primary, into the crosshairs.
+
+A laser collimator makes that step faster, but always finish by star testing on a real star, defocusing until you see even rings around a central dot. Get it all concentric and the Corvus will show the cloud bands on Jupiter tonight.

@@ -1,0 +1,361 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "real-caption",
+    "specific-spoken-claim",
+    "multi-cue-topic"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8224645256996155,
+      "file" : "real/anna-rudolf-minecraft.vtt",
+      "match_count" : 12,
+      "matches" : [
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.17753547430038452,
+          "line_end" : 342,
+          "line_start" : 312,
+          "score" : 0.8224645256996155
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.18264657258987427,
+          "line_end" : 310,
+          "line_start" : 273,
+          "score" : 0.8173534274101257
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.18896633386611938,
+          "line_end" : 412,
+          "line_start" : 382,
+          "score" : 0.8110336661338806
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.19307684898376465,
+          "line_end" : 134,
+          "line_start" : 101,
+          "score" : 0.8069231510162354
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.19901466369628906,
+          "line_end" : 202,
+          "line_start" : 168,
+          "score" : 0.8009853363037109
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.20520520210266113,
+          "line_end" : 99,
+          "line_start" : 69,
+          "score" : 0.7947947978973389
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.20923441648483276,
+          "line_end" : 380,
+          "line_start" : 344,
+          "score" : 0.7907655835151672
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.21762847900390625,
+          "line_end" : 166,
+          "line_start" : 136,
+          "score" : 0.7823715209960938
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.21958541870117188,
+          "line_end" : 237,
+          "line_start" : 204,
+          "score" : 0.7804145812988281
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.22186481952667236,
+          "line_end" : 35,
+          "line_start" : 1,
+          "score" : 0.7781351804733276
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.22446972131729126,
+          "line_end" : 67,
+          "line_start" : 37,
+          "score" : 0.7755302786827087
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.23794806003570557,
+          "line_end" : 271,
+          "line_start" : 239,
+          "score" : 0.7620519399642944
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7593985199928284,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.24060148000717163,
+          "line_end" : 34,
+          "line_start" : 1,
+          "score" : 0.7593985199928284
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.24424093961715698,
+          "line_end" : 112,
+          "line_start" : 75,
+          "score" : 0.755759060382843
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.24876642227172852,
+          "line_end" : 151,
+          "line_start" : 114,
+          "score" : 0.7512335777282715
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7578385472297668,
+      "file" : "generated-a/startup-support-interview.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.24216145277023315,
+          "line_end" : 138,
+          "line_start" : 93,
+          "score" : 0.7578385472297668
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7566310167312622,
+      "file" : "generated-b/bike-brake-clinic.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.2433689832687378,
+          "line_end" : 549,
+          "line_start" : 488,
+          "score" : 0.7566310167312622
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7561531662940979,
+      "file" : "generated-b/wetland-ecology-lecture.vtt",
+      "match_count" : 6,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2438468337059021,
+          "line_end" : 260,
+          "line_start" : 210,
+          "score" : 0.7561531662940979
+        },
+        {
+          "chunk_ordinal" : 17,
+          "chunk_type" : "chunk",
+          "distance" : 0.24596351385116577,
+          "line_end" : 830,
+          "line_start" : 776,
+          "score" : 0.7540364861488342
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.24610120058059692,
+          "line_end" : 104,
+          "line_start" : 54,
+          "score" : 0.7538987994194031
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.24652999639511108,
+          "line_end" : 208,
+          "line_start" : 158,
+          "score" : 0.7534700036048889
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.24766361713409424,
+          "line_end" : 52,
+          "line_start" : 1,
+          "score" : 0.7523363828659058
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.2487393021583557,
+          "line_end" : 774,
+          "line_start" : 724,
+          "score" : 0.7512606978416443
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7559441924095154,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.24405580759048462,
+          "line_end" : 131,
+          "line_start" : 103,
+          "score" : 0.7559441924095154
+        },
+        {
+          "chunk_ordinal" : 26,
+          "chunk_type" : "chunk",
+          "distance" : 0.24638134241104126,
+          "line_end" : 798,
+          "line_start" : 770,
+          "score" : 0.7536186575889587
+        },
+        {
+          "chunk_ordinal" : 21,
+          "chunk_type" : "chunk",
+          "distance" : 0.24852204322814941,
+          "line_end" : 642,
+          "line_start" : 611,
+          "score" : 0.7514779567718506
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7551283836364746,
+      "file" : "generated-a/history-lighthouse-podcast.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2448716163635254,
+          "line_end" : 187,
+          "line_start" : 141,
+          "score" : 0.7551283836364746
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.24842333793640137,
+          "line_end" : 91,
+          "line_start" : 45,
+          "score" : 0.7515766620635986
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7540029287338257,
+      "file" : "generated-a/battery-product-review.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.24599707126617432,
+          "line_end" : 168,
+          "line_start" : 150,
+          "score" : 0.7540029287338257
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.752221405506134,
+      "file" : "generated-a/cooking-sourdough-flatbread.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.24777859449386597,
+          "line_end" : 196,
+          "line_start" : 156,
+          "score" : 0.752221405506134
+        }
+      ],
+      "rank" : 9
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q01",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 9,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8224645256996155,
+    "chunk_ordinal" : 11,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "door"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "regex",
+        "value" : "air bubble|breathe"
+      }
+    ],
+    "distance" : 0.17753547430038452,
+    "file_rank" : 1,
+    "input_chars" : 1121,
+    "line_end" : 342,
+    "line_start" : 312
+  },
+  "primary_file" : "real/anna-rudolf-minecraft.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "real/anna-rudolf-minecraft.vtt"
+  ],
+  "search_seconds" : 0.887916375,
+  "text" : "How did the Minecraft player make a breathing space while collecting underwater diamonds?"
+}

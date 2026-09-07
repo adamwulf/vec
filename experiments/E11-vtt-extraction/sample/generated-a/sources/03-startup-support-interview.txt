@@ -1,0 +1,59 @@
+Priya: You're listening to Founder Signal. I'm Priya, and today I'm sitting down with Sam Okoro, the founder of Larksail, a scheduling tool for small clinics. Sam, everybody wants to talk to founders about growth and fundraising, but you insist customer support is your real growth engine. Make that case for me.
+
+Sam: Happily, because I genuinely believe it. In our first year I answered every single support ticket myself, personally, from my own laptop, sometimes at two in the morning. And that inbox taught me more about the product than any strategy meeting ever did. Every angry email was a free consulting report telling me exactly where Larksail was broken.
+
+Priya: Answering everything yourself doesn't scale, though. At some point the volume must have crushed you.
+
+Sam: Oh, it absolutely did. By month fourteen we were getting around eight hundred tickets a week, and I was drowning. But here's the thing, I didn't hand it off to a call center. I hired our first two support engineers, people who could actually read the code and reproduce a bug, not just paste a canned apology and close the ticket.
+
+Priya: Support engineers, not support agents. That's a deliberate word choice.
+
+Sam: Very deliberate. A traditional agent is measured on how many tickets they close per hour, which quietly rewards them for getting rid of you. A support engineer is measured on whether the customer's actual problem went away and never came back. Those are completely different incentives, and customers feel the difference in the first reply.
+
+Priya: Let's talk numbers, because you're weirdly obsessed with them. What do you actually measure?
+
+Sam: The two I stare at every morning are first response time and customer satisfaction, what everyone calls CSAT. When I started, our median first response time was over a full business day, which is embarrassing. Today we answer the median ticket in under four minutes during business hours, live, in the chat window.
+
+Priya: Under four minutes. How did you pull the number down that dramatically?
+
+Sam: Two ways. First, we killed email as the front door and moved everything to live chat, so there's no overnight black hole where a message just sits. Second, we built a library of what we call macros, pre written answers for the forty or so questions that come up over and over. An agent picks a macro, personalizes two sentences, and sends it in seconds instead of typing the same paragraph for the thousandth time.
+
+Priya: Doesn't a wall of canned responses make support feel robotic and cold?
+
+Sam: It can, and that's the trap. The rule on my team is that a macro is a starting draft, never the final message. You always add the customer's name, reference their specific situation, and delete anything that doesn't apply. The macro saves the typing, the human adds the judgment. Used lazily it feels like a vending machine, used well it feels like a fast, sharp friend.
+
+Priya: What about the tickets that never should have reached a human at all?
+
+Sam: That's the holy grail, deflection. We built a self serve help center, and right now it quietly resolves about thirty percent of would be tickets before anyone hits the contact button. Somebody searches how do I export my calendar, they find the article, they solve it themselves, and that conversation never becomes a ticket. Every deflected ticket is one my team never has to touch.
+
+Priya: You mentioned CSAT. Where does that sit now?
+
+Sam: We run around ninety two percent satisfied on the little thumbs up thumbs down survey after each chat. But honestly I trust the written comments more than the percentage. A ninety two is nice on a dashboard, but the sentence a customer types when they're furious is the thing that actually changes what we build next.
+
+Priya: Give me a story. A specific ticket that changed the product.
+
+Sam: Sure. About a year ago a clinic in a different time zone kept having appointments show up an hour off, and they were livid, understandably, because a missed appointment is real money for them. My support engineer didn't just apologize and offer a refund. She reproduced it, traced it to a nasty bug in how we handled daylight saving time, and we shipped a fix that week. That one ticket protected every customer we hadn't even signed yet.
+
+Priya: So support fed straight back into engineering.
+
+Sam: That's the whole loop, and it's the part most companies sever. Every Friday my support & success leads bring the five most common complaints of the week directly into the product planning meeting. Not a summary six weeks later, the raw voice of the customer, that same week. Support isn't downstream of product for us, it's the intake valve.
+
+Priya: Let's talk about the hard tickets. The angry ones. How do you coach a team to handle someone who's yelling?
+
+Sam: The first move is always to acknowledge the frustration before you touch the facts. People need to feel heard before they can hear you. So the reply starts with something like, that sounds genuinely frustrating, and I'd be upset too, and only then do we get into what happened and how we'll fix it. You cannot debug a customer who doesn't feel listened to.
+
+Priya: And when the customer is simply wrong?
+
+Sam: You still start by making them feel heard, and then you gently show them the path, never the scoreboard. Nobody has ever been argued into loving a product. If it was their mistake, we fix it quietly and maybe we make the interface less confusing so the next person doesn't fall in the same hole. Their confusion is our design bug, not their failure.
+
+Priya: What's your policy on refunds?
+
+Sam: Generous and fast, on purpose. If someone's unhappy in the first thirty days, we refund without an interrogation. I decided early that the goodwill from an easy refund is worth far more than the money we claw back by making it painful. An angry ex customer tells fifteen people, a fairly refunded one often comes back in six months.
+
+Priya: If a brand new founder is listening right now, drowning in their own inbox, what's the one thing you'd tell them?
+
+Sam: Stay in the inbox longer than is comfortable. Every founder wants to hire away the support job on day one because it's exhausting and it feels beneath the big vision. But that inbox is the clearest, least filtered signal you will ever get about your product. Delegate it too early and you go deaf right when you most need to hear.
+
+Priya: Founder in the inbox. I love it. Sam Okoro of Larksail, thank you for being so specific with us today.
+
+Sam: Thank you for having me, Priya. Go answer a ticket, everyone.

@@ -1,0 +1,353 @@
+{
+  "arm" : "vtt-v1",
+  "categories" : [
+    "short-caption",
+    "inline-timestamps",
+    "paraphrase"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8503444194793701,
+      "file" : "generated-b/field-recording-basics.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.14965558052062988,
+          "score" : 0.8503444194793701
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.15544986724853516,
+          "line_end" : 163,
+          "line_start" : 18,
+          "score" : 0.8445501327514648
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.16985845565795898,
+          "line_end" : 227,
+          "line_start" : 166,
+          "score" : 0.830141544342041
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.793333888053894,
+      "file" : "generated-b/wetland-ecology-lecture.vtt",
+      "match_count" : 9,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.20666611194610596,
+          "line_end" : 220,
+          "line_start" : 119,
+          "score" : 0.793333888053894
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.2104848027229309,
+          "line_end" : 874,
+          "line_start" : 857,
+          "score" : 0.7895151972770691
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.22242701053619385,
+          "line_end" : 488,
+          "line_start" : 391,
+          "score" : 0.7775729894638062
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.22451794147491455,
+          "line_end" : 388,
+          "line_start" : 319,
+          "score" : 0.7754820585250854
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.22483128309249878,
+          "line_end" : 662,
+          "line_start" : 597,
+          "score" : 0.7751687169075012
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.22791606187820435,
+          "line_end" : 316,
+          "line_start" : 223,
+          "score" : 0.7720839381217957
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.2291325330734253,
+          "score" : 0.7708674669265747
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.22977805137634277,
+          "line_end" : 116,
+          "line_start" : 19,
+          "score" : 0.7702219486236572
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.23036497831344604,
+          "line_end" : 758,
+          "line_start" : 665,
+          "score" : 0.769635021686554
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7882472276687622,
+      "file" : "generated-a/history-lighthouse-podcast.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2117527723312378,
+          "line_end" : 203,
+          "line_start" : 110,
+          "score" : 0.7882472276687622
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.22415077686309814,
+          "score" : 0.7758492231369019
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7789615988731384,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 6,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.22103840112686157,
+          "line_end" : 376,
+          "line_start" : 258,
+          "score" : 0.7789615988731384
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.22694683074951172,
+          "score" : 0.7730531692504883
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2292717695236206,
+          "line_end" : 618,
+          "line_start" : 498,
+          "score" : 0.7707282304763794
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.22944217920303345,
+          "line_end" : 256,
+          "line_start" : 136,
+          "score" : 0.7705578207969666
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.2318969964981079,
+          "line_end" : 864,
+          "line_start" : 740,
+          "score" : 0.7681030035018921
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.23570877313613892,
+          "line_end" : 134,
+          "line_start" : 16,
+          "score" : 0.7642912268638611
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7771272659301758,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.22287273406982422,
+          "score" : 0.7771272659301758
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2328745722770691,
+          "line_end" : 85,
+          "line_start" : 12,
+          "score" : 0.7671254277229309
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7758547067642212,
+      "file" : "generated-a/photography-window-light.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2241452932357788,
+          "line_end" : 107,
+          "line_start" : 13,
+          "score" : 0.7758547067642212
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2242966890335083,
+          "line_end" : 188,
+          "line_start" : 110,
+          "score" : 0.7757033109664917
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.2254241704940796,
+          "score" : 0.7745758295059204
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.770573616027832,
+      "file" : "generated-b/telescope-polar-alignment.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.22942638397216797,
+          "line_end" : 172,
+          "line_start" : 111,
+          "score" : 0.770573616027832
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7703024744987488,
+      "file" : "generated-a/startup-support-interview.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.22969752550125122,
+          "line_end" : 778,
+          "line_start" : 631,
+          "score" : 0.7703024744987488
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.23257261514663696,
+          "score" : 0.767427384853363
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7693875432014465,
+      "file" : "generated-b/bike-brake-clinic.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.23061245679855347,
+          "line_end" : 1161,
+          "line_start" : 1132,
+          "score" : 0.7693875432014465
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.764289140701294,
+      "file" : "generated-a/cooking-sourdough-flatbread.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.23571085929870605,
+          "line_end" : 540,
+          "line_start" : 367,
+          "score" : 0.764289140701294
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q13",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 10,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8503444194793701,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "whole",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "room tone"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "coughs and bumps"
+      }
+    ],
+    "distance" : 0.14965558052062988,
+    "file_rank" : 1,
+    "input_chars" : 1560
+  },
+  "primary_file" : "generated-b/field-recording-basics.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-b/field-recording-basics.vtt"
+  ],
+  "search_seconds" : 0.10245525,
+  "text" : "Why record half a minute of plain background sound before leaving a nature recording location?"
+}

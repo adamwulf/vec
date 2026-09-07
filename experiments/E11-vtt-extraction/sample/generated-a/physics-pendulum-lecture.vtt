@@ -1,0 +1,864 @@
+WEBVTT - Physics — simple pendulum lecture (SYNTHETIC)
+
+NOTE
+SYNTHETIC caption fixture for the E11 WebVTT extraction experiment.
+Generated deterministically from sources/04-physics-pendulum-lecture.txt by generate.py.
+Topic: Physics — simple pendulum lecture. Not a real transcript; every name and claim is fictional.
+
+REGION
+id:board
+width:55%
+lines:3
+regionanchor:0%,100%
+viewportanchor:12%,88%
+scroll:up
+
+00:00:00.000 --> 00:00:02.700 region:board align:start
+Good morning. Before we <00:00:01.350> open the textbook, look
+
+00:00:01.500 --> 00:00:04.200 align:center line:85%
+open the textbook, look <00:00:02.850> at the front of
+
+00:00:03.000 --> 00:00:05.700
+at the front of <00:00:04.350> the room, where I
+
+00:00:04.500 --> 00:00:07.200 position:20% align:start
+the room, where I <00:00:05.850> have hung a simple
+
+00:00:06.000 --> 00:00:08.700 size:60% align:center
+have hung a simple <00:00:07.350> pendulum from the ceiling
+
+00:00:07.500 --> 00:00:10.200 region:board align:start
+pendulum from the ceiling <00:00:08.850> bracket: a solid brass
+
+00:00:09.000 --> 00:00:11.700 align:center line:85%
+bracket: a solid brass <00:00:10.350> bob on a length
+
+00:00:10.500 --> 00:00:13.200
+bob on a length <00:00:11.850> of fishing line exactly
+
+00:00:12.000 --> 00:00:14.700 position:20% align:start
+of fishing line exactly <00:00:13.350> one meter long, measured
+
+00:00:13.500 --> 00:00:16.200 size:60% align:center
+one meter long, measured <00:00:14.850> from the pivot to
+
+00:00:15.000 --> 00:00:17.700 region:board align:start
+from the pivot to <00:00:16.350> the center of the
+
+00:00:16.500 --> 00:00:19.200 align:center line:85%
+the center of the <00:00:17.850> bob. For the next
+
+00:00:18.000 --> 00:00:20.700
+bob. For the next <00:00:19.350> hour this ordinary swinging
+
+00:00:19.500 --> 00:00:22.200 position:20% align:start
+hour this ordinary swinging <00:00:20.850> weight is going to
+
+00:00:21.000 --> 00:00:23.700 size:60% align:center
+weight is going to <00:00:22.350> teach us more about
+
+00:00:22.500 --> 00:00:25.200 region:board align:start
+teach us more about <00:00:23.850> oscillation than any chapter
+
+00:00:24.000 --> 00:00:26.700 align:center line:85%
+oscillation than any chapter <00:00:25.350> could, so keep your
+
+00:00:25.500 --> 00:00:28.200
+could, so keep your <00:00:26.850> eyes on it while
+
+00:00:27.000 --> 00:00:29.700 position:20% align:start
+eyes on it while <00:00:28.350> I talk. Let me
+
+00:00:28.500 --> 00:00:31.200 size:60% align:center
+I talk. Let me <00:00:29.850> pull the bob to
+
+00:00:30.000 --> 00:00:32.700 region:board align:start
+pull the bob to <00:00:31.350> one side and release
+
+00:00:31.500 --> 00:00:34.200 align:center line:85%
+one side and release <00:00:32.850> it. Notice that it
+
+00:00:33.000 --> 00:00:35.700
+it. Notice that it <00:00:34.350> does not just fall,
+
+00:00:34.500 --> 00:00:37.200 position:20% align:start
+does not just fall, <00:00:35.850> it swings past the
+
+00:00:36.000 --> 00:00:38.700 size:60% align:center
+it swings past the <00:00:37.350> bottom, climbs the far
+
+00:00:37.500 --> 00:00:40.200 region:board align:start
+bottom, climbs the far <00:00:38.850> side to almost the
+
+00:00:39.000 --> 00:00:41.700 align:center line:85%
+side to almost the <00:00:40.350> same height, and comes
+
+00:00:40.500 --> 00:00:43.200
+same height, and comes <00:00:41.850> back. That trade is
+
+00:00:42.000 --> 00:00:44.700 position:20% align:start
+back. That trade is <00:00:43.350> the heart of the
+
+00:00:43.500 --> 00:00:46.200 size:60% align:center
+the heart of the <00:00:44.850> whole system. At the
+
+00:00:45.000 --> 00:00:47.700 region:board align:start
+whole system. At the <00:00:46.350> top of each swing
+
+00:00:46.500 --> 00:00:49.200 align:center line:85%
+top of each swing <00:00:47.850> the bob is momentarily
+
+00:00:48.000 --> 00:00:50.700
+the bob is momentarily <00:00:49.350> still, holding the most
+
+00:00:49.500 --> 00:00:52.200 position:20% align:start
+still, holding the most <00:00:50.850> gravitational potential energy and
+
+00:00:51.000 --> 00:00:53.700 size:60% align:center
+gravitational potential energy and <00:00:52.350> zero kinetic energy. At
+
+00:00:52.500 --> 00:00:55.200 region:board align:start
+zero kinetic energy. At <00:00:53.850> the very bottom it
+
+00:00:54.000 --> 00:00:56.700 align:center line:85%
+the very bottom it <00:00:55.350> is moving fastest, so
+
+00:00:55.500 --> 00:00:58.200
+is moving fastest, so <00:00:56.850> all of that stored
+
+00:00:57.000 --> 00:00:59.700 position:20% align:start
+all of that stored <00:00:58.350> potential energy has become
+
+00:00:58.500 --> 00:01:01.200 size:60% align:center
+potential energy has become <00:00:59.850> kinetic energy. Energy is
+
+00:01:00.000 --> 00:01:02.700 region:board align:start
+kinetic energy. Energy is <00:01:01.350> sloshing back and forth
+
+00:01:01.500 --> 00:01:04.200 align:center line:85%
+sloshing back and forth <00:01:02.850> between the two forms,
+
+00:01:03.000 --> 00:01:05.700
+between the two forms, <00:01:04.350> and if there were
+
+00:01:04.500 --> 00:01:07.200 position:20% align:start
+and if there were <00:01:05.850> no friction it would
+
+00:01:06.000 --> 00:01:08.700 size:60% align:center
+no friction it would <00:01:07.350> do that forever. Now
+
+00:01:07.500 --> 00:01:10.200 region:board align:start
+do that forever. Now <00:01:08.850> let us time it.
+
+00:01:09.000 --> 00:01:11.700 align:center line:85%
+let us time it. <00:01:10.350> I will count ten
+
+00:01:10.500 --> 00:01:13.200
+I will count ten <00:01:11.850> complete swings, where one
+
+00:01:12.000 --> 00:01:14.700 position:20% align:start
+complete swings, where one <00:01:13.350> complete swing means over
+
+00:01:13.500 --> 00:01:16.200 size:60% align:center
+complete swing means over <00:01:14.850> and back to the
+
+00:01:15.000 --> 00:01:17.700 region:board align:start
+and back to the <00:01:16.350> starting side, and divide
+
+00:01:16.500 --> 00:01:19.200 align:center line:85%
+starting side, and divide <00:01:17.850> by ten. Watch the
+
+00:01:18.000 --> 00:01:20.700
+by ten. Watch the <00:01:19.350> stopwatch. That gives us
+
+00:01:19.500 --> 00:01:22.200 position:20% align:start
+stopwatch. That gives us <00:01:20.850> a period of almost
+
+00:01:21.000 --> 00:01:23.700 size:60% align:center
+a period of almost <00:01:22.350> exactly two seconds for
+
+00:01:22.500 --> 00:01:25.200 region:board align:start
+exactly two seconds for <00:01:23.850> this one meter pendulum.
+
+00:01:24.000 --> 00:01:26.700 align:center line:85%
+this one meter pendulum. <00:01:25.350> Hold onto that number,
+
+00:01:25.500 --> 00:01:28.200
+Hold onto that number, <00:01:26.850> because in a moment
+
+00:01:27.000 --> 00:01:29.700 position:20% align:start
+because in a moment <00:01:28.350> we are going to
+
+00:01:28.500 --> 00:01:31.200 size:60% align:center
+we are going to <00:01:29.850> predict it from theory
+
+00:01:30.000 --> 00:01:32.700 region:board align:start
+predict it from theory <00:01:31.350> and see how close
+
+00:01:31.500 --> 00:01:34.200 align:center line:85%
+and see how close <00:01:32.850> we land. Here is
+
+00:01:33.000 --> 00:01:35.700
+we land. Here is <00:01:34.350> the governing equation for
+
+00:01:34.500 --> 00:01:37.200 position:20% align:start
+the governing equation for <00:01:35.850> a simple pendulum, and
+
+00:01:36.000 --> 00:01:38.700 size:60% align:center
+a simple pendulum, and <00:01:37.350> I want you to
+
+00:01:37.500 --> 00:01:40.200 region:board align:start
+I want you to <00:01:38.850> write it down: the
+
+00:01:39.000 --> 00:01:41.700 align:center line:85%
+write it down: the <00:01:40.350> period T equals two
+
+00:01:40.500 --> 00:01:43.200
+period T equals two <00:01:41.850> pi times the square
+
+00:01:42.000 --> 00:01:44.700 position:20% align:start
+pi times the square <00:01:43.350> root of the length
+
+00:01:43.500 --> 00:01:46.200 size:60% align:center
+root of the length <00:01:44.850> L divided by little
+
+NOTE lecturer taps the swinging brass bob
+
+00:01:45.000 --> 00:01:47.700 region:board align:start
+L divided by little <00:01:46.350> g, the acceleration due
+
+00:01:46.500 --> 00:01:49.200 align:center line:85%
+g, the acceleration due <00:01:47.850> to gravity. On the
+
+00:01:48.000 --> 00:01:50.700
+to gravity. On the <00:01:49.350> surface of the Earth,
+
+00:01:49.500 --> 00:01:52.200 position:20% align:start
+surface of the Earth, <00:01:50.850> g is about nine
+
+00:01:51.000 --> 00:01:53.700 size:60% align:center
+g is about nine <00:01:52.350> point eight one meters
+
+00:01:52.500 --> 00:01:55.200 region:board align:start
+point eight one meters <00:01:53.850> per second squared. So
+
+00:01:54.000 --> 00:01:56.700 align:center line:85%
+per second squared. So <00:01:55.350> plug in one meter
+
+00:01:55.500 --> 00:01:58.200
+plug in one meter <00:01:56.850> for L, divide by
+
+00:01:57.000 --> 00:01:59.700 position:20% align:start
+for L, divide by <00:01:58.350> nine point eight one,
+
+00:01:58.500 --> 00:02:01.200 size:60% align:center
+nine point eight one, <00:01:59.850> take the square root,
+
+00:02:00.000 --> 00:02:02.700 region:board align:start
+take the square root, <00:02:01.350> multiply by two pi,
+
+00:02:01.500 --> 00:02:04.200 align:center line:85%
+multiply by two pi, <00:02:02.850> and you get roughly
+
+00:02:03.000 --> 00:02:05.700
+and you get roughly <00:02:04.350> two point zero zero
+
+00:02:04.500 --> 00:02:07.200 position:20% align:start
+two point zero zero <00:02:05.850> six seconds. That is
+
+00:02:06.000 --> 00:02:08.700 size:60% align:center
+six seconds. That is <00:02:07.350> astonishingly close to what
+
+00:02:07.500 --> 00:02:10.200 region:board align:start
+astonishingly close to what <00:02:08.850> we just measured by
+
+00:02:09.000 --> 00:02:11.700 align:center line:85%
+we just measured by <00:02:10.350> hand, and the small
+
+00:02:10.500 --> 00:02:13.200
+hand, and the small <00:02:11.850> discrepancy is mostly my
+
+00:02:12.000 --> 00:02:14.700 position:20% align:start
+discrepancy is mostly my <00:02:13.350> thumb on the stopwatch.
+
+00:02:13.500 --> 00:02:16.200 size:60% align:center
+thumb on the stopwatch. <00:02:14.850> Stare at that formula
+
+00:02:15.000 --> 00:02:17.700 region:board align:start
+Stare at that formula <00:02:16.350> for a second, because
+
+00:02:16.500 --> 00:02:19.200 align:center line:85%
+for a second, because <00:02:17.850> it is telling you
+
+00:02:18.000 --> 00:02:20.700
+it is telling you <00:02:19.350> something almost unbelievable. The
+
+00:02:19.500 --> 00:02:22.200 position:20% align:start
+something almost unbelievable. The <00:02:20.850> mass of the bob
+
+00:02:21.000 --> 00:02:23.700 size:60% align:center
+mass of the bob <00:02:22.350> is nowhere in it.
+
+00:02:22.500 --> 00:02:25.200 region:board align:start
+is nowhere in it. <00:02:23.850> I could swap this
+
+00:02:24.000 --> 00:02:26.700 align:center line:85%
+I could swap this <00:02:25.350> brass weight for a
+
+00:02:25.500 --> 00:02:28.200
+brass weight for a <00:02:26.850> paperclip or a bowling
+
+00:02:27.000 --> 00:02:29.700 position:20% align:start
+paperclip or a bowling <00:02:28.350> ball, and as long
+
+00:02:28.500 --> 00:02:31.200 size:60% align:center
+ball, and as long <00:02:29.850> as the length stayed
+
+00:02:30.000 --> 00:02:32.700 region:board align:start
+as the length stayed <00:02:31.350> the same, the period
+
+00:02:31.500 --> 00:02:34.200 align:center line:85%
+the same, the period <00:02:32.850> would not change. Galileo
+
+00:02:33.000 --> 00:02:35.700
+would not change. Galileo <00:02:34.350> noticed this centuries ago,
+
+00:02:34.500 --> 00:02:37.200 position:20% align:start
+noticed this centuries ago, <00:02:35.850> supposedly while watching a
+
+00:02:36.000 --> 00:02:38.700 size:60% align:center
+supposedly while watching a <00:02:37.350> lamp swing in a
+
+00:02:37.500 --> 00:02:40.200 region:board align:start
+lamp swing in a <00:02:38.850> cathedral and timing it
+
+00:02:39.000 --> 00:02:41.700 align:center line:85%
+cathedral and timing it <00:02:40.350> against his own pulse,
+
+00:02:40.500 --> 00:02:43.200
+against his own pulse, <00:02:41.850> and it is still
+
+00:02:42.000 --> 00:02:44.700 position:20% align:start
+and it is still <00:02:43.350> one of the most
+
+00:02:43.500 --> 00:02:46.200 size:60% align:center
+one of the most <00:02:44.850> counterintuitive results in introductory
+
+00:02:45.000 --> 00:02:47.700 region:board align:start
+counterintuitive results in introductory <00:02:46.350> physics. There is a
+
+00:02:46.500 --> 00:02:49.200 align:center line:85%
+physics. There is a <00:02:47.850> catch, and this is
+
+00:02:48.000 --> 00:02:50.700
+catch, and this is <00:02:49.350> the crucial fine print.
+
+00:02:49.500 --> 00:02:52.200 position:20% align:start
+the crucial fine print. <00:02:50.850> The formula only holds
+
+00:02:51.000 --> 00:02:53.700 size:60% align:center
+The formula only holds <00:02:52.350> when the swing is
+
+00:02:52.500 --> 00:02:55.200 region:board align:start
+when the swing is <00:02:53.850> small, when the angle
+
+00:02:54.000 --> 00:02:56.700 align:center line:85%
+small, when the angle <00:02:55.350> from vertical stays under
+
+00:02:55.500 --> 00:02:58.200
+from vertical stays under <00:02:56.850> about fifteen degrees. We
+
+00:02:57.000 --> 00:02:59.700 position:20% align:start
+about fifteen degrees. We <00:02:58.350> say the amplitude θ
+
+00:02:58.500 --> 00:03:01.200 size:60% align:center
+say the amplitude θ <00:02:59.850> must be &lt; 15&#176;
+
+00:03:00.000 --> 00:03:02.700 region:board align:start
+must be &lt; 15&#176; <00:03:01.350> for the nice clean
+
+00:03:01.500 --> 00:03:04.200 align:center line:85%
+for the nice clean <00:03:02.850> answer to work. In
+
+00:03:03.000 --> 00:03:05.700
+answer to work. <00:03:04.350> In that small&nbsp;angle regime
+
+00:03:04.500 --> 00:03:07.200 position:20% align:start
+that small&nbsp;angle regime <00:03:05.850> the restoring force is
+
+00:03:06.000 --> 00:03:08.700 size:60% align:center
+the restoring force is <00:03:07.350> very nearly proportional to
+
+00:03:07.500 --> 00:03:10.200 region:board align:start
+very nearly proportional to <00:03:08.850> the displacement, which is
+
+00:03:09.000 --> 00:03:11.700 align:center line:85%
+the displacement, which is <00:03:10.350> the exact condition for
+
+00:03:10.500 --> 00:03:13.200
+the exact condition for <00:03:11.850> what we call simple
+
+00:03:12.000 --> 00:03:14.700 position:20% align:start
+what we call simple <00:03:13.350> <i>harmonic</i> motion. Push the
+
+00:03:13.500 --> 00:03:16.200 size:60% align:center
+<i>harmonic</i> motion. Push the <00:03:14.850> pendulum out to a
+
+00:03:15.000 --> 00:03:17.700 region:board align:start
+pendulum out to a <00:03:16.350> wild sixty degree swing,
+
+00:03:16.500 --> 00:03:19.200 align:center line:85%
+wild sixty degree swing, <00:03:17.850> so that θ &gt;
+
+00:03:18.000 --> 00:03:20.700
+so that θ &gt; <00:03:19.350> 15&#176;, and the real
+
+00:03:19.500 --> 00:03:22.200 position:20% align:start
+15&#176;, and the real <00:03:20.850> period grows a few
+
+00:03:21.000 --> 00:03:23.700 size:60% align:center
+period grows a few <00:03:22.350> percent longer than the
+
+00:03:22.500 --> 00:03:25.200 region:board align:start
+percent longer than the <00:03:23.850> formula predicts, so the
+
+00:03:24.000 --> 00:03:26.700 align:center line:85%
+formula predicts, so the <00:03:25.350> tidy equation quietly breaks
+
+00:03:25.500 --> 00:03:28.200
+tidy equation quietly breaks <00:03:26.850> down. Within that small
+
+00:03:27.000 --> 00:03:29.700 position:20% align:start
+down. Within that <00:03:28.350> small&nbsp;angle limit, though, we
+
+00:03:28.500 --> 00:03:31.200 size:60% align:center
+angle limit, though, we <00:03:29.850> get the beautiful property
+
+00:03:30.000 --> 00:03:32.700 region:board align:start
+get the beautiful property <00:03:31.350> called <i>isochronism.</i> Watch closely
+
+00:03:31.500 --> 00:03:34.200 align:center line:85%
+called <i>isochronism.</i> Watch closely <00:03:32.850> as the swings get
+
+00:03:33.000 --> 00:03:35.700
+as the swings get <00:03:34.350> smaller and smaller from
+
+00:03:34.500 --> 00:03:37.200 position:20% align:start
+smaller and smaller from <00:03:35.850> air resistance. The arc
+
+00:03:36.000 --> 00:03:38.700 size:60% align:center
+air resistance. The arc <00:03:37.350> is shrinking, the bob
+
+00:03:37.500 --> 00:03:40.200 region:board align:start
+is shrinking, the bob <00:03:38.850> travels less distance on
+
+00:03:39.000 --> 00:03:41.700 align:center line:85%
+travels less distance on <00:03:40.350> each pass, yet each
+
+00:03:40.500 --> 00:03:43.200
+each pass, yet each <00:03:41.850> swing still takes the
+
+00:03:42.000 --> 00:03:44.700 position:20% align:start
+swing still takes the <00:03:43.350> same amount of time.
+
+00:03:43.500 --> 00:03:46.200 size:60% align:center
+same amount of time. <00:03:44.850> A big swing and
+
+00:03:45.000 --> 00:03:47.700 region:board align:start
+A big swing and <00:03:46.350> a small swing share
+
+00:03:46.500 --> 00:03:49.200 align:center line:85%
+a small swing share <00:03:47.850> one period. That is
+
+00:03:48.000 --> 00:03:50.700
+one period. That is <00:03:49.350> why the pendulum became
+
+00:03:49.500 --> 00:03:52.200 position:20% align:start
+why the pendulum became <00:03:50.850> the beating heart of
+
+00:03:51.000 --> 00:03:53.700 size:60% align:center
+the beating heart of <00:03:52.350> accurate clocks for nearly
+
+00:03:52.500 --> 00:03:55.200 region:board align:start
+accurate clocks for nearly <00:03:53.850> three hundred years, from
+
+00:03:54.000 --> 00:03:56.700 align:center line:85%
+three hundred years, from <00:03:55.350> the first pendulum clock
+
+00:03:55.500 --> 00:03:58.200
+the first pendulum clock <00:03:56.850> in the sixteen hundreds
+
+00:03:57.000 --> 00:03:59.700 position:20% align:start
+in the sixteen hundreds <00:03:58.350> until quartz crystals finally
+
+00:03:58.500 --> 00:04:01.200 size:60% align:center
+until quartz crystals finally <00:03:59.850> dethroned it. Let me
+
+00:04:00.000 --> 00:04:02.700 region:board align:start
+dethroned it. Let me <00:04:01.350> change one variable to
+
+00:04:01.500 --> 00:04:04.200 align:center line:85%
+change one variable to <00:04:02.850> prove the length relationship.
+
+00:04:03.000 --> 00:04:05.700
+prove the length relationship. <00:04:04.350> If I want to
+
+00:04:04.500 --> 00:04:07.200 position:20% align:start
+If I want to <00:04:05.850> double the period, from
+
+00:04:06.000 --> 00:04:08.700 size:60% align:center
+double the period, from <00:04:07.350> two seconds to four
+
+00:04:07.500 --> 00:04:10.200 region:board align:start
+two seconds to four <00:04:08.850> seconds, I do not
+
+00:04:09.000 --> 00:04:11.700 align:center line:85%
+seconds, I do not <00:04:10.350> double the length, I
+
+00:04:10.500 --> 00:04:13.200
+double the length, I <00:04:11.850> have to quadruple it,
+
+00:04:12.000 --> 00:04:14.700 position:20% align:start
+have to quadruple it, <00:04:13.350> all the way out
+
+00:04:13.500 --> 00:04:16.200 size:60% align:center
+all the way out <00:04:14.850> to four meters, because
+
+00:04:15.000 --> 00:04:17.700 region:board align:start
+to four meters, because <00:04:16.350> the period depends on
+
+00:04:16.500 --> 00:04:19.200 align:center line:85%
+the period depends on <00:04:17.850> the square root of
+
+00:04:18.000 --> 00:04:20.700
+the square root of <00:04:19.350> the length. That square
+
+00:04:19.500 --> 00:04:22.200 position:20% align:start
+the length. That square <00:04:20.850> root is why grandfather
+
+00:04:21.000 --> 00:04:23.700 size:60% align:center
+root is why grandfather <00:04:22.350> clocks are so tall
+
+00:04:22.500 --> 00:04:25.200 region:board align:start
+clocks are so tall <00:04:23.850> and why a child
+
+00:04:24.000 --> 00:04:26.700 align:center line:85%
+and why a child <00:04:25.350> on a long chain
+
+00:04:25.500 --> 00:04:28.200
+on a long chain <00:04:26.850> swing drifts back and
+
+00:04:27.000 --> 00:04:29.700 position:20% align:start
+swing drifts back and <00:04:28.350> forth so lazily compared
+
+00:04:28.500 --> 00:04:31.200 size:60% align:center
+forth so lazily compared <00:04:29.850> to a short one.
+
+00:04:30.000 --> 00:04:32.700 region:board align:start
+to a short one. <00:04:31.350> Halve the length and
+
+00:04:31.500 --> 00:04:34.200 align:center line:85%
+Halve the length and <00:04:32.850> the period drops by
+
+00:04:33.000 --> 00:04:35.700
+the period drops by <00:04:34.350> a factor of the
+
+00:04:34.500 --> 00:04:37.200 position:20% align:start
+a factor of the <00:04:35.850> square root of two,
+
+00:04:36.000 --> 00:04:38.700 size:60% align:center
+square root of two, <00:04:37.350> not by half. Now,
+
+00:04:37.500 --> 00:04:40.200 region:board align:start
+not by half. Now, <00:04:38.850> about that slow shrinking
+
+00:04:39.000 --> 00:04:41.700 align:center line:85%
+about that slow shrinking <00:04:40.350> we watched. In the
+
+00:04:40.500 --> 00:04:43.200
+we watched. In the <00:04:41.850> real world energy leaks
+
+00:04:42.000 --> 00:04:44.700 position:20% align:start
+real world energy leaks <00:04:43.350> out, mostly to air
+
+00:04:43.500 --> 00:04:46.200 size:60% align:center
+out, mostly to air <00:04:44.850> resistance and a little
+
+NOTE a student question is inaudible here
+
+00:04:45.000 --> 00:04:47.700 region:board align:start
+resistance and a little <00:04:46.350> to friction at the
+
+00:04:46.500 --> 00:04:49.200 align:center line:85%
+to friction at the <00:04:47.850> pivot, so the amplitude
+
+00:04:48.000 --> 00:04:50.700
+pivot, so the amplitude <00:04:49.350> decays over time. We
+
+00:04:49.500 --> 00:04:52.200 position:20% align:start
+decays over time. We <00:04:50.850> call that <i>damping.</i> Our
+
+00:04:51.000 --> 00:04:53.700 size:60% align:center
+call that <i>damping.</i> Our <00:04:52.350> classroom pendulum is very
+
+00:04:52.500 --> 00:04:55.200 region:board align:start
+classroom pendulum is very <00:04:53.850> lightly damped, so it
+
+00:04:54.000 --> 00:04:56.700 align:center line:85%
+lightly damped, so it <00:04:55.350> takes many minutes to
+
+00:04:55.500 --> 00:04:58.200
+takes many minutes to <00:04:56.850> wind down. If I
+
+00:04:57.000 --> 00:04:59.700 position:20% align:start
+wind down. If I <00:04:58.350> dunked the bob in
+
+00:04:58.500 --> 00:05:01.200 size:60% align:center
+dunked the bob in <00:04:59.850> a tub of honey
+
+00:05:00.000 --> 00:05:02.700 region:board align:start
+a tub of honey <00:05:01.350> it would be heavily
+
+00:05:01.500 --> 00:05:04.200 align:center line:85%
+it would be heavily <00:05:02.850> damped and might not
+
+00:05:03.000 --> 00:05:05.700
+damped and might not <00:05:04.350> even complete one full
+
+00:05:04.500 --> 00:05:07.200 position:20% align:start
+even complete one full <00:05:05.850> swing, just crawl back
+
+00:05:06.000 --> 00:05:08.700 size:60% align:center
+swing, just crawl back <00:05:07.350> to center and stop.
+
+00:05:07.500 --> 00:05:10.200 region:board align:start
+to center and stop. <00:05:08.850> Real clocks fight this
+
+00:05:09.000 --> 00:05:11.700 align:center line:85%
+Real clocks fight this <00:05:10.350> decay by feeding in
+
+00:05:10.500 --> 00:05:13.200
+decay by feeding in <00:05:11.850> a tiny push each
+
+00:05:12.000 --> 00:05:14.700 position:20% align:start
+a tiny push each <00:05:13.350> cycle from a wound
+
+00:05:13.500 --> 00:05:16.200 size:60% align:center
+cycle from a wound <00:05:14.850> spring or a hanging
+
+00:05:15.000 --> 00:05:17.700 region:board align:start
+spring or a hanging <00:05:16.350> weight, exactly replacing the
+
+00:05:16.500 --> 00:05:19.200 align:center line:85%
+weight, exactly replacing the <00:05:17.850> lost energy. One more
+
+00:05:18.000 --> 00:05:20.700
+lost energy. One more <00:05:19.350> idea, and it is
+
+00:05:19.500 --> 00:05:22.200 position:20% align:start
+idea, and it is <00:05:20.850> a big one. Everything
+
+00:05:21.000 --> 00:05:23.700 size:60% align:center
+a big one. Everything <00:05:22.350> so far assumed all
+
+00:05:22.500 --> 00:05:25.200 region:board align:start
+so far assumed all <00:05:23.850> the mass sits at
+
+00:05:24.000 --> 00:05:26.700 align:center line:85%
+the mass sits at <00:05:25.350> a single point on
+
+00:05:25.500 --> 00:05:28.200
+a single point on <00:05:26.850> a weightless string. That
+
+00:05:27.000 --> 00:05:29.700 position:20% align:start
+a weightless string. That <00:05:28.350> is the idealized simple
+
+00:05:28.500 --> 00:05:31.200 size:60% align:center
+is the idealized simple <00:05:29.850> pendulum. A real swinging
+
+00:05:30.000 --> 00:05:32.700 region:board align:start
+pendulum. A real swinging <00:05:31.350> object, like a bat
+
+00:05:31.500 --> 00:05:34.200 align:center line:85%
+object, like a bat <00:05:32.850> hanging by its handle
+
+00:05:33.000 --> 00:05:35.700
+hanging by its handle <00:05:34.350> or a swinging door,
+
+00:05:34.500 --> 00:05:37.200 position:20% align:start
+or a swinging door, <00:05:35.850> is a physical pendulum,
+
+00:05:36.000 --> 00:05:38.700 size:60% align:center
+is a physical pendulum, <00:05:37.350> and its period depends
+
+00:05:37.500 --> 00:05:40.200 region:board align:start
+and its period depends <00:05:38.850> on how its mass
+
+00:05:39.000 --> 00:05:41.700 align:center line:85%
+on how its mass <00:05:40.350> is distributed around the
+
+00:05:40.500 --> 00:05:43.200
+is distributed around the <00:05:41.850> pivot, a quantity called
+
+00:05:42.000 --> 00:05:44.700 position:20% align:start
+pivot, a quantity called <00:05:43.350> the moment of inertia.
+
+00:05:43.500 --> 00:05:46.200 size:60% align:center
+the moment of inertia. <00:05:44.850> The physics is richer,
+
+00:05:45.000 --> 00:05:47.700 region:board align:start
+The physics is richer, <00:05:46.350> but the same energy
+
+00:05:46.500 --> 00:05:49.200 align:center line:85%
+but the same energy <00:05:47.850> trade between potential and
+
+00:05:48.000 --> 00:05:50.700
+trade between potential and <00:05:49.350> kinetic still drives the
+
+00:05:49.500 --> 00:05:52.200 position:20% align:start
+kinetic still drives the <00:05:50.850> motion. Finally, look up
+
+00:05:51.000 --> 00:05:53.700 size:60% align:center
+motion. Finally, look up <00:05:52.350> at the ceiling where
+
+00:05:52.500 --> 00:05:55.200 region:board align:start
+at the ceiling where <00:05:53.850> I have marked the
+
+00:05:54.000 --> 00:05:56.700 align:center line:85%
+I have marked the <00:05:55.350> swing plane with tape.
+
+00:05:55.500 --> 00:05:58.200
+swing plane with tape. <00:05:56.850> If we let a
+
+00:05:57.000 --> 00:05:59.700 position:20% align:start
+If we let a <00:05:58.350> very heavy pendulum on
+
+00:05:58.500 --> 00:06:01.200 size:60% align:center
+very heavy pendulum on <00:05:59.850> a very long wire
+
+00:06:00.000 --> 00:06:02.700 region:board align:start
+a very long wire <00:06:01.350> swing for hours, the
+
+00:06:01.500 --> 00:06:04.200 align:center line:85%
+swing for hours, the <00:06:02.850> plane of its swing
+
+00:06:03.000 --> 00:06:05.700
+plane of its swing <00:06:04.350> appears to slowly rotate
+
+00:06:04.500 --> 00:06:07.200 position:20% align:start
+appears to slowly rotate <00:06:05.850> over the course of
+
+00:06:06.000 --> 00:06:08.700 size:60% align:center
+over the course of <00:06:07.350> a day. The pendulum
+
+00:06:07.500 --> 00:06:10.200 region:board align:start
+a day. The pendulum <00:06:08.850> is not turning, the
+
+00:06:09.000 --> 00:06:11.700 align:center line:85%
+is not turning, the <00:06:10.350> Earth is turning underneath
+
+00:06:10.500 --> 00:06:13.200
+Earth is turning underneath <00:06:11.850> it. That famous demonstration
+
+00:06:12.000 --> 00:06:14.700 position:20% align:start
+it. That famous demonstration <00:06:13.350> is called a <i>Foucault</i>
+
+00:06:13.500 --> 00:06:16.200 size:60% align:center
+is called a <i>Foucault</i> <00:06:14.850> pendulum, and it is
+
+00:06:15.000 --> 00:06:17.700 region:board align:start
+pendulum, and it is <00:06:16.350> one of the few
+
+00:06:16.500 --> 00:06:19.200 align:center line:85%
+one of the few <00:06:17.850> experiments you can do
+
+00:06:18.000 --> 00:06:20.700
+experiments you can do <00:06:19.350> indoors that lets you
+
+00:06:19.500 --> 00:06:22.200 position:20% align:start
+indoors that lets you <00:06:20.850> directly see the planet
+
+00:06:21.000 --> 00:06:23.700 size:60% align:center
+directly see the planet <00:06:22.350> spinning beneath your feet.
+
+00:06:22.500 --> 00:06:25.200 region:board align:start
+spinning beneath your feet. <00:06:23.850> So here is the
+
+00:06:24.000 --> 00:06:26.700 align:center line:85%
+So here is the <00:06:25.350> whole lecture in one
+
+00:06:25.500 --> 00:06:28.200
+whole lecture in one <00:06:26.850> breath. Energy trades between
+
+00:06:27.000 --> 00:06:29.700 position:20% align:start
+breath. Energy trades between <00:06:28.350> potential and kinetic on
+
+00:06:28.500 --> 00:06:31.200 size:60% align:center
+potential and kinetic on <00:06:29.850> every swing. The period
+
+00:06:30.000 --> 00:06:32.700 region:board align:start
+every swing. The period <00:06:31.350> follows two pi root
+
+00:06:31.500 --> 00:06:34.200 align:center line:85%
+follows two pi root <00:06:32.850> L over g, ignores
+
+00:06:33.000 --> 00:06:35.700
+L over g, ignores <00:06:34.350> the mass entirely, and
+
+00:06:34.500 --> 00:06:37.200 position:20% align:start
+the mass entirely, and <00:06:35.850> only stays that simple
+
+00:06:36.000 --> 00:06:38.700 size:60% align:center
+only stays that simple <00:06:37.350> while the angle stays
+
+00:06:37.500 --> 00:06:40.200 region:board align:start
+while the angle stays <00:06:38.850> under fifteen degrees. Length
+
+00:06:39.000 --> 00:06:41.700 align:center line:85%
+under fifteen degrees. Length <00:06:40.350> matters as a square
+
+00:06:40.500 --> 00:06:43.200
+matters as a square <00:06:41.850> root, <i>damping</i> steals amplitude
+
+00:06:42.000 --> 00:06:44.700 position:20% align:start
+root, <i>damping</i> steals amplitude <00:06:43.350> over time, and a
+
+00:06:43.500 --> 00:06:46.200 size:60% align:center
+over time, and a <00:06:44.850> long enough pendulum will
+
+00:06:45.000 --> 00:06:47.700 region:board align:start
+long enough pendulum will <00:06:46.350> quietly reveal the rotation
+
+00:06:46.500 --> 00:06:49.200 align:center line:85%
+quietly reveal the rotation <00:06:47.850> of the Earth. Not
+
+00:06:48.000 --> 00:06:50.700
+of the Earth. Not <00:06:49.350> bad for a brass
+
+00:06:49.500 --> 00:06:52.200 position:20% align:start
+bad for a brass <00:06:50.850> weight on a string.
+
+00:06:51.000 --> 00:06:53.700 size:60% align:center
+weight on a string. <00:06:52.350> Take out a sheet
+
+00:06:52.500 --> 00:06:55.200 region:board align:start
+Take out a sheet <00:06:53.850> of paper, because your
+
+00:06:54.000 --> 00:06:56.700 align:center line:85%
+of paper, because your <00:06:55.350> first problem is to
+
+00:06:55.500 --> 00:06:58.200
+first problem is to <00:06:56.850> tell me the length
+
+00:06:57.000 --> 00:06:59.700 position:20% align:start
+tell me the length <00:06:58.350> of a pendulum whose
+
+00:06:58.500 --> 00:07:01.200 size:60% align:center
+of a pendulum whose <00:06:59.850> period is exactly one
+
+00:07:00.000 --> 00:07:02.700 region:board align:start
+period is <00:07:01.350> exactly one second.
+
+00:07:01.500 --> 00:07:04.200 align:center line:85%
+<00:07:02.850> second.

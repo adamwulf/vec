@@ -1,0 +1,33 @@
+# SYNTHETIC source prose — urban tram scheduling interview (dialogue)
+# Fictional demonstration for the E11 retrieval experiment. Not a recording of
+# any real interview, person, city, or system. Names, places, and figures are
+# invented. Voice mode: dialogue. Speakers: Interviewer, Lena Fischer (planner).
+# One blank-line-separated block per speaker turn; block starts "Name: ...".
+
+Interviewer: I'm here with Lena Fischer, who plans the tram timetable for the city of Nordhavn. Lena, thanks for making time. Where does a schedule even begin?
+
+Lena Fischer: It begins with demand. On our busiest line, Line 4 out to Kastellhoj, we run a tram every 6 minutes at the morning peak, and then we stretch the headway back out to 12 minutes once the rush is over.
+
+Interviewer: A tram every six minutes sounds relentless to plan for. How do you keep them evenly spaced?
+
+Lena Fischer: The enemy is bunching, where a small delay lets one tram fall back and catch the crowd meant for the next one. We fight it with a little timetable padding, a bit of slack built into the running time, and with a short turn at the 07:42 departure that turns back early at Vestport depot.
+
+Interviewer: What about the intersections? The trams seem to sail straight through downtown.
+
+Lena Fischer: That is signal priority. Every tram carries a transponder that asks the traffic light ahead to hold its green a few extra seconds, and across the central corridor that alone saves us close to 90 seconds per trip.
+
+Interviewer: You mentioned the fleet earlier.
+
+Lena Fischer: Yes, the whole of Line 4 now runs the CityRunner 400, a long articulated tram that bends in the middle and carries almost twice the passengers of the old cars. Higher capacity per tram is what lets us hold that six minute headway without flooding the street with vehicles.
+
+Interviewer: Is there any stretch of track that gives you trouble?
+
+Lena Fischer: The Bjornsson curve, just south of the river, is a genuinely tight radius, so every tram has to crawl through it at walking pace. We simply write that slow section straight into the timetable rather than pretend the trams can take it at speed.
+
+Interviewer: How do you even know if the plan is working?
+
+Lena Fischer: We measure on time performance every single day, and right now Line 4 sits at about 92 percent, meaning nine trams in ten arrive within our window. The other headache is interlining, where two routes share the same central tracks, so a delay on one route quietly infects the other.
+
+Interviewer: Last question. How many people ride Line 4 on a normal day?
+
+Lena Fischer: On a typical weekday we count roughly 18,000 boardings on Line 4 alone, and every one of those trips depends on a timetable that most riders will thankfully never have to think about.

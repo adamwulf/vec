@@ -1,0 +1,874 @@
+WEBVTT
+Kind: captions
+Language: en-CA
+
+NOTE
+SYNTHETIC demonstration captions generated for the E11 retrieval
+experiment. Fictional content only: no real event, person, place, or
+product. Human-readable source prose lives in source/wetland-ecology-lecture.txt.
+
+REGION
+id:lecture
+width:60%
+lines:3
+regionanchor:0%,100%
+viewportanchor:20%,90%
+scroll:up
+
+wet-001
+00:00:00.500 --> 00:00:02.900 region:lecture align:start
+Good evening, and thank you all for coming out to
+
+wet-002
+00:00:02.900 --> 00:00:05.700
+the field station on a damp night like this one.
+
+wet-003
+00:00:05.700 --> 00:00:08.900
+Tonight I want to walk you through the ecology of
+
+wet-004
+00:00:08.900 --> 00:00:11.700
+a temperate tidal freshwater marsh,
+
+wet-005
+00:00:11.700 --> 00:00:15.300
+and rather than speak in the abstract I will keep
+
+wet-006
+00:00:15.300 --> 00:00:17.700 line:0 position:10%
+returning to one site as our running example,
+
+wet-007
+00:00:17.700 --> 00:00:20.700
+the Marsh at Cormorant Bend,
+
+wet-008
+00:00:20.700 --> 00:00:23.100
+which sits where the Alder River finally slows and spreads
+
+wet-009
+00:00:23.100 --> 00:00:25.900
+out just before it reaches the sea.
+
+wet-010
+00:00:25.900 --> 00:00:29.100
+Almost everything I describe tonight is drawn from field seasons
+
+wet-011
+00:00:29.100 --> 00:00:31.900 align:middle
+at that single marsh.
+
+wet-012
+00:00:36.900 --> 00:00:40.500
+The most important variable in any wetland,
+
+wet-013
+00:00:40.500 --> 00:00:42.900
+the one you must understand before anything else makes sense,
+
+wet-014
+00:00:42.900 --> 00:00:45.900
+is water. More precisely it is the hydroperiod,
+
+wet-015
+00:00:45.900 --> 00:00:48.300
+which is the pattern of how deep the water sits
+
+wet-016
+00:00:48.300 --> 00:00:51.100 region:lecture
+and for how long it stays.
+
+wet-017
+00:00:51.100 --> 00:00:54.300
+At Cormorant Bend the marsh floods and drains twice a
+
+wet-018
+00:00:54.300 --> 00:00:57.100
+day on the tide,
+
+wet-019
+00:00:57.100 --> 00:01:00.700
+and yet the water there stays essentially fresh,
+
+wet-020
+00:01:00.700 --> 00:01:03.100
+because the steady discharge of the Alder River holds the
+
+wet-021
+00:01:03.100 --> 00:01:06.100 region:lecture align:start
+salt wedge from the sea penned downstream.
+
+wet-022
+00:01:06.100 --> 00:01:08.500
+We call a marsh like that oligohaline,
+
+wet-023
+00:01:08.500 --> 00:01:11.300
+meaning only very lightly salty,
+
+wet-024
+00:01:11.300 --> 00:01:14.500
+usually &lt;&nbsp;0.5&nbsp;ppt, and that low salinity shapes every living thing
+
+wet-025
+00:01:14.500 --> 00:01:17.300
+in it.
+
+wet-026
+00:01:22.300 --> 00:01:25.900 line:0 position:10%
+Let me introduce you to the plants,
+
+wet-027
+00:01:25.900 --> 00:01:28.300
+because the plants are the architecture of the place.
+
+wet-028
+00:01:28.300 --> 00:01:31.300
+The species that defines the low marsh at Cormorant Bend
+
+wet-029
+00:01:31.300 --> 00:01:33.700
+is <lang la>Lyngbye&#39;s&nbsp;sedge</lang>, a tall grasslike plant with sharp triangular
+
+wet-030
+00:01:33.700 --> 00:01:36.500
+stems that forms stands so dense you can barely push
+
+wet-031
+00:01:36.500 --> 00:01:39.700 align:middle
+through them by the middle of August.
+
+wet-032
+00:01:39.700 --> 00:01:42.500
+Just a little higher up,
+
+wet-033
+00:01:42.500 --> 00:01:46.100
+on ground that floods less often,
+
+wet-034
+00:01:46.100 --> 00:01:48.500
+the <i>broadleaf&nbsp;cattail</i> takes over,
+
+wet-035
+00:01:48.500 --> 00:01:51.500
+with its familiar brown cigar shaped seed spikes standing above
+
+wet-036
+00:01:51.500 --> 00:01:53.900 region:lecture
+the water. The boundary between the sedge and the cattail
+
+wet-037
+00:01:53.900 --> 00:01:56.700
+is not random. It tracks the elevation of the ground
+
+wet-038
+00:01:56.700 --> 00:01:59.900
+almost to the centimeter,
+
+wet-039
+00:01:59.900 --> 00:02:02.700
+because each species can only tolerate so many hours a
+
+wet-040
+00:02:02.700 --> 00:02:06.300
+day with its roots underwater.
+
+wet-041
+00:02:11.300 --> 00:02:13.700 region:lecture align:start
+Now here is the part that genuinely surprises people the
+
+wet-042
+00:02:13.700 --> 00:02:16.700
+first time they hear it.
+
+wet-043
+00:02:16.700 --> 00:02:19.100
+These marsh plants grow furiously through the summer,
+
+wet-044
+00:02:19.100 --> 00:02:21.900
+die back every winter,
+
+wet-045
+00:02:21.900 --> 00:02:25.100
+and yet their dead stems and roots do not fully
+
+wet-046
+00:02:25.100 --> 00:02:27.900 line:0 position:10%
+rot away, because the waterlogged soil holds almost no oxygen
+
+wet-047
+00:02:27.900 --> 00:02:31.500
+for the decomposers to breathe.
+
+wet-048
+00:02:31.500 --> 00:02:33.900
+Year after year that half decayed plant material simply piles
+
+wet-049
+00:02:33.900 --> 00:02:36.900
+up in place as a spongy dark soil we call
+
+wet-050
+00:02:36.900 --> 00:02:39.300
+peat. At Cormorant Bend the peat is now nearly 2&nbsp;m
+
+wet-051
+00:02:39.300 --> 00:02:42.100 align:middle
+deep in the oldest part of the marsh,
+
+wet-052
+00:02:42.100 --> 00:02:45.300
+and it is still building upward at roughly 3&nbsp;mm every
+
+wet-053
+00:02:45.300 --> 00:02:48.100
+year.
+
+wet-054
+00:02:53.100 --> 00:02:56.700
+That slow burial has a consequence far larger than the
+
+wet-055
+00:02:56.700 --> 00:02:59.100
+marsh itself. Because the carbon in those dead plants gets
+
+wet-056
+00:02:59.100 --> 00:03:02.100 region:lecture
+locked away in the peat instead of returning to the
+
+wet-057
+00:03:02.100 --> 00:03:04.500
+atmosphere as carbon dioxide,
+
+wet-058
+00:03:04.500 --> 00:03:07.300
+the marsh acts as a genuine <b>carbon&nbsp;sink</b>.
+
+wet-059
+00:03:07.300 --> 00:03:10.500
+Our best estimate is that Cormorant Bend pulls down and
+
+wet-060
+00:03:10.500 --> 00:03:13.300
+stores on the order of 1.2&nbsp;tonnes of carbon per hectare
+
+wet-061
+00:03:13.300 --> 00:03:16.900 region:lecture align:start
+every single year. Multiply that across every hectare of healthy
+
+wet-062
+00:03:16.900 --> 00:03:19.300
+coastal marsh in the region and you begin to see
+
+wet-063
+00:03:19.300 --> 00:03:22.300
+why people have started calling these places <b>blue&nbsp;carbon</b> ecosystems and
+
+wet-064
+00:03:22.300 --> 00:03:24.700
+fighting so hard to protect them.
+
+wet-065
+00:03:29.700 --> 00:03:32.500
+The lack of oxygen in the soil is not a
+
+wet-066
+00:03:32.500 --> 00:03:35.700 line:0 position:10%
+defect, by the way.
+
+wet-067
+00:03:35.700 --> 00:03:38.500
+It is the engine that drives some of the marsh&#39;s
+
+wet-068
+00:03:38.500 --> 00:03:42.100
+most valuable chemistry. Just a centimeter or two below the
+
+wet-069
+00:03:42.100 --> 00:03:44.500
+surface the soil turns anoxic,
+
+wet-070
+00:03:44.500 --> 00:03:47.500
+and what a chemist would call the redox potential drops
+
+wet-071
+00:03:47.500 --> 00:03:49.900 align:middle
+steeply into negative territory.
+
+wet-072
+00:03:49.900 --> 00:03:52.700
+In exactly that zone,
+
+wet-073
+00:03:52.700 --> 00:03:55.900
+specialized bacteria strip dissolved nitrogen straight out of the water
+
+wet-074
+00:03:55.900 --> 00:03:58.700
+through a process called denitrification,
+
+wet-075
+00:03:58.700 --> 00:04:02.300
+converting nitrate into ordinary,
+
+wet-076
+00:04:02.300 --> 00:04:04.700 region:lecture
+harmless nitrogen gas that simply bubbles away into the air.
+
+wet-077
+00:04:04.700 --> 00:04:07.700
+A marsh of this size can quietly remove a startling
+
+wet-078
+00:04:07.700 --> 00:04:10.100
+load of the fertilizer runoff that would otherwise pour into
+
+wet-079
+00:04:10.100 --> 00:04:12.900
+the bay and feed suffocating algae blooms.
+
+wet-080
+00:04:17.900 --> 00:04:21.100
+There is a genuine tradeoff here,
+
+wet-081
+00:04:21.100 --> 00:04:23.900 region:lecture align:start
+though, and I want to be honest about it rather
+
+wet-082
+00:04:23.900 --> 00:04:27.500
+than sell you a fairy tale.
+
+wet-083
+00:04:27.500 --> 00:04:29.900
+Those same waterlogged, oxygen starved soils that store all that
+
+wet-084
+00:04:29.900 --> 00:04:32.900
+carbon are also the perfect home for microbes that produce
+
+wet-085
+00:04:32.900 --> 00:04:35.300
+methane, which is a far more potent greenhouse gas than
+
+wet-086
+00:04:35.300 --> 00:04:38.100 line:0 position:10%
+carbon dioxide over the short term.
+
+wet-087
+00:04:38.100 --> 00:04:41.300
+So a freshwater marsh is simultaneously a <b>carbon&nbsp;sink</b> through its
+
+wet-088
+00:04:41.300 --> 00:04:44.100
+peat and a methane source through its bacteria.
+
+wet-089
+00:04:44.100 --> 00:04:47.700
+Which effect ultimately wins out depends heavily on salinity.
+
+wet-090
+00:04:47.700 --> 00:04:50.100
+The saltier a marsh becomes,
+
+wet-091
+00:04:50.100 --> 00:04:53.100 align:middle
+the more the sulfate in seawater suppresses those methane producing
+
+wet-092
+00:04:53.100 --> 00:04:55.500
+microbes, which is one reason salt marshes often come out
+
+wet-093
+00:04:55.500 --> 00:04:58.300
+looking better on the greenhouse ledger than freshwater ones.
+
+wet-094
+00:05:03.300 --> 00:05:06.500
+Let me pull you back up out of the mud
+
+wet-095
+00:05:06.500 --> 00:05:09.300
+and into the living,
+
+wet-096
+00:05:09.300 --> 00:05:12.900 region:lecture
+breathing marsh, because it is spectacular at dawn.
+
+wet-097
+00:05:12.900 --> 00:05:15.300
+The signature sound at Cormorant Bend is the call of
+
+wet-098
+00:05:15.300 --> 00:05:18.300
+the banded marsh chorus frog,
+
+wet-099
+00:05:18.300 --> 00:05:20.700
+a little amphibian barely the size of your thumbnail,
+
+wet-100
+00:05:20.700 --> 00:05:23.500
+whose call sounds exactly like a fingernail dragged slowly down
+
+wet-101
+00:05:23.500 --> 00:05:26.700 region:lecture align:start
+the teeth of a comb.
+
+wet-102
+00:05:26.700 --> 00:05:29.500
+On a still April morning a thousand of them calling
+
+wet-103
+00:05:29.500 --> 00:05:33.100
+together is genuinely deafening.
+
+wet-104
+00:05:33.100 --> 00:05:35.500
+They breed in the shallow warm pools that linger for
+
+wet-105
+00:05:35.500 --> 00:05:38.500
+a few weeks after the big spring tides,
+
+wet-106
+00:05:38.500 --> 00:05:40.900 line:0 position:10%
+and their tadpoles have to race to grow legs before
+
+wet-107
+00:05:40.900 --> 00:05:43.700
+those pools dry down.
+
+wet-108
+00:05:48.700 --> 00:05:51.900
+Beneath the surface, the mud itself is astonishingly alive.
+
+wet-109
+00:05:51.900 --> 00:05:54.700
+A single handful holds a whole community of macroinvertebrates,
+
+wet-110
+00:05:54.700 --> 00:05:58.300
+the amphipods and midge larvae and tiny snails that most
+
+wet-111
+00:05:58.300 --> 00:06:00.700 align:middle
+visitors never notice. Those small animals are the hidden engine
+
+wet-112
+00:06:00.700 --> 00:06:03.700
+of the food web,
+
+wet-113
+00:06:03.700 --> 00:06:06.100
+because they shred and consume the enormous quantity of dead
+
+wet-114
+00:06:06.100 --> 00:06:08.900
+plant material, the detritus,
+
+wet-115
+00:06:08.900 --> 00:06:12.100
+that the sedge and cattail drop every autumn.
+
+wet-116
+00:06:12.100 --> 00:06:14.900 region:lecture
+In a marsh like this one the food web is
+
+wet-117
+00:06:14.900 --> 00:06:18.500
+built from the bottom up on decaying plants rather than
+
+wet-118
+00:06:18.500 --> 00:06:20.900
+on living green leaves,
+
+NOTE SYNTHETIC - speaker pauses for a slide change.
+
+wet-119
+00:06:20.900 --> 00:06:23.900
+and that detritus based foundation is what makes these wetlands
+
+wet-120
+00:06:23.900 --> 00:06:26.300
+so extraordinarily productive.
+
+wet-121
+00:06:31.300 --> 00:06:34.100 region:lecture align:start
+All of that invertebrate life is,
+
+wet-122
+00:06:34.100 --> 00:06:37.300
+in turn, food for birds,
+
+wet-123
+00:06:37.300 --> 00:06:40.100
+and the marsh feeds an enormous number of them.
+
+wet-124
+00:06:40.100 --> 00:06:43.700
+The most secretive resident is the American bittern,
+
+wet-125
+00:06:43.700 --> 00:06:46.100
+a stocky heron that,
+
+wet-126
+00:06:46.100 --> 00:06:49.100 line:0 position:10%
+when it feels threatened,
+
+wet-127
+00:06:49.100 --> 00:06:51.500
+freezes bolt upright with its bill pointed straight at the
+
+wet-128
+00:06:51.500 --> 00:06:54.300
+sky and simply vanishes against the vertical reeds.
+
+wet-129
+00:06:54.300 --> 00:06:57.500
+In the fall, tens of thousands of migrating ducks and
+
+wet-130
+00:06:57.500 --> 00:07:00.300
+sandpipers stage at Cormorant Bend,
+
+wet-131
+00:07:00.300 --> 00:07:03.900 align:middle
+refueling on the fallen seeds and the fat rich invertebrates
+
+wet-132
+00:07:03.900 --> 00:07:06.300
+before they push on south for the winter.
+
+wet-133
+00:07:06.300 --> 00:07:09.300
+Lose the marsh and you do not just lose the
+
+wet-134
+00:07:09.300 --> 00:07:11.700
+frogs, you punch a hole in a flyway that stretches
+
+wet-135
+00:07:11.700 --> 00:07:14.500
+across a continent.
+
+wet-136
+00:07:19.500 --> 00:07:22.700 region:lecture
+The tidal channels that thread through the marsh are nurseries
+
+wet-137
+00:07:22.700 --> 00:07:25.500
+in their own right.
+
+wet-138
+00:07:25.500 --> 00:07:29.100
+On a single net haul last June we counted more
+
+wet-139
+00:07:29.100 --> 00:07:31.500
+than four hundred juvenile salmon sheltering in one channel at
+
+wet-140
+00:07:31.500 --> 00:07:34.500
+Cormorant Bend, alongside sticklebacks and the little killifish we call
+
+wet-141
+00:07:34.500 --> 00:07:36.900 region:lecture align:start
+mummichogs. Those young fish fatten on marsh insects for weeks,
+
+wet-142
+00:07:36.900 --> 00:07:39.700
+hiding from bigger predators in the shallow water,
+
+wet-143
+00:07:39.700 --> 00:07:42.900
+before they are large enough to survive out in the
+
+wet-144
+00:07:42.900 --> 00:07:45.700
+open bay.
+
+wet-145
+00:07:50.700 --> 00:07:54.300
+We also keep a close eye on the water itself.
+
+wet-146
+00:07:54.300 --> 00:07:56.700 line:0 position:10%
+Once a month a student walks a fixed transect across
+
+wet-147
+00:07:56.700 --> 00:07:59.700
+the marsh with a handheld sonde,
+
+wet-148
+00:07:59.700 --> 00:08:02.100
+logging the temperature, the salinity,
+
+wet-149
+00:08:02.100 --> 00:08:04.900
+and the dissolved oxygen at each numbered stake.
+
+wet-150
+00:08:04.900 --> 00:08:08.100
+It was that patient monthly record that first caught the
+
+wet-151
+00:08:08.100 --> 00:08:10.900 align:middle
+oxygen crash of the summer of 2020,
+
+wet-152
+00:08:10.900 --> 00:08:14.500
+when a warm, still week drove the dissolved oxygen down
+
+wet-153
+00:08:14.500 --> 00:08:16.900
+low enough to leave the fish gasping at the surface.
+
+wet-154
+00:08:21.900 --> 00:08:24.900
+And the marsh quietly protects the town behind it.
+
+wet-155
+00:08:24.900 --> 00:08:27.300
+When the big storm surge of 2021 pushed up the
+
+wet-156
+00:08:27.300 --> 00:08:30.100 region:lecture
+Alder estuary, the broad,
+
+wet-157
+00:08:30.100 --> 00:08:33.300
+shallow marsh soaked up the water and dragged its speed
+
+wet-158
+00:08:33.300 --> 00:08:36.100
+down, and the flood that finally reached the village was
+
+wet-159
+00:08:36.100 --> 00:08:39.700
+measurably lower than the engineers had feared.
+
+wet-160
+00:08:39.700 --> 00:08:42.100
+A healthy marsh is a seawall that rebuilds itself for
+
+wet-161
+00:08:42.100 --> 00:08:45.100 region:lecture align:start
+free, every single tide.
+
+wet-162
+00:08:50.100 --> 00:08:52.500
+No honest account of this place is complete without a
+
+wet-163
+00:08:52.500 --> 00:08:55.300
+warning, so here it is.
+
+wet-164
+00:08:55.300 --> 00:08:58.500
+An aggressive introduced strain of the common reed,
+
+wet-165
+00:08:58.500 --> 00:09:01.300
+<i>Phragmites&nbsp;australis</i>, has begun marching along the drier upland edge of
+
+wet-166
+00:09:01.300 --> 00:09:04.900 line:0 position:10%
+the marsh. It grows in towering,
+
+wet-167
+00:09:04.900 --> 00:09:07.300
+ferociously dense monocultures that shade out and crowd the native
+
+wet-168
+00:09:07.300 --> 00:09:10.300
+sedge and cattail, and it offers far less food and
+
+wet-169
+00:09:10.300 --> 00:09:12.700
+shelter to wildlife in return.
+
+wet-170
+00:09:12.700 --> 00:09:15.500
+Once a stand of it is truly established,
+
+wet-171
+00:09:15.500 --> 00:09:18.700 align:middle
+it is extraordinarily difficult and expensive to remove,
+
+wet-172
+00:09:18.700 --> 00:09:21.500
+so the cheapest victory is always to catch it early.
+
+wet-173
+00:09:26.500 --> 00:09:30.100
+That threat brings me to the restoration story I most
+
+wet-174
+00:09:30.100 --> 00:09:32.500
+love to tell. Back in 2019 the old Alder Slough
+
+wet-175
+00:09:32.500 --> 00:09:35.500
+levee, an earthen dike that had cut the northern third
+
+wet-176
+00:09:35.500 --> 00:09:37.900 region:lecture
+of the marsh off from the tide for almost seventy
+
+wet-177
+00:09:37.900 --> 00:09:40.700
+years, was deliberately breached by the conservancy in three carefully
+
+wet-178
+00:09:40.700 --> 00:09:43.900
+placed cuts. The results came faster than anyone dared hope.
+
+wet-179
+00:09:43.900 --> 00:09:46.700
+Within two growing seasons the sedge had recolonized the reconnected
+
+wet-180
+00:09:46.700 --> 00:09:50.300
+flats on its own,
+
+wet-181
+00:09:50.300 --> 00:09:52.700 region:lecture align:start
+juvenile salmon and stickleback were using the new tidal channels,
+
+wet-182
+00:09:52.700 --> 00:09:55.700
+and the bare subsided ground had begun trapping sediment and
+
+wet-183
+00:09:55.700 --> 00:09:58.100
+building back upward again.
+
+wet-184
+00:09:58.100 --> 00:10:00.900
+It is one of the clearest restoration success stories anywhere
+
+wet-185
+00:10:00.900 --> 00:10:04.100
+in the region.
+
+wet-186
+00:10:09.100 --> 00:10:11.900 line:0 position:10%
+I should tell you how we actually know the marsh
+
+wet-187
+00:10:11.900 --> 00:10:15.500
+is building upward, since I keep quoting that 3&nbsp;mm a
+
+wet-188
+00:10:15.500 --> 00:10:17.900
+year. We measure it directly.
+
+wet-189
+00:10:17.900 --> 00:10:20.900
+We lay down a thin bright marker horizon of white
+
+wet-190
+00:10:20.900 --> 00:10:23.300
+feldspar clay on the marsh surface,
+
+wet-191
+00:10:23.300 --> 00:10:26.100 align:middle
+then come back years later and cut a tiny core
+
+wet-192
+00:10:26.100 --> 00:10:29.300
+straight through it to see exactly how much fresh sediment
+
+wet-193
+00:10:29.300 --> 00:10:32.100
+has buried the layer.
+
+wet-194
+00:10:32.100 --> 00:10:35.700
+We pair that with elevation surveys using survey grade satellite
+
+wet-195
+00:10:35.700 --> 00:10:38.100
+positioning accurate to a few millimeters.
+
+wet-196
+00:10:38.100 --> 00:10:41.100 region:lecture
+It is slow, patient,
+
+wet-197
+00:10:41.100 --> 00:10:43.500
+muddy work, and it is the only way to answer
+
+wet-198
+00:10:43.500 --> 00:10:46.300
+the question that matters most.
+
+wet-199
+00:10:51.300 --> 00:10:54.500
+And that question, the one that honestly keeps me awake
+
+wet-200
+00:10:54.500 --> 00:10:57.300
+at night, is sea level rise.
+
+wet-201
+00:10:57.300 --> 00:11:00.900 region:lecture align:start
+Cormorant Bend can build itself upward at about 3&nbsp;mm a
+
+wet-202
+00:11:00.900 --> 00:11:03.300
+year, as I said,
+
+wet-203
+00:11:03.300 --> 00:11:06.300
+but if the sea begins to rise faster than the
+
+wet-204
+00:11:06.300 --> 00:11:08.700
+marsh can accrete, the marsh will eventually drown in place,
+
+wet-205
+00:11:08.700 --> 00:11:11.500
+its plants stranded underwater too long to survive.
+
+wet-206
+00:11:11.500 --> 00:11:14.700 line:0 position:10%
+Its only escape is to migrate slowly inland onto higher
+
+wet-207
+00:11:14.700 --> 00:11:17.500
+ground, and it can only do that if we have
+
+wet-208
+00:11:17.500 --> 00:11:21.100
+left it somewhere to go.
+
+wet-209
+00:11:21.100 --> 00:11:23.500
+Protecting that upland buffer,
+
+wet-210
+00:11:23.500 --> 00:11:26.500
+the belt of open low lying ground just above today&#39;s
+
+wet-211
+00:11:26.500 --> 00:11:28.900 align:middle
+marsh, may honestly be the single most important thing we
+
+wet-212
+00:11:28.900 --> 00:11:31.700
+can do for Cormorant Bend over the next fifty years.
+
+wet-213
+00:11:31.700 --> 00:11:34.900
+Thank you for listening,
+
+wet-214
+00:11:34.900 --> 00:11:37.700
+and I would be glad to take your questions.

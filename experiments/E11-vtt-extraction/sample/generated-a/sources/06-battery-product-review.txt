@@ -1,0 +1,11 @@
+Today we're reviewing the Nimbus PowerCell X9, a portable battery pack from the fictional brand Volt & Bolt, and the question is simple: can one brick actually keep a phone, a tablet, and a laptop alive through a long travel day? Let's dig in.
+
+First, the capacity. The X9 packs twenty five thousand milliamp hours, which is roughly enough to refill a typical phone about five times over from empty. That's the headline number on the box, and in my testing it held up honestly, not the inflated marketing math you sometimes see.
+
+The real story here is the output. This thing pushes one hundred watts over USB-C power delivery from a single port, which is fast enough to charge a thin laptop at close to full speed, not just trickle it. In my test it took a dead ultrabook up to about sixty percent in half an hour, and input > output is the whole reason it can do that.
+
+Ports matter, and the X9 gives you two USB-C ports and one older USB-A, so you can run a laptop and two phones at the same time. It also supports pass through charging, meaning you can plug the brick into the wall and charge your devices through it simultaneously, turning it into a little charging hub on a crowded hotel desk.
+
+It is not weightless. The X9 tips the scale at four hundred and eighty grams, so it has real heft in a bag, and a small screen on the side shows the exact remaining percentage instead of four vague little dots. Refilling the pack itself from empty took about an hour and a half at full wall speed.
+
+One practical note for travelers: at roughly ninety two watt hours, the X9 slips in just under the hundred watt hour airline limit, so it's cleared for carry on. At a fictional price of eighty nine dollars, it's not the cheapest, but for one brick that genuinely charges a laptop, I think it earns the money.

@@ -1,0 +1,1024 @@
+WEBVTT - Woodworking — hidden-bracket floating shelf (SYNTHETIC)
+
+NOTE
+SYNTHETIC caption fixture for the E11 WebVTT extraction experiment.
+Generated deterministically from sources/02-woodworking-floating-shelf.txt by generate.py.
+Topic: Woodworking — hidden-bracket floating shelf. Not a real transcript; every name and claim is fictional.
+
+REGION
+id:room
+width:60%
+lines:2
+regionanchor:0%,100%
+viewportanchor:10%,90%
+scroll:up
+
+shelf-001
+00:00:00.000 --> 00:00:02.100 region:room align:start
+<v Mara>Welcome back to the shop.</v>
+
+shelf-002
+00:00:02.300 --> 00:00:04.400 align:start
+<v Mara>I'm Mara, and today my</v>
+
+shelf-003
+00:00:04.600 --> 00:00:06.700
+<v Mara>friend Devin is walking us</v>
+
+shelf-004
+00:00:06.900 --> 00:00:09.000 position:15%,line-left align:start
+<v Mara>through a floating shelf, the</v>
+
+shelf-005
+00:00:09.200 --> 00:00:11.300 region:room align:start
+<v Mara>kind with absolutely no visible</v>
+
+shelf-006
+00:00:11.500 --> 00:00:13.600 align:start
+<v Mara>brackets underneath. Devin, people always</v>
+
+shelf-007
+00:00:13.800 --> 00:00:15.900
+<v Mara>ask the same first question,</v>
+
+shelf-008
+00:00:16.100 --> 00:00:18.200 position:15%,line-left align:start
+<v Mara>so let's just answer it:</v>
+
+shelf-009
+00:00:18.400 --> 00:00:20.500 region:room align:start
+<v Mara>how on earth does a</v>
+
+shelf-010
+00:00:20.700 --> 00:00:22.800 align:start
+<v Mara>shelf hold weight with nothing</v>
+
+shelf-011
+00:00:23.000 --> 00:00:24.260
+<v Mara>holding it up?</v>
+
+shelf-012
+00:00:24.760 --> 00:00:26.860 position:15%,line-left align:start
+<v Devin>It's the best magic trick</v>
+
+shelf-013
+00:00:27.060 --> 00:00:29.160 region:room align:start
+<v Devin>in woodworking, honestly. The secret</v>
+
+shelf-014
+00:00:29.360 --> 00:00:31.460 align:start
+<v Devin>is that the shelf isn't</v>
+
+shelf-015
+00:00:31.660 --> 00:00:33.760
+<v Devin>solid, it's hollow, and it</v>
+
+shelf-016
+00:00:33.960 --> 00:00:36.060 position:15%,line-left align:start
+<v Devin>slides onto a hidden steel</v>
+
+shelf-017
+00:00:36.260 --> 00:00:38.360 region:room align:start
+<v Devin><b>bracket</b> that's bolted straight into</v>
+
+shelf-018
+00:00:38.560 --> 00:00:40.660 align:start
+<v Devin>the wall framing. So the</v>
+
+shelf-019
+00:00:40.860 --> 00:00:42.960
+<v Devin>load isn't resting on the</v>
+
+shelf-020
+00:00:43.160 --> 00:00:45.260 position:15%,line-left align:start
+<v Devin>wood at all, it's cantilevered</v>
+
+shelf-021
+00:00:45.460 --> 00:00:47.560 region:room align:start
+<v Devin>off steel rods buried inside</v>
+
+shelf-022
+00:00:47.760 --> 00:00:48.960 align:start
+<v Devin>the shelf.</v>
+
+shelf-023
+00:00:49.460 --> 00:00:51.560
+<v Mara>So the <b>bracket</b> does all</v>
+
+shelf-024
+00:00:51.760 --> 00:00:53.860 position:15%,line-left align:start
+<v Mara>the work and the wood</v>
+
+shelf-025
+00:00:54.060 --> 00:00:56.160 region:room align:start
+<v Mara>is basically a beautiful sleeve.</v>
+
+shelf-026
+00:00:56.660 --> 00:00:58.760 align:start
+<v Devin>Exactly right. The <b>bracket</b> I</v>
+
+shelf-027
+00:00:58.960 --> 00:01:01.060
+<v Devin>use is a flat steel</v>
+
+shelf-028
+00:01:01.260 --> 00:01:03.360 position:15%,line-left align:start
+<v Devin>plate with two five eighths</v>
+
+shelf-029
+00:01:03.560 --> 00:01:05.660 region:room align:start
+<v Devin>inch round rods welded out</v>
+
+shelf-030
+00:01:05.860 --> 00:01:07.960 align:start
+<v Devin>perpendicular, like a pair of</v>
+
+shelf-031
+00:01:08.160 --> 00:01:10.260
+<v Devin>stiff fingers pointing straight out</v>
+
+shelf-032
+00:01:10.460 --> 00:01:12.560 position:15%,line-left align:start
+<v Devin>from the wall. That plate</v>
+
+shelf-033
+00:01:12.760 --> 00:01:14.860 region:room align:start
+<v Devin>screws into the <b>studs,</b> and</v>
+
+shelf-034
+00:01:15.060 --> 00:01:17.160 align:start
+<v Devin>then the hollow shelf just</v>
+
+shelf-035
+00:01:17.360 --> 00:01:19.460
+<v Devin>impales itself onto those two</v>
+
+shelf-036
+00:01:19.660 --> 00:01:20.860 position:15%,line-left align:start
+<v Devin>rods.</v>
+
+NOTE camera cuts to a close-up of the steel bracket
+
+shelf-037
+00:01:21.360 --> 00:01:23.460 region:room align:start
+<v Mara>Let's talk about finding the</v>
+
+shelf-038
+00:01:23.660 --> 00:01:25.760 align:start
+<v Mara><b>studs,</b> because that's where I</v>
+
+shelf-039
+00:01:25.960 --> 00:01:28.060
+<v Mara>always see people go wrong.</v>
+
+shelf-040
+00:01:28.560 --> 00:01:30.660 position:15%,line-left align:start
+<v Devin>Huge point. This whole thing</v>
+
+shelf-041
+00:01:30.860 --> 00:01:32.960 region:room align:start
+<v Devin>lives or dies on hitting</v>
+
+shelf-042
+00:01:33.160 --> 00:01:35.260 align:start
+<v Devin>solid framing. In most homes</v>
+
+shelf-043
+00:01:35.460 --> 00:01:37.560
+<v Devin>the wall <b>studs</b> sit sixteen</v>
+
+shelf-044
+00:01:37.760 --> 00:01:39.860 position:15%,line-left align:start
+<v Devin>inches apart, center to center,</v>
+
+shelf-045
+00:01:40.060 --> 00:01:42.160 region:room align:start
+<v Devin>so I find one with</v>
+
+shelf-046
+00:01:42.360 --> 00:01:44.460 align:start
+<v Devin>a magnet by locating the</v>
+
+shelf-047
+00:01:44.660 --> 00:01:46.760
+<v Devin>drywall screws, then measure over</v>
+
+shelf-048
+00:01:46.960 --> 00:01:49.060 position:15%,line-left align:start
+<v Devin>sixteen inches to find its</v>
+
+shelf-049
+00:01:49.260 --> 00:01:51.360 region:room align:start
+<v Devin>neighbor. If you screw a</v>
+
+shelf-050
+00:01:51.560 --> 00:01:53.660 align:start
+<v Devin>floating shelf <b>bracket</b> into hollow</v>
+
+shelf-051
+00:01:53.860 --> 00:01:55.960
+<v Devin>drywall with those little plastic</v>
+
+shelf-052
+00:01:56.160 --> 00:01:58.260 position:15%,line-left align:start
+<v Devin>anchors, it will pull straight</v>
+
+shelf-053
+00:01:58.460 --> 00:02:00.560 region:room align:start
+<v Devin>out the first time someone</v>
+
+shelf-054
+00:02:00.760 --> 00:02:02.440 align:start
+<v Devin>stacks books on it.</v>
+
+shelf-055
+00:02:02.940 --> 00:02:05.040
+<v Theo>Wait, so even a nice</v>
+
+shelf-056
+00:02:05.240 --> 00:02:07.340 position:15%,line-left align:start
+<v Theo>heavy duty drywall anchor won't</v>
+
+shelf-057
+00:02:07.540 --> 00:02:08.740 region:room align:start
+<v Theo>cut it?</v>
+
+shelf-058
+00:02:09.240 --> 00:02:11.340 align:start
+<v Devin>For a real load, no.</v>
+
+shelf-059
+00:02:11.540 --> 00:02:13.640
+<v Devin>That's Theo, my apprentice, and</v>
+
+shelf-060
+00:02:13.840 --> 00:02:15.940 position:15%,line-left align:start
+<v Devin>it's a fair question. Anchors</v>
+
+shelf-061
+00:02:16.140 --> 00:02:18.240 region:room align:start
+<v Devin>are fine for a picture</v>
+
+shelf-062
+00:02:18.440 --> 00:02:20.540 align:start
+<v Devin>frame, but a floating shelf</v>
+
+shelf-063
+00:02:20.740 --> 00:02:22.840
+<v Devin>puts a huge prying force</v>
+
+shelf-064
+00:02:23.040 --> 00:02:25.140 position:15%,line-left align:start
+<v Devin>at the top of the</v>
+
+shelf-065
+00:02:25.340 --> 00:02:27.440 region:room align:start
+<v Devin><b>bracket.</b> You want the lag</v>
+
+shelf-066
+00:02:27.640 --> 00:02:29.740 align:start
+<v Devin>screws biting into actual wood</v>
+
+shelf-067
+00:02:29.940 --> 00:02:32.040
+<v Devin>framing. Into two <b>studs,</b> this</v>
+
+shelf-068
+00:02:32.240 --> 00:02:34.340 position:15%,line-left align:start
+<v Devin><b>bracket</b> is rated to hold</v>
+
+shelf-069
+00:02:34.540 --> 00:02:36.640 region:room align:start
+<v Devin>around forty pounds without complaint.</v>
+
+shelf-070
+00:02:37.140 --> 00:02:39.240 align:start
+<v Mara>Okay, so the <b>bracket</b> goes</v>
+
+shelf-071
+00:02:39.440 --> 00:02:41.540
+<v Mara>into the <b>studs.</b> How do</v>
+
+shelf-072
+00:02:41.740 --> 00:02:43.840 position:15%,line-left align:start
+<v Mara>you get it perfectly <b>level?</b></v>
+
+shelf-073
+00:02:44.040 --> 00:02:46.140 region:room align:start
+<v Mara>Because a floating shelf that</v>
+
+shelf-074
+00:02:46.340 --> 00:02:48.440 align:start
+<v Mara>tilts is worse than no</v>
+
+shelf-075
+00:02:48.640 --> 00:02:49.900
+<v Mara>shelf at all.</v>
+
+shelf-076
+00:02:50.400 --> 00:02:52.500 position:15%,line-left align:start
+<v Devin>You said it. I hold</v>
+
+shelf-077
+00:02:52.700 --> 00:02:54.800 region:room align:start
+<v Devin>the plate against the wall,</v>
+
+shelf-078
+00:02:55.000 --> 00:02:57.100 align:start
+<v Devin>drop a torpedo <b>level</b> right</v>
+
+shelf-079
+00:02:57.300 --> 00:02:59.400
+<v Devin>on top of the two</v>
+
+shelf-080
+00:02:59.600 --> 00:03:01.700 position:15%,line-left align:start
+<v Devin>rods, and fuss with it</v>
+
+shelf-081
+00:03:01.900 --> 00:03:04.000 region:room align:start
+<v Devin>until the bubble is dead</v>
+
+shelf-082
+00:03:04.200 --> 00:03:06.300 align:start
+<v Devin>center. Then I mark the</v>
+
+shelf-083
+00:03:06.500 --> 00:03:08.600
+<v Devin>screw holes with a pencil,</v>
+
+shelf-084
+00:03:08.800 --> 00:03:10.900 position:15%,line-left align:start
+<v Devin>drill pilot holes into the</v>
+
+shelf-085
+00:03:11.100 --> 00:03:13.200 region:room align:start
+<v Devin><b>studs,</b> and drive the lag</v>
+
+shelf-086
+00:03:13.400 --> 00:03:15.500 align:start
+<v Devin>screws home. I check <b>level</b></v>
+
+shelf-087
+00:03:15.700 --> 00:03:17.800
+<v Devin>one more time after everything's</v>
+
+shelf-088
+00:03:18.000 --> 00:03:20.100 position:15%,line-left align:start
+<v Devin>tight, because tightening screws can</v>
+
+shelf-089
+00:03:20.300 --> 00:03:22.400 region:room align:start
+<v Devin>nudge a plate a hair.</v>
+
+shelf-090
+00:03:22.900 --> 00:03:25.000 align:start
+<v Mara>Now the fun part. Let's</v>
+
+shelf-091
+00:03:25.200 --> 00:03:27.300
+<v Mara>talk about the actual shelf,</v>
+
+shelf-092
+00:03:27.500 --> 00:03:29.600 position:15%,line-left align:start
+<v Mara>the wooden box that hides</v>
+
+shelf-093
+00:03:29.800 --> 00:03:31.060 region:room align:start
+<v Mara>all of this.</v>
+
+shelf-094
+00:03:31.560 --> 00:03:33.660 align:start
+<v Devin>This is where it becomes</v>
+
+shelf-095
+00:03:33.860 --> 00:03:35.960
+<v Devin>woodworking instead of just hanging</v>
+
+shelf-096
+00:03:36.160 --> 00:03:38.260 position:15%,line-left align:start
+<v Devin>hardware. The shelf is a</v>
+
+shelf-097
+00:03:38.460 --> 00:03:40.560 region:room align:start
+<v Devin><b>torsion</b> box, which is a</v>
+
+shelf-098
+00:03:40.760 --> 00:03:42.860 align:start
+<v Devin>fancy way of saying a</v>
+
+shelf-099
+00:03:43.060 --> 00:03:45.160
+<v Devin>hollow shell with a stiffening</v>
+
+shelf-100
+00:03:45.360 --> 00:03:47.460 position:15%,line-left align:start
+<v Devin>frame inside. I build a</v>
+
+shelf-101
+00:03:47.660 --> 00:03:49.760 region:room align:start
+<v Devin>skeleton of poplar strips, like</v>
+
+shelf-102
+00:03:49.960 --> 00:03:52.060 align:start
+<v Devin>a little ladder, and then</v>
+
+shelf-103
+00:03:52.260 --> 00:03:54.360
+<v Devin>I glue a skin of</v>
+
+shelf-104
+00:03:54.560 --> 00:03:56.660 position:15%,line-left align:start
+<v Devin>three quarter inch white oak</v>
+
+shelf-105
+00:03:56.860 --> 00:03:58.960 region:room align:start
+<v Devin>over the top and bottom</v>
+
+shelf-106
+00:03:59.160 --> 00:04:00.360 align:start
+<v Devin>faces.</v>
+
+shelf-107
+00:04:00.860 --> 00:04:02.960
+<v Theo>And that hollow core is</v>
+
+shelf-108
+00:04:03.160 --> 00:04:05.260 position:15%,line-left align:start
+<v Theo>what makes it light enough</v>
+
+shelf-109
+00:04:05.460 --> 00:04:07.560 region:room align:start
+<v Theo>that the rods can carry</v>
+
+shelf-110
+00:04:07.760 --> 00:04:08.960 align:start
+<v Theo>it.</v>
+
+shelf-111
+00:04:09.460 --> 00:04:11.560
+<v Devin>Right, and it's what makes</v>
+
+shelf-112
+00:04:11.760 --> 00:04:13.860 position:15%,line-left align:start
+<v Devin>it strong for its weight.</v>
+
+shelf-113
+00:04:14.060 --> 00:04:16.160 region:room align:start
+<v Devin>A <b>torsion</b> box resists bending</v>
+
+shelf-114
+00:04:16.360 --> 00:04:18.460 align:start
+<v Devin>way better than a solid</v>
+
+shelf-115
+00:04:18.660 --> 00:04:20.760
+<v Devin>slab of the same thickness,</v>
+
+shelf-116
+00:04:20.960 --> 00:04:23.060 position:15%,line-left align:start
+<v Devin>the same principle behind mortise</v>
+
+shelf-117
+00:04:23.260 --> 00:04:25.360 region:room align:start
+<v Devin>&amp; tenon joinery, or the</v>
+
+shelf-118
+00:04:25.560 --> 00:04:27.660 align:start
+<v Devin>way a hollow door or</v>
+
+shelf-119
+00:04:27.860 --> 00:04:29.960
+<v Devin>an airplane wing is built.</v>
+
+shelf-120
+00:04:30.160 --> 00:04:32.260 position:15%,line-left align:start
+<v Devin>Light, stiff, and hollow in</v>
+
+shelf-121
+00:04:32.460 --> 00:04:34.560 region:room align:start
+<v Devin>the middle exactly where the</v>
+
+shelf-122
+00:04:34.760 --> 00:04:36.860 align:start
+<v Devin>steel rods need to go.</v>
+
+shelf-123
+00:04:37.360 --> 00:04:39.460
+<v Mara>So how do you make</v>
+
+shelf-124
+00:04:39.660 --> 00:04:41.760 position:15%,line-left align:start
+<v Mara>sure the holes inside the</v>
+
+shelf-125
+00:04:41.960 --> 00:04:44.060 region:room align:start
+<v Mara>shelf line up with those</v>
+
+shelf-126
+00:04:44.260 --> 00:04:46.360 align:start
+<v Mara>two steel rods on the</v>
+
+shelf-127
+00:04:46.560 --> 00:04:48.660
+<v Mara>wall? That seems like the</v>
+
+shelf-128
+00:04:48.860 --> 00:04:50.060 position:15%,line-left align:start
+<v Mara>terrifying part.</v>
+
+shelf-129
+00:04:50.560 --> 00:04:52.660 region:room align:start
+<v Devin>It is the terrifying part,</v>
+
+shelf-130
+00:04:52.860 --> 00:04:54.960 align:start
+<v Devin>and it's all about the</v>
+
+shelf-131
+00:04:55.160 --> 00:04:57.260
+<v Devin>drilling. Before I glue the</v>
+
+shelf-132
+00:04:57.460 --> 00:04:59.560 position:15%,line-left align:start
+<v Devin>box shut, I mount it</v>
+
+shelf-133
+00:04:59.760 --> 00:05:01.860 region:room align:start
+<v Devin>in a jig and bore</v>
+
+shelf-134
+00:05:02.060 --> 00:05:04.160 align:start
+<v Devin>two holes into the solid</v>
+
+shelf-135
+00:05:04.360 --> 00:05:06.460
+<v Devin>back edge, sized just a</v>
+
+shelf-136
+00:05:06.660 --> 00:05:08.760 position:15%,line-left align:start
+<v Devin>hair over five eighths of</v>
+
+shelf-137
+00:05:08.960 --> 00:05:11.060 region:room align:start
+<v Devin>an inch so the rods</v>
+
+shelf-138
+00:05:11.260 --> 00:05:13.360 align:start
+<v Devin>slide in snug but not</v>
+
+shelf-139
+00:05:13.560 --> 00:05:15.660
+<v Devin>fighting. The critical thing is</v>
+
+shelf-140
+00:05:15.860 --> 00:05:17.960 position:15%,line-left align:start
+<v Devin>that those two holes have</v>
+
+shelf-141
+00:05:18.160 --> 00:05:20.260 region:room align:start
+<v Devin>to be exactly the same</v>
+
+shelf-142
+00:05:20.460 --> 00:05:22.560 align:start
+<v Devin>distance apart as the two</v>
+
+shelf-143
+00:05:22.760 --> 00:05:24.860
+<v Devin>rods on the <b>bracket,</b> and</v>
+
+shelf-144
+00:05:25.060 --> 00:05:27.160 position:15%,line-left align:start
+<v Devin>both have to be perfectly</v>
+
+shelf-145
+00:05:27.360 --> 00:05:29.460 region:room align:start
+<v Devin>straight and parallel, or the</v>
+
+shelf-146
+00:05:29.660 --> 00:05:31.340 align:start
+<v Devin>shelf simply won't seat.</v>
+
+shelf-147
+00:05:31.840 --> 00:05:33.940
+<v Mara>What happens if you're off</v>
+
+shelf-148
+00:05:34.140 --> 00:05:35.820 position:15%,line-left align:start
+<v Mara>by even a little?</v>
+
+shelf-149
+00:05:36.320 --> 00:05:38.420 region:room align:start
+<v Devin>If the spacing is off,</v>
+
+shelf-150
+00:05:38.620 --> 00:05:40.720 align:start
+<v Devin>the shelf hangs up halfway</v>
+
+shelf-151
+00:05:40.920 --> 00:05:43.020
+<v Devin>and won't push flush to</v>
+
+shelf-152
+00:05:43.220 --> 00:05:45.320 position:15%,line-left align:start
+<v Devin>the wall. If the holes</v>
+
+shelf-153
+00:05:45.520 --> 00:05:47.620 region:room align:start
+<v Devin>drift at an angle, the</v>
+
+shelf-154
+00:05:47.820 --> 00:05:49.920 align:start
+<v Devin>shelf goes on but points</v>
+
+shelf-155
+00:05:50.120 --> 00:05:52.220
+<v Devin>up or down like a</v>
+
+shelf-156
+00:05:52.420 --> 00:05:54.520 position:15%,line-left align:start
+<v Devin>ski jump. So I drill</v>
+
+shelf-157
+00:05:54.720 --> 00:05:56.820 region:room align:start
+<v Devin>them on the drill press</v>
+
+shelf-158
+00:05:57.020 --> 00:05:59.120 align:start
+<v Devin>with the fence locked, and</v>
+
+shelf-159
+00:05:59.320 --> 00:06:01.420
+<v Devin>I bore them deep, almost</v>
+
+shelf-160
+00:06:01.620 --> 00:06:03.720 position:15%,line-left align:start
+<v Devin>the full depth of the</v>
+
+shelf-161
+00:06:03.920 --> 00:06:06.020 region:room align:start
+<v Devin>shelf, so the rods reach</v>
+
+shelf-162
+00:06:06.220 --> 00:06:08.320 align:start
+<v Devin>way back inside and get</v>
+
+shelf-163
+00:06:08.520 --> 00:06:10.620
+<v Devin>maximum leverage against the load.</v>
+
+shelf-164
+00:06:11.120 --> 00:06:13.220 position:15%,line-left align:start
+<v Theo>Do you glue it onto</v>
+
+shelf-165
+00:06:13.420 --> 00:06:15.520 region:room align:start
+<v Theo>the rods, or can you</v>
+
+shelf-166
+00:06:15.720 --> 00:06:17.400 align:start
+<v Theo>take it back off?</v>
+
+shelf-167
+00:06:17.900 --> 00:06:20.000
+<v Devin>Great question. I leave it</v>
+
+shelf-168
+00:06:20.200 --> 00:06:22.300 position:15%,line-left align:start
+<v Devin>as a friction fit so</v>
+
+shelf-169
+00:06:22.500 --> 00:06:24.600 region:room align:start
+<v Devin>it's removable. A snug dry</v>
+
+shelf-170
+00:06:24.800 --> 00:06:26.900 align:start
+<v Devin>fit lets you lift the</v>
+
+shelf-171
+00:06:27.100 --> 00:06:29.200
+<v Devin>shelf off later to paint</v>
+
+shelf-172
+00:06:29.400 --> 00:06:31.500 position:15%,line-left align:start
+<v Devin>the wall or move it.</v>
+
+shelf-173
+00:06:31.700 --> 00:06:33.800 region:room align:start
+<v Devin>But if I want it</v>
+
+shelf-174
+00:06:34.000 --> 00:06:36.100 align:start
+<v Devin>permanent and rock solid, I'll</v>
+
+shelf-175
+00:06:36.300 --> 00:06:38.400
+<v Devin>squeeze a little construction adhesive</v>
+
+shelf-176
+00:06:38.600 --> 00:06:40.700 position:15%,line-left align:start
+<v Devin>into the holes right before</v>
+
+shelf-177
+00:06:40.900 --> 00:06:43.000 region:room align:start
+<v Devin>the final push. Once that</v>
+
+shelf-178
+00:06:43.200 --> 00:06:45.300 align:start
+<v Devin>cures, that shelf is never</v>
+
+shelf-179
+00:06:45.500 --> 00:06:47.600
+<v Devin>coming off in one piece.</v>
+
+shelf-180
+00:06:48.100 --> 00:06:50.200 position:15%,line-left align:start
+<v Mara>Now, there's a totally different</v>
+
+shelf-181
+00:06:50.400 --> 00:06:52.500 region:room align:start
+<v Mara>way to do a floating</v>
+
+shelf-182
+00:06:52.700 --> 00:06:54.800 align:start
+<v Mara>shelf too, right? The French</v>
+
+shelf-183
+00:06:55.000 --> 00:06:56.200
+<v Mara><b>cleat.</b></v>
+
+shelf-184
+00:06:56.700 --> 00:06:58.800 position:15%,line-left align:start
+<v Devin>There is, and it's worth</v>
+
+shelf-185
+00:06:59.000 --> 00:07:01.100 region:room align:start
+<v Devin>knowing. A French <b>cleat</b> is</v>
+
+shelf-186
+00:07:01.300 --> 00:07:03.400 align:start
+<v Devin>just a board ripped down</v>
+
+shelf-187
+00:07:03.600 --> 00:07:05.700
+<v Devin>its length at a forty</v>
+
+shelf-188
+00:07:05.900 --> 00:07:08.000 position:15%,line-left align:start
+<v Devin>five degree angle, so you</v>
+
+shelf-189
+00:07:08.200 --> 00:07:10.300 region:room align:start
+<v Devin>get two matching wedges. One</v>
+
+shelf-190
+00:07:10.500 --> 00:07:12.600 align:start
+<v Devin>wedge screws to the wall</v>
+
+shelf-191
+00:07:12.800 --> 00:07:14.900
+<v Devin>pointing up, the other hides</v>
+
+shelf-192
+00:07:15.100 --> 00:07:17.200 position:15%,line-left align:start
+<v Devin>inside the shelf pointing down,</v>
+
+shelf-193
+00:07:17.400 --> 00:07:19.500 region:room align:start
+<v Devin>and the shelf hooks over</v>
+
+shelf-194
+00:07:19.700 --> 00:07:21.800 align:start
+<v Devin>the wall piece and locks</v>
+
+shelf-195
+00:07:22.000 --> 00:07:24.100
+<v Devin>itself down by gravity. It's</v>
+
+shelf-196
+00:07:24.300 --> 00:07:26.400 position:15%,line-left align:start
+<v Devin>dead simple and holds a</v>
+
+shelf-197
+00:07:26.600 --> 00:07:27.860 region:room align:start
+<v Devin>ton of weight.</v>
+
+shelf-198
+00:07:28.360 --> 00:07:30.460 align:start
+<v Mara>So why go through all</v>
+
+shelf-199
+00:07:30.660 --> 00:07:32.760
+<v Mara>the trouble of the steel</v>
+
+shelf-200
+00:07:32.960 --> 00:07:35.060 position:15%,line-left align:start
+<v Mara>rods instead of just using</v>
+
+shelf-201
+00:07:35.260 --> 00:07:36.460 region:room align:start
+<v Mara>a <b>cleat?</b></v>
+
+shelf-202
+00:07:36.960 --> 00:07:39.060 align:start
+<v Devin>It comes down to how</v>
+
+shelf-203
+00:07:39.260 --> 00:07:41.360
+<v Devin>thin you want the shelf</v>
+
+shelf-204
+00:07:41.560 --> 00:07:43.660 position:15%,line-left align:start
+<v Devin>to look. A French <b>cleat</b></v>
+
+shelf-205
+00:07:43.860 --> 00:07:45.960 region:room align:start
+<v Devin>needs the shelf to be</v>
+
+shelf-206
+00:07:46.160 --> 00:07:48.260 align:start
+<v Devin>a few inches tall to</v>
+
+shelf-207
+00:07:48.460 --> 00:07:50.560
+<v Devin>hide the angled wedge, so</v>
+
+shelf-208
+00:07:50.760 --> 00:07:52.860 position:15%,line-left align:start
+<v Devin>you get a chunky, substantial</v>
+
+shelf-209
+00:07:53.060 --> 00:07:55.160 region:room align:start
+<v Devin>shelf. The steel rod system</v>
+
+shelf-210
+00:07:55.360 --> 00:07:57.460 align:start
+<v Devin>lets you build a shelf</v>
+
+shelf-211
+00:07:57.660 --> 00:07:59.760
+<v Devin>as thin as an inch</v>
+
+shelf-212
+00:07:59.960 --> 00:08:02.060 position:15%,line-left align:start
+<v Devin>and a half that still</v>
+
+shelf-213
+00:08:02.260 --> 00:08:04.360 region:room align:start
+<v Devin>holds real weight, so it</v>
+
+shelf-214
+00:08:04.560 --> 00:08:06.660 align:start
+<v Devin>looks like it's just floating</v>
+
+shelf-215
+00:08:06.860 --> 00:08:08.960
+<v Devin>there defying gravity. Thin and</v>
+
+shelf-216
+00:08:09.160 --> 00:08:11.260 position:15%,line-left align:start
+<v Devin>dramatic means rods. Thick and</v>
+
+shelf-217
+00:08:11.460 --> 00:08:13.140 region:room align:start
+<v Devin>bombproof means a <b>cleat.</b></v>
+
+shelf-218
+00:08:13.640 --> 00:08:15.740 align:start
+<v Theo>For my first one, which</v>
+
+shelf-219
+00:08:15.940 --> 00:08:17.200
+<v Theo>should I try?</v>
+
+shelf-220
+00:08:17.700 --> 00:08:19.800 position:15%,line-left align:start
+<v Devin>Start with the French <b>cleat,</b></v>
+
+shelf-221
+00:08:20.000 --> 00:08:22.100 region:room align:start
+<v Devin>every time. It's forgiving, you</v>
+
+shelf-222
+00:08:22.300 --> 00:08:24.400 align:start
+<v Devin>don't need a drill press,</v>
+
+shelf-223
+00:08:24.600 --> 00:08:26.700
+<v Devin>and if your angle is</v>
+
+shelf-224
+00:08:26.900 --> 00:08:29.000 position:15%,line-left align:start
+<v Devin>a degree off it still</v>
+
+shelf-225
+00:08:29.200 --> 00:08:31.300 region:room align:start
+<v Devin>works fine. Graduate to the</v>
+
+shelf-226
+00:08:31.500 --> 00:08:33.600 align:start
+<v Devin>steel rods once you trust</v>
+
+shelf-227
+00:08:33.800 --> 00:08:35.900
+<v Devin>your drilling, because with rods</v>
+
+shelf-228
+00:08:36.100 --> 00:08:38.200 position:15%,line-left align:start
+<v Devin>there's zero room for error</v>
+
+shelf-229
+00:08:38.400 --> 00:08:40.080 region:room align:start
+<v Devin>on that hole spacing.</v>
+
+shelf-230
+00:08:40.580 --> 00:08:42.680 align:start
+<v Mara>Any last words before someone</v>
+
+shelf-231
+00:08:42.880 --> 00:08:44.980
+<v Mara>drives to the hardware store?</v>
+
+shelf-232
+00:08:45.480 --> 00:08:47.580 position:15%,line-left align:start
+<v Devin>Two things. First, always, always</v>
+
+shelf-233
+00:08:47.780 --> 00:08:49.880 region:room align:start
+<v Devin>locate your <b>studs</b> before you</v>
+
+shelf-234
+00:08:50.080 --> 00:08:52.180 align:start
+<v Devin>fall in love with a</v>
+
+shelf-235
+00:08:52.380 --> 00:08:54.480
+<v Devin>shelf position, because the <b>studs</b></v>
+
+shelf-236
+00:08:54.680 --> 00:08:56.780 position:15%,line-left align:start
+<v Devin>decide where the shelf can</v>
+
+shelf-237
+00:08:56.980 --> 00:08:59.080 region:room align:start
+<v Devin>live, not your tape measure.</v>
+
+shelf-238
+00:08:59.280 --> 00:09:01.380 align:start
+<v Devin>And second, sand that white</v>
+
+shelf-239
+00:09:01.580 --> 00:09:03.680
+<v Devin>oak up through the grits,</v>
+
+shelf-240
+00:09:03.880 --> 00:09:05.980 position:15%,line-left align:start
+<v Devin>wipe it with a damp</v>
+
+shelf-241
+00:09:06.180 --> 00:09:08.280 region:room align:start
+<v Devin>rag to raise the grain,</v>
+
+shelf-242
+00:09:08.480 --> 00:09:10.580 align:start
+<v Devin>and finish it with a</v>
+
+shelf-243
+00:09:10.780 --> 00:09:12.880
+<v Devin>hardwax oil. A floating shelf</v>
+
+shelf-244
+00:09:13.080 --> 00:09:15.180 position:15%,line-left align:start
+<v Devin>is basically a piece of</v>
+
+shelf-245
+00:09:15.380 --> 00:09:17.480 region:room align:start
+<v Devin>jewelry bolted to your wall,</v>
+
+shelf-246
+00:09:17.680 --> 00:09:19.780 align:start
+<v Devin>so the finish is what</v>
+
+shelf-247
+00:09:19.980 --> 00:09:22.080
+<v Devin>people actually touch and notice.</v>
+
+shelf-248
+00:09:22.580 --> 00:09:24.680 position:15%,line-left align:start
+<v Mara>Perfect. <b>Studs</b> first, drill straight,</v>
+
+shelf-249
+00:09:24.880 --> 00:09:26.980 region:room align:start
+<v Mara>and finish it like jewelry.</v>
+
+shelf-250
+00:09:27.180 --> 00:09:29.280 align:start
+<v Mara>Thanks Devin, thanks Theo, and</v>
+
+shelf-251
+00:09:29.480 --> 00:09:31.580
+<v Mara>we'll see everybody in the</v>
+
+shelf-252
+00:09:31.780 --> 00:09:32.980 position:15%,line-left align:start
+<v Mara>next build.</v>

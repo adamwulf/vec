@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "experiment": "E11-vtt-extraction",
+  "frozen_at": "2026-09-07T05:57:07.116435+00:00",
+  "real_source": "/tmp/LinksDatabase/YouTube/__4ZMGgQqKE.localized/__4ZMGgQqKE.en.vtt",
+  "real_files": 1,
+  "synthetic_files": 15,
+  "scope": "One real caption file plus fifteen explicitly synthetic varied-topic transcripts; no claim of real-corpus representativeness.",
+  "files": [
+    {
+      "path": "generated-a/balcony-tomato-gardening.vtt",
+      "bytes": 4185,
+      "sha256": "fcd921cd0b0e6c37e582f37edd9de4899b688e92508e2177c1e972688abca215",
+      "origin": "synthetic",
+      "cue_count": 44,
+      "first_start_seconds": 0.0,
+      "last_end_seconds": 217.3,
+      "speaker_names": [],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 389
+    },
+    {
+      "path": "generated-a/battery-product-review.vtt",
+      "bytes": 3948,
+      "sha256": "3f9b982b4223612f738e1f1c474b91d99f750690a1141643cbb20f217ad0e418",
+      "origin": "synthetic",
+      "cue_count": 40,
+      "first_start_seconds": 0.0,
+      "last_end_seconds": 187.7,
+      "speaker_names": [],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 336
+    },
+    {
+      "path": "generated-a/cooking-sourdough-flatbread.vtt",
+      "bytes": 30892,
+      "sha256": "032130d16ab99963244a1fadf606a253047f19d4041c0238c5ec411c90d0cb0c",
+      "origin": "synthetic",
+      "cue_count": 274,
+      "first_start_seconds": 0.0,
+      "last_end_seconds": 384.8,
+      "speaker_names": [],
+      "rolling_overlap_transitions": 272,
+      "raw_cue_words_including_repeats": 2182
+    },
+    {
+      "path": "generated-a/history-lighthouse-podcast.vtt",
+      "bytes": 4929,
+      "sha256": "cdf9395a2a4fd57433a88be3b888f814a53a8e0cbc92ef72ed9e4a917376a40d",
+      "origin": "synthetic",
+      "cue_count": 47,
+      "first_start_seconds": 0.0,
+      "last_end_seconds": 220.4,
+      "speaker_names": [],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 392
+    },
+    {
+      "path": "generated-a/photography-window-light.vtt",
+      "bytes": 4869,
+      "sha256": "5b901da11537e2bf8594520ace6e67d8477ea6993091f9fa536649851c02c780",
+      "origin": "synthetic",
+      "cue_count": 48,
+      "first_start_seconds": 0.0,
+      "last_end_seconds": 224.75,
+      "speaker_names": [],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 398
+    },
+    {
+      "path": "generated-a/physics-pendulum-lecture.vtt",
+      "bytes": 31041,
+      "sha256": "7aa9191dea641c9515f94621bd0f95385eee8c942c6c21a4c8c3de26b689c0f3",
+      "origin": "synthetic",
+      "cue_count": 282,
+      "first_start_seconds": 0.0,
+      "last_end_seconds": 424.2,
+      "speaker_names": [],
+      "rolling_overlap_transitions": 280,
+      "raw_cue_words_including_repeats": 2246
+    },
+    {
+      "path": "generated-a/startup-support-interview.vtt",
+      "bytes": 20223,
+      "sha256": "97c03ac7df2d7d97bf96fdfc43d59ced5d548cee0940810c3c86dea8b49876e6",
+      "origin": "synthetic",
+      "cue_count": 234,
+      "first_start_seconds": 0.0,
+      "last_end_seconds": 529.6,
+      "speaker_names": [
+        "Priya",
+        "Sam"
+      ],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 1111
+    },
+    {
+      "path": "generated-a/woodworking-floating-shelf.vtt",
+      "bytes": 25138,
+      "sha256": "c2efa93e10ae53dff9e28a06239aaa5c2a2c8d1bf64b0da38daa112bea6e1700",
+      "origin": "synthetic",
+      "cue_count": 252,
+      "first_start_seconds": 0.0,
+      "last_end_seconds": 572.98,
+      "speaker_names": [
+        "Devin",
+        "Mara",
+        "Theo"
+      ],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 1213
+    },
+    {
+      "path": "generated-b/bike-brake-clinic.vtt",
+      "bytes": 22000,
+      "sha256": "3f67549835de727e731ee555e079c5181e860bf9e2bd54fdcfa5c4a9a153d913",
+      "origin": "synthetic",
+      "cue_count": 286,
+      "first_start_seconds": 0.5,
+      "last_end_seconds": 549.75,
+      "speaker_names": [
+        "Dave Okafor",
+        "Priya Raman",
+        "Tomas"
+      ],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 1168
+    },
+    {
+      "path": "generated-b/ceramic-glaze-studio.vtt",
+      "bytes": 3875,
+      "sha256": "1a8215aa82e4c5c3e715a8d2de93c61955b84d9f35c21f7a01ac608834ac473d",
+      "origin": "synthetic",
+      "cue_count": 47,
+      "first_start_seconds": 0.5,
+      "last_end_seconds": 181.1,
+      "speaker_names": [],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 393
+    },
+    {
+      "path": "generated-b/field-recording-basics.vtt",
+      "bytes": 6310,
+      "sha256": "5347d30e0814d35a20f41270c15422673e076b9d2eea1786cb3ad1e8135648de",
+      "origin": "synthetic",
+      "cue_count": 53,
+      "first_start_seconds": 0.5,
+      "last_end_seconds": 112.5,
+      "speaker_names": [],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 281
+    },
+    {
+      "path": "generated-b/telescope-polar-alignment.vtt",
+      "bytes": 6143,
+      "sha256": "9eeb823ed5b961298bc15b53c1a6d2183ed85319571613f84f4f296dd6130f17",
+      "origin": "synthetic",
+      "cue_count": 54,
+      "first_start_seconds": 0.5,
+      "last_end_seconds": 106.8,
+      "speaker_names": [],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 289
+    },
+    {
+      "path": "generated-b/textile-conservation-talk.vtt",
+      "bytes": 5041,
+      "sha256": "7d2c16cf56b3514c2f4ebb5d7ec2b89b906404197c6183d7460d556957406f07",
+      "origin": "synthetic",
+      "cue_count": 52,
+      "first_start_seconds": 0.5,
+      "last_end_seconds": 192.5,
+      "speaker_names": [
+        "Dr. Halvorsen"
+      ],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 388
+    },
+    {
+      "path": "generated-b/tram-scheduling-interview.vtt",
+      "bytes": 5097,
+      "sha256": "c62681784b4eef484bfa4da644f6b1e48cde1ddf0b0cffd7ddc04b47655a26b8",
+      "origin": "synthetic",
+      "cue_count": 51,
+      "first_start_seconds": 0.5,
+      "last_end_seconds": 215.1,
+      "speaker_names": [
+        "Interviewer",
+        "Lena Fischer"
+      ],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 400
+    },
+    {
+      "path": "generated-b/wetland-ecology-lecture.vtt",
+      "bytes": 19486,
+      "sha256": "71b8ef075e1eb76b1ddceeccbc8783996fea2e1834e170cc448c390115297c4d",
+      "origin": "synthetic",
+      "cue_count": 214,
+      "first_start_seconds": 0.5,
+      "last_end_seconds": 697.7,
+      "speaker_names": [],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 1715
+    },
+    {
+      "path": "real/anna-rudolf-minecraft.vtt",
+      "bytes": 13911,
+      "sha256": "89ad9879b518d56b6085ee6d0952486a6f67dda1ce330c34ca609b76a764b409",
+      "origin": "real",
+      "cue_count": 107,
+      "first_start_seconds": 0.08,
+      "last_end_seconds": 788.56,
+      "speaker_names": [],
+      "rolling_overlap_transitions": 0,
+      "raw_cue_words_including_repeats": 1880
+    }
+  ]
+}

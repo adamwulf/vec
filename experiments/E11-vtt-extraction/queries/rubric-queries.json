@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "experiment": "E11-vtt-extraction",
+  "description": "Fixed, pre-ranking caption retrieval rubric in the E10 JSON shape. Labels were assigned by the manager after reading the real captions and the complete spoken source prose for the synthetic captions. Fifteen answered queries, sixteen files; no no-answer probes. Do not tune queries or labels after observing rankings.",
+  "corpus": {
+    "source_default": "experiments/E11-vtt-extraction/sample",
+    "source_env": "VEC_VTT_CORPUS_DIRECTORY",
+    "scope": "Recursively index .vtt files only: one unchanged real caption file from /tmp/LinksDatabase and fifteen committed synthetic captions. Exclude source prose, generators, README files and manifest.json.",
+    "expected_vtt_files": 16,
+    "notes": "Six synthetic long files (at least 200 cues), nine synthetic short files, and one real file. Two rolling-caption examples; voices and unvoiced monologues. Distinct topics make file discrimination easy; this is a small synthetic-heavy demonstration, not a representative corpus accuracy estimate. Balcony tomatoes is an unlabeled distractor."
+  },
+  "arms": [
+    { "key": "raw", "text_extraction": "raw", "label": "Raw caption text including WebVTT structure" },
+    { "key": "vtt-v1", "text_extraction": "vtt-v1", "label": "Versioned WebVTT prose normalization" }
+  ],
+  "fixed_settings": {
+    "profile_identity": "e5-base@1200/0",
+    "embedder": "e5-base-v2",
+    "dimension": 768,
+    "chunk_chars": 1200,
+    "chunk_overlap": 0,
+    "concurrency": 8,
+    "batch_size": 32,
+    "bucket_width": 500,
+    "compute_policy": "default (nil)",
+    "note": "Both arms use the same batch document pipeline and single-query embedding path on main 5ee92ab563d348924312747e6631a639b96f1b35 plus WebVTT work. Model revision f52bf8ec8c7124536f0efb74aca902b2995e5bcd is pinned locally. Actual settings and model-file hashes in the run frozen-input-manifest.json are authoritative. E10 used an earlier inference revision, so cross-experiment absolute scores do not isolate extraction."
+  },
+  "metrics": {
+    "primary": ["rank1", "top5", "mrr"],
+    "secondary": ["top3", "advisory passage criteria", "all and passage chunk counts", "timestamp-line or inline-tag chunk share"],
+    "avoid": ["generalizing synthetic-heavy results to the full corpus", "claiming token-level evidence from the pre-tokenizer audit"],
+    "no_answer_handling": "No no-answer probes in this fixed rubric."
+  },
+  "labeling": {
+    "method": "Read the complete spoken content before writing queries, with expected answers anchored below. Each primary_file is the sole relevant file. File rank is authoritative. Passage criteria are advisory checks against the best retrieved chunk, reconstructed by ordinal and passed through the shared E5 prefix-then-cap helper; the subsequent 512-token cap is not audited. Criteria use speech words rather than cue identifiers, timestamps or metadata."
+  },
+  "search": {
+    "limit": 10,
+    "coalesce_limit": 10,
+    "raw_fetch_limit": 30,
+    "note": "Same as E10 and CLI: fetch 30 chunk hits, coalesce to at most 10 files, archive every returned group and source range. A missing relevant file has reciprocal rank zero."
+  },
+  "queries": [
+    {
+      "id": "q01",
+      "text": "How did the Minecraft player make a breathing space while collecting underwater diamonds?",
+      "categories": ["real-caption", "specific-spoken-claim", "multi-cue-topic"],
+      "primary_file": "real/anna-rudolf-minecraft.vtt",
+      "relevant_files": ["real/anna-rudolf-minecraft.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "door", "case_sensitive": false, "note": "Object used underwater" },
+        { "type": "regex", "value": "air bubble|breathe", "case_sensitive": false, "note": "Purpose of placing the door" }
+      ],
+      "rationale": "In the real transcript around 10:15–11:41, the player searches for diamonds, builds a door and uses an air bubble to breathe. This is a deep spoken action, beyond the opening account/persona story."
+    },
+    {
+      "id": "q02",
+      "text": "Why does the flatbread cook advise hand stretching instead of using a rolling pin?",
+      "categories": ["rolling-captions", "specific-spoken-claim", "multi-cue-topic"],
+      "primary_file": "generated-a/cooking-sourdough-flatbread.vtt",
+      "relevant_files": ["generated-a/cooking-sourdough-flatbread.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "rolling pin", "case_sensitive": false, "note": "Discouraged tool" },
+        { "type": "contains", "value": "bubbles", "case_sensitive": false, "note": "Rolling would crush the bubbles built during fermentation" }
+      ],
+      "rationale": "Source paragraph beginning Here is where the flatbread part actually happens explains fingertip pressing and hand stretching; the rolling pin crushes the bubbles. This appears after bulk fermentation and dividing the dough, across repeated rolling cue windows."
+    },
+    {
+      "id": "q03",
+      "text": "Which mounting method does Devin recommend for Theo's first floating shelf, and why is it easier?",
+      "categories": ["named-speaker", "dialogue", "specific-spoken-claim"],
+      "primary_file": "generated-a/woodworking-floating-shelf.vtt",
+      "relevant_files": ["generated-a/woodworking-floating-shelf.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "Devin", "case_sensitive": false, "note": "Answering speaker carried by voice tags" },
+        { "type": "contains", "value": "French cleat", "case_sensitive": false, "note": "Recommended beginner mounting method" },
+        { "type": "contains", "value": "forgiving", "case_sensitive": false, "note": "More forgiving angle and no drill press required" }
+      ],
+      "rationale": "Near the end Theo asks which method to try first. Devin recommends the French cleat because it tolerates an imperfect angle and does not require a drill press, unlike precisely aligned steel-rod holes."
+    },
+    {
+      "id": "q04",
+      "text": "What customer complaint led Sam's support engineer to discover a daylight saving bug?",
+      "categories": ["named-speaker", "dialogue", "multi-cue-topic"],
+      "primary_file": "generated-a/startup-support-interview.vtt",
+      "relevant_files": ["generated-a/startup-support-interview.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "hour off", "case_sensitive": false, "note": "Observed appointment error" },
+        { "type": "contains", "value": "daylight saving", "case_sensitive": false, "note": "Bug uncovered through reproduction" }
+      ],
+      "rationale": "Mid-interview, after CSAT and help-center discussion, Sam describes a clinic in another time zone whose appointments appeared an hour off. The engineer reproduced the issue and shipped a daylight-saving fix that week."
+    },
+    {
+      "id": "q05",
+      "text": "How much longer must a pendulum be to change its period from two seconds to four seconds?",
+      "categories": ["rolling-captions", "specific-spoken-claim", "multi-cue-topic"],
+      "primary_file": "generated-a/physics-pendulum-lecture.vtt",
+      "relevant_files": ["generated-a/physics-pendulum-lecture.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "quadruple", "case_sensitive": false, "note": "Length must be quadrupled, not doubled" },
+        { "type": "contains", "value": "square root", "case_sensitive": false, "note": "Reason for the fourfold length change" }
+      ],
+      "rationale": "After isochronism, the lecturer explains that doubling the period requires quadrupling the length to four meters because period depends on the square root of length. The answer spans rolling cue windows."
+    },
+    {
+      "id": "q06",
+      "text": "What flash pattern let sailors recognize Gannet Rock's lighthouse in the dark?",
+      "categories": ["short-caption", "specific-spoken-claim"],
+      "primary_file": "generated-a/history-lighthouse-podcast.vtt",
+      "relevant_files": ["generated-a/history-lighthouse-podcast.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "two quick flashes", "case_sensitive": false, "note": "The fictional station's identifying pattern" },
+        { "type": "contains", "value": "fifteen seconds", "case_sensitive": false, "note": "Repeat interval" }
+      ],
+      "rationale": "The fourth spoken paragraph explains lighthouse rhythms and gives two quick flashes every fifteen seconds, printed on coastal charts. The synthetic historical account is not a claim about an actual lighthouse."
+    },
+    {
+      "id": "q07",
+      "text": "How can the X9 battery pack work as a charging hub on a hotel desk?",
+      "categories": ["short-caption", "specific-spoken-claim", "product-review"],
+      "primary_file": "generated-a/battery-product-review.vtt",
+      "relevant_files": ["generated-a/battery-product-review.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "pass through", "case_sensitive": false, "note": "Feature described in the fictional review" },
+        { "type": "contains", "value": "simultaneously", "case_sensitive": false, "note": "Wall input and connected-device charging together" }
+      ],
+      "rationale": "The ports paragraph describes two USB-C and one USB-A port, followed by pass-through charging from a wall outlet to attached devices simultaneously."
+    },
+    {
+      "id": "q08",
+      "text": "What inexpensive item brightens the shadow side of a window-lit portrait without adding a second lamp?",
+      "categories": ["short-caption", "paraphrase", "specific-spoken-claim"],
+      "primary_file": "generated-a/photography-window-light.vtt",
+      "relevant_files": ["generated-a/photography-window-light.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "white foam board", "case_sensitive": false, "note": "Reflector suggested near the end of the tutorial" },
+        { "type": "contains", "value": "fill", "case_sensitive": false, "note": "Board bounces soft fill back onto the face" }
+      ],
+      "rationale": "The penultimate source paragraph suggests holding white foam board just outside the frame on the shadow side, bouncing a soft fill without a second light."
+    },
+    {
+      "id": "q09",
+      "text": "What does Priya Raman do in the Larson twist to free stubborn bubbles after bleeding the bicycle brake?",
+      "categories": ["named-speaker", "dialogue", "specific-spoken-claim"],
+      "primary_file": "generated-b/bike-brake-clinic.vtt",
+      "relevant_files": ["generated-b/bike-brake-clinic.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "Larson twist", "case_sensitive": false, "note": "Fictional workshop technique" },
+        { "type": "contains", "value": "flick the lever", "case_sensitive": false, "note": "First action" },
+        { "type": "contains", "value": "tap the caliper", "case_sensitive": false, "note": "Vibration dislodges corner bubbles" }
+      ],
+      "rationale": "Late in the workshop Priya names the Larson twist, flicks the lever a dozen times and taps the caliper and hose with a plastic handle. Dave observes a burst of bubbles. These are fictional instructional claims, not repair recommendations."
+    },
+    {
+      "id": "q10",
+      "text": "How do researchers measure whether the marsh surface is building upward each year?",
+      "categories": ["long-caption", "paraphrase", "multi-cue-topic"],
+      "primary_file": "generated-b/wetland-ecology-lecture.vtt",
+      "relevant_files": ["generated-b/wetland-ecology-lecture.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "feldspar clay", "case_sensitive": false, "note": "White marker horizon deposited on the surface" },
+        { "type": "contains", "value": "core", "case_sensitive": false, "note": "Later core measures sediment above the marker" }
+      ],
+      "rationale": "The penultimate lecture paragraph explains white feldspar marker horizons, later tiny cores, and elevation surveys to measure annual accretion. This is a deep detail beyond the introductory marsh topic."
+    },
+    {
+      "id": "q11",
+      "text": "Where should Polaris sit in the polar scope reticle when aligning the equatorial telescope mount?",
+      "categories": ["short-caption", "inline-timestamps", "specific-spoken-claim"],
+      "primary_file": "generated-b/telescope-polar-alignment.vtt",
+      "relevant_files": ["generated-b/telescope-polar-alignment.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "offset circle", "case_sensitive": false, "note": "Correct reticle feature" },
+        { "type": "contains", "value": "not in the center", "case_sensitive": false, "note": "Distinction stressed by the speaker" }
+      ],
+      "rationale": "The third spoken paragraph places Polaris on the small offset circle rather than the center, using the adjustment bolts. Per-word timestamp markup interrupts the raw cue text."
+    },
+    {
+      "id": "q12",
+      "text": "Why wax a pot's foot before dipping it in glaze, and what additional protection goes on the kiln shelf?",
+      "categories": ["short-caption", "multi-cue-topic", "specific-spoken-claim"],
+      "primary_file": "generated-b/ceramic-glaze-studio.vtt",
+      "relevant_files": ["generated-b/ceramic-glaze-studio.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "gluing your pot", "case_sensitive": false, "note": "Wax keeps glaze off the foot" },
+        { "type": "contains", "value": "kiln wash", "case_sensitive": false, "note": "Shelf coating lets drips chip away" }
+      ],
+      "rationale": "Two consecutive middle paragraphs explain wax resist on the foot ring and kiln wash on shelves, both preventing molten glaze from bonding the pot to its support."
+    },
+    {
+      "id": "q13",
+      "text": "Why record half a minute of plain background sound before leaving a nature recording location?",
+      "categories": ["short-caption", "inline-timestamps", "paraphrase"],
+      "primary_file": "generated-b/field-recording-basics.vtt",
+      "relevant_files": ["generated-b/field-recording-basics.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "room tone", "case_sensitive": false, "note": "Name for the clean ambience" },
+        { "type": "contains", "value": "coughs and bumps", "case_sensitive": false, "note": "Sounds patched during editing" }
+      ],
+      "rationale": "The closing spoken paragraph asks for thirty seconds of background ambience to patch over coughs and bumps during editing. This deep detail sits beyond the format and microphone setup."
+    },
+    {
+      "id": "q14",
+      "text": "What does Lena Fischer say the tram transponder asks traffic lights to do, and how much time does that save?",
+      "categories": ["named-speaker", "dialogue", "specific-spoken-claim"],
+      "primary_file": "generated-b/tram-scheduling-interview.vtt",
+      "relevant_files": ["generated-b/tram-scheduling-interview.vtt"],
+      "passage_criteria": [
+        { "type": "contains", "value": "Lena Fischer", "case_sensitive": false, "note": "Answering speaker" },
+        { "type": "contains", "value": "hold its green", "case_sensitive": false, "note": "Signal priority request" },
+        { "type": "contains", "value": "90 seconds", "case_sensitive": false, "note": "Illustrative time saved per corridor trip" }
+      ],
+      "rationale": "In response to the intersection question, Lena explains extending the green phase a few seconds and saving close to ninety seconds across the central corridor."
+    },
+    {
+      "id": "q15",
+      "text": "How does Dr. Halvorsen support split silk in the old mantua, and why must the repair be reversible?",
+      "categories": ["named-speaker", "short-caption", "multi-cue-topic"],
+      "primary_file": "generated-b/textile-conservation-talk.vtt",
+      "relevant_files": ["generated-b/textile-conservation-talk.vtt"],
+      "passage_criteria": [
+        { "type": "regex", "value": "cr[eê]peline", "case_sensitive": false, "note": "Sheer backing fabric; accept the source spelling and the caption's decoded circumflex" },
+        { "type": "contains", "value": "couching stitches", "case_sensitive": false, "note": "How fragile threads are anchored" },
+        { "type": "contains", "value": "reversible", "case_sensitive": false, "note": "Future conservators should be able to undo the work" }
+      ],
+      "rationale": "Middle paragraphs describe crepeline backing and couching stitches, then reversible conservation adhesive for shattered areas so future conservators can undo repairs without harming the original."
+    }
+  ]
+}

@@ -4,6 +4,10 @@ import VecKit
 @testable import vec
 
 final class TextExtractionModeTests: XCTestCase {
+    /// Every non-raw mode. `raw` is the default and is exercised separately;
+    /// these are the modes a user must explicitly opt into.
+    private static let optInModes: [TextExtractionMode] = [.markdownV1, .vttV1, .markdownV1VttV1]
+
     private func config(mode: TextExtractionMode? = nil) -> DatabaseConfig {
         DatabaseConfig(sourceDirectory: "/tmp/source", createdAt: Date(), profile: mode.map {
             .init(identity: "e5-base@1200/0", embedderName: "e5-base-v2", dimension: 768, textExtraction: $0)
@@ -20,40 +24,97 @@ final class TextExtractionModeTests: XCTestCase {
 
     func testNewDatabaseDefaultsToRawAndCanOptIn() throws {
         XCTAssertEqual(try resolve(config()).textExtraction, .raw)
-        let normalized = try resolve(config(), requested: .markdownV1)
-        XCTAssertEqual(normalized.textExtraction, .markdownV1)
-        XCTAssertTrue(normalized.writeProfileRecord)
+        // Every versioned mode is opt-in on a fresh DB and is persisted
+        // (writeProfileRecord) so later updates/inserts inherit it.
+        for mode in Self.optInModes {
+            let normalized = try resolve(config(), requested: mode)
+            XCTAssertEqual(normalized.textExtraction, mode)
+            XCTAssertTrue(normalized.writeProfileRecord, "\(mode.rawValue) should persist on first index")
+        }
     }
 
     func testRecordedModeIsInheritedOnUpdatesAndReturnedForInsert() throws {
-        let recorded = config(mode: .markdownV1)
-        let update = try resolve(recorded, chunks: 42)
-        XCTAssertEqual(update.textExtraction, .markdownV1)
-        XCTAssertFalse(update.writeProfileRecord)
-        XCTAssertEqual(try ProfileChecks.requireRecordedProfile(config: recorded, chunkCount: 42).textExtraction, .markdownV1)
+        // Every recorded mode (including raw) is inherited on updates when
+        // --text-extraction is omitted, and returned unchanged for inserts.
+        for mode in TextExtractionMode.allCases {
+            let recorded = config(mode: mode)
+            let update = try resolve(recorded, chunks: 42)
+            XCTAssertEqual(update.textExtraction, mode)
+            XCTAssertFalse(update.writeProfileRecord, "recorded \(mode.rawValue) must not rewrite the profile")
+            XCTAssertEqual(
+                try ProfileChecks.requireRecordedProfile(config: recorded, chunkCount: 42).textExtraction,
+                mode,
+                "insert must reuse recorded \(mode.rawValue)")
+        }
     }
 
-    func testModeChangesRequireResetEvenWhenNoChunksSurvived() throws {
-        for count in [0, 42] {
-            for mode in TextExtractionMode.allCases {
-                let other: TextExtractionMode = mode == .raw ? .markdownV1 : .raw
-                XCTAssertThrowsError(try resolve(config(mode: mode), requested: other, chunks: count)) { error in
-                    guard case TextExtractionError.mismatch(let recorded, let requested) = error else {
-                        return XCTFail("Unexpected error: \(error)")
+    func testExplicitlyRequestingTheRecordedModeIsNotAMismatch() throws {
+        // Passing --text-extraction that matches the recorded mode is a
+        // no-op inherit, not a mismatch, for every mode.
+        for mode in TextExtractionMode.allCases {
+            let update = try resolve(config(mode: mode), requested: mode, chunks: 42)
+            XCTAssertEqual(update.textExtraction, mode)
+            XCTAssertFalse(update.writeProfileRecord)
+        }
+    }
+
+    func testEveryModeChangeRequiresResetEvenWhenNoChunksSurvived() throws {
+        // Exhaustively cover every ordered (recorded, requested) pair of
+        // distinct modes. The mismatch guard fires before the profile
+        // identity check, so it holds regardless of chunk count — including
+        // the 0-chunk case where a prior index extracted nothing.
+        for chunks in [0, 42] {
+            for recordedMode in TextExtractionMode.allCases {
+                for requestedMode in TextExtractionMode.allCases where requestedMode != recordedMode {
+                    XCTAssertThrowsError(
+                        try resolve(config(mode: recordedMode), requested: requestedMode, chunks: chunks),
+                        "expected mismatch for recorded=\(recordedMode.rawValue) requested=\(requestedMode.rawValue) chunks=\(chunks)"
+                    ) { error in
+                        guard case TextExtractionError.mismatch(let recorded, let requested) = error else {
+                            return XCTFail("Unexpected error: \(error)")
+                        }
+                        XCTAssertEqual(recorded, recordedMode)
+                        XCTAssertEqual(requested, requestedMode)
                     }
-                    XCTAssertEqual(recorded, mode)
-                    XCTAssertEqual(requested, other)
                 }
             }
         }
     }
 
-    func testCLIParsesExplicitModeAndRejectsUnknownVersion() throws {
-        let command = try XCTUnwrap(UpdateIndexCommand.parseAsRoot(["--text-extraction", "markdown-v1"]) as? UpdateIndexCommand)
-        XCTAssertEqual(command.textExtraction?.mode, .markdownV1)
-        XCTAssertThrowsError(try UpdateIndexCommand.parseAsRoot(["--text-extraction", "markdown-v2"]))
+    func testCLIParsesEveryModeAndRejectsUnknownVersion() throws {
+        // Each versioned mode string round-trips through argument parsing to
+        // its TextExtractionMode.
+        let expected: [String: TextExtractionMode] = [
+            "raw": .raw,
+            "markdown-v1": .markdownV1,
+            "vtt-v1": .vttV1,
+            "markdown-v1+vtt-v1": .markdownV1VttV1,
+        ]
+        for (raw, mode) in expected {
+            let command = try XCTUnwrap(
+                UpdateIndexCommand.parseAsRoot(["--text-extraction", raw]) as? UpdateIndexCommand)
+            XCTAssertEqual(command.textExtraction?.mode, mode, "parsing \(raw)")
+        }
+        // Unknown / mis-versioned strings are rejected at parse time, before
+        // any DB work.
+        for bad in ["markdown-v2", "vtt-v2", "vtt", "markdown", "markdown-v1+vtt-v2"] {
+            XCTAssertThrowsError(try UpdateIndexCommand.parseAsRoot(["--text-extraction", bad]),
+                                 "\(bad) should be rejected")
+        }
         let defaultCommand = try XCTUnwrap(UpdateIndexCommand.parseAsRoot([]) as? UpdateIndexCommand)
         XCTAssertNil(defaultCommand.textExtraction)
+    }
+
+    func testCLIOptionMapsOneToOneWithEveryPersistedMode() {
+        // Guards against a CLI/VecKit drift: every persisted TextExtractionMode
+        // must have a corresponding CLI option whose `.mode` maps back to it,
+        // and vice versa.
+        XCTAssertEqual(Set(TextExtractionOption.allCases.map(\.mode)),
+                       Set(TextExtractionMode.allCases))
+        for option in TextExtractionOption.allCases {
+            XCTAssertEqual(option.rawValue, option.mode.rawValue,
+                           "CLI and persisted raw values must match for \(option.rawValue)")
+        }
     }
 
     func testLegacyRecordDefaultsToRawAndUnknownModeFailsDecoding() throws {
@@ -64,14 +125,16 @@ final class TextExtractionModeTests: XCTestCase {
         XCTAssertThrowsError(try decoder.decode(DatabaseConfig.ProfileRecord.self, from: unknown))
     }
 
-    func testNormalizedModeRoundTripsThroughConfigFile() throws {
-        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: root) }
-        let original = config(mode: .markdownV1)
-        try DatabaseLocator.writeConfig(original, to: root)
-        let decoded = try DatabaseLocator.readConfig(from: root)
-        XCTAssertEqual(decoded.profile, original.profile)
-        XCTAssertEqual(try resolve(decoded).textExtraction, .markdownV1)
+    func testEveryModeRoundTripsThroughConfigFile() throws {
+        for mode in TextExtractionMode.allCases {
+            let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: root) }
+            let original = config(mode: mode)
+            try DatabaseLocator.writeConfig(original, to: root)
+            let decoded = try DatabaseLocator.readConfig(from: root)
+            XCTAssertEqual(decoded.profile, original.profile, "\(mode.rawValue) profile round-trip")
+            XCTAssertEqual(try resolve(decoded).textExtraction, mode, "\(mode.rawValue) resolve after round-trip")
+        }
     }
 }

@@ -1,0 +1,347 @@
+{
+  "arm" : "vtt-v1",
+  "categories" : [
+    "short-caption",
+    "inline-timestamps",
+    "specific-spoken-claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8657160401344299,
+      "file" : "generated-b/telescope-polar-alignment.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.13428395986557007,
+          "line_end" : 109,
+          "line_start" : 12,
+          "score" : 0.8657160401344299
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.1398811936378479,
+          "score" : 0.8601188063621521
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.1954091191291809,
+          "line_end" : 172,
+          "line_start" : 111,
+          "score" : 0.8045908808708191
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7569186687469482,
+      "file" : "generated-b/field-recording-basics.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.24308133125305176,
+          "line_end" : 163,
+          "line_start" : 18,
+          "score" : 0.7569186687469482
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.24839401245117188,
+          "score" : 0.7516059875488281
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7560820579528809,
+      "file" : "generated-a/history-lighthouse-podcast.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.24391794204711914,
+          "line_end" : 107,
+          "line_start" : 16,
+          "score" : 0.7560820579528809
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.24702292680740356,
+          "score" : 0.7529770731925964
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2615485191345215,
+          "line_end" : 203,
+          "line_start" : 110,
+          "score" : 0.7384514808654785
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7527463436126709,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 7,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2472536563873291,
+          "line_end" : 376,
+          "line_start" : 258,
+          "score" : 0.7527463436126709
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.25340014696121216,
+          "score" : 0.7465998530387878
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.25664860010147095,
+          "line_end" : 256,
+          "line_start" : 136,
+          "score" : 0.743351399898529
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2605400085449219,
+          "line_end" : 496,
+          "line_start" : 378,
+          "score" : 0.7394599914550781
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2635496258735657,
+          "line_end" : 134,
+          "line_start" : 16,
+          "score" : 0.7364503741264343
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.2685568332672119,
+          "line_end" : 864,
+          "line_start" : 740,
+          "score" : 0.7314431667327881
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.2718442678451538,
+          "line_end" : 738,
+          "line_start" : 620,
+          "score" : 0.7281557321548462
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.743180513381958,
+      "file" : "generated-a/photography-window-light.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.256819486618042,
+          "line_end" : 188,
+          "line_start" : 110,
+          "score" : 0.743180513381958
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.26366126537323,
+          "score" : 0.73633873462677
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2640901803970337,
+          "line_end" : 107,
+          "line_start" : 13,
+          "score" : 0.7359098196029663
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7395187616348267,
+      "file" : "generated-a/woodworking-floating-shelf.vtt",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.26048123836517334,
+          "line_end" : 316,
+          "line_start" : 175,
+          "score" : 0.7395187616348267
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2640451192855835,
+          "line_end" : 456,
+          "line_start" : 319,
+          "score" : 0.7359548807144165
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2641199827194214,
+          "line_end" : 748,
+          "line_start" : 611,
+          "score" : 0.7358800172805786
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.2708085775375366,
+          "score" : 0.7291914224624634
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7394536137580872,
+      "file" : "generated-b/wetland-ecology-lecture.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.26054638624191284,
+          "line_end" : 874,
+          "line_start" : 857,
+          "score" : 0.7394536137580872
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2686392068862915,
+          "line_end" : 116,
+          "line_start" : 19,
+          "score" : 0.7313607931137085
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.26913881301879883,
+          "score" : 0.7308611869812012
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7378249764442444,
+      "file" : "generated-b/bike-brake-clinic.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2621750235557556,
+          "line_end" : 941,
+          "line_start" : 768,
+          "score" : 0.7378249764442444
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2642233371734619,
+          "line_end" : 765,
+          "line_start" : 584,
+          "score" : 0.7357766628265381
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7318530678749084,
+      "file" : "generated-a/startup-support-interview.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.26814693212509155,
+          "line_end" : 503,
+          "line_start" : 396,
+          "score" : 0.7318530678749084
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.7307187914848328,
+      "file" : "generated-b/ceramic-glaze-studio.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.26928120851516724,
+          "line_end" : 94,
+          "line_start" : 9,
+          "score" : 0.7307187914848328
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q11",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 11,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8657160401344299,
+    "chunk_ordinal" : 2,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "offset circle"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "not in the center"
+      }
+    ],
+    "distance" : 0.13428395986557007,
+    "file_rank" : 1,
+    "input_chars" : 998,
+    "line_end" : 109,
+    "line_start" : 12
+  },
+  "primary_file" : "generated-b/telescope-polar-alignment.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-b/telescope-polar-alignment.vtt"
+  ],
+  "search_seconds" : 0.091577584,
+  "text" : "Where should Polaris sit in the polar scope reticle when aligning the equatorial telescope mount?"
+}

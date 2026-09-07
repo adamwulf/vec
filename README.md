@@ -94,6 +94,14 @@ After every run (success, partial-success, *and* silent-failure), `update-index`
 
 To opt in to Markdown extraction, index a fresh or reset database with `vec update-index --db my-project --text-extraction markdown-v1`. Markdown links and images contribute their visible text instead of their destinations; code, bare URLs, frontmatter, and source-line locations are preserved. Reference definition lines and emphasis markers remain literal in this version. Other file formats keep their existing extraction. The default is `raw`. Extraction mode is recorded with the database profile and shown by `vec info`; subsequent updates and single-file inserts reuse it. To change modes, reset and re-index. See [the E10 report](experiments/E10-markdown-extraction/report.md) for the measured comparison and limitations.
 
+#### WebVTT extraction (`vtt-v1`)
+
+For a fresh or reset database, run `vec update-index --db my-project --text-extraction vtt-v1`. WebVTT headers, cue identifiers, timing/settings lines, NOTE/STYLE/REGION blocks, and inline tags are removed before chunking. Supported character references are decoded, speaker names are kept, and adjacent cues become readable paragraphs with conservative rolling-caption deduplication. Malformed blocks are skipped; headerless cues, indented timing lines, and missing blank cue separators are supported.
+
+For a mixed Markdown/caption corpus, use `--text-extraction markdown-v1+vtt-v1` to apply both versioned normalizers. `vtt-v1` alone changes only `.vtt` extraction. Raw remains the default; the database records the chosen mode, updates and inserts inherit it, and changing modes requires reset/reindexing.
+
+Chunks retain coarse source cue line ranges, including the first timing line, so results remain traceable to the caption file. Timestamp metadata is not added to the schema. See the [E11 plan](experiments/E11-vtt-extraction/plan.md) for the extraction rules. In a frozen 16-file sample (1 real, 15 synthetic), correct-file-at-rank-1 improved from 14/15 to 15/15, MRR from 0.956 to 1.000, and chunk count fell from 205 to 88; timestamp/tag noise in extracted chunks fell from 100% to 0%. The only rank improvement was on a synthetic file, so this does not establish an accuracy gain across the full corpus. See the [measured report and provenance](experiments/E11-vtt-extraction/report.md).
+
 ### Search
 
 ```bash
@@ -153,7 +161,8 @@ Deletes and recreates the database, preserving the source directory mapping. The
 
 | Type | Indexing Strategy |
 |------|-------------------|
-| Markdown (`.md`) | Recursive character-bounded chunks |
+| Markdown (`.md`) | Recursive character-bounded chunks (optional `markdown-v1` normalization) |
+| WebVTT (`.vtt`) | Whole-document and recursive chunks; optional `vtt-v1` prose normalization |
 | Swift (`.swift`) | Whole file |
 | Plain text (`.txt`) | Whole file |
 | PDF (`.pdf`) | Per-page text extraction |

@@ -1,0 +1,359 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "named-speaker",
+    "dialogue",
+    "specific-spoken-claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8513098955154419,
+      "file" : "generated-a/woodworking-floating-shelf.vtt",
+      "match_count" : 22,
+      "matches" : [
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.1486901044845581,
+          "line_end" : 276,
+          "line_start" : 230,
+          "score" : 0.8513098955154419
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.15619748830795288,
+          "line_end" : 90,
+          "line_start" : 44,
+          "score" : 0.8438025116920471
+        },
+        {
+          "chunk_ordinal" : 20,
+          "chunk_type" : "chunk",
+          "distance" : 0.15948063135147095,
+          "line_end" : 892,
+          "line_start" : 846,
+          "score" : 0.840519368648529
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.16611731052398682,
+          "line_end" : 320,
+          "line_start" : 278,
+          "score" : 0.8338826894760132
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.1693892478942871,
+          "line_end" : 700,
+          "line_start" : 654,
+          "score" : 0.8306107521057129
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.16997522115707397,
+          "line_end" : 42,
+          "line_start" : 1,
+          "score" : 0.830024778842926
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.16999977827072144,
+          "line_end" : 508,
+          "line_start" : 462,
+          "score" : 0.8300002217292786
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.1710669994354248,
+          "line_end" : 228,
+          "line_start" : 186,
+          "score" : 0.8289330005645752
+        },
+        {
+          "chunk_ordinal" : 19,
+          "chunk_type" : "chunk",
+          "distance" : 0.17173439264297485,
+          "line_end" : 844,
+          "line_start" : 798,
+          "score" : 0.8282656073570251
+        },
+        {
+          "chunk_ordinal" : 22,
+          "chunk_type" : "chunk",
+          "distance" : 0.17254638671875,
+          "line_end" : 988,
+          "line_start" : 942,
+          "score" : 0.82745361328125
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.17382967472076416,
+          "line_end" : 184,
+          "line_start" : 140,
+          "score" : 0.8261703252792358
+        },
+        {
+          "chunk_ordinal" : 23,
+          "chunk_type" : "chunk",
+          "distance" : 0.17394471168518066,
+          "line_end" : 1024,
+          "line_start" : 990,
+          "score" : 0.8260552883148193
+        },
+        {
+          "chunk_ordinal" : 21,
+          "chunk_type" : "chunk",
+          "distance" : 0.17420750856399536,
+          "line_end" : 940,
+          "line_start" : 894,
+          "score" : 0.8257924914360046
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.17585420608520508,
+          "line_end" : 138,
+          "line_start" : 92,
+          "score" : 0.8241457939147949
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.17634940147399902,
+          "line_end" : 460,
+          "line_start" : 414,
+          "score" : 0.823650598526001
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.17675143480300903,
+          "line_end" : 556,
+          "line_start" : 510,
+          "score" : 0.823248565196991
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.17685532569885254,
+          "line_end" : 604,
+          "line_start" : 558,
+          "score" : 0.8231446743011475
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.17719721794128418,
+          "line_end" : 364,
+          "line_start" : 322,
+          "score" : 0.8228027820587158
+        },
+        {
+          "chunk_ordinal" : 17,
+          "chunk_type" : "chunk",
+          "distance" : 0.17720860242843628,
+          "line_end" : 748,
+          "line_start" : 702,
+          "score" : 0.8227913975715637
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.17994606494903564,
+          "line_end" : 412,
+          "line_start" : 366,
+          "score" : 0.8200539350509644
+        },
+        {
+          "chunk_ordinal" : 18,
+          "chunk_type" : "chunk",
+          "distance" : 0.17996537685394287,
+          "line_end" : 796,
+          "line_start" : 750,
+          "score" : 0.8200346231460571
+        },
+        {
+          "chunk_ordinal" : 15,
+          "chunk_type" : "chunk",
+          "distance" : 0.180885910987854,
+          "line_end" : 652,
+          "line_start" : 606,
+          "score" : 0.819114089012146
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.784430980682373,
+      "file" : "generated-a/photography-window-light.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.21556901931762695,
+          "line_end" : 177,
+          "line_start" : 135,
+          "score" : 0.784430980682373
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.22587454319000244,
+          "line_end" : 89,
+          "line_start" : 43,
+          "score" : 0.7741254568099976
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7817735075950623,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 22,
+          "chunk_type" : "chunk",
+          "distance" : 0.21822649240493774,
+          "line_end" : 675,
+          "line_start" : 644,
+          "score" : 0.7817735075950623
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7806510329246521,
+      "file" : "generated-b/ceramic-glaze-studio.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2193489670753479,
+          "line_end" : 174,
+          "line_start" : 116,
+          "score" : 0.7806510329246521
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7781820893287659,
+      "file" : "generated-a/cooking-sourdough-flatbread.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.22181791067123413,
+          "line_end" : 608,
+          "line_start" : 570,
+          "score" : 0.7781820893287659
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7738514542579651,
+      "file" : "generated-a/battery-product-review.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2261485457420349,
+          "line_end" : 148,
+          "line_start" : 98,
+          "score" : 0.7738514542579651
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7730787396430969,
+      "file" : "generated-b/bike-brake-clinic.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.22692126035690308,
+          "line_end" : 917,
+          "line_start" : 859,
+          "score" : 0.7730787396430969
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7722839713096619,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.22771602869033813,
+          "line_end" : 151,
+          "line_start" : 114,
+          "score" : 0.7722839713096619
+        }
+      ],
+      "rank" : 8
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q03",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 8,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8513098955154419,
+    "chunk_ordinal" : 7,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "Devin"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "French cleat"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "forgiving"
+      }
+    ],
+    "distance" : 0.1486901044845581,
+    "file_rank" : 1,
+    "input_chars" : 1156,
+    "line_end" : 276,
+    "line_start" : 230
+  },
+  "primary_file" : "generated-a/woodworking-floating-shelf.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-a/woodworking-floating-shelf.vtt"
+  ],
+  "search_seconds" : 0.087233167,
+  "text" : "Which mounting method does Devin recommend for Theo's first floating shelf, and why is it easier?"
+}

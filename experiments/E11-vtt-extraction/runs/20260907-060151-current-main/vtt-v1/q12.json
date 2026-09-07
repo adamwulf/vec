@@ -1,0 +1,349 @@
+{
+  "arm" : "vtt-v1",
+  "categories" : [
+    "short-caption",
+    "multi-cue-topic",
+    "specific-spoken-claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8873228430747986,
+      "file" : "generated-b/ceramic-glaze-studio.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.11267715692520142,
+          "line_end" : 194,
+          "line_start" : 97,
+          "score" : 0.8873228430747986
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.13059502840042114,
+          "score" : 0.8694049715995789
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.15954363346099854,
+          "line_end" : 94,
+          "line_start" : 9,
+          "score" : 0.8404563665390015
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.8008581399917603,
+      "file" : "generated-a/woodworking-floating-shelf.vtt",
+      "match_count" : 8,
+      "matches" : [
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.19914186000823975,
+          "line_end" : 1024,
+          "line_start" : 935,
+          "score" : 0.8008581399917603
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.19915705919265747,
+          "line_end" : 748,
+          "line_start" : 611,
+          "score" : 0.8008429408073425
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2010541558265686,
+          "line_end" : 456,
+          "line_start" : 319,
+          "score" : 0.7989458441734314
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.2100352644920349,
+          "line_end" : 932,
+          "line_start" : 751,
+          "score" : 0.7899647355079651
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.21315360069274902,
+          "line_end" : 608,
+          "line_start" : 459,
+          "score" : 0.786846399307251
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.2133491039276123,
+          "score" : 0.7866508960723877
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.21585482358932495,
+          "line_end" : 172,
+          "line_start" : 17,
+          "score" : 0.784145176410675
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2250455617904663,
+          "line_end" : 316,
+          "line_start" : 175,
+          "score" : 0.7749544382095337
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7939075231552124,
+      "file" : "generated-a/cooking-sourdough-flatbread.vtt",
+      "match_count" : 7,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2060924768447876,
+          "line_end" : 540,
+          "line_start" : 367,
+          "score" : 0.7939075231552124
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.22032606601715088,
+          "line_end" : 1110,
+          "line_start" : 897,
+          "score" : 0.7796739339828491
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2257799506187439,
+          "line_end" : 718,
+          "line_start" : 543,
+          "score" : 0.7742200493812561
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.22610491514205933,
+          "line_end" : 364,
+          "line_start" : 191,
+          "score" : 0.7738950848579407
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.2273796796798706,
+          "score" : 0.7726203203201294
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.22753316164016724,
+          "line_end" : 894,
+          "line_start" : 721,
+          "score" : 0.7724668383598328
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.23641234636306763,
+          "line_end" : 188,
+          "line_start" : 13,
+          "score" : 0.7635876536369324
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7932400107383728,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.2067599892616272,
+          "score" : 0.7932400107383728
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.21490103006362915,
+          "line_end" : 166,
+          "line_start" : 87,
+          "score" : 0.7850989699363708
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.21616220474243164,
+          "line_end" : 85,
+          "line_start" : 12,
+          "score" : 0.7838377952575684
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7821991443634033,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 5,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.21780085563659668,
+          "line_end" : 376,
+          "line_start" : 258,
+          "score" : 0.7821991443634033
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.22279846668243408,
+          "line_end" : 618,
+          "line_start" : 498,
+          "score" : 0.7772015333175659
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.22988712787628174,
+          "score" : 0.7701128721237183
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2318376898765564,
+          "line_end" : 256,
+          "line_start" : 136,
+          "score" : 0.7681623101234436
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2348846197128296,
+          "line_end" : 496,
+          "line_start" : 378,
+          "score" : 0.7651153802871704
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7687398791313171,
+      "file" : "generated-a/history-lighthouse-podcast.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.23126012086868286,
+          "score" : 0.7687398791313171
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7684474587440491,
+      "file" : "generated-a/balcony-tomato-gardening.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.23155254125595093,
+          "line_end" : 140,
+          "line_start" : 79,
+          "score" : 0.7684474587440491
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7661678791046143,
+      "file" : "generated-a/photography-window-light.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.23383212089538574,
+          "line_end" : 188,
+          "line_start" : 110,
+          "score" : 0.7661678791046143
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7628612518310547,
+      "file" : "generated-b/wetland-ecology-lecture.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2371387481689453,
+          "line_end" : 220,
+          "line_start" : 119,
+          "score" : 0.7628612518310547
+        }
+      ],
+      "rank" : 9
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q12",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 9,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8873228430747986,
+    "chunk_ordinal" : 3,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "gluing your pot"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "kiln wash"
+      }
+    ],
+    "distance" : 0.11267715692520142,
+    "file_rank" : 1,
+    "input_chars" : 1117,
+    "line_end" : 194,
+    "line_start" : 97
+  },
+  "primary_file" : "generated-b/ceramic-glaze-studio.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-b/ceramic-glaze-studio.vtt"
+  ],
+  "search_seconds" : 0.119855417,
+  "text" : "Why wax a pot's foot before dipping it in glaze, and what additional protection goes on the kiln shelf?"
+}

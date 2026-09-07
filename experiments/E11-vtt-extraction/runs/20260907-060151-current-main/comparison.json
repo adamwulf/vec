@@ -1,0 +1,326 @@
+{
+  "aggregate" : {
+    "raw" : {
+      "answered_queries" : 15,
+      "mean_reciprocal_rank" : 0.9555555555555556,
+      "passage_all_met_rate" : 0.2,
+      "rank1_rate" : 0.9333333333333333,
+      "top3_rate" : 1,
+      "top5_rate" : 1
+    },
+    "vtt-v1" : {
+      "answered_queries" : 15,
+      "mean_reciprocal_rank" : 1,
+      "passage_all_met_rate" : 0.8,
+      "rank1_rate" : 1,
+      "top3_rate" : 1,
+      "top5_rate" : 1
+    }
+  },
+  "arms" : [
+    "raw",
+    "vtt-v1"
+  ],
+  "per_query" : [
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "real/anna-rudolf-minecraft.vtt",
+          "top_score" : 0.8224645256996155
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "real/anna-rudolf-minecraft.vtt",
+          "top_score" : 0.8340021967887878
+        }
+      },
+      "id" : "q01",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/cooking-sourdough-flatbread.vtt",
+          "top_score" : 0.8348323702812195
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/cooking-sourdough-flatbread.vtt",
+          "top_score" : 0.8530117869377136
+        }
+      },
+      "id" : "q02",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/woodworking-floating-shelf.vtt",
+          "top_score" : 0.8513098955154419
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/woodworking-floating-shelf.vtt",
+          "top_score" : 0.8712778687477112
+        }
+      },
+      "id" : "q03",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/startup-support-interview.vtt",
+          "top_score" : 0.8421661257743835
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/startup-support-interview.vtt",
+          "top_score" : 0.8643069267272949
+        }
+      },
+      "id" : "q04",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/physics-pendulum-lecture.vtt",
+          "top_score" : 0.8425193428993225
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/physics-pendulum-lecture.vtt",
+          "top_score" : 0.8519825339317322
+        }
+      },
+      "id" : "q05",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/history-lighthouse-podcast.vtt",
+          "top_score" : 0.8269155621528625
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/history-lighthouse-podcast.vtt",
+          "top_score" : 0.8527889251708984
+        }
+      },
+      "id" : "q06",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/battery-product-review.vtt",
+          "top_score" : 0.8576827645301819
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/battery-product-review.vtt",
+          "top_score" : 0.8712455630302429
+        }
+      },
+      "id" : "q07",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/photography-window-light.vtt",
+          "top_score" : 0.8151401281356812
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-a/photography-window-light.vtt",
+          "top_score" : 0.8418447971343994
+        }
+      },
+      "id" : "q08",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/bike-brake-clinic.vtt",
+          "top_score" : 0.847376823425293
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/bike-brake-clinic.vtt",
+          "top_score" : 0.8698512315750122
+        }
+      },
+      "id" : "q09",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/wetland-ecology-lecture.vtt",
+          "top_score" : 0.8140211701393127
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/wetland-ecology-lecture.vtt",
+          "top_score" : 0.8836416006088257
+        }
+      },
+      "id" : "q10",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/telescope-polar-alignment.vtt",
+          "top_score" : 0.813758909702301
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/telescope-polar-alignment.vtt",
+          "top_score" : 0.8657160401344299
+        }
+      },
+      "id" : "q11",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/ceramic-glaze-studio.vtt",
+          "top_score" : 0.833162248134613
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/ceramic-glaze-studio.vtt",
+          "top_score" : 0.8873228430747986
+        }
+      },
+      "id" : "q12",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : false,
+          "file_rank" : 3,
+          "reciprocal_rank" : 0.3333333333333333,
+          "top_file" : "generated-b/wetland-ecology-lecture.vtt",
+          "top_score" : 0.7911016941070557
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/field-recording-basics.vtt",
+          "top_score" : 0.8503444194793701
+        }
+      },
+      "id" : "q13",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/tram-scheduling-interview.vtt",
+          "top_score" : 0.8639877438545227
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/tram-scheduling-interview.vtt",
+          "top_score" : 0.8792444467544556
+        }
+      },
+      "id" : "q14",
+      "is_no_answer" : false
+    },
+    {
+      "arms" : {
+        "raw" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/textile-conservation-talk.vtt",
+          "top_score" : 0.8594569563865662
+        },
+        "vtt-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "generated-b/textile-conservation-talk.vtt",
+          "top_score" : 0.9020107388496399
+        }
+      },
+      "id" : "q15",
+      "is_no_answer" : false
+    }
+  ]
+}

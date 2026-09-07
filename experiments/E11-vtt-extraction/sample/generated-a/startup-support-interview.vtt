@@ -1,0 +1,870 @@
+WEBVTT - Startup — founder customer-support interview (SYNTHETIC)
+
+NOTE
+SYNTHETIC caption fixture for the E11 WebVTT extraction experiment.
+Generated deterministically from sources/03-startup-support-interview.txt by generate.py.
+Topic: Startup — founder customer-support interview. Not a real transcript; every name and claim is fictional.
+
+STYLE
+::cue { font-family: sans-serif; }
+::cue(.kw) { color: #7cd6ff; font-weight: bold; }
+
+1
+00:00:00.000 --> 00:00:02.100 align:start
+<v Priya>You&#x27;re listening to Founder Signal.
+
+00:00:02.300 --> 00:00:04.400
+<v Priya>I&#x27;m Priya, and today I&#x27;m
+
+cue-003
+00:00:04.600 --> 00:00:06.700 position:80% align:end
+<v Priya>sitting down with Sam Okoro,
+
+4
+00:00:06.900 --> 00:00:09.000 line:15% align:start
+<v Priya>the founder of Larksail, a
+
+00:00:09.200 --> 00:00:11.300 align:start
+<v Priya>scheduling tool for small clinics.
+
+cue-006
+00:00:11.500 --> 00:00:13.600
+<v Priya>Sam, everybody wants to talk
+
+7
+00:00:13.800 --> 00:00:15.900 position:80% align:end
+<v Priya>to founders about growth and
+
+00:00:16.100 --> 00:00:18.200 line:15% align:start
+<v Priya>fundraising, but you insist customer
+
+cue-009
+00:00:18.400 --> 00:00:20.500 align:start
+<v Priya>support is your real growth
+
+10
+00:00:20.700 --> 00:00:22.800
+<v Priya>engine. Make that case for
+
+00:00:23.000 --> 00:00:24.200 position:80% align:end
+<v Priya>me.
+
+cue-012
+00:00:24.700 --> 00:00:26.800 line:15% align:start
+<v Sam>Happily, because I genuinely believe
+
+13
+00:00:27.000 --> 00:00:29.100 align:start
+<v Sam>it. In our first year
+
+00:00:29.300 --> 00:00:31.400
+<v Sam>I answered every single support
+
+cue-015
+00:00:31.600 --> 00:00:33.700 position:80% align:end
+<v Sam>ticket myself, personally, from my
+
+16
+00:00:33.900 --> 00:00:36.000 line:15% align:start
+<v Sam>own laptop, sometimes at two
+
+00:00:36.200 --> 00:00:38.300 align:start
+<v Sam>in the morning. And that
+
+cue-018
+00:00:38.500 --> 00:00:40.600
+<v Sam>inbox taught me more about
+
+19
+00:00:40.800 --> 00:00:42.900 position:80% align:end
+<v Sam>the product than any strategy
+
+00:00:43.100 --> 00:00:45.200 line:15% align:start
+<v Sam>meeting ever did. Every angry
+
+cue-021
+00:00:45.400 --> 00:00:47.500 align:start
+<v Sam>email was a free consulting
+
+22
+00:00:47.700 --> 00:00:49.800
+<v Sam>report telling me exactly where
+
+00:00:50.000 --> 00:00:51.260 position:80% align:end
+<v Sam>Larksail was broken.
+
+cue-024
+00:00:51.760 --> 00:00:53.860 line:15% align:start
+<v Priya>Answering everything yourself doesn&#x27;t scale,
+
+25
+00:00:54.060 --> 00:00:56.160 align:start
+<v Priya>though. At some point the
+
+00:00:56.360 --> 00:00:58.460
+<v Priya>volume must have crushed you.
+
+cue-027
+00:00:58.960 --> 00:01:01.060 position:80% align:end
+<v Sam>Oh, it absolutely did. By
+
+28
+00:01:01.260 --> 00:01:03.360 line:15% align:start
+<v Sam>month fourteen we were getting
+
+00:01:03.560 --> 00:01:05.660 align:start
+<v Sam>around eight hundred tickets a
+
+cue-030
+00:01:05.860 --> 00:01:07.960
+<v Sam>week, and I was drowning.
+
+31
+00:01:08.160 --> 00:01:10.260 position:80% align:end
+<v Sam>But here&#x27;s the thing, I
+
+00:01:10.460 --> 00:01:12.560 line:15% align:start
+<v Sam>didn&#x27;t hand it off to
+
+cue-033
+00:01:12.760 --> 00:01:14.860 align:start
+<v Sam>a call center. I hired
+
+34
+00:01:15.060 --> 00:01:17.160
+<v Sam>our first two support engineers,
+
+00:01:17.360 --> 00:01:19.460 position:80% align:end
+<v Sam>people who could actually read
+
+cue-036
+00:01:19.660 --> 00:01:21.760 line:15% align:start
+<v Sam>the code and reproduce a
+
+37
+00:01:21.960 --> 00:01:24.060 align:start
+<v Sam>bug, not just paste a
+
+00:01:24.260 --> 00:01:26.360
+<v Sam>canned apology and close the
+
+cue-039
+00:01:26.560 --> 00:01:27.760 position:80% align:end
+<v Sam>ticket.
+
+40
+00:01:28.260 --> 00:01:30.360 line:15% align:start
+<v Priya>Support engineers, not support agents.
+
+00:01:30.560 --> 00:01:32.660 align:start
+<v Priya>That&#x27;s a deliberate word choice.
+
+cue-042
+00:01:33.160 --> 00:01:35.260
+<v Sam>Very deliberate. A traditional agent
+
+43
+00:01:35.460 --> 00:01:37.560 position:80% align:end
+<v Sam>is measured on how many
+
+00:01:37.760 --> 00:01:39.860 line:15% align:start
+<v Sam>tickets they close per hour,
+
+cue-045
+00:01:40.060 --> 00:01:42.160 align:start
+<v Sam>which quietly rewards them for
+
+46
+00:01:42.360 --> 00:01:44.460
+<v Sam>getting rid of you. A
+
+00:01:44.660 --> 00:01:46.760 position:80% align:end
+<v Sam>support engineer is measured on
+
+cue-048
+00:01:46.960 --> 00:01:49.060 line:15% align:start
+<v Sam>whether the customer&#x27;s actual problem
+
+49
+00:01:49.260 --> 00:01:51.360 align:start
+<v Sam>went away and never came
+
+00:01:51.560 --> 00:01:53.660
+<v Sam>back. Those are completely different
+
+cue-051
+00:01:53.860 --> 00:01:55.960 position:80% align:end
+<v Sam>incentives, and customers feel the
+
+52
+00:01:56.160 --> 00:01:58.260 line:15% align:start
+<v Sam>difference in the first reply.
+
+00:01:58.760 --> 00:02:00.860 align:start
+<v Priya>Let&#x27;s talk numbers, because you&#x27;re
+
+cue-054
+00:02:01.060 --> 00:02:03.160
+<v Priya>weirdly obsessed with them. What
+
+55
+00:02:03.360 --> 00:02:05.040 position:80% align:end
+<v Priya>do you actually measure?
+
+00:02:05.540 --> 00:02:07.640 line:15% align:start
+<v Sam>The two I stare at
+
+cue-057
+00:02:07.840 --> 00:02:09.940 align:start
+<v Sam>every morning are first response
+
+58
+00:02:10.140 --> 00:02:12.240
+<v Sam>time and customer satisfaction, what
+
+00:02:12.440 --> 00:02:14.540 position:80% align:end
+<v Sam>everyone calls <c.kw>CSAT.</c> When I
+
+cue-060
+00:02:14.740 --> 00:02:16.840 line:15% align:start
+<v Sam>started, our median first response
+
+NOTE sponsor read omitted from this transcript
+
+61
+00:02:17.040 --> 00:02:19.140 align:start
+<v Sam>time was over a full
+
+00:02:19.340 --> 00:02:21.440
+<v Sam>business day, which is embarrassing.
+
+cue-063
+00:02:21.640 --> 00:02:23.740 position:80% align:end
+<v Sam>Today we answer the median
+
+64
+00:02:23.940 --> 00:02:26.040 line:15% align:start
+<v Sam>ticket in under four minutes
+
+00:02:26.240 --> 00:02:28.340 align:start
+<v Sam>during business hours, live, in
+
+cue-066
+00:02:28.540 --> 00:02:29.800
+<v Sam>the chat window.
+
+67
+00:02:30.300 --> 00:02:32.400 position:80% align:end
+<v Priya>Under four minutes. How did
+
+00:02:32.600 --> 00:02:34.700 line:15% align:start
+<v Priya>you pull the number down
+
+cue-069
+00:02:34.900 --> 00:02:36.100 align:start
+<v Priya>that dramatically?
+
+70
+00:02:36.600 --> 00:02:38.700
+<v Sam>Two ways. First, we killed
+
+00:02:38.900 --> 00:02:41.000 position:80% align:end
+<v Sam>email as the front door
+
+cue-072
+00:02:41.200 --> 00:02:43.300 line:15% align:start
+<v Sam>and moved everything to live
+
+73
+00:02:43.500 --> 00:02:45.600 align:start
+<v Sam>chat, so there&#x27;s no overnight
+
+00:02:45.800 --> 00:02:47.900
+<v Sam>black hole where a message
+
+cue-075
+00:02:48.100 --> 00:02:50.200 position:80% align:end
+<v Sam>just sits. Second, we built
+
+76
+00:02:50.400 --> 00:02:52.500 line:15% align:start
+<v Sam>a library of what we
+
+00:02:52.700 --> 00:02:54.800 align:start
+<v Sam>call <c.kw>macros,</c> pre written answers
+
+cue-078
+00:02:55.000 --> 00:02:57.100
+<v Sam>for the forty or so
+
+79
+00:02:57.300 --> 00:02:59.400 position:80% align:end
+<v Sam>questions that come up over
+
+00:02:59.600 --> 00:03:01.700 line:15% align:start
+<v Sam>and over. An agent picks
+
+cue-081
+00:03:01.900 --> 00:03:04.000 align:start
+<v Sam>a macro, personalizes two sentences,
+
+82
+00:03:04.200 --> 00:03:06.300
+<v Sam>and sends it in seconds
+
+00:03:06.500 --> 00:03:08.600 position:80% align:end
+<v Sam>instead of typing the same
+
+cue-084
+00:03:08.800 --> 00:03:10.900 line:15% align:start
+<v Sam>paragraph for the thousandth time.
+
+85
+00:03:11.400 --> 00:03:13.500 align:start
+<v Priya>Doesn&#x27;t a wall of canned
+
+00:03:13.700 --> 00:03:15.800
+<v Priya>responses make support feel robotic
+
+cue-087
+00:03:16.000 --> 00:03:17.200 position:80% align:end
+<v Priya>and cold?
+
+88
+00:03:17.700 --> 00:03:19.800 line:15% align:start
+<v Sam>It can, and that&#x27;s the
+
+00:03:20.000 --> 00:03:22.100 align:start
+<v Sam>trap. The rule on my
+
+cue-090
+00:03:22.300 --> 00:03:24.400
+<v Sam>team is that a macro
+
+91
+00:03:24.600 --> 00:03:26.700 position:80% align:end
+<v Sam>is a starting draft, never
+
+00:03:26.900 --> 00:03:29.000 line:15% align:start
+<v Sam>the final message. You always
+
+cue-093
+00:03:29.200 --> 00:03:31.300 align:start
+<v Sam>add the customer&#x27;s name, reference
+
+94
+00:03:31.500 --> 00:03:33.600
+<v Sam>their specific situation, and delete
+
+00:03:33.800 --> 00:03:35.900 position:80% align:end
+<v Sam>anything that doesn&#x27;t apply. The
+
+cue-096
+00:03:36.100 --> 00:03:38.200 line:15% align:start
+<v Sam>macro saves the typing, the
+
+97
+00:03:38.400 --> 00:03:40.500 align:start
+<v Sam>human adds the judgment. Used
+
+00:03:40.700 --> 00:03:42.800
+<v Sam>lazily it feels like a
+
+cue-099
+00:03:43.000 --> 00:03:45.100 position:80% align:end
+<v Sam>vending machine, used well it
+
+100
+00:03:45.300 --> 00:03:47.400 line:15% align:start
+<v Sam>feels like a fast, sharp
+
+00:03:47.600 --> 00:03:48.800 align:start
+<v Sam>friend.
+
+cue-102
+00:03:49.300 --> 00:03:51.400
+<v Priya>What about the tickets that
+
+103
+00:03:51.600 --> 00:03:53.700 position:80% align:end
+<v Priya>never should have reached a
+
+00:03:53.900 --> 00:03:55.160 line:15% align:start
+<v Priya>human at all?
+
+cue-105
+00:03:55.660 --> 00:03:57.760 align:start
+<v Sam>That&#x27;s the holy grail, <c.kw>deflection.</c>
+
+106
+00:03:57.960 --> 00:04:00.060
+<v Sam>We built a self serve
+
+00:04:00.260 --> 00:04:02.360 position:80% align:end
+<v Sam>help center, and right now
+
+cue-108
+00:04:02.560 --> 00:04:04.660 line:15% align:start
+<v Sam>it quietly resolves about thirty
+
+109
+00:04:04.860 --> 00:04:06.960 align:start
+<v Sam>percent of would be tickets
+
+00:04:07.160 --> 00:04:09.260
+<v Sam>before anyone hits the contact
+
+cue-111
+00:04:09.460 --> 00:04:11.560 position:80% align:end
+<v Sam>button. Somebody searches how do
+
+112
+00:04:11.760 --> 00:04:13.860 line:15% align:start
+<v Sam>I export my calendar, they
+
+00:04:14.060 --> 00:04:16.160 align:start
+<v Sam>find the article, they solve
+
+cue-114
+00:04:16.360 --> 00:04:18.460
+<v Sam>it themselves, and that conversation
+
+115
+00:04:18.660 --> 00:04:20.760 position:80% align:end
+<v Sam>never becomes a ticket. Every
+
+00:04:20.960 --> 00:04:23.060 line:15% align:start
+<v Sam>deflected ticket is one my
+
+cue-117
+00:04:23.260 --> 00:04:25.360 align:start
+<v Sam>team never has to touch.
+
+118
+00:04:25.860 --> 00:04:27.960
+<v Priya>You mentioned <c.kw>CSAT.</c> Where does
+
+00:04:28.160 --> 00:04:29.420 position:80% align:end
+<v Priya>that sit now?
+
+cue-120
+00:04:29.920 --> 00:04:32.020 line:15% align:start
+<v Sam>We run around ninety two
+
+121
+00:04:32.220 --> 00:04:34.320 align:start
+<v Sam>percent satisfied on the little
+
+00:04:34.520 --> 00:04:36.620
+<v Sam>thumbs up thumbs down survey
+
+cue-123
+00:04:36.820 --> 00:04:38.920 position:80% align:end
+<v Sam>after each chat. But honestly
+
+124
+00:04:39.120 --> 00:04:41.220 line:15% align:start
+<v Sam>I trust the written comments
+
+00:04:41.420 --> 00:04:43.520 align:start
+<v Sam>more than the percentage. A
+
+cue-126
+00:04:43.720 --> 00:04:45.820
+<v Sam>ninety two is nice on
+
+127
+00:04:46.020 --> 00:04:48.120 position:80% align:end
+<v Sam>a dashboard, but the sentence
+
+00:04:48.320 --> 00:04:50.420 line:15% align:start
+<v Sam>a customer types when they&#x27;re
+
+cue-129
+00:04:50.620 --> 00:04:52.720 align:start
+<v Sam>furious is the thing that
+
+130
+00:04:52.920 --> 00:04:55.020
+<v Sam>actually changes what we build
+
+00:04:55.220 --> 00:04:56.420 position:80% align:end
+<v Sam>next.
+
+cue-132
+00:04:56.920 --> 00:04:59.020 line:15% align:start
+<v Priya>Give me a story. A
+
+133
+00:04:59.220 --> 00:05:01.320 align:start
+<v Priya>specific ticket that changed the
+
+00:05:01.520 --> 00:05:02.720
+<v Priya>product.
+
+cue-135
+00:05:03.220 --> 00:05:05.320 position:80% align:end
+<v Sam>Sure. About a year ago
+
+136
+00:05:05.520 --> 00:05:07.620 line:15% align:start
+<v Sam>a clinic in a different
+
+00:05:07.820 --> 00:05:09.920 align:start
+<v Sam>time zone kept having appointments
+
+cue-138
+00:05:10.120 --> 00:05:12.220
+<v Sam>show up an hour off,
+
+139
+00:05:12.420 --> 00:05:14.520 position:80% align:end
+<v Sam>and they were livid, understandably,
+
+00:05:14.720 --> 00:05:16.820 line:15% align:start
+<v Sam>because a missed appointment is
+
+cue-141
+00:05:17.020 --> 00:05:19.120 align:start
+<v Sam>real money for them. My
+
+142
+00:05:19.320 --> 00:05:21.420
+<v Sam>support engineer didn&#x27;t just apologize
+
+00:05:21.620 --> 00:05:23.720 position:80% align:end
+<v Sam>and offer a refund. She
+
+cue-144
+00:05:23.920 --> 00:05:26.020 line:15% align:start
+<v Sam>reproduced it, traced it to
+
+145
+00:05:26.220 --> 00:05:28.320 align:start
+<v Sam>a nasty bug in how
+
+00:05:28.520 --> 00:05:30.620
+<v Sam>we handled daylight saving time,
+
+cue-147
+00:05:30.820 --> 00:05:32.920 position:80% align:end
+<v Sam>and we shipped a fix
+
+148
+00:05:33.120 --> 00:05:35.220 line:15% align:start
+<v Sam>that week. That one ticket
+
+00:05:35.420 --> 00:05:37.520 align:start
+<v Sam>protected every customer we hadn&#x27;t
+
+cue-150
+00:05:37.720 --> 00:05:38.980
+<v Sam>even signed yet.
+
+151
+00:05:39.480 --> 00:05:41.580 position:80% align:end
+<v Priya>So support fed straight back
+
+00:05:41.780 --> 00:05:42.980 line:15% align:start
+<v Priya>into engineering.
+
+cue-153
+00:05:43.480 --> 00:05:45.580 align:start
+<v Sam>That&#x27;s the whole loop, and
+
+154
+00:05:45.780 --> 00:05:47.880
+<v Sam>it&#x27;s the part most companies
+
+00:05:48.080 --> 00:05:50.180 position:80% align:end
+<v Sam>sever. Every Friday my support
+
+cue-156
+00:05:50.380 --> 00:05:52.480 line:15% align:start
+<v Sam>&amp; success leads bring the
+
+157
+00:05:52.680 --> 00:05:54.780 align:start
+<v Sam>five most common complaints of
+
+00:05:54.980 --> 00:05:57.080
+<v Sam>the week directly into the
+
+cue-159
+00:05:57.280 --> 00:05:59.380 position:80% align:end
+<v Sam>product planning meeting. Not a
+
+160
+00:05:59.580 --> 00:06:01.680 line:15% align:start
+<v Sam>summary six weeks later, the
+
+00:06:01.880 --> 00:06:03.980 align:start
+<v Sam>raw voice of the customer,
+
+cue-162
+00:06:04.180 --> 00:06:06.280
+<v Sam>that same week. Support isn&#x27;t
+
+163
+00:06:06.480 --> 00:06:08.580 position:80% align:end
+<v Sam>downstream of product for us,
+
+00:06:08.780 --> 00:06:10.460 line:15% align:start
+<v Sam>it&#x27;s the intake valve.
+
+cue-165
+00:06:10.960 --> 00:06:13.060 align:start
+<v Priya>Let&#x27;s talk about the hard
+
+166
+00:06:13.260 --> 00:06:15.360
+<v Priya>tickets. The angry ones. How
+
+00:06:15.560 --> 00:06:17.660 position:80% align:end
+<v Priya>do you coach a team
+
+cue-168
+00:06:17.860 --> 00:06:19.960 line:15% align:start
+<v Priya>to handle someone who&#x27;s yelling?
+
+169
+00:06:20.460 --> 00:06:22.560 align:start
+<v Sam>The first move is always
+
+00:06:22.760 --> 00:06:24.860
+<v Sam>to acknowledge the frustration before
+
+cue-171
+00:06:25.060 --> 00:06:27.160 position:80% align:end
+<v Sam>you touch the facts. People
+
+172
+00:06:27.360 --> 00:06:29.460 line:15% align:start
+<v Sam>need to feel heard before
+
+00:06:29.660 --> 00:06:31.760 align:start
+<v Sam>they can hear you. So
+
+cue-174
+00:06:31.960 --> 00:06:34.060
+<v Sam>the reply starts with something
+
+175
+00:06:34.260 --> 00:06:36.360 position:80% align:end
+<v Sam>like, that sounds genuinely frustrating,
+
+00:06:36.560 --> 00:06:38.660 line:15% align:start
+<v Sam>and I&#x27;d be upset too,
+
+cue-177
+00:06:38.860 --> 00:06:40.960 align:start
+<v Sam>and only then do we
+
+178
+00:06:41.160 --> 00:06:43.260
+<v Sam>get into what happened and
+
+00:06:43.460 --> 00:06:45.560 position:80% align:end
+<v Sam>how we&#x27;ll fix it. You
+
+cue-180
+00:06:45.760 --> 00:06:47.860 line:15% align:start
+<v Sam>cannot debug a customer who
+
+181
+00:06:48.060 --> 00:06:49.740 align:start
+<v Sam>doesn&#x27;t feel listened to.
+
+00:06:50.240 --> 00:06:52.340
+<v Priya>And when the customer is
+
+cue-183
+00:06:52.540 --> 00:06:53.740 position:80% align:end
+<v Priya>simply wrong?
+
+184
+00:06:54.240 --> 00:06:56.340 line:15% align:start
+<v Sam>You still start by making
+
+00:06:56.540 --> 00:06:58.640 align:start
+<v Sam>them feel heard, and then
+
+cue-186
+00:06:58.840 --> 00:07:00.940
+<v Sam>you gently show them the
+
+187
+00:07:01.140 --> 00:07:03.240 position:80% align:end
+<v Sam>path, never the scoreboard. Nobody
+
+00:07:03.440 --> 00:07:05.540 line:15% align:start
+<v Sam>has ever been argued into
+
+cue-189
+00:07:05.740 --> 00:07:07.840 align:start
+<v Sam>loving a product. If it
+
+190
+00:07:08.040 --> 00:07:10.140
+<v Sam>was their mistake, we fix
+
+00:07:10.340 --> 00:07:12.440 position:80% align:end
+<v Sam>it quietly and maybe we
+
+cue-192
+00:07:12.640 --> 00:07:14.740 line:15% align:start
+<v Sam>make the interface less confusing
+
+193
+00:07:14.940 --> 00:07:17.040 align:start
+<v Sam>so the next person doesn&#x27;t
+
+00:07:17.240 --> 00:07:19.340
+<v Sam>fall in the same hole.
+
+cue-195
+00:07:19.540 --> 00:07:21.640 position:80% align:end
+<v Sam>Their confusion is our design
+
+196
+00:07:21.840 --> 00:07:23.520 line:15% align:start
+<v Sam>bug, not their failure.
+
+00:07:24.020 --> 00:07:26.120 align:start
+<v Priya>What&#x27;s your policy on refunds?
+
+cue-198
+00:07:26.620 --> 00:07:28.720
+<v Sam>Generous and fast, on purpose.
+
+199
+00:07:28.920 --> 00:07:31.020 position:80% align:end
+<v Sam>If someone&#x27;s unhappy in the
+
+00:07:31.220 --> 00:07:33.320 line:15% align:start
+<v Sam>first thirty days, we refund
+
+cue-201
+00:07:33.520 --> 00:07:35.620 align:start
+<v Sam>without an interrogation. I decided
+
+202
+00:07:35.820 --> 00:07:37.920
+<v Sam>early that the goodwill from
+
+00:07:38.120 --> 00:07:40.220 position:80% align:end
+<v Sam>an easy refund is worth
+
+cue-204
+00:07:40.420 --> 00:07:42.520 line:15% align:start
+<v Sam>far more than the money
+
+205
+00:07:42.720 --> 00:07:44.820 align:start
+<v Sam>we claw back by making
+
+00:07:45.020 --> 00:07:47.120
+<v Sam>it painful. An angry ex
+
+cue-207
+00:07:47.320 --> 00:07:49.420 position:80% align:end
+<v Sam>customer tells fifteen people, a
+
+208
+00:07:49.620 --> 00:07:51.720 line:15% align:start
+<v Sam>fairly refunded one often comes
+
+00:07:51.920 --> 00:07:53.600 align:start
+<v Sam>back in six months.
+
+cue-210
+00:07:54.100 --> 00:07:56.200
+<v Priya>If a brand new founder
+
+211
+00:07:56.400 --> 00:07:58.500 position:80% align:end
+<v Priya>is listening right now, drowning
+
+00:07:58.700 --> 00:08:00.800 line:15% align:start
+<v Priya>in their own inbox, what&#x27;s
+
+cue-213
+00:08:01.000 --> 00:08:03.100 align:start
+<v Priya>the one thing you&#x27;d tell
+
+214
+00:08:03.300 --> 00:08:04.500
+<v Priya>them?
+
+00:08:05.000 --> 00:08:07.100 position:80% align:end
+<v Sam>Stay in the inbox longer
+
+cue-216
+00:08:07.300 --> 00:08:09.400 line:15% align:start
+<v Sam>than is comfortable. Every founder
+
+217
+00:08:09.600 --> 00:08:11.700 align:start
+<v Sam>wants to hire away the
+
+00:08:11.900 --> 00:08:14.000
+<v Sam>support job on day one
+
+cue-219
+00:08:14.200 --> 00:08:16.300 position:80% align:end
+<v Sam>because it&#x27;s exhausting and it
+
+220
+00:08:16.500 --> 00:08:18.600 line:15% align:start
+<v Sam>feels beneath the big vision.
+
+00:08:18.800 --> 00:08:20.900 align:start
+<v Sam>But that inbox is the
+
+cue-222
+00:08:21.100 --> 00:08:23.200
+<v Sam>clearest, least filtered signal you
+
+223
+00:08:23.400 --> 00:08:25.500 position:80% align:end
+<v Sam>will ever get about your
+
+00:08:25.700 --> 00:08:27.800 line:15% align:start
+<v Sam>product. Delegate it too early
+
+cue-225
+00:08:28.000 --> 00:08:30.100 align:start
+<v Sam>and you go deaf right
+
+226
+00:08:30.300 --> 00:08:32.400
+<v Sam>when you most need to
+
+00:08:32.600 --> 00:08:33.800 position:80% align:end
+<v Sam>hear.
+
+cue-228
+00:08:34.300 --> 00:08:36.400 line:15% align:start
+<v Priya>Founder in the inbox. I
+
+229
+00:08:36.600 --> 00:08:38.700 align:start
+<v Priya>love it. Sam Okoro of
+
+00:08:38.900 --> 00:08:41.000
+<v Priya>Larksail, thank you for being
+
+cue-231
+00:08:41.200 --> 00:08:43.300 position:80% align:end
+<v Priya>so specific with us today.
+
+232
+00:08:43.800 --> 00:08:45.900 line:15% align:start
+<v Sam>Thank you for having me,
+
+00:08:46.100 --> 00:08:48.200 align:start
+<v Sam>Priya. Go answer a ticket,
+
+cue-234
+00:08:48.400 --> 00:08:49.600
+<v Sam>everyone.
