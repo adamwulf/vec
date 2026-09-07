@@ -62,6 +62,10 @@ public struct ImageOCR: ImageTextRecognizer {
     /// or the reading-order grouping change so stale sidecars are ignored.
     public static let version: Int = 1
 
+    /// Pin the Vision request algorithm rather than inheriting a future OS
+    /// default revision under an unchanged persisted extraction mode.
+    public static let requestRevision: Int = VNRecognizeTextRequestRevision3
+
     /// Longest edge, in pixels, that a decoded frame is downsampled to before
     /// recognition. Bounds peak memory on very large images. Text that stays
     /// legible after scaling to this size is recognized; extremely small text
@@ -94,6 +98,7 @@ public struct ImageOCR: ImageTextRecognizer {
             let (cgImage, orientation) = try Self.loadFirstFrame(from: imageURL)
 
             let request = VNRecognizeTextRequest()
+            request.revision = Self.requestRevision
             request.recognitionLevel = .accurate
             request.usesLanguageCorrection = true
             // Let Vision pick the language(s); do not pin recognitionLanguages
