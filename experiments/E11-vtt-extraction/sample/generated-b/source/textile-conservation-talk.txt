@@ -1,0 +1,21 @@
+# SYNTHETIC source prose — museum textile conservation gallery talk (monologue)
+# Fictional demonstration for the E11 retrieval experiment. Not a recording of
+# any real talk, person, museum, object, or product. Names, dates, and figures
+# are invented. Voice mode: monologue, single NAMED voice: Dr. Halvorsen.
+# One block; block starts "Dr. Halvorsen: ...".
+
+Dr. Halvorsen: Welcome, everyone, to the textile conservation studio here at the Ashfield Museum. The garment on the table behind me is the reason we are all whispering. It is a court mantua of Spitalfields silk, woven around 1740, and it is the single most fragile object in our entire collection.
+
+Dr. Halvorsen: The first enemy of a silk this old is not moths, it is the weather. We hold this room at a steady 50 percent relative humidity all year, because silk that dries out grows brittle and cracks, while silk kept too damp invites mould.
+
+Dr. Halvorsen: The second enemy is light. Light fades the dyes and, worse, it slowly rots the silk fibres themselves. That is why the gallery is kept so dim. We cap the light falling on this mantua at just 50 lux, roughly the brightness of candlelight, and we rotate it off display for long rests in the dark.
+
+Dr. Halvorsen: When a garment like this arrives with an insect infestation, we never reach for a spray. Instead we seal it in a sealed chamber and flush all the oxygen out with nitrogen gas. That anoxic treatment suffocates every egg and larva without putting a single harsh chemical near the historic fibres.
+
+Dr. Halvorsen: Now, the actual mending. Where the silk has split, we support it from behind with a whisper thin sheer fabric called crepeline, dyed to match, and we anchor the fragile threads down with rows of tiny couching stitches in a fine silk thread you can barely see.
+
+Dr. Halvorsen: For the most powdery, shattered areas, stitching alone is too risky, so we turn to a heat activated conservation adhesive, coated onto a fine net and tacked down with a warm spatula. Every material we introduce is chosen to be reversible, so a future conservator can undo our work without harming the original.
+
+Dr. Halvorsen: Everything this mantua touches in storage is acid free. It rests on acid free tissue, padded into gentle rolls rather than folded, because a hard crease in silk this brittle would eventually snap the fibres clean through.
+
+Dr. Halvorsen: Before we touch a single thread, though, we study the object. We identify the original dyes under the microscope, we map every earlier repair, and only then do we decide how little we can safely do. In conservation the guiding rule is always the same: do the minimum, and make it reversible.

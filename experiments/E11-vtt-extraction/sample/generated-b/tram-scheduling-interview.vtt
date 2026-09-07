@@ -1,0 +1,219 @@
+WEBVTT
+Language: en
+
+NOTE
+SYNTHETIC demonstration captions generated for the E11 retrieval
+experiment. Fictional content only: no real event, person, place, or
+product. Human-readable source prose lives in source/tram-scheduling-interview.txt.
+
+REGION
+id:planner
+width:45%
+lines:3
+regionanchor:100%,100%
+viewportanchor:95%,90%
+scroll:up
+
+1
+00:00.500 --> 00:03.100 region:planner align:start
+<v.host Interviewer>I&apos;m here with Lena Fischer,
+
+2
+00:03.100 --> 00:06.200
+<v Interviewer>who plans the tram timetable for the city of Nordhavn.
+
+3
+00:06.200 --> 00:09.100
+<v Interviewer>Lena, thanks for making time.
+
+4
+00:09.100 --> 00:12.500
+<v Interviewer>Where does a schedule even begin?
+
+5
+00:17.500 --> 00:20.200 align:end
+<v Lena Fischer>It begins with demand.
+
+6
+00:20.200 --> 00:22.800
+<v Lena Fischer>On our busiest line,
+
+7
+00:22.800 --> 00:25.900
+<v Lena Fischer><b>Line&nbsp;4</b> out to Kastellhoj,
+
+8
+00:25.900 --> 00:28.800
+<v Lena Fischer>we run a tram every <b>6&nbsp;minutes</b> at the morning peak,
+
+9
+00:28.800 --> 00:32.200 line:-1
+<v Lena Fischer>and then we stretch the headway back out to 12&nbsp;minutes
+
+10
+00:32.200 --> 00:34.900
+<v Lena Fischer>once the rush is over.
+
+11
+00:39.900 --> 00:42.500
+<v Interviewer>A tram every six minutes sounds relentless to plan for.
+
+12
+00:42.500 --> 00:45.600
+<v Interviewer>How do you keep them evenly spaced?
+
+13
+00:50.600 --> 00:53.500 region:planner align:start
+<v Lena Fischer>The enemy is bunching,
+
+14
+00:53.500 --> 00:56.900
+<v Lena Fischer>where a small delay lets one tram fall back and
+
+15
+00:56.900 --> 00:59.600
+<v Lena Fischer>catch the crowd meant for the next one.
+
+16
+00:59.600 --> 01:02.200
+<v Lena Fischer>We fight it with a little timetable padding,
+
+17
+01:02.200 --> 01:05.300 align:end
+<v Lena Fischer>a bit of slack built into the running time,
+
+18
+01:05.300 --> 01:08.200
+<v Lena Fischer>and with a short turn at the <i>07:42</i> departure that
+
+19
+01:08.200 --> 01:11.600
+<v Lena Fischer>turns back early at Vestport depot.
+
+20
+01:16.600 --> 01:19.300
+<v Interviewer>What about the intersections?
+
+21
+01:19.300 --> 01:21.900 line:-1
+<v Interviewer>The trams seem to sail straight through downtown.
+
+22
+01:26.900 --> 01:30.000
+<v Lena Fischer>That is <i>signal&nbsp;priority</i>. Every tram carries a transponder that asks
+
+23
+01:30.000 --> 01:32.900
+<v Lena Fischer>the traffic light ahead to hold its green a few
+
+24
+01:32.900 --> 01:36.300
+<v Lena Fischer>extra seconds, and across the central corridor that alone saves
+
+25
+01:36.300 --> 01:39.000 region:planner align:start
+<v Lena Fischer>us close to 90 seconds per trip.
+
+26
+01:44.000 --> 01:46.600
+<v Interviewer>You mentioned the fleet earlier.
+
+27
+01:51.600 --> 01:54.700
+<v Lena Fischer>Yes, the whole of <b>Line&nbsp;4</b> now runs the <b>CityRunner&nbsp;400</b>,
+
+28
+01:54.700 --> 01:57.600
+<v Lena Fischer>a long articulated tram that bends in the middle and
+
+29
+01:57.600 --> 02:01.000 align:end
+<v Lena Fischer>carries almost twice the passengers of the old cars.
+
+30
+02:01.000 --> 02:03.700
+<v Lena Fischer>Higher capacity per tram is what lets us hold that
+
+31
+02:03.700 --> 02:06.300
+<v Lena Fischer>six minute headway without flooding the street with vehicles.
+
+32
+02:11.300 --> 02:14.400
+<v Interviewer>Is there any stretch of track that gives you trouble?
+
+33
+02:19.400 --> 02:22.300 line:-1
+<v Lena Fischer>The <i>Bjornsson&nbsp;curve</i>, just south of the river,
+
+34
+02:22.300 --> 02:25.700
+<v Lena Fischer>is a genuinely tight radius,
+
+35
+02:25.700 --> 02:28.400
+<v Lena Fischer>so every tram has to crawl through it at walking
+
+36
+02:28.400 --> 02:31.000
+<v Lena Fischer>pace. We simply write that slow section straight into the
+
+37
+02:31.000 --> 02:34.100 region:planner align:start
+<v Lena Fischer>timetable rather than pretend the trams can take it at
+
+38
+02:34.100 --> 02:37.000
+<v Lena Fischer>speed.
+
+39
+02:42.000 --> 02:45.400
+<v Interviewer>How do you even know if the plan is working?
+
+40
+02:50.400 --> 02:53.100
+<v Lena Fischer>We measure on time performance every single day,
+
+41
+02:53.100 --> 02:55.700 align:end
+<v Lena Fischer>and right now <b>Line&nbsp;4</b> sits at about 92&#37;,
+
+42
+02:55.700 --> 02:58.800
+<v Lena Fischer>meaning nine trams in ten arrive within our window.
+
+43
+02:58.800 --> 03:01.700
+<v Lena Fischer>The other headache is <i>interlining</i>,
+
+44
+03:01.700 --> 03:05.100
+<v Lena Fischer>where two routes share the same central tracks,
+
+45
+03:05.100 --> 03:07.800 line:-1
+<v Lena Fischer>so a delay on one route quietly infects the other.
+
+46
+03:12.800 --> 03:15.400
+<v Interviewer>Last question. How many people ride <b>Line&nbsp;4</b> on a normal
+
+47
+03:15.400 --> 03:18.500
+<v Interviewer>day?
+
+48
+03:23.500 --> 03:26.400
+<v Lena Fischer>On a typical weekday we count roughly 18,000&nbsp;boardings on <b>Line&nbsp;4</b>
+
+49
+03:26.400 --> 03:29.800 region:planner align:start
+<v Lena Fischer>alone, and every one of those trips depends on a
+
+50
+03:29.800 --> 03:32.500
+<v Lena Fischer>timetable that most riders will thankfully never have to think
+
+51
+03:32.500 --> 03:35.100
+<v Lena Fischer>about.

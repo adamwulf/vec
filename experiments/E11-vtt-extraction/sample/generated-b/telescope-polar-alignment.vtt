@@ -1,0 +1,172 @@
+WEBVTT Meridian GEM-28 alignment
+
+NOTE
+SYNTHETIC demonstration captions generated for the E11 retrieval
+experiment. Fictional content only: no real event, person, place, or
+product. Human-readable source prose lives in source/telescope-polar-alignment.txt.
+
+STYLE
+::cue(.reticle) { color: aqua; }
+::cue(.tool) { color: orange; }
+
+00:00.500 --> 00:01.600 align:start
+Tonight <00:00.775>we <00:01.050>polar <00:01.325>align <00:01.600>the
+
+00:01.600 --> 00:03.000
+Meridian <00:01.880>GEM-28 <00:02.160>equatorial <00:02.440>mount, <00:02.720>and <00:03.000>then
+
+00:03.000 --> 00:04.200
+collimate <00:03.200>the <00:03.400>Corvus <00:03.600>eight <00:03.800>inch <00:04.000>Newtonian <00:04.200>that
+
+00:04.200 --> 00:05.800
+rides <00:04.600>on <00:05.000>top <00:05.400>of <00:05.800>it.
+
+00:10.800 --> 00:12.100 line:90% align:center
+Start <00:11.060>with <00:11.320>the <00:11.580>mount <00:11.840>level <00:12.100>and
+
+00:12.100 --> 00:13.200
+pointed <00:12.467>at <00:12.833>true <00:13.200>north.
+
+00:13.200 --> 00:14.600
+Set <00:13.480>the <00:13.760>latitude <00:14.040>scale <00:14.320>on <00:14.600>the
+
+00:14.600 --> 00:15.800
+altitude <00:14.900>bolt <00:15.200>to <00:15.500>41.5&#xB0; <00:15.800>for
+
+00:15.800 --> 00:17.400 position:20%
+our <00:16.200>site <00:16.600>here <00:17.000>at <00:17.400>Larkspur
+
+00:17.400 --> 00:18.700
+Ridge, <00:17.833>and <00:18.267>lock <00:18.700>it.
+
+00:23.700 --> 00:24.800
+Now <00:23.920>look <00:24.140>through <00:24.360>the <00:24.580>polar <00:24.800>scope
+
+00:24.800 --> 00:26.200
+in <00:25.033>the <00:25.267>axis <00:25.500>of <00:25.733>the <00:25.967>mount. <00:26.200>You
+
+00:26.200 --> 00:27.400 align:start
+will <00:26.500>see <00:26.800>an <00:27.100>etched <00:27.400>reticle
+
+00:27.400 --> 00:29.000
+with <00:27.720>a <00:28.040>small <00:28.360>offset <00:28.680>circle. <00:29.000>Place
+
+00:29.000 --> 00:30.300
+<c.reticle>Polaris</c> <00:29.433>exactly <00:29.867>on <00:30.300>that
+
+00:30.300 --> 00:31.400
+circle, <00:30.520>not <00:30.740>in <00:30.960>the <00:31.180>center, <00:31.400>using
+
+00:31.400 --> 00:32.800 line:90% align:center
+only <00:31.750>the <00:32.100>two <00:32.450>adjustment <00:32.800>bolts.
+
+00:37.800 --> 00:39.000
+The <00:38.100>azimuth <00:38.400>bolts <00:38.700>swing <00:39.000>the
+
+00:39.000 --> 00:40.600
+whole <00:39.320>mount <00:39.640>left <00:39.960>and <00:40.280>right, <00:40.600>and
+
+00:40.600 --> 00:41.900
+the <00:40.817>altitude <00:41.033>bolt <00:41.250>nudges <00:41.467>it <00:41.683>up <00:41.900>and
+
+00:41.900 --> 00:43.000 position:20%
+down. <00:42.175>Work <00:42.450>back <00:42.725>and <00:43.000>forth
+
+00:43.000 --> 00:44.400
+until <00:43.280><c.reticle>Polaris</c> <00:43.560>drops <00:43.840>right <00:44.120>onto <00:44.400>the
+
+00:44.400 --> 00:45.600
+mark. <00:44.800>That <00:45.200>gets <00:45.600>you
+
+00:45.600 --> 00:47.200
+within <00:46.400>a <00:47.200>few&nbsp;arcmin.
+
+00:52.200 --> 00:53.500 align:start
+For <00:52.460>long <00:52.720>exposure <00:52.980>photography <00:53.240>we <00:53.500>go
+
+00:53.500 --> 00:54.600
+further <00:53.775>with <00:54.050><i>drift&nbsp;alignment</i>. <00:54.325>Point <00:54.600>at
+
+00:54.600 --> 00:56.000
+a <00:54.950>star <00:55.300>near <00:55.650>the <00:56.000>meridian,
+
+00:56.000 --> 00:57.200
+watch <00:56.240>it <00:56.480>drift <00:56.720>north <00:56.960>or <00:57.200>south
+
+00:57.200 --> 00:58.800 line:90% align:center
+over <00:57.467>a <00:57.733>minute, <00:58.000>and <00:58.267>correct <00:58.533>until <00:58.800>the
+
+00:58.800 --> 01:00.100
+drift <00:59.125>stops <00:59.450>cold. <00:59.775>When <01:00.100>the
+
+01:00.100 --> 01:01.200
+guiding <01:00.320>software <01:00.540>finally <01:00.760>reports <01:00.980>total <01:01.200>error
+
+01:01.200 --> 01:02.600
+&lt;&nbsp;0.6&nbsp;arcsec, <01:01.667>the <01:02.133>polar <01:02.600>alignment
+
+01:02.600 --> 01:03.800 position:20%
+is <01:03.800>done.
+
+01:08.800 --> 01:10.400
+Now <01:09.120>the <01:09.440>optics. <01:09.760>Drop <01:10.080>a <01:10.400><c.tool>Cheshire</c>
+
+01:10.400 --> 01:11.700
+sighting <01:10.725>tube <01:11.050>into <01:11.375>the <01:11.700>focuser
+
+01:11.700 --> 01:12.800
+and <01:11.975>look <01:12.250>for <01:12.525>the <01:12.800>reflections
+
+01:12.800 --> 01:14.200 align:start
+stacked <01:13.080>like <01:13.360>a <01:13.640>tunnel <01:13.920>of <01:14.200>rings.
+
+01:14.200 --> 01:15.400
+Center <01:14.400>the <01:14.600>secondary <01:14.800>mirror <01:15.000>under <01:15.200>the <01:15.400>focuser
+
+01:15.400 --> 01:17.000
+with <01:15.800>its <01:16.200>small <01:16.600>central <01:17.000>screw
+
+01:17.000 --> 01:18.300
+until <01:17.325>its <01:17.650>outline <01:17.975>looks <01:18.300>round.
+
+01:23.300 --> 01:24.400 line:90% align:center
+Then <01:23.520>use <01:23.740>the <01:23.960>three <01:24.180>collimation <01:24.400>screws
+
+01:24.400 --> 01:25.800
+on <01:24.867>the <01:25.333>back <01:25.800>of
+
+01:25.800 --> 01:27.000
+the <01:26.040>primary <01:26.280>to <01:26.520>walk <01:26.760>the <01:27.000>little
+
+01:27.000 --> 01:28.600
+<i>doughnut</i>, <01:27.400>the <01:27.800>ring <01:28.200>marker <01:28.600>glued
+
+01:28.600 --> 01:29.900 position:20%
+to <01:28.925>the <01:29.250>center <01:29.575>of <01:29.900>the
+
+01:29.900 --> 01:31.000
+primary, <01:30.267>into <01:30.633>the <01:31.000>crosshairs.
+
+01:36.000 --> 01:37.400
+A <01:36.280>laser <01:36.560>collimator <01:36.840>makes <01:37.120>that <01:37.400>step
+
+01:37.400 --> 01:38.600
+faster, <01:37.600>but <01:37.800>always <01:38.000>finish <01:38.200>by <01:38.400>star <01:38.600>testing
+
+01:38.600 --> 01:40.200 align:start
+on <01:39.000>a <01:39.400>real <01:39.800>star, <01:40.200>defocusing
+
+01:40.200 --> 01:41.500
+until <01:40.460>you <01:40.720>see <01:40.980>even <01:41.240>rings <01:41.500>around
+
+01:41.500 --> 01:42.600
+a <01:41.867>central <01:42.233>dot. <01:42.600>Get
+
+01:42.600 --> 01:44.000
+it <01:42.880>all <01:43.160>concentric <01:43.440>and <01:43.720>the <01:44.000>Corvus
+
+01:44.000 --> 01:45.200 line:90% align:center
+will <01:44.300>show <01:44.600>the <01:44.900>cloud <01:45.200>bands
+
+01:45.200 --> 01:46.800
+on <01:46.000>Jupiter <01:46.800>tonight.

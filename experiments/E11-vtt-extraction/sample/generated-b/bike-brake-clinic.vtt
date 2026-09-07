@@ -1,0 +1,1161 @@
+WEBVTT - Ridgeline Co-op brake clinic
+Kind: captions
+Language: en
+
+NOTE
+SYNTHETIC demonstration captions generated for the E11 retrieval
+experiment. Fictional content only: no real event, person, place, or
+product. Human-readable source prose lives in source/bike-brake-clinic.txt.
+
+STYLE
+::cue { font-family: sans-serif; }
+::cue(.tool) { color: yellow; }
+::cue(.spec) { color: lime; }
+::cue(.warn) { color: red; font-weight: bold; }
+
+1
+00:00:00.500 --> 00:00:01.500 align:start position:12%
+<v.host Priya Raman>Alright everyone, welcome
+
+2
+00:00:01.500 --> 00:00:02.750
+<v Priya Raman>to the Tuesday night
+
+3
+00:00:02.750 --> 00:00:04.250
+<v Priya Raman>maintenance clinic here at the
+
+4
+00:00:04.250 --> 00:00:05.500
+<v Priya Raman>Ridgeline Community Bike Co-op.
+
+5
+00:00:05.500 --> 00:00:07.250
+<v Priya Raman>Tonight we are servicing brakes, and
+
+6
+00:00:07.250 --> 00:00:08.250
+<v Priya Raman>by the time
+
+7
+00:00:08.250 --> 00:00:09.250 line:-2
+<v Priya Raman>you leave you should be
+
+8
+00:00:09.250 --> 00:00:10.500
+<v Priya Raman>able to bleed a
+
+9
+00:00:10.500 --> 00:00:12.000
+<v Priya Raman>hydraulic disc brake
+
+10
+00:00:12.000 --> 00:00:13.250
+<v Priya Raman>and swap a set
+
+11
+00:00:13.250 --> 00:00:15.000
+<v Priya Raman>of worn pads without any
+
+12
+00:00:15.000 --> 00:00:16.000
+<v Priya Raman>panic.
+
+13
+00:00:21.000 --> 00:00:22.000 align:middle size:80%
+<v Priya Raman>The bike on the
+
+14
+00:00:22.000 --> 00:00:23.250
+<v Priya Raman>stand is my own commuter. It
+
+15
+00:00:23.250 --> 00:00:24.750
+<v Priya Raman>runs Halcyon XT
+
+16
+00:00:24.750 --> 00:00:26.000
+<v Priya Raman>hydraulic brakes, which are a
+
+17
+00:00:26.000 --> 00:00:27.750
+<v Priya Raman>mineral oil system, so
+
+18
+00:00:27.750 --> 00:00:28.750
+<v Priya Raman>please hold onto
+
+19
+00:00:28.750 --> 00:00:29.750 align:end
+<v Priya Raman>that detail because it
+
+20
+00:00:29.750 --> 00:00:31.000
+<v Priya Raman>matters enormously for everything we
+
+21
+00:00:31.000 --> 00:00:32.500
+<v Priya Raman>do tonight.
+
+22
+00:00:37.500 --> 00:00:38.750
+<v Dave Okafor>Why does the fluid
+
+23
+00:00:38.750 --> 00:00:40.500
+<v Dave Okafor>type matter so much? Isn&apos;t brake
+
+24
+00:00:40.500 --> 00:00:41.500
+<v Dave Okafor>fluid just brake
+
+25
+00:00:41.500 --> 00:00:42.500 position:50%,line-left
+<v Dave Okafor>fluid?
+
+26
+00:00:47.500 --> 00:00:48.750
+<v Priya Raman>Great question, Dave. Mineral oil
+
+27
+00:00:48.750 --> 00:00:50.250
+<v Priya Raman>and DOT fluid are
+
+28
+00:00:50.250 --> 00:00:51.500
+<v Priya Raman>not interchangeable. <c.warn>DOT&nbsp;5.1</c>
+
+29
+00:00:51.500 --> 00:00:53.250
+<v Priya Raman>will destroy the seals
+
+30
+00:00:53.250 --> 00:00:54.250
+<v Priya Raman>in a mineral oil caliper,
+
+31
+00:00:54.250 --> 00:00:55.250 align:start position:12%
+<v Priya Raman>and mineral oil will
+
+32
+00:00:55.250 --> 00:00:56.500
+<v Priya Raman>swell the seals in a DOT
+
+33
+00:00:56.500 --> 00:00:58.000
+<v Priya Raman>system. Mixing them
+
+34
+00:00:58.000 --> 00:00:59.250
+<v Priya Raman>is the single most expensive
+
+35
+00:00:59.250 --> 00:01:01.000
+<v Priya Raman>mistake in this room.
+
+36
+00:01:06.000 --> 00:01:07.000
+<v Priya Raman>DOT fluid also
+
+37
+00:01:07.000 --> 00:01:08.000 line:-2
+<v Priya Raman>strips paint. If you
+
+38
+00:01:08.000 --> 00:01:09.250
+<v Priya Raman>drip it on the frame,
+
+39
+00:01:09.250 --> 00:01:10.750
+<v Priya Raman>wipe it immediately with
+
+40
+00:01:10.750 --> 00:01:12.000
+<v Priya Raman>isopropyl alcohol. Mineral oil is gentler
+
+41
+00:01:12.000 --> 00:01:13.750
+<v Priya Raman>on paint, but
+
+42
+00:01:13.750 --> 00:01:14.750
+<v Priya Raman>you still keep it well
+
+43
+00:01:14.750 --> 00:01:15.750 align:middle size:80%
+<v Priya Raman>off the rotor &amp;
+
+44
+00:01:15.750 --> 00:01:17.000
+<v Priya Raman>pads.
+
+45
+00:01:22.000 --> 00:01:23.500
+<v Tomas>How do I
+
+46
+00:01:23.500 --> 00:01:24.750
+<v Tomas>even know which system
+
+47
+00:01:24.750 --> 00:01:26.500
+<v Tomas>my bike has?
+
+48
+00:01:31.500 --> 00:01:32.500
+<v Priya Raman>The lever body is usually
+
+49
+00:01:32.500 --> 00:01:33.500 align:end
+<v Priya Raman>printed with either the
+
+50
+00:01:33.500 --> 00:01:34.750
+<v Priya Raman>word mineral or the DOT rating.
+
+51
+00:01:34.750 --> 00:01:36.250
+<v Priya Raman>When in doubt,
+
+52
+00:01:36.250 --> 00:01:37.500
+<v Priya Raman>check the manufacturer bleed manual
+
+53
+00:01:37.500 --> 00:01:39.250
+<v Priya Raman>before you open a
+
+54
+00:01:39.250 --> 00:01:40.250
+<v Priya Raman>single port.
+
+55
+00:01:45.250 --> 00:01:46.250 position:50%,line-left
+<v Priya Raman>Let&apos;s look at
+
+56
+00:01:46.250 --> 00:01:47.500
+<v Priya Raman>wear first, because most
+
+57
+00:01:47.500 --> 00:01:49.000
+<v Priya Raman>people bleed when they actually
+
+58
+00:01:49.000 --> 00:01:50.250
+<v Priya Raman>just need pads. A
+
+59
+00:01:50.250 --> 00:01:52.000
+<v Priya Raman>fresh pad is about <c.spec>2.3&nbsp;mm</c> thick
+
+60
+00:01:52.000 --> 00:01:53.000
+<v Priya Raman>including the metal
+
+61
+00:01:53.000 --> 00:01:54.000 align:start position:12%
+<v Priya Raman>backing. Once the friction material
+
+62
+00:01:54.000 --> 00:01:55.250
+<v Priya Raman>is worn down near
+
+63
+00:01:55.250 --> 00:01:56.750
+<v Priya Raman>the backing, the
+
+64
+00:01:56.750 --> 00:01:58.000
+<v Priya Raman>braking turns grabby and
+
+65
+00:01:58.000 --> 00:01:59.750
+<v Priya Raman>loud.
+
+66
+00:02:04.750 --> 00:02:05.750
+<v Dave Okafor>This one is definitely singing.
+
+67
+00:02:10.750 --> 00:02:11.750 line:-2
+<v Priya Raman>That squeal is your
+
+68
+00:02:11.750 --> 00:02:13.000
+<v Priya Raman>early warning. Now, the rotor. A
+
+69
+00:02:13.000 --> 00:02:14.500
+<v Priya Raman>new <c.spec>160&nbsp;mm</c> rotor
+
+70
+00:02:14.500 --> 00:02:15.750
+<v Priya Raman>on this bike starts around
+
+71
+00:02:15.750 --> 00:02:17.500
+<v Priya Raman><c.spec>1.8&nbsp;mm</c> thick. The minimum
+
+72
+00:02:17.500 --> 00:02:18.500
+<v Priya Raman>thickness stamped right
+
+73
+00:02:18.500 --> 00:02:19.500 align:middle size:80%
+<v Priya Raman>on the rotor is
+
+74
+00:02:19.500 --> 00:02:20.750
+<v Priya Raman><c.spec>1.5&nbsp;mm</c>. Below that you replace
+
+75
+00:02:20.750 --> 00:02:22.250
+<v Priya Raman>it, no arguments, because
+
+76
+00:02:22.250 --> 00:02:23.500
+<v Priya Raman>a thin rotor can warp or
+
+77
+00:02:23.500 --> 00:02:25.250
+<v Priya Raman>crack under braking
+
+78
+00:02:25.250 --> 00:02:26.250
+<v Priya Raman>heat.
+
+79
+00:02:31.250 --> 00:02:32.250 align:end
+<v Priya Raman>To pull the pads, first
+
+80
+00:02:32.250 --> 00:02:33.500
+<v Priya Raman>remove the wheel, then
+
+81
+00:02:33.500 --> 00:02:35.000
+<v Priya Raman>the retaining pin
+
+82
+00:02:35.000 --> 00:02:36.250
+<v Priya Raman>or the split pin,
+
+83
+00:02:36.250 --> 00:02:38.000
+<v Priya Raman>and then pinch the pads
+
+84
+00:02:38.000 --> 00:02:39.000
+<v Priya Raman>together and slide them
+
+85
+00:02:39.000 --> 00:02:40.000 position:50%,line-left
+<v Priya Raman>out along with the spring clip.
+
+86
+00:02:40.000 --> 00:02:41.250
+<v Priya Raman>Notice they come
+
+87
+00:02:41.250 --> 00:02:42.750
+<v Priya Raman>out as a little sandwich.
+
+88
+00:02:47.750 --> 00:02:49.000
+<v Tomas>Mine are uneven. One
+
+89
+00:02:49.000 --> 00:02:50.750
+<v Tomas>side looks a
+
+90
+00:02:50.750 --> 00:02:51.750
+<v Tomas>lot thinner than the
+
+91
+00:02:51.750 --> 00:02:52.750 align:start position:12%
+<v Tomas>other.
+
+92
+00:02:57.750 --> 00:02:59.000
+<v Priya Raman>That usually means a sticky
+
+93
+00:02:59.000 --> 00:03:00.500
+<v Priya Raman>piston on the thin
+
+94
+00:03:00.500 --> 00:03:01.750
+<v Priya Raman>side. We will push both pistons
+
+95
+00:03:01.750 --> 00:03:03.500
+<v Priya Raman>back and clean
+
+96
+00:03:03.500 --> 00:03:04.500
+<v Priya Raman>them before the new pads
+
+97
+00:03:04.500 --> 00:03:05.500 line:-2
+<v Priya Raman>go in, otherwise the
+
+98
+00:03:05.500 --> 00:03:06.750
+<v Priya Raman>new set wears
+
+99
+00:03:06.750 --> 00:03:08.250
+<v Priya Raman>crooked too.
+
+100
+00:03:13.250 --> 00:03:14.500
+<v Priya Raman>Here is a habit
+
+101
+00:03:14.500 --> 00:03:16.250
+<v Priya Raman>that saves rotors and tempers.
+
+102
+00:03:16.250 --> 00:03:17.250
+<v Priya Raman>Never squeeze the lever
+
+103
+00:03:17.250 --> 00:03:18.250 align:middle size:80%
+<v Priya Raman>with the pads out and no
+
+104
+00:03:18.250 --> 00:03:19.500
+<v Priya Raman>spacer in place.
+
+105
+00:03:19.500 --> 00:03:21.000
+<v Priya Raman>The pistons will pop right
+
+106
+00:03:21.000 --> 00:03:22.250
+<v Priya Raman>out of the caliper,
+
+107
+00:03:22.250 --> 00:03:24.000
+<v Priya Raman>the fluid follows,
+
+108
+00:03:24.000 --> 00:03:25.000
+<v Priya Raman>and then you are
+
+109
+00:03:25.000 --> 00:03:26.000 align:end
+<v Priya Raman>into a much bigger repair.
+
+110
+00:03:31.000 --> 00:03:32.250
+<v Dave Okafor>So we put a
+
+111
+00:03:32.250 --> 00:03:33.750
+<v Dave Okafor><c.tool>bleed&nbsp;block</c> in first.
+
+112
+00:03:38.750 --> 00:03:40.000
+<v Priya Raman>Exactly. The yellow <c.tool>bleed&nbsp;block</c>, or the
+
+113
+00:03:40.000 --> 00:03:41.750
+<v Priya Raman>plastic spacer that
+
+114
+00:03:41.750 --> 00:03:42.750
+<v Priya Raman>shipped in the box. It
+
+115
+00:03:42.750 --> 00:03:43.750 position:50%,line-left
+<v Priya Raman>holds the pistons at
+
+116
+00:03:43.750 --> 00:03:45.000
+<v Priya Raman>the correct spacing
+
+117
+00:03:45.000 --> 00:03:46.500
+<v Priya Raman>while the caliper is
+
+118
+00:03:46.500 --> 00:03:47.750
+<v Priya Raman>open, so nothing walks out
+
+119
+00:03:47.750 --> 00:03:49.500
+<v Priya Raman>on you.
+
+120
+00:03:54.500 --> 00:03:55.500
+<v Priya Raman>Now let&apos;s talk about
+
+121
+00:03:55.500 --> 00:03:56.500 align:start position:12%
+<v Priya Raman>why we bleed at all. If
+
+122
+00:03:56.500 --> 00:03:57.750
+<v Priya Raman>the lever pulls
+
+123
+00:03:57.750 --> 00:03:59.250
+<v Priya Raman>almost to the bar and
+
+124
+00:03:59.250 --> 00:04:00.500
+<v Priya Raman>feels soft, like a
+
+125
+00:04:00.500 --> 00:04:02.250
+<v Priya Raman>banana, that spongy
+
+126
+00:04:02.250 --> 00:04:03.250
+<v Priya Raman>dead travel is air
+
+127
+00:04:03.250 --> 00:04:04.250 line:-2
+<v Priya Raman>trapped in the line. Air
+
+128
+00:04:04.250 --> 00:04:05.500
+<v Priya Raman>compresses, fluid does not,
+
+129
+00:04:05.500 --> 00:04:07.000
+<v Priya Raman>so every bubble steals braking power.
+
+130
+00:04:12.000 --> 00:04:13.250
+<v Tomas>Mine has a
+
+131
+00:04:13.250 --> 00:04:15.000
+<v Tomas><i>bite&nbsp;point</i> that keeps moving. Some
+
+132
+00:04:15.000 --> 00:04:16.000
+<v Tomas>stops it grabs early,
+
+NOTE
+Camera cuts to the bleed-kit close-up; timing continues.
+
+133
+00:04:16.000 --> 00:04:17.000 align:middle size:80%
+<v Tomas>some stops it
+
+134
+00:04:17.000 --> 00:04:18.250
+<v Tomas>grabs late.
+
+135
+00:04:23.250 --> 00:04:24.750
+<v Priya Raman>A wandering <i>bite&nbsp;point</i> is
+
+136
+00:04:24.750 --> 00:04:26.000
+<v Priya Raman>the classic symptom of a
+
+137
+00:04:26.000 --> 00:04:27.750
+<v Priya Raman>small air bubble migrating
+
+138
+00:04:27.750 --> 00:04:28.750
+<v Priya Raman>around the system as the fluid
+
+139
+00:04:28.750 --> 00:04:29.750 align:end
+<v Priya Raman>warms and cools.
+
+140
+00:04:29.750 --> 00:04:31.000
+<v Priya Raman>A proper bleed will settle
+
+141
+00:04:31.000 --> 00:04:32.500
+<v Priya Raman>that right down.
+
+142
+00:04:37.500 --> 00:04:38.750
+<v Priya Raman>The tools tonight are
+
+143
+00:04:38.750 --> 00:04:40.500
+<v Priya Raman>a bleed kit
+
+144
+00:04:40.500 --> 00:04:41.500
+<v Priya Raman>with two syringes, the
+
+145
+00:04:41.500 --> 00:04:42.500 position:50%,line-left
+<v Priya Raman>correct mineral oil, a 2.5
+
+146
+00:04:42.500 --> 00:04:43.750
+<v Priya Raman>mm and a 3
+
+147
+00:04:43.750 --> 00:04:45.250
+<v Priya Raman>mm hex key, a torque wrench,
+
+148
+00:04:45.250 --> 00:04:46.500
+<v Priya Raman>nitrile gloves, and
+
+149
+00:04:46.500 --> 00:04:48.250
+<v Priya Raman>a big stack of blue
+
+150
+00:04:48.250 --> 00:04:49.250
+<v Priya Raman>shop towels. Brake fluid
+
+151
+00:04:49.250 --> 00:04:50.250 align:start position:12%
+<v Priya Raman>and skin are
+
+152
+00:04:50.250 --> 00:04:51.500
+<v Priya Raman>not friends.
+
+153
+00:04:56.500 --> 00:04:58.000
+<v Priya Raman>The bleed direction on
+
+154
+00:04:58.000 --> 00:04:59.250
+<v Priya Raman>this Halcyon caliper is bottom
+
+155
+00:04:59.250 --> 00:05:01.000
+<v Priya Raman>to top. We push
+
+156
+00:05:01.000 --> 00:05:02.000
+<v Priya Raman>clean fluid up from the caliper
+
+157
+00:05:02.000 --> 00:05:03.000 line:-2
+<v Priya Raman>bleed port and
+
+158
+00:05:03.000 --> 00:05:04.250
+<v Priya Raman>let the old dark fluid
+
+159
+00:05:04.250 --> 00:05:05.750
+<v Priya Raman>and the bubbles rise
+
+160
+00:05:05.750 --> 00:05:07.000
+<v Priya Raman>out through the
+
+161
+00:05:07.000 --> 00:05:08.750
+<v Priya Raman>funnel screwed into the
+
+162
+00:05:08.750 --> 00:05:09.750
+<v Priya Raman>lever.
+
+163
+00:05:14.750 --> 00:05:15.750 align:middle size:80%
+<v Dave Okafor>Why bottom to top and
+
+164
+00:05:15.750 --> 00:05:17.000
+<v Dave Okafor>not the other way?
+
+165
+00:05:22.000 --> 00:05:23.500
+<v Priya Raman>Because air rises. If you push
+
+166
+00:05:23.500 --> 00:05:24.750
+<v Priya Raman>fluid the same
+
+167
+00:05:24.750 --> 00:05:26.500
+<v Priya Raman>direction the bubbles already want
+
+168
+00:05:26.500 --> 00:05:27.500
+<v Priya Raman>to travel, you sweep
+
+169
+00:05:27.500 --> 00:05:28.500 align:end
+<v Priya Raman>everything out the
+
+170
+00:05:28.500 --> 00:05:29.750
+<v Priya Raman>top in one clean
+
+171
+00:05:29.750 --> 00:05:31.250
+<v Priya Raman>pass instead of chasing bubbles
+
+172
+00:05:31.250 --> 00:05:32.500
+<v Priya Raman>around in circles for
+
+173
+00:05:32.500 --> 00:05:34.250
+<v Priya Raman>an hour.
+
+174
+00:05:39.250 --> 00:05:40.250
+<v Priya Raman>Step one, level the lever so
+
+175
+00:05:40.250 --> 00:05:41.250 position:50%,line-left
+<v Priya Raman>the funnel at
+
+176
+00:05:41.250 --> 00:05:42.500
+<v Priya Raman>the top is the highest
+
+177
+00:05:42.500 --> 00:05:44.000
+<v Priya Raman>point in the whole
+
+178
+00:05:44.000 --> 00:05:45.250
+<v Priya Raman>system. Step two,
+
+179
+00:05:45.250 --> 00:05:47.000
+<v Priya Raman>crack the <c.tool>bleed&nbsp;nipple</c> at
+
+180
+00:05:47.000 --> 00:05:48.000
+<v Priya Raman>the caliper about a quarter
+
+181
+00:05:48.000 --> 00:05:49.000 align:start position:12%
+<v Priya Raman>turn. Step three, push
+
+182
+00:05:49.000 --> 00:05:50.250
+<v Priya Raman>the lower syringe slowly. Watch the
+
+183
+00:05:50.250 --> 00:05:51.750
+<v Priya Raman>funnel fill and
+
+184
+00:05:51.750 --> 00:05:53.000
+<v Priya Raman>watch closely for bubbles.
+
+185
+00:05:58.000 --> 00:05:59.750
+<v Tomas>I can already see little
+
+186
+00:05:59.750 --> 00:06:00.750
+<v Tomas>bubbles coming up into
+
+187
+00:06:00.750 --> 00:06:01.750 line:-2
+<v Tomas>the funnel.
+
+188
+00:06:06.750 --> 00:06:08.000
+<v Priya Raman>Perfect, that is
+
+189
+00:06:08.000 --> 00:06:09.500
+<v Priya Raman>exactly the trapped air
+
+190
+00:06:09.500 --> 00:06:10.750
+<v Priya Raman>leaving. Keep the pressure slow
+
+191
+00:06:10.750 --> 00:06:12.500
+<v Priya Raman>and steady. When the
+
+192
+00:06:12.500 --> 00:06:13.500
+<v Priya Raman>fluid arriving in the funnel runs
+
+193
+00:06:13.500 --> 00:06:14.500 align:middle size:80%
+<v Priya Raman>clean and bubble
+
+194
+00:06:14.500 --> 00:06:15.750
+<v Priya Raman>free, close the <c.tool>bleed&nbsp;nipple</c> before
+
+195
+00:06:15.750 --> 00:06:17.250
+<v Priya Raman>you ever pull the
+
+196
+00:06:17.250 --> 00:06:18.500
+<v Priya Raman>syringe off.
+
+197
+00:06:23.500 --> 00:06:25.250
+<v Priya Raman>Now a trick
+
+198
+00:06:25.250 --> 00:06:26.250
+<v Priya Raman>we call the <b>Larson&nbsp;twist</b>,
+
+199
+00:06:26.250 --> 00:06:27.250 align:end
+<v Priya Raman>named after a mechanic who
+
+200
+00:06:27.250 --> 00:06:28.500
+<v Priya Raman>taught in this room
+
+201
+00:06:28.500 --> 00:06:30.000
+<v Priya Raman>for years. With the funnel still
+
+202
+00:06:30.000 --> 00:06:31.250
+<v Priya Raman>on top, flick
+
+203
+00:06:31.250 --> 00:06:33.000
+<v Priya Raman>the lever quickly a dozen
+
+204
+00:06:33.000 --> 00:06:34.000
+<v Priya Raman>times, then gently tap
+
+205
+00:06:34.000 --> 00:06:35.000 position:50%,line-left
+<v Priya Raman>the caliper and
+
+206
+00:06:35.000 --> 00:06:36.250
+<v Priya Raman>the hose with a
+
+207
+00:06:36.250 --> 00:06:37.750
+<v Priya Raman>plastic handle. The vibration shakes
+
+208
+00:06:37.750 --> 00:06:39.000
+<v Priya Raman>loose the stubborn bubbles
+
+209
+00:06:39.000 --> 00:06:40.750
+<v Priya Raman>clinging in the corners.
+
+210
+00:06:45.750 --> 00:06:46.750
+<v Dave Okafor>That knocked out a whole burst
+
+211
+00:06:46.750 --> 00:06:47.750 align:start position:12%
+<v Dave Okafor>of bubbles at
+
+212
+00:06:47.750 --> 00:06:49.000
+<v Dave Okafor>once.
+
+213
+00:06:54.000 --> 00:06:55.500
+<v Priya Raman>Every single time. Those corner
+
+214
+00:06:55.500 --> 00:06:56.750
+<v Priya Raman>bubbles are exactly what
+
+215
+00:06:56.750 --> 00:06:58.500
+<v Priya Raman>people miss when
+
+216
+00:06:58.500 --> 00:06:59.500
+<v Priya Raman>a bleed feels almost
+
+217
+00:06:59.500 --> 00:07:00.500 line:-2
+<v Priya Raman>right but never quite firm.
+
+218
+00:07:00.500 --> 00:07:01.750
+<v Priya Raman>Once they are gone,
+
+219
+00:07:01.750 --> 00:07:03.250
+<v Priya Raman>seal the lever port, unscrew the
+
+220
+00:07:03.250 --> 00:07:04.500
+<v Priya Raman>funnel, and wipe
+
+221
+00:07:04.500 --> 00:07:06.250
+<v Priya Raman>the entire system down.
+
+222
+00:07:11.250 --> 00:07:12.250
+<v Priya Raman>Torque matters when you button
+
+223
+00:07:12.250 --> 00:07:13.250 align:middle size:80%
+<v Priya Raman>everything back up. The
+
+224
+00:07:13.250 --> 00:07:14.500
+<v Priya Raman>two caliper mounting
+
+225
+00:07:14.500 --> 00:07:16.000
+<v Priya Raman>bolts on this frame
+
+226
+00:07:16.000 --> 00:07:17.250
+<v Priya Raman>go to <b>6&nbsp;Nm</b>. The <c.tool>bleed&nbsp;nipple</c>
+
+227
+00:07:17.250 --> 00:07:19.000
+<v Priya Raman>itself is delicate, only
+
+228
+00:07:19.000 --> 00:07:20.000
+<v Priya Raman>about 4 Nm, so do not
+
+229
+00:07:20.000 --> 00:07:21.000 align:end
+<v Priya Raman>gorilla it or
+
+230
+00:07:21.000 --> 00:07:22.250
+<v Priya Raman>you will round off the
+
+231
+00:07:22.250 --> 00:07:23.750
+<v Priya Raman>flats and cry later.
+
+232
+00:07:28.750 --> 00:07:30.000
+<v Priya Raman>New pads go
+
+233
+00:07:30.000 --> 00:07:31.750
+<v Priya Raman>in with clean dry
+
+234
+00:07:31.750 --> 00:07:32.750
+<v Priya Raman>hands only. If you touch
+
+235
+00:07:32.750 --> 00:07:33.750 position:50%,line-left
+<v Priya Raman>the friction surface, the
+
+236
+00:07:33.750 --> 00:07:35.000
+<v Priya Raman>oil from your fingertips contaminates the
+
+237
+00:07:35.000 --> 00:07:36.500
+<v Priya Raman>pad, and a
+
+238
+00:07:36.500 --> 00:07:37.750
+<v Priya Raman>contaminated pad squeals forever and
+
+239
+00:07:37.750 --> 00:07:39.500
+<v Priya Raman>never grips right again.
+
+240
+00:07:39.500 --> 00:07:40.500
+<v Priya Raman>If that happens,
+
+241
+00:07:40.500 --> 00:07:41.500 align:start position:12%
+<v Priya Raman>the pad is scrap,
+
+242
+00:07:41.500 --> 00:07:42.750
+<v Priya Raman>full stop.
+
+243
+00:07:47.750 --> 00:07:49.250
+<v Tomas>How do I clean the
+
+244
+00:07:49.250 --> 00:07:50.500
+<v Tomas>rotor before I fit
+
+245
+00:07:50.500 --> 00:07:52.250
+<v Tomas>the new pads?
+
+246
+00:07:57.250 --> 00:07:58.250
+<v Priya Raman>Isopropyl alcohol on a clean rag,
+
+247
+00:07:58.250 --> 00:07:59.250 line:-2
+<v Priya Raman>nothing else. No
+
+248
+00:07:59.250 --> 00:08:00.500
+<v Priya Raman>spray degreaser that leaves a
+
+249
+00:08:00.500 --> 00:08:02.000
+<v Priya Raman>residue, no automotive brake
+
+250
+00:08:02.000 --> 00:08:03.250
+<v Priya Raman>cleaner. Just plain
+
+251
+00:08:03.250 --> 00:08:05.000
+<v Priya Raman>alcohol and a lint
+
+252
+00:08:05.000 --> 00:08:06.000
+<v Priya Raman>free cloth, both sides of
+
+253
+00:08:06.000 --> 00:08:07.000 align:middle size:80%
+<v Priya Raman>the rotor.
+
+254
+00:08:12.000 --> 00:08:13.250
+<v Priya Raman>The last step is
+
+255
+00:08:13.250 --> 00:08:14.750
+<v Priya Raman>the bed-in, and this is the
+
+256
+00:08:14.750 --> 00:08:16.000
+<v Priya Raman>step everyone skips.
+
+257
+00:08:16.000 --> 00:08:17.750
+<v Priya Raman>Find a quiet flat street.
+
+258
+00:08:17.750 --> 00:08:18.750
+<v Priya Raman>Bring the bike up
+
+259
+00:08:18.750 --> 00:08:19.750 align:end
+<v Priya Raman>to about 30
+
+260
+00:08:19.750 --> 00:08:21.000
+<v Priya Raman>km/h and brake firmly
+
+261
+00:08:21.000 --> 00:08:22.500
+<v Priya Raman>but without skidding, roughly thirty
+
+262
+00:08:22.500 --> 00:08:23.750
+<v Priya Raman>times in a row.
+
+263
+00:08:23.750 --> 00:08:25.500
+<v Priya Raman>You are transferring an even layer
+
+264
+00:08:25.500 --> 00:08:26.500
+<v Priya Raman>of pad material
+
+265
+00:08:26.500 --> 00:08:27.500 position:50%,line-left
+<v Priya Raman>onto the rotor face.
+
+266
+00:08:32.500 --> 00:08:33.750
+<v Dave Okafor>So the faint burning smell
+
+267
+00:08:33.750 --> 00:08:35.250
+<v Dave Okafor>is normal during that?
+
+268
+00:08:40.250 --> 00:08:41.500
+<v Priya Raman>A little smell
+
+269
+00:08:41.500 --> 00:08:43.250
+<v Priya Raman>is completely normal on
+
+270
+00:08:43.250 --> 00:08:44.250
+<v Priya Raman>the bed-in, yes. What you
+
+271
+00:08:44.250 --> 00:08:45.250 align:start position:12%
+<v Priya Raman>are doing is called
+
+272
+00:08:45.250 --> 00:08:46.500
+<v Priya Raman>burnishing. Skip it and your brakes
+
+273
+00:08:46.500 --> 00:08:48.000
+<v Priya Raman>feel weak and
+
+274
+00:08:48.000 --> 00:08:49.250
+<v Priya Raman>grabby for weeks. Do it
+
+275
+00:08:49.250 --> 00:08:51.000
+<v Priya Raman>properly and the bite
+
+276
+00:08:51.000 --> 00:08:52.000
+<v Priya Raman>is smooth and
+
+277
+00:08:52.000 --> 00:08:53.000 line:-2
+<v Priya Raman>strong from the very
+
+278
+00:08:53.000 --> 00:08:54.250
+<v Priya Raman>first ride.
+
+279
+00:08:59.250 --> 00:09:00.750
+<v Priya Raman>Alright, hands on. Grab a
+
+280
+00:09:00.750 --> 00:09:02.000
+<v Priya Raman>bike, put a <c.tool>bleed&nbsp;block</c>
+
+281
+00:09:02.000 --> 00:09:03.750
+<v Priya Raman>in before you touch anything else,
+
+282
+00:09:03.750 --> 00:09:04.750
+<v Priya Raman>and call me
+
+283
+00:09:04.750 --> 00:09:05.750 align:middle size:80%
+<v Priya Raman>over before you crack a
+
+284
+00:09:05.750 --> 00:09:07.000
+<v Priya Raman>single <c.tool>bleed&nbsp;nipple</c>. Slow and
+
+285
+00:09:07.000 --> 00:09:08.500
+<v Priya Raman>steady wins this
+
+286
+00:09:08.500 --> 00:09:09.750
+<v Priya Raman>one.

@@ -1,0 +1,227 @@
+WEBVTT - Larkfield LR-6 field guide
+
+NOTE
+SYNTHETIC demonstration captions generated for the E11 retrieval
+experiment. Fictional content only: no real event, person, place, or
+product. Human-readable source prose lives in source/field-recording-basics.txt.
+
+STYLE
+::cue(.level) { color: #ff5555; }
+
+REGION
+id:notes
+width:40%
+lines:2
+scroll:up
+
+fld-001
+00:00.500 --> 00:01.700 region:notes align:start
+In <00:00.800>this <00:01.100>short <00:01.400>tutorial <00:01.700>we
+
+fld-002
+00:01.700 --> 00:03.200
+set <00:02.000>up <00:02.300>the <00:02.600>Larkfield <00:02.900>LR-6 <00:03.200>portable
+
+fld-003
+00:03.200 --> 00:04.500
+recorder <00:03.417>for <00:03.633>a <00:03.850>morning <00:04.067>of <00:04.283>nature <00:04.500>recording,
+
+fld-004
+00:04.500 --> 00:06.200
+aiming <00:04.925>for <00:05.350>a <00:05.775>clean, <00:06.200>quiet
+
+fld-005
+00:06.200 --> 00:07.300
+track <00:06.475>of <00:06.750>the <00:07.025>dawn <00:07.300>chorus.
+
+fld-006
+00:12.300 --> 00:13.500 line:0
+First, <00:12.540>the <00:12.780>microphone <00:13.020>pattern. <00:13.260>The <00:13.500>two
+
+fld-007
+00:13.500 --> 00:15.000
+built <00:14.000>in <00:14.500>capsules <00:15.000>swivel
+
+fld-008
+00:15.000 --> 00:16.300
+between <00:15.260>a <00:15.520>tight <00:15.780><b>XY</b> <00:16.040>pair <00:16.300>for
+
+fld-009
+00:16.300 --> 00:18.000
+a <00:16.725>focused <00:17.150>stereo <00:17.575>image <00:18.000>and
+
+fld-010
+00:18.000 --> 00:19.100
+a <00:18.275>wider <00:18.550><b>ORTF</b> <00:18.825>spacing <00:19.100>for
+
+fld-011
+00:19.100 --> 00:20.300 align:center
+a <00:19.340>more <00:19.580>open <00:19.820>field. <00:20.060>For <00:20.300>a
+
+fld-012
+00:20.300 --> 00:21.800
+forest <00:20.550>at <00:20.800>dawn <00:21.050>I <00:21.300>like <00:21.550>the <00:21.800><b>ORTF</b>
+
+fld-013
+00:21.800 --> 00:23.100
+setting.
+
+fld-014
+00:28.100 --> 00:29.800
+Set <00:28.525>the <00:28.950>recorder <00:29.375>to <00:29.800>48&nbsp;kHz
+
+fld-015
+00:29.800 --> 00:30.900
+and <00:30.020>24&nbsp;bit. <00:30.240>That <00:30.460>sample <00:30.680>rate <00:30.900>is
+
+fld-016
+00:30.900 --> 00:32.100 region:notes align:start
+the <00:31.300>video <00:31.700>standard, <00:32.100>and
+
+fld-017
+00:32.100 --> 00:33.600
+the <00:32.400>bit <00:32.700>depth <00:33.000>gives <00:33.300>enormous <00:33.600>headroom,
+
+fld-018
+00:33.600 --> 00:34.900
+so <00:33.925>a <00:34.250>sudden <00:34.575>loud <00:34.900>bird
+
+fld-019
+00:34.900 --> 00:36.600
+will <00:35.750>not <00:36.600>clip.
+
+fld-020
+00:41.600 --> 00:42.700
+Gain <00:41.875>staging <00:42.150>is <00:42.425>where <00:42.700>beginners
+
+fld-021
+00:42.700 --> 00:43.900 line:0
+struggle. <00:42.940>Set <00:43.180>the <00:43.420>input <00:43.660>gain <00:43.900>so
+
+fld-022
+00:43.900 --> 00:45.400
+the <00:44.150>loudest <00:44.400>peaks <00:44.650>land <00:44.900>around <00:45.150><c.level>-12&nbsp;dBFS</c>, <00:45.400>which
+
+fld-023
+00:45.400 --> 00:46.700
+leaves <00:45.725>a <00:46.050>safe <00:46.375>cushion <00:46.700>below
+
+fld-024
+00:46.700 --> 00:48.400
+zero. <00:47.040>Push <00:47.380>it <00:47.720>too <00:48.060>hot <00:48.400>and
+
+fld-025
+00:48.400 --> 00:49.500
+the <00:48.767>clip <00:49.133>is <00:49.500>permanent.
+
+fld-026
+00:54.500 --> 00:55.700 align:center
+Watch <00:54.740>the <00:54.980>noise <00:55.220>floor <00:55.460>too. <00:55.700>Roll
+
+fld-027
+00:55.700 --> 00:57.200
+off <00:56.075>the <00:56.450>low <00:56.825>rumble <00:57.200>with
+
+fld-028
+00:57.200 --> 00:58.500
+the <00:57.525>built <00:57.850>in <00:58.175>high <00:58.500>pass
+
+fld-029
+00:58.500 --> 01:00.200
+filter <00:58.840>at <00:59.180>80&nbsp;Hz, <00:59.520>which <00:59.860>quietly <01:00.200>removes
+
+fld-030
+01:00.200 --> 01:01.300
+wind <01:00.383>thump <01:00.567>and <01:00.750>distant <01:00.933>traffic <01:01.117>without <01:01.300>touching
+
+fld-031
+01:01.300 --> 01:02.500 region:notes align:start
+the <01:02.500>birdsong.
+
+fld-032
+01:07.500 --> 01:09.000
+Wind <01:07.875>is <01:08.250>the <01:08.625>enemy <01:09.000>of
+
+fld-033
+01:09.000 --> 01:10.300
+every <01:09.260>outdoor <01:09.520>recording. <01:09.780>Slip <01:10.040>the <01:10.300>furry
+
+fld-034
+01:10.300 --> 01:12.000
+windshield, <01:10.867>the <01:11.433>one <01:12.000>everyone
+
+fld-035
+01:12.000 --> 01:13.100
+calls <01:12.220>a <01:12.440><i>dead&nbsp;cat</i>, <01:12.660>over <01:12.880>the <01:13.100>capsules
+
+fld-036
+01:13.100 --> 01:14.300 line:0
+in <01:13.400>any <01:13.700>breeze, <01:14.000>and <01:14.300>the
+
+fld-037
+01:14.300 --> 01:15.800
+low <01:14.675>wind <01:15.050>roar <01:15.425>simply <01:15.800>disappears.
+
+fld-038
+01:20.800 --> 01:22.100
+For <01:21.060>an <01:21.320>external <01:21.580>microphone <01:21.840>that <01:22.100>needs
+
+fld-039
+01:22.100 --> 01:23.800
+power, <01:22.383>switch <01:22.667>on <01:22.950>the <01:23.233>48&nbsp;V <01:23.517>phantom <01:23.800>supply,
+
+fld-040
+01:23.800 --> 01:24.900
+but <01:24.075>never <01:24.350>toggle <01:24.625>it <01:24.900>while
+
+fld-041
+01:24.900 --> 01:26.100 align:center
+headphones <01:25.200>are <01:25.500>on <01:25.800>your <01:26.100>ears.
+
+fld-042
+01:31.100 --> 01:32.600
+Handling <01:31.400>noise <01:31.700>is <01:32.000>the <01:32.300>other <01:32.600>silent
+
+fld-043
+01:32.600 --> 01:33.900
+killer. <01:33.033>Mount <01:33.467>the <01:33.900>recorder
+
+fld-044
+01:33.900 --> 01:35.600
+on <01:34.240>a <01:34.580>small <01:34.920>tripod, <01:35.260>press <01:35.600>record,
+
+fld-045
+01:35.600 --> 01:36.700
+and <01:35.875>then <01:36.150>take <01:36.425>your <01:36.700>hands
+
+fld-046
+01:36.700 --> 01:37.900 region:notes align:start
+completely <01:37.300>off <01:37.900>it.
+
+fld-047
+01:42.900 --> 01:44.400
+One <01:43.275>last <01:43.650>habit <01:44.025>that <01:44.400>saves
+
+fld-048
+01:44.400 --> 01:45.700
+every <01:44.660>edit. <01:44.920>Before <01:45.180>you <01:45.440>leave, <01:45.700>record
+
+fld-049
+01:45.700 --> 01:47.400
+a <01:45.983>full <01:46.267>30&nbsp;seconds <01:46.550>of <01:46.833>the <01:47.117>plain <01:47.400>background
+
+fld-050
+01:47.400 --> 01:48.500
+ambience. <01:47.675>That <01:47.950>clean <01:48.225>room <01:48.500>tone
+
+fld-051
+01:48.500 --> 01:49.700 line:0
+lets <01:48.740>you <01:48.980>patch <01:49.220>over <01:49.460>coughs <01:49.700>and
+
+fld-052
+01:49.700 --> 01:51.200
+bumps <01:50.200>when <01:50.700>you <01:51.200>edit
+
+fld-053
+01:51.200 --> 01:52.500
+at <01:52.500>home.

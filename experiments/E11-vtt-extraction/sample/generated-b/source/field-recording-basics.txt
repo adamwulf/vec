@@ -1,0 +1,22 @@
+# SYNTHETIC source prose — audio field-recording tutorial (monologue)
+# Fictional demonstration for the E11 retrieval experiment. Not a recording of
+# any real tutorial, person, or product. Gear names and figures are invented.
+# Voice mode: monologue, single unnamed speaker. Blank-line-separated paragraphs.
+
+In this short tutorial we set up the Larkfield LR-6 portable recorder for a morning of nature recording, aiming for a clean, quiet track of the dawn chorus.
+
+First, the microphone pattern. The two built in capsules swivel between a tight XY pair for a focused stereo image and a wider ORTF spacing for a more open field. For a forest at dawn I like the ORTF setting.
+
+Set the recorder to 48 kHz and 24 bit. That sample rate is the video standard, and the bit depth gives enormous headroom, so a sudden loud bird will not clip.
+
+Gain staging is where beginners struggle. Set the input gain so the loudest peaks land around minus 12 dBFS, which leaves a safe cushion below zero. Push it too hot and the clip is permanent.
+
+Watch the noise floor too. Roll off the low rumble with the built in high pass filter at 80 Hz, which quietly removes wind thump and distant traffic without touching the birdsong.
+
+Wind is the enemy of every outdoor recording. Slip the furry windshield, the one everyone calls a dead cat, over the capsules in any breeze, and the low wind roar simply disappears.
+
+For an external microphone that needs power, switch on the 48 volt phantom supply, but never toggle it while headphones are on your ears.
+
+Handling noise is the other silent killer. Mount the recorder on a small tripod, press record, and then take your hands completely off it.
+
+One last habit that saves every edit. Before you leave, record a full 30 seconds of the plain background ambience. That clean room tone lets you patch over coughs and bumps when you edit at home.
