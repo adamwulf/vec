@@ -1,10 +1,11 @@
 # E14 — Opt-in readable HTML extraction
 
-Status: design in progress. The Readability/fallback examples from the user's
-`freezedry-helper` agent have been received and acknowledged. The final
-dependency, fallback thresholds, local sample, query labels, and OCR work
-bounds remain deliberately unfrozen until they are reviewed against the
-actual saved-page fixtures.
+Status: implementation in progress. The Readability/fallback examples from the
+user's `freezedry-helper` agent have been received and acknowledged. The user
+explicitly decided on 2026-09-07 that vec must not raise its Swift tools floor
+to 6.2, closing the native SwiftReadability dependency path. The local sample,
+query labels, and final benchmark rubric remain deliberately unfrozen until
+they are reviewed against the actual saved-page fixtures.
 
 ## Question
 
@@ -130,18 +131,20 @@ pages. Browser-only computed visibility and `currentSrc` do not exist in a
 static Swift parser; E14 must document the narrower static-HTML semantics
 rather than implying browser-rendered visibility.
 
-The leading dependency candidate is exact `SwiftReadability` 0.3.3 plus exact
-`SwiftSoup` 2.13.6. Direct checks confirmed that every native
-`SwiftReadability` release from 0.1.0 through 0.3.3 requires Swift 6.2; there is
-no older release that preserves vec's Swift 6.0 floor. Version 0.3.3 is native
-Swift, does not fetch or execute content, and documents semantic parity with a
-pinned Mozilla revision on its 136-fixture suite. Exact SwiftSoup 2.13.6 alone
-supports Swift tools 6.0 and is sufficient for fallback and rendering, but a
-local main-content heuristic would not be Mozilla Readability. The manager is
-resolving this explicit compatibility-versus-fidelity choice before
-`Package.swift` changes. A WebKit wrapper is not suitable for this synchronous
-concurrent CLI path, and vendoring Mozilla JavaScript would also require a
-separately pinned DOM implementation.
+Exact `SwiftReadability` 0.3.3 was investigated but rejected because every
+native SwiftReadability release from 0.1.0 through 0.3.3 requires Swift 6.2 and
+the user chose not to raise vec's Swift 6.0 floor. E14 therefore pins exact
+SwiftSoup 2.13.6 and labels its selector honestly as structural, not Mozilla
+Readability. Version 1 honors a unique semantic `<main>`, case-insensitive
+`role=main`, or (when neither main form exists) unique `<article>`. Otherwise
+it uses cleaned visible-page extraction. If that cleanup would erase all
+content, it retries with an always-dangerous-element-only cleanup so a
+navigation-only directory or app page cannot silently disappear. It uses no
+opaque text-length gate; this intentionally preserves short pages but cannot
+match Readability's class weighting, link-density analysis, and article
+scoring. A WebKit wrapper remains unsuitable for this synchronous concurrent
+CLI path, and vendoring Mozilla JavaScript would require a separately pinned
+DOM runtime.
 
 ## Pre-freeze deterministic test matrix
 

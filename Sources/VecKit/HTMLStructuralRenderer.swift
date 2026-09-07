@@ -59,13 +59,22 @@ enum HTMLStructuralRenderer {
 
         var renderer = Renderer()
         try renderer.renderChildren(of: body, context: Context())
-        var segments = renderer.finish()
-
-        let cleanTitle = collapseWhitespace(title ?? "")
-        if !cleanTitle.isEmpty, !firstHeading(in: segments, matches: cleanTitle) {
-            segments.insert(.text("# \(cleanTitle)"), at: 0)
-        }
+        let segments = applyingTitle(title, to: renderer.finish())
         return HTMLStructuralRenderResult(segments: segments, elementCount: elementCount)
+    }
+
+    static func applyingTitle(
+        _ title: String?,
+        to originalSegments: [HTMLStructuralSegment]
+    ) -> [HTMLStructuralSegment] {
+        let cleanTitle = collapseWhitespace(title ?? "")
+        guard !cleanTitle.isEmpty,
+              !firstHeading(in: originalSegments, matches: cleanTitle) else {
+            return originalSegments
+        }
+        var segments = originalSegments
+        segments.insert(.text("# \(cleanTitle)"), at: 0)
+        return segments
     }
 
     // MARK: - Static DOM cleanup
