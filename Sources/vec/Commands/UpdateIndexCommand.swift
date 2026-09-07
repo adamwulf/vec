@@ -40,14 +40,25 @@ enum ComputePolicyOption: String, ExpressibleByArgument, CaseIterable {
     }
 }
 
+/// CLI-facing mirror of `TextExtractionMode`. Kept as a separate
+/// `ExpressibleByArgument` enum so the CLI surface can validate and reject
+/// unknown mode strings at parse time (an unrecognized `--text-extraction`
+/// value fails before any DB work) while the persisted `TextExtractionMode`
+/// stays a pure VecKit type. Every CLI case maps 1:1 to a
+/// `TextExtractionMode` case; the exhaustive `mode` switch forces this file
+/// to be updated whenever a new versioned mode is added to VecKit.
 enum TextExtractionOption: String, ExpressibleByArgument, CaseIterable {
     case raw
     case markdownV1 = "markdown-v1"
+    case vttV1 = "vtt-v1"
+    case markdownV1VttV1 = "markdown-v1+vtt-v1"
 
     var mode: TextExtractionMode {
         switch self {
         case .raw: return .raw
         case .markdownV1: return .markdownV1
+        case .vttV1: return .vttV1
+        case .markdownV1VttV1: return .markdownV1VttV1
         }
     }
 }
@@ -388,7 +399,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Indexing profile alias (\(IndexingProfileFactory.knownAliases.joined(separator: ", "))). Default is \(IndexingProfileFactory.defaultAlias) on first index; must match the recorded profile on subsequent runs (or omit to reuse the recorded alias with its alias-default chunk params).")
     var embedder: String?
 
-    @Option(name: .long, help: "Document extraction: raw or markdown-v1. Defaults to raw on first index; omit to reuse the recorded mode. Changing modes requires reset and reindexing.")
+    @Option(name: .long, help: "Document extraction: raw, markdown-v1, vtt-v1, or markdown-v1+vtt-v1. markdown-v1 normalizes .md/.markdown; vtt-v1 normalizes .vtt; the combined mode does both. Defaults to raw on first index; omit to reuse the recorded mode. Changing modes requires reset and reindexing.")
     var textExtraction: TextExtractionOption?
 
     @Option(name: .long, help: "Override embedder pool size (default: \(IndexingPipeline.defaultConcurrency), measured optimum on 10-perf-core M-series in E6.3). E6.3 indexing-speed knob.")

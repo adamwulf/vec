@@ -94,6 +94,14 @@ After every run (success, partial-success, *and* silent-failure), `update-index`
 
 To opt in to Markdown extraction, index a fresh or reset database with `vec update-index --db my-project --text-extraction markdown-v1`. Markdown links and images contribute their visible text instead of their destinations; code, bare URLs, frontmatter, and source-line locations are preserved. Reference definition lines and emphasis markers remain literal in this version. Other file formats keep their existing extraction. The default is `raw`. Extraction mode is recorded with the database profile and shown by `vec info`; subsequent updates and single-file inserts reuse it. To change modes, reset and re-index. See [the E10 report](experiments/E10-markdown-extraction/report.md) for the measured comparison and limitations.
 
+#### WebVTT extraction (`vtt-v1`)
+
+`--text-extraction vtt-v1` normalizes WebVTT subtitle/caption files (`.vtt`) before chunking; every other file type — Markdown included — is left as raw. The `markdown-v1+vtt-v1` combined mode runs the same versioned Markdown normalizer on `.md` / `.markdown` files *and* the WebVTT normalizer on `.vtt` files, so a corpus that mixes both formats can be normalized in a single index.
+
+The `vtt-v1` normalizer strips the caption scaffolding that adds no retrievable meaning and keeps the spoken words as readable prose. From each `.vtt` file it removes the `WEBVTT` header, optional cue identifiers, cue timing lines and their positioning settings, and `NOTE` / `STYLE` / `REGION` blocks; within each cue it removes inline cue markup (tags like `<v Speaker>`, `<c>`, `<i>`, `<00:00:00.000>`) and decodes HTML entities (`&amp;`, `&lt;`, `&gt;`, `&nbsp;`, `&#39;`, …). Consecutive cues are joined into flowing paragraphs, `<v>` speaker labels are preserved as inline speaker prefixes, and the overlap that rolling/paint-on captions repeat from one cue to the next is removed conservatively (only text that clearly repeats the tail of the previous cue is dropped).
+
+Source cue line ranges are retained so search results still point back to the originating span in the `.vtt` file. Because the vector schema carries no timestamp metadata, cue timings are dropped during normalization rather than stored — this mode changes preprocessing only and requires no schema change. Like `markdown-v1`, the mode is recorded with the database profile, inherited by later updates and single-file inserts, and can only be changed by resetting and re-indexing. See [the E11 plan](experiments/E11-vtt-extraction/plan.md) for scope, success criteria, and validation notes.
+
 ### Search
 
 ```bash
@@ -153,7 +161,8 @@ Deletes and recreates the database, preserving the source directory mapping. The
 
 | Type | Indexing Strategy |
 |------|-------------------|
-| Markdown (`.md`) | Recursive character-bounded chunks |
+| Markdown (`.md`) | Recursive character-bounded chunks (optional `markdown-v1` normalization) |
+| WebVTT (`.vtt`) | Whole file raw; optional `vtt-v1` normalization to caption-free prose |
 | Swift (`.swift`) | Whole file |
 | Plain text (`.txt`) | Whole file |
 | PDF (`.pdf`) | Per-page text extraction |
