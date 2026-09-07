@@ -80,3 +80,48 @@ This experiment makes no measured retrieval-accuracy or indexing-speed
 claim. A neutral result is useful and must be reported without tuning
 after the fact. The default stays `raw`; no default change is made on the
 basis of this work.
+
+## Retrieval evaluation follow-up (2026-09-07)
+
+Status: preparing and freezing inputs; no rankings observed.
+
+Adam authorized a mixed real/synthetic sample after the supplied corpus
+contained only one WebVTT file. Use 16 files: that real Minecraft video
+caption file and 15 newly authored synthetic transcripts. The synthetic
+files span distinct topics, short and long recordings, named and unnamed
+speakers, and at least two rolling-caption exports. Commit all caption
+bodies under `sample/` and identify their origins. Synthetic results
+cannot establish accuracy on the real 3,341-file caption corpus.
+
+Before either arm runs, commit a sample manifest with SHA-256 hashes and
+a fixed rubric of approximately 15 answered queries. Assign expected
+files and advisory passage criteria by reading the spoken text, including
+a specific claim, a named speaker, and explanations spanning several cues.
+Do not change captions, query wording, or labels after seeing ranks.
+
+Mirror E10: pinned `e5-base@1200/0`, local E5 revision
+`f52bf8ec8c7124536f0efb74aca902b2995e5bcd`, concurrency 8, batch 32,
+bucket width 500, default compute policy, fetch 30 chunk hits and coalesce
+to 10 files. Both arms use the same existing batch document-embedding
+pipeline and the same single-query embedding path. Freeze the existing
+inference implementation from the completed WebVTT work; do not adopt the
+separate embedding-batch-fix changes between arms. This matches E10's
+paths but does not eliminate the known parity/batch-composition caveat.
+
+Index the same frozen sample into fresh raw and vtt-v1 databases, then
+archive every query result. Report per-query file ranks, hit@1, hit@5,
+MRR, advisory pre-tokenizer passage checks, chunk counts, and the share
+of chunks containing a timestamp line or inline cue tag. Report noise for
+all chunks (including whole-document chunks) and passage chunks
+separately; count the union once when both noise types occur.
+
+The run archive must include frozen corpus/model/query/build provenance,
+per-arm summaries, per-query JSON, execution log, independent scorer
+output, and summary.md. Write report.md with plain measured results,
+including neutral or negative results and the synthetic-sample,
+distinct-topic, tokenizer, arm-order, and inference limitations.
+
+Completion checks: reviewed/committed inputs and harness before ranking;
+complete indexing in both arms; independent scoring and provenance audit;
+two reviewers approve the results; README and this plan link the measured
+report rather than calling accuracy unmeasured.
