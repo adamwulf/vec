@@ -97,10 +97,19 @@ for (k, v) in env.filter({ $0.key.hasPrefix("VEC_E12_") }).sorted(by: { $0.key <
 }
 
 // Bounded timeout: terminate a hung child so a run can never wedge.
+// SIGTERM first, then escalate to SIGKILL after a short grace if the child
+// this process owns is still running, so termination is guaranteed even if
+// the child ignores SIGTERM.
+let killGraceSeconds = 10.0
 let watchdog = DispatchWorkItem {
+    guard process.isRunning else { return }
+    stderrLine("[run-benchmark] TIMEOUT after \(Int(timeoutSeconds))s — sending SIGTERM to child pid \(process.processIdentifier)")
+    process.terminate()   // SIGTERM
+    let deadline = Date().addingTimeInterval(killGraceSeconds)
+    while process.isRunning && Date() < deadline { usleep(100_000) }
     if process.isRunning {
-        stderrLine("[run-benchmark] TIMEOUT after \(Int(timeoutSeconds))s — sending SIGTERM to child")
-        process.terminate()
+        stderrLine("[run-benchmark] child still running \(Int(killGraceSeconds))s after SIGTERM — sending SIGKILL to pid \(process.processIdentifier)")
+        kill(process.processIdentifier, SIGKILL)
     }
 }
 DispatchQueue.global().asyncAfter(deadline: .now() + timeoutSeconds, execute: watchdog)

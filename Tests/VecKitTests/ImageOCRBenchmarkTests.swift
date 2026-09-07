@@ -1010,7 +1010,8 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
     private func fmt2(_ d: Double) -> String { String(format: "%.2f", d) }
     private func fmt3(_ d: Double) -> String { String(format: "%.3f", d) }
     private func pct(_ d: Double) -> String { String(format: "%.0f%%", d * 100) }
-    private func fmtMB(_ b: UInt64) -> String { String(format: "%.0f MB", Double(b) / 1_048_576) }
+    // Divides by 1024^2, so the unit is MEBIBYTES (MiB), labeled accordingly.
+    private func fmtMB(_ b: UInt64) -> String { String(format: "%.0f MiB", Double(b) / 1_048_576) }
     private func fmtHours(_ s: Double) -> String {
         if s <= 0 { return "—" }
         if s < 90 { return String(format: "%.0f s", s) }

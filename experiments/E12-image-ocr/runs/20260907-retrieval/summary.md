@@ -11,8 +11,8 @@ Settings: `e5-base@1200/0`, chunk 1200/0, concurrency 8, ocrConcurrency 4, batch
 
 | arm | rank1 | top3 | top5 | MRR | real rank1 | real MRR | synth rank1 | synth MRR | passage-met | scanned | indexed | chunks | index s | search s | RSS after |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| raw | 0% | 0% | 0% | 0.000 | 0% | 0.000 | 0% | 0.000 | 0% | 0 | 0 | 0 | 0.00 | 1.39 | 485 MB |
-| image-ocr-v1 | 93% | 100% | 100% | 0.967 | 75% | 0.875 | 100% | 1.000 | 87% | 18 | 17 | 19 | 10.99 | 1.37 | 3975 MB |
+| raw | 0% | 0% | 0% | 0.000 | 0% | 0.000 | 0% | 0.000 | 0% | 0 | 0 | 0 | 0.00 | 1.39 | 485 MiB |
+| image-ocr-v1 | 93% | 100% | 100% | 0.967 | 75% | 0.875 | 100% | 1.000 | 87% | 18 | 17 | 19 | 10.99 | 1.37 | 3975 MiB |
 
 > File rank is authoritative. The `raw` arm indexes ZERO images by design (the production scanner excludes them), so its aggregate is an honest 0% floor, not a bug — it quantifies that image text is unreachable without OCR. `passage-met` is an advisory, case-insensitive check of the criteria against the PRE-TOKENIZER OCR input reconstructed by ordinal via `E5BaseEmbedder.normalizeInputs`; the tokenizer truncates further to 512 tokens, so a match is necessary but NOT sufficient, and it never gates file rank.
 
