@@ -79,12 +79,17 @@ public final class TextExtractor: @unchecked Sendable {
             return ExtractionResult(chunks: [], linePageCount: nil)
         }
 
+        if (textExtraction == .vttV1 || textExtraction == .markdownV1VttV1),
+           file.fileExtension.lowercased() == "vtt" {
+            return extractVTT(content)
+        }
+
         let lineCount = countLines(in: content)
         // Markdown normalization keeps each source newline in place. The
         // splitter therefore reports original-file line numbers even though
         // link destinations and presentation markup are omitted from embeddings.
         let text: String
-        if textExtraction == .markdownV1,
+        if (textExtraction == .markdownV1 || textExtraction == .markdownV1VttV1),
            ["md", "markdown"].contains(file.fileExtension.lowercased()) {
             text = MarkdownTextNormalizer.normalize(content)
         } else {
@@ -102,6 +107,20 @@ public final class TextExtractor: @unchecked Sendable {
         chunks.append(contentsOf: splitter.split(text))
 
         return ExtractionResult(chunks: chunks, linePageCount: lineCount)
+    }
+
+    private func extractVTT(_ content: String) -> ExtractionResult {
+        let document = VTTTextNormalizer.document(content)
+        let text = document.text
+        guard !text.isEmpty else {
+            return ExtractionResult(chunks: [], linePageCount: document.lineCount)
+        }
+        let chunks = [TextChunk(text: text, type: .whole)] + splitter.split(text).map { chunk in
+            let (start, end) = document.sourceLines(start: chunk.lineStart, end: chunk.lineEnd)
+            return TextChunk(text: chunk.text, type: chunk.type, lineStart: start,
+                             lineEnd: end, pageNumber: chunk.pageNumber)
+        }
+        return ExtractionResult(chunks: chunks, linePageCount: document.lineCount)
     }
 
     /// Counts newlines and adds 1 if the content is non-empty and doesn't
