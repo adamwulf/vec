@@ -295,6 +295,197 @@ final class PDFOCRReaderTests: XCTestCase {
                                      options: .atomic)
     }
 
+    /// Production-path retrieval comparison. This is intentionally separate
+    /// from the reader cost benchmark: it freezes seven generated PDF files
+    /// and the committed rubric before running either arm, then drives the
+    /// real scanner -> TextExtractor -> IndexingPipeline -> VectorDatabase
+    /// path with the same pinned local E5 model and geometry for both arms.
+    func testPDFOCRRetrievalBenchmark() async throws {
+        let environment = ProcessInfo.processInfo.environment
+        try XCTSkipUnless(environment["VEC_E13_RETRIEVAL"] == "1",
+                          "Opt-in E13 production retrieval comparison")
+        guard let outputPath = environment["VEC_E13_OUTPUT_DIRECTORY"], !outputPath.isEmpty else {
+            throw BenchmarkError.missingOutputDirectory
+        }
+        let outputDirectory = URL(fileURLWithPath: outputPath, isDirectory: true)
+        guard !FileManager.default.fileExists(atPath: outputDirectory.path) else {
+            throw BenchmarkError.outputAlreadyExists
+        }
+        let modelPath = environment["VEC_E13_MODEL_DIRECTORY"]
+            ?? "/private/tmp/vec-e10-model/f52bf8ec8c7124536f0efb74aca902b2995e5bcd"
+        let modelDirectory = URL(fileURLWithPath: modelPath, isDirectory: true)
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: modelDirectory.path, isDirectory: &isDirectory),
+              isDirectory.boolValue else { throw BenchmarkError.missingModelDirectory(modelPath) }
+
+        try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
+        let corpusDirectory = outputDirectory.appendingPathComponent("frozen-corpus", isDirectory: true)
+        try FileManager.default.createDirectory(at: corpusDirectory, withIntermediateDirectories: true)
+        try writeRetrievalFixtures(to: corpusDirectory)
+
+        let repositoryRoot = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+        let manifestURL = repositoryRoot.appendingPathComponent(
+            "experiments/E13-pdf-extraction/queries/rubric-queries.json")
+        let manifestData = try Data(contentsOf: manifestURL)
+        let manifest = try JSONDecoder().decode(E13PDFRubric.self, from: manifestData)
+        guard manifest.frozen_before_ranking,
+              manifest.corpus.expected_pdf_files == 7,
+              manifest.arms.map(\.key) == ["raw", "pdf-ocr-v1"],
+              Set(manifest.queries.map(\.id)).count == manifest.queries.count else {
+            throw BenchmarkError.invalidRubric
+        }
+
+        // FREEZE before constructing an embedder, database, arm, or rank.
+        let frozenFiles = try FileManager.default.contentsOfDirectory(
+            at: corpusDirectory, includingPropertiesForKeys: [.fileSizeKey], options: [.skipsHiddenFiles])
+            .filter { $0.pathExtension.lowercased() == "pdf" }
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+            .map { url -> [String: Any] in
+                let data = try Data(contentsOf: url)
+                return ["path": url.lastPathComponent, "bytes": data.count,
+                        "sha256": Self.sha256(data)]
+            }
+        guard frozenFiles.count == manifest.corpus.expected_pdf_files else {
+            throw BenchmarkError.unexpectedPDFCount(frozenFiles.count)
+        }
+        let manifestHash = Self.sha256(manifestData)
+        let modelFiles = try Self.hashFiles(in: modelDirectory)
+        let build = Self.gitBuildIdentity(repositoryRoot: repositoryRoot)
+        let settings: [String: Any] = [
+            "profile_identity": "e5-base@1200/0", "embedder": "e5-base-v2",
+            "chunk_chars": 1200, "chunk_overlap": 0, "concurrency": 2,
+            "ocr_concurrency": 1, "pdf_ocr_version": PDFOCRReader.version,
+            "vision_request_revision": ImageOCR.requestRevision, "pdf_dpi": 144,
+            "pdf_max_pixel_dimension": 4096,
+        ]
+        let runIdentityData = try JSONSerialization.data(withJSONObject: [
+            "files": frozenFiles, "query_manifest_sha256": manifestHash,
+            "model_files": modelFiles, "settings": settings,
+        ], options: [.sortedKeys])
+        let runIdentity = Self.sha256(runIdentityData)
+        let frozenManifest: [String: Any] = [
+            "experiment": "E13-pdf-extraction", "run_identity": runIdentity,
+            "frozen_at": ISO8601DateFormatter().string(from: Date()),
+            "files": frozenFiles, "file_count": frozenFiles.count,
+            "query_manifest_sha256": manifestHash, "query_count": manifest.queries.count,
+            "query_manifest_path": "experiments/E13-pdf-extraction/queries/rubric-queries.json",
+            "model_directory": modelDirectory.path, "model_files": modelFiles,
+            "build": build, "settings": settings,
+            "synthetic_limitations": "Clean high-contrast CoreText English fixtures; not representative of real scans or complex layouts.",
+        ]
+        try Self.writeJSONObject(frozenManifest,
+                                 to: outputDirectory.appendingPathComponent("frozen-input-manifest.json"))
+        try manifestData.write(to: outputDirectory.appendingPathComponent("query-manifest.json"),
+                               options: .atomic)
+        let command = "VEC_E13_RETRIEVAL=1 VEC_E13_MODEL_DIRECTORY=\(modelDirectory.path) VEC_E13_OUTPUT_DIRECTORY=\(outputDirectory.path) swift test --disable-sandbox --disable-swift-testing -c release --filter PDFOCRReaderTests/testPDFOCRRetrievalBenchmark\n"
+        try Data(command.utf8).write(to: outputDirectory.appendingPathComponent("execution-command.txt"),
+                                     options: .atomic)
+
+        for arm in manifest.arms {
+            guard let mode = TextExtractionMode(rawValue: arm.text_extraction) else {
+                throw BenchmarkError.invalidRubric
+            }
+            let armDirectory = outputDirectory.appendingPathComponent(arm.key, isDirectory: true)
+            try FileManager.default.createDirectory(at: armDirectory, withIntermediateDirectories: true)
+            let databaseDirectory = tempDirectory.appendingPathComponent("retrieval-db-\(arm.key)")
+            let cacheDirectory = tempDirectory.appendingPathComponent("retrieval-cache-\(arm.key)")
+            let factory: @Sendable () -> any Embedder = { E5BaseEmbedder(modelDirectory: modelDirectory) }
+            let profile = IndexingProfile(
+                identity: "e5-base@1200/0", embedder: factory(), embedderFactory: factory,
+                splitter: RecursiveCharacterSplitter(chunkSize: 1200, chunkOverlap: 0),
+                chunkSize: 1200, chunkOverlap: 0, isBuiltIn: true)
+            let database = VectorDatabase(databaseDirectory: databaseDirectory,
+                                          sourceDirectory: corpusDirectory,
+                                          dimension: profile.embedder.dimension)
+            try await database.initialize()
+            let scanner = FileScanner(directory: corpusDirectory, respectsGitignore: false,
+                                      textExtraction: mode)
+            let files = try scanner.scan()
+            guard files.count == frozenFiles.count else {
+                throw BenchmarkError.unexpectedPDFCount(files.count)
+            }
+            let extractor = TextExtractor(splitter: profile.splitter, textExtraction: mode,
+                                          ocrCacheDirectory: cacheDirectory)
+            let pipeline = IndexingPipeline(concurrency: 2, ocrConcurrency: 1,
+                                            batchSize: IndexingPipeline.defaultBatchSize,
+                                            bucketWidth: IndexingPipeline.defaultBucketWidth,
+                                            profile: profile)
+            let rssBefore = E13Memory.residentBytes()
+            let start = DispatchTime.now().uptimeNanoseconds
+            let (results, _) = try await pipeline.run(
+                workItems: files.map { (file: $0, label: "Added") },
+                extractor: extractor, database: database)
+            let end = DispatchTime.now().uptimeNanoseconds
+            let rssAfter = E13Memory.residentBytes()
+            guard results.count == files.count else { throw BenchmarkError.incompletePipeline }
+            if results.contains(where: {
+                if case .skippedEmbedFailure = $0 { return true }
+                if case .indexed(_, _, _, let failed) = $0 { return failed > 0 }
+                return false
+            }) { throw BenchmarkError.incompletePipeline }
+
+            var perFile: [[String: Any]] = []
+            var chunksByFile: [String: [TextChunk]] = [:]
+            for file in files {
+                let extraction = try extractor.extract(from: file)
+                chunksByFile[file.relativePath] = extraction.chunks
+                perFile.append(["path": file.relativePath, "chunks": extraction.chunks.count])
+            }
+            let totalChunks = try await database.totalChunkCount()
+            guard perFile.reduce(0, { $0 + ($1["chunks"] as? Int ?? 0) }) == totalChunks else {
+                throw BenchmarkError.incompletePipeline
+            }
+            let cache = extractor.pdfOCRCacheStatistics ?? PDFOCRCacheStatistics()
+            let summary: [String: Any] = [
+                "arm": arm.key, "text_extraction": arm.text_extraction,
+                "processed_count": files.count, "failed_count": 0,
+                "indexed_count": perFile.filter { ($0["chunks"] as? Int ?? 0) > 0 }.count,
+                "blank_count": perFile.filter { ($0["chunks"] as? Int ?? 0) == 0 }.count,
+                "total_chunks": totalChunks, "per_file_chunks": perFile,
+                "index_wall_seconds": Double(end - start) / 1_000_000_000,
+                "rss_before_bytes": rssBefore, "rss_after_bytes": rssAfter,
+                "pdf_ocr_cache": ["hits": cache.hits, "misses": cache.misses,
+                                  "ocr_calls": cache.ocrCalls,
+                                  "coalesced_requests": cache.coalescedRequests],
+            ]
+            try Self.writeJSONObject(summary, to: armDirectory.appendingPathComponent("arm-summary.json"))
+
+            for query in manifest.queries {
+                let vector = try await profile.embedder.embedQuery(query.text)
+                let rawResults = try await database.search(embedding: vector, limit: 30)
+                let groups = SearchResultCoalescer.coalesce(rawResults, limit: 10)
+                let serializedGroups: [[String: Any]] = groups.enumerated().map { offset, group in
+                    ["file": group.filePath, "rank": offset + 1, "best_score": group.bestScore,
+                     "matches": group.matches.map { match in
+                        ["score": max(0, 1 - match.distance), "distance": match.distance,
+                         "page_number": match.pageNumber.map { $0 as Any } ?? NSNull(),
+                         "chunk_type": match.chunkType.rawValue,
+                         "preview": match.contentPreview ?? ""]
+                     }]
+                }
+                let fileRank = groups.firstIndex { $0.filePath == query.primary_file }.map { $0 + 1 }
+                let primaryChunks = chunksByFile[query.primary_file] ?? []
+                let passagePass = primaryChunks.contains { chunk in
+                    let normalized = PDFOCRReader.normalizedTokens(chunk.text).joined(separator: " ")
+                    let termsPresent = query.passage_terms.allSatisfy { normalized.contains($0.lowercased()) }
+                    let maximum = query.maximum_normalized_passage_occurrences ?? Int.max
+                    let phrase = query.passage_terms.joined(separator: " ").lowercased()
+                    return termsPresent && occurrences(of: phrase, in: normalized) <= maximum
+                }
+                let result: [String: Any] = [
+                    "id": query.id, "text": query.text, "arm": arm.key,
+                    "primary_file": query.primary_file, "primary_page": query.primary_page,
+                    "file_rank": fileRank.map { $0 as Any } ?? NSNull(),
+                    "passage_criteria_met": passagePass,
+                    "groups": serializedGroups,
+                ]
+                try Self.writeJSONObject(result,
+                                         to: armDirectory.appendingPathComponent("\(query.id).json"))
+            }
+        }
+    }
+
     // MARK: - Pure ordering and deduplication
 
     func testCompositionInterleavesNativeAndRasterLinesByGeometry() {
@@ -430,6 +621,106 @@ final class PDFOCRReaderTests: XCTestCase {
         context.closePDF()
     }
 
+    private func writeRetrievalFixtures(to directory: URL) throws {
+        try writePDF([PageFixture(native: ["NATIVE ORCHARD SIGNAL"])],
+                     to: directory.appendingPathComponent("native-only.pdf"))
+        try writePDF([PageFixture(images: [ImageLine("RASTER NEBULA TOKEN", y: 330)])],
+                     to: directory.appendingPathComponent("image-only.pdf"))
+        try writePDF([PageFixture(native: ["NATIVE CEDAR HEADER"],
+                                  images: [ImageLine("RASTER QUARTZ DETAIL", y: 300)])],
+                     to: directory.appendingPathComponent("mixed.pdf"))
+        try writePDF([PageFixture()], to: directory.appendingPathComponent("blank.pdf"))
+        try writePDF([
+            PageFixture(native: ["MULTIPAGE ALABASTER DISTRACTOR"]),
+            PageFixture(images: [ImageLine("INDIGO PROVENANCE MARKER", y: 330)]),
+        ], to: directory.appendingPathComponent("multipage.pdf"))
+        let duplicate = "COPPER LANTERN ARCHIVE"
+        try writePDF([PageFixture(native: [duplicate], images: [ImageLine(duplicate, y: 300)])],
+                     to: directory.appendingPathComponent("duplicate-overlap.pdf"))
+
+        let crop = CGRect(x: 55, y: 100, width: 500, height: 300)
+        let unrotated = tempDirectory.appendingPathComponent("retrieval-rotation-source.pdf")
+        try writePDF([PageFixture(images: [ImageLine("ROTATED CROP MARKER", y: 190)], cropBox: crop)],
+                     to: unrotated)
+        let document = try XCTUnwrap(PDFDocument(url: unrotated))
+        let page = try XCTUnwrap(document.page(at: 0))
+        page.setBounds(crop, for: .cropBox)
+        page.rotation = 90
+        let rotated = directory.appendingPathComponent("rotation-crop.pdf")
+        guard document.write(to: rotated) else { throw FixtureError.couldNotCreatePDF }
+        let verification = try XCTUnwrap(PDFDocument(url: rotated)?.page(at: 0))
+        XCTAssertEqual(verification.rotation, 90)
+        XCTAssertEqual(try XCTUnwrap(verification.pageRef).getBoxRect(.cropBox), crop)
+    }
+
+    private static func sha256(_ data: Data) -> String {
+        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func sha256(file url: URL) throws -> String {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        var hasher = SHA256()
+        while true {
+            let data = try handle.read(upToCount: 1 << 20)
+            guard let data, !data.isEmpty else { break }
+            hasher.update(data: data)
+        }
+        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func hashFiles(in directory: URL) throws -> [[String: Any]] {
+        guard let enumerator = FileManager.default.enumerator(
+            at: directory, includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
+            options: [.skipsHiddenFiles]) else { throw BenchmarkError.missingModelDirectory(directory.path) }
+        var result: [[String: Any]] = []
+        while let url = enumerator.nextObject() as? URL {
+            let values = try url.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
+            guard values.isRegularFile == true else { continue }
+            let relative = url.path.replacingOccurrences(of: directory.path + "/", with: "")
+            result.append(["path": relative, "bytes": values.fileSize ?? 0,
+                           "sha256": try sha256(file: url)])
+        }
+        return result.sorted { ($0["path"] as? String ?? "") < ($1["path"] as? String ?? "") }
+    }
+
+    private static func gitBuildIdentity(repositoryRoot: URL) -> [String: Any] {
+        let head = runProcess("/usr/bin/git", arguments: ["rev-parse", "HEAD"],
+                              directory: repositoryRoot) ?? "unknown"
+        let status = runProcess("/usr/bin/git", arguments: ["status", "--porcelain"],
+                                directory: repositoryRoot)
+        let packageResolved = repositoryRoot.appendingPathComponent("Package.resolved")
+        return ["git_head": head, "git_dirty": !(status ?? "unknown").isEmpty,
+                "package_resolved_sha256": (try? sha256(file: packageResolved)) ?? "missing",
+                "swift_version": runProcess("/usr/bin/swift", arguments: ["--version"],
+                                             directory: repositoryRoot) ?? "unknown",
+                "os_version": ProcessInfo.processInfo.operatingSystemVersionString,
+                "active_processor_count": ProcessInfo.processInfo.activeProcessorCount,
+                "host_name": ProcessInfo.processInfo.hostName]
+    }
+
+    private static func runProcess(_ executable: String,
+                                   arguments: [String],
+                                   directory: URL) -> String? {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: executable)
+        process.arguments = arguments
+        process.currentDirectoryURL = directory
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+        guard (try? process.run()) != nil else { return nil }
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        guard process.terminationStatus == 0 else { return nil }
+        return String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func writeJSONObject(_ object: Any, to url: URL) throws {
+        let data = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys])
+        try data.write(to: url, options: .atomic)
+    }
+
     private func renderImageText(_ text: String) throws -> CGImage {
         let width = 1200
         let height = 250
@@ -503,6 +794,10 @@ final class PDFOCRReaderTests: XCTestCase {
     private enum BenchmarkError: Error {
         case missingOutputDirectory
         case outputAlreadyExists
+        case missingModelDirectory(String)
+        case invalidRubric
+        case unexpectedPDFCount(Int)
+        case incompletePipeline
         case missingCacheStatistics
         case unexpectedPageCount
     }
@@ -672,4 +967,22 @@ private enum E13Memory {
         }
         return status == KERN_SUCCESS ? info.resident_size : 0
     }
+}
+
+private struct E13PDFRubric: Decodable {
+    struct Corpus: Decodable { let expected_pdf_files: Int }
+    struct Arm: Decodable { let key: String; let text_extraction: String }
+    struct Query: Decodable {
+        let id: String
+        let text: String
+        let primary_file: String
+        let primary_page: Int
+        let passage_terms: [String]
+        let maximum_normalized_passage_occurrences: Int?
+    }
+
+    let frozen_before_ranking: Bool
+    let corpus: Corpus
+    let arms: [Arm]
+    let queries: [Query]
 }
