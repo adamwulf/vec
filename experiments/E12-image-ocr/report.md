@@ -111,9 +111,9 @@ ocrCalls / 18 disk-sidecar hits). Zero recognizer failures.
 | 1 | cold | 0.68 | 26.59 | 273 MiB | 216 MiB | 133.4 h |
 | 4 | cold | 0.80 | 22.36 | 330 MiB | 313 MiB | 112.2 h |
 | 8 | cold | 0.69 | 26.11 | 356 MiB | 242 MiB | 130.9 h |
-| 1 | warm | 1870.96 | 0.01 | 265 MiB | 265 MiB | ~2.9 min |
-| 4 | warm | 6320.87 | 0.00 | 310 MiB | 310 MiB | ~51 s |
-| 8 | warm | 11779.46 | 0.00 | 204 MiB | 204 MiB | ~28 s |
+| 1 | warm | 1870.96 | 0.01 | 265 MiB | 265 MiB | not estimated |
+| 4 | warm | 6320.87 | 0.00 | 310 MiB | 310 MiB | not estimated |
+| 8 | warm | 11779.46 | 0.00 | 204 MiB | 204 MiB | not estimated |
 
 ### 2b. Capped real-image sample (153 images)
 
@@ -136,37 +136,44 @@ recognizer failures.
 | 1 | cold | 6.85 | 22.32 | 240 MiB | 181 MiB | 13.2 h |
 | 4 | cold | 10.34 | 14.80 | 267 MiB | 241 MiB | 8.7 h |
 | 8 | cold | 11.27 | 13.58 | 275 MiB | 251 MiB | 8.0 h |
-| 1 | warm | 3901.54 | 0.04 | 234 MiB | 233 MiB | ~83 s |
-| 4 | warm | 10602.11 | 0.01 | 257 MiB | 257 MiB | ~31 s |
-| 8 | warm | 19046.24 | 0.01 | 265 MiB | 265 MiB | ~17 s |
+| 1 | warm | 3901.54 | 0.04 | 234 MiB | 233 MiB | not estimated |
+| 4 | warm | 10602.11 | 0.01 | 257 MiB | 257 MiB | not estimated |
+| 8 | warm | 19046.24 | 0.01 | 265 MiB | 265 MiB | not estimated |
 
 ### What the throughput numbers mean
 
-- **Cold rate is dominated by text density, not image count.** The
-  synthetic images are dense, full-text renders; the real thumbnails and
-  photos carry little text, so Vision recognizes far fewer regions and
-  the cold rate is ~10–16× higher on the real sample (0.68–0.80 img/s
-  synthetic vs 6.85–11.27 img/s real). On the real sample cold
-  throughput also scales with concurrency (6.85 → 11.27 img/s from
-  1 → 8 jobs); on the tiny synthetic sample it does not (the corpus is
-  too small and noisy, and accurate-mode Vision is largely serialized on
-  the ANE).
-- **The 325k extrapolations are conditional, order-of-magnitude only.**
-  Each is a linear projection of one pass's images/second. The real-153
-  estimate of ~8–13 h is conditional on a similar image mix; the
-  deterministic stride covers only the modest supplied folder and can
-  differ from the full 325k corpus in format and text density, so it is
-  NOT an established full-corpus time. The synthetic-heavy ~112–133 h is
-  a valuable contrast: it is what a text-dense corpus would cost. The
-  true full-corpus cost lies somewhere between, depending on the real
-  mix of text density.
+- **Cold rate tracks text content, not image count.** The synthetic
+  images are dense, full-text renders; the real thumbnails and photos
+  carry little text. The observed cold rate is ~10–16× higher on the
+  real sample (0.68–0.80 img/s synthetic vs 6.85–11.27 img/s real) —
+  the images carrying less text were recognized faster. On the real
+  sample the observed cold rate rose with the job count (6.85 → 10.34 →
+  11.27 img/s at 1 → 4 → 8 jobs); on the tiny synthetic sample it was
+  non-monotonic (0.68 → 0.80 → 0.69 img/s). These are observations only:
+  no profiling was done, so no mechanism is attributed, and the
+  18-image synthetic sample is too small for a stable rate.
+- **The 325k extrapolations are conditional, order-of-magnitude only,
+  and OCR-only.** Each is a linear projection of one pass's OCR
+  images/second and covers the OCR recognizer alone (`ImageOCRCache` +
+  `ImageOCR`); it EXCLUDES embedding and database writes, which a real
+  `update-index` also pays, so it is a lower bound on end-to-end index
+  time, not the whole cost. The real-153 estimate of ~8–13 h is
+  conditional on a similar image mix; the deterministic stride covers
+  only the modest supplied folder and can differ from the full 325k
+  corpus in format and text density, so it is NOT an established
+  full-corpus time. The synthetic-heavy ~112–133 h is a valuable
+  contrast — what a text-dense corpus would cost. The full 325k corpus
+  could fall OUTSIDE both ranges; its true cost depends on its actual
+  size and text-density mix, which neither sample establishes.
 - **Warm figures are not a production time.** Each warm pass served from
   the on-disk sidecar in 0.008–0.039 s with only 1–2 RSS samples, so the
   warm images/second (and its 325k projection) is extremely noisy and
   must not be read as a reliable steady-state rate. It only shows that a
   populated cache skips Vision entirely (0 ocrCalls). Warm RSS is also
   not a cold-start figure — the process and Vision's caches persist from
-  the cold pass.
+  the cold pass. The 325k column reads "not estimated" for warm passes
+  in the tables above for this reason; the raw warm `images_per_second`
+  and `estimate_target_seconds` remain in each run's `ocr-throughput.json`.
 - **Downscale caveat.** `ImageOCR` downsamples any image whose longest
   edge exceeds 4096 px before recognition, so very small text in a very
   large image can be lost. The throughput number measures speed, not
@@ -248,17 +255,25 @@ labeled MiB; the verbatim `execution-log.txt` files retain the original
 
 ## Standing caveats (unchanged from the plan)
 
-- The synthetic subset is an easy OCR + retrieval task and inflates the
-  retrieval aggregate; the real subset is a best-case, hand-picked
-  sample, not representative of the thumbnail/photo-heavy real corpus.
+- These best-case / inflation caveats are about the RETRIEVAL targets
+  only. The 11 synthetic retrieval targets are an easy OCR + retrieval
+  task and inflate the retrieval aggregate; the "best-case, hand-picked"
+  real subset means specifically the 4 real retrieval targets (q01–q04:
+  a chart, two diagrams, a title thumbnail), text-dominant by choice and
+  not representative of the thumbnail/photo-heavy real corpus. This is
+  distinct from the throughput benchmark's deterministic 153-image
+  stride sample, which is selected without regard to OCR success or text
+  content (only unsupported formats excluded).
 - The raw baseline is an empty index; the raw-vs-OCR comparison is
   one-sided by construction.
 - Query targets are what each image SAYS; no image assertion was
   fact-checked externally.
 - RSS is a coarse, process-wide proxy sampled every ~20 ms, not an
   OCR-only allocation figure, and is not reset between passes.
-- Job counts run sequentially in one process, so later job counts
-  benefit from Vision/ANE warmup — a sequential-order bias.
+- Job counts run sequentially in one process (1, then 4, then 8), so a
+  later pass can be affected by state earlier passes left warm (process
+  memory, OS file cache); treat differences across job counts as
+  order-dependent, not a clean isolated concurrency scan.
 - An accuracy improvement was a hypothesis, not a completion
   requirement. The default extraction mode stays `raw`.
 
