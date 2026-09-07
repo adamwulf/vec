@@ -1,0 +1,33 @@
+[run-benchmark] mode=throughput repoRoot=/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo timeout=1800s
+[run-benchmark] exec: /usr/bin/xcrun swift test -c release --disable-sandbox --disable-swift-testing -j 4 --filter VecKitTests.ImageOCRRetrievalExperimentTests/testImageOCRThroughputBenchmark
+[run-benchmark] env VEC_E12_BENCHMARK=1
+[run-benchmark] env VEC_E12_OCR_CORPUS_DIRECTORY=/private/tmp/claude-501/-Users-adamwulf-Developer-swift-packages-vec--ittybitty-agents-agent-f8aa66db-repo/91835659-86b0-4cd7-ac45-ee4ecc3c0c19/scratchpad/real-sample-150
+[run-benchmark] env VEC_E12_OCR_OUTPUT_DIRECTORY=/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/experiments/E12-image-ocr/runs/20260907-throughput-real153
+[0/1] Planning build
+[1/1] Compiling plugin GenerateManual
+[2/2] Compiling plugin GenerateDoccReference
+Building for production...
+[2/5] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (10.11s)
+Test Suite 'Selected tests' started at 2026-09-07 04:36:43.231.
+Test Suite 'vecPackageTests.xctest' started at 2026-09-07 04:36:43.232.
+Test Suite 'ImageOCRRetrievalExperimentTests' started at 2026-09-07 04:36:43.232.
+Test Case '-[VecKitTests.ImageOCRRetrievalExperimentTests testImageOCRThroughputBenchmark]' started.
+[e12-ocr] corpus=/private/tmp/claude-501/-Users-adamwulf-Developer-swift-packages-vec--ittybitty-agents-agent-f8aa66db-repo/91835659-86b0-4cd7-ac45-ee4ecc3c0c19/scratchpad/real-sample-150 froze 153 images jobs=[1, 4, 8] target=325000
+[e12-ocr] jobs=1 COLD wall=22.32s rate=6.85/s ok=153/153 fail=0 hits=0 misses=153 ocrCalls=153 peakRSS=240 MB
+[e12-ocr] jobs=1 WARM wall=0.04s rate=3901.54/s ok=153/153 fail=0 hits=153 misses=0 ocrCalls=0 peakRSS=234 MB
+[e12-ocr] jobs=4 COLD wall=14.80s rate=10.34/s ok=153/153 fail=0 hits=0 misses=153 ocrCalls=153 peakRSS=267 MB
+[e12-ocr] jobs=4 WARM wall=0.01s rate=10602.11/s ok=153/153 fail=0 hits=153 misses=0 ocrCalls=0 peakRSS=257 MB
+[e12-ocr] jobs=8 COLD wall=13.58s rate=11.27/s ok=153/153 fail=0 hits=0 misses=153 ocrCalls=153 peakRSS=275 MB
+[e12-ocr] jobs=8 WARM wall=0.01s rate=19046.24/s ok=153/153 fail=0 hits=153 misses=0 ocrCalls=0 peakRSS=265 MB
+[e12-ocr] done. Archive at /Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/experiments/E12-image-ocr/runs/20260907-throughput-real153
+Test Case '-[VecKitTests.ImageOCRRetrievalExperimentTests testImageOCRThroughputBenchmark]' passed (51.350 seconds).
+Test Suite 'ImageOCRRetrievalExperimentTests' passed at 2026-09-07 04:37:34.583.
+	 Executed 1 test, with 0 failures (0 unexpected) in 51.350 (51.351) seconds
+Test Suite 'vecPackageTests.xctest' passed at 2026-09-07 04:37:34.583.
+	 Executed 1 test, with 0 failures (0 unexpected) in 51.350 (51.351) seconds
+Test Suite 'Selected tests' passed at 2026-09-07 04:37:34.583.
+	 Executed 1 test, with 0 failures (0 unexpected) in 51.350 (51.352) seconds
+[run-benchmark] child exited with status 0
+
+[exited with code 0]

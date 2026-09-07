@@ -1,0 +1,290 @@
+[run-benchmark] mode=retrieval repoRoot=/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo timeout=1800s
+[run-benchmark] exec: /usr/bin/xcrun swift test -c release --disable-sandbox --disable-swift-testing -j 4 --filter VecKitTests.ImageOCRRetrievalExperimentTests/testImageOCRRetrievalBenchmark
+[run-benchmark] env VEC_E12_BENCHMARK=1
+[run-benchmark] env VEC_E12_MODEL_DIRECTORY=/private/tmp/vec-e10-model/f52bf8ec8c7124536f0efb74aca902b2995e5bcd
+[run-benchmark] env VEC_E12_OUTPUT_DIRECTORY=/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/experiments/E12-image-ocr/runs/20260907-retrieval
+[0/1] Planning build
+[1/1] Compiling plugin GenerateManual
+[2/2] Compiling plugin GenerateDoccReference
+Building for production...
+[2/5] Write swift-version--58304C5D6DBC2206.txt
+[4/9] Compiling SentencepieceTokenizer SentencepieceTokenizer.swift
+[5/9] Compiling _NIOBase64 Base64.swift
+[6/11] Compiling _NIODataStructures Heap.swift
+[7/12] Compiling NIOConcurrencyHelpers NIOAtomic.swift
+[8/12] Compiling MLTensorUtils Activations.swift
+[9/14] Compiling Safetensors Array.swift
+[10/15] Compiling Crypto AES-GCM.swift
+[11/15] Compiling InternalCollectionsUtilities Debugging.swift
+[12/17] Compiling ArgumentParserToolInfo ToolInfo.swift
+[13/18] Compiling ContainersPreview OutputSpan+Extras.swift
+[14/19] Compiling Atomics OptionalRawRepresentable.swift
+[15/19] Compiling OrderedCollections _HashTable+Bucket.swift
+[16/21] Compiling DequeModule Deque+Codable.swift
+[17/22] Compiling Markdown ChildIndexPath.swift
+[18/22] Compiling ArgumentParser BashCompletionsGenerator.swift
+[19/22] Compiling Jinja AST.swift
+[20/22] Compiling NIOCore AddressedEnvelope.swift
+[21/23] Compiling EventSource AsyncEventsSequence.swift
+[22/24] Compiling HuggingFace AccessRequest.swift
+[23/25] Compiling Hub BinaryDistinct.swift
+[24/26] Compiling Tokenizers BPETokenizer.swift
+[25/27] Compiling Generation Decoders.swift
+[26/28] Compiling Models LanguageModel.swift
+[27/29] Compiling Embeddings BertModel.swift
+[28/30] Compiling VecKit BGEBaseEmbedder.swift
+[29/32] Compiling vec ChunkCommand.swift
+[30/32] Compiling CLITests CLITests.swift
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/CLITests/ResetCommandTests.swift:85:13: warning: variable 'cmd' was never mutated; consider changing to 'let' constant
+ 83 |         // prompt. `parseAsRoot` builds the command from CLI args
+ 84 |         // exactly the way the real binary's entry point does.
+ 85 |         var cmd = try ResetCommand.parseAsRoot(["--db", testDBName, "--force"]) as! ResetCommand
+    |             `- warning: variable 'cmd' was never mutated; consider changing to 'let' constant
+ 86 |         try await cmd.run()
+ 87 | 
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/CLITests/UpdateIndexLogTests.swift:31:36: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 29 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+ 30 |         sourceDir = realpath(raw.path, &buf) != nil
+ 31 |             ? URL(fileURLWithPath: String(cString: buf), isDirectory: true)
+    |                                    `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 32 |             : raw
+ 33 | 
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/CLITests/UpdateIndexLogTests.swift:94:13: warning: variable 'cmd' was never mutated; consider changing to 'let' constant
+ 92 |         var args = ["--db", testDBName!, "--embedder", "nl"]
+ 93 |         args.append(contentsOf: extraArgs)
+ 94 |         var cmd = try UpdateIndexCommand.parseAsRoot(args) as! UpdateIndexCommand
+    |             `- warning: variable 'cmd' was never mutated; consider changing to 'let' constant
+ 95 |         try await cmd.run()
+ 96 |     }
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[31/32] Compiling VecKitTests BGEBaseEmbedderConcurrencyTests.swift
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/ConcurrencySweepTests.swift:27:36: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 25 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+ 26 |         tempDir = realpath(raw.path, &buf) != nil
+ 27 |             ? URL(fileURLWithPath: String(cString: buf), isDirectory: true)
+    |                                    `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 28 |             : raw
+ 29 |         sourceDir = tempDir.appendingPathComponent("source")
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/DatabaseLocatorTests.swift:15:36: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 13 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+ 14 |         tempDir = realpath(raw.path, &buf) != nil
+ 15 |             ? URL(fileURLWithPath: String(cString: buf), isDirectory: true)
+    |                                    `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 16 |             : raw
+ 17 |     }
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/E9ZeroChunkAndUnreadableTests.swift:26:36: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 24 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+ 25 |         tempDir = realpath(raw.path, &buf) != nil
+ 26 |             ? URL(fileURLWithPath: String(cString: buf), isDirectory: true)
+    |                                    `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 27 |             : raw
+ 28 |         sourceDir = tempDir.appendingPathComponent("source")
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/E9ZeroChunkAndUnreadableTests.swift:99:9: warning: result of call to 'writeFile(_:content:)' is unused [#no-usage]
+ 97 |     /// `update-index`-style scan categorizes it as `unchanged`.
+ 98 |     func testEmptyFile_marksIndexed_secondRunIsNoOp() async throws {
+ 99 |         writeFile("empty.txt", content: "")
+    |         `- warning: result of call to 'writeFile(_:content:)' is unused [#no-usage]
+100 |         let profile = try makeProfile()
+101 |         let db = try await makeDB(profile: profile)
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/E9ZeroChunkAndUnreadableTests.swift:134:9: warning: result of call to 'writeFile(_:content:)' is unused [#no-usage]
+132 |     /// indexed.
+133 |     func testWhitespaceOnlyFile_marksIndexed() async throws {
+134 |         writeFile("blank.txt", content: "   \n\n   \t\n")
+    |         `- warning: result of call to 'writeFile(_:content:)' is unused [#no-usage]
+135 |         let profile = try makeProfile()
+136 |         let db = try await makeDB(profile: profile)
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/E9ZeroChunkAndUnreadableTests.swift:203:9: warning: result of call to 'writeFile(_:content:)' is unused [#no-usage]
+201 |     /// "files with chunks" to "files processed".
+202 |     func testFileCount_includesZeroChunkFiles() async throws {
+203 |         writeFile("a.md", content: "Some indexable content here.")
+    |         `- warning: result of call to 'writeFile(_:content:)' is unused [#no-usage]
+204 |         writeFile("empty.txt", content: "")
+205 |         writeFile("blank.txt", content: "  \n")
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/E9ZeroChunkAndUnreadableTests.swift:204:9: warning: result of call to 'writeFile(_:content:)' is unused [#no-usage]
+202 |     func testFileCount_includesZeroChunkFiles() async throws {
+203 |         writeFile("a.md", content: "Some indexable content here.")
+204 |         writeFile("empty.txt", content: "")
+    |         `- warning: result of call to 'writeFile(_:content:)' is unused [#no-usage]
+205 |         writeFile("blank.txt", content: "  \n")
+206 |         let profile = try makeProfile()
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/E9ZeroChunkAndUnreadableTests.swift:205:9: warning: result of call to 'writeFile(_:content:)' is unused [#no-usage]
+203 |         writeFile("a.md", content: "Some indexable content here.")
+204 |         writeFile("empty.txt", content: "")
+205 |         writeFile("blank.txt", content: "  \n")
+    |         `- warning: result of call to 'writeFile(_:content:)' is unused [#no-usage]
+206 |         let profile = try makeProfile()
+207 |         let db = try await makeDB(profile: profile)
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/EmbedderPoolTests.swift:63:25: warning: no 'async' operations occur within 'await' expression
+ 61 |                 return
+ 62 |             }
+ 63 |             seen.insert(await tagged.tag)
+    |                         `- warning: no 'async' operations occur within 'await' expression
+ 64 |         }
+ 65 |         XCTAssertEqual(seen.count, 3,
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/EmbedderPoolTests.swift:82:20: warning: no 'async' operations occur within 'await' expression
+ 80 |             return
+ 81 |         }
+ 82 |         let tagA = await aT.tag
+    |                    `- warning: no 'async' operations occur within 'await' expression
+ 83 |         let tagC = await cT.tag
+ 84 |         XCTAssertEqual(tagA, tagC,
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/EmbedderPoolTests.swift:83:20: warning: no 'async' operations occur within 'await' expression
+ 81 |         }
+ 82 |         let tagA = await aT.tag
+ 83 |         let tagC = await cT.tag
+    |                    `- warning: no 'async' operations occur within 'await' expression
+ 84 |         XCTAssertEqual(tagA, tagC,
+ 85 |             "release-then-acquire should hand back the same instance (got tag \(tagA) then \(tagC))")
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/EmbedderPoolTests.swift:102:24: warning: no 'async' operations occur within 'await' expression
+100 |             return
+101 |         }
+102 |         let firstTag = await firstT.tag
+    |                        `- warning: no 'async' operations occur within 'await' expression
+103 | 
+104 |         // Park a waiter — pool has 0 free, so this suspends.
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/EmbedderPoolTests.swift:119:26: warning: no 'async' operations occur within 'await' expression
+117 |             return
+118 |         }
+119 |         let resumedTag = await resumedT.tag
+    |                          `- warning: no 'async' operations occur within 'await' expression
+120 |         XCTAssertEqual(firstTag, resumedTag,
+121 |             "waiter should be resumed with the same instance that was released; got \(resumedTag) vs released \(firstTag)")
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/IndexLogTests.swift:29:36: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 27 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+ 28 |         tempDir = realpath(raw.path, &buf) != nil
+ 29 |             ? URL(fileURLWithPath: String(cString: buf), isDirectory: true)
+    |                                    `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 30 |             : raw
+ 31 |         dbDir = tempDir.appendingPathComponent("db")
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/IntegrationTests.swift:19:36: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 17 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+ 18 |         tempDir = realpath(raw.path, &buf) != nil
+ 19 |             ? URL(fileURLWithPath: String(cString: buf), isDirectory: true)
+    |                                    `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 20 |             : raw
+ 21 |         // sourceDir is where files are created; dbDir is separate database storage
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/IntegrationTests.swift:41:98: warning: parameter 'file' with default argument '#file' passed to parameter 'file', whose default argument is '#filePath'
+ 37 |     /// Embed a query string using the real NomicEmbedder. Fails
+ 38 |     /// the test if embedding returns an empty vector.
+ 39 |     private func embed(_ text: String, file: StaticString = #file, line: UInt = #line) async throws -> [Float] {
+    |                                                             `- note: did you mean for parameter 'file' to default to '#filePath'?
+ 40 |         let vector = try await embeddingService.embedQuery(text)
+ 41 |         XCTAssertFalse(vector.isEmpty, "NomicEmbedder returned empty vector for: \(text)", file: file, line: line)
+    |                                                                                                  |- warning: parameter 'file' with default argument '#file' passed to parameter 'file', whose default argument is '#filePath'
+    |                                                                                                  `- note: add parentheses to silence this warning
+ 42 |         return vector
+ 43 |     }
+
+XCTest.XCTAssertFalse.file:1:1: note: 'file' declared here
+1 | file: StaticString
+  | `- note: 'file' declared here
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/MarkdownRetrievalExperimentTests.swift:617:70: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+615 |     private func resolvedURL(_ path: String) -> URL {
+616 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+617 |         if realpath(path, &buf) != nil { return URL(fileURLWithPath: String(cString: buf)) }
+    |                                                                      `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+618 |         return URL(fileURLWithPath: path)
+619 |     }
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/SilentFailureGuardTests.swift:34:36: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 32 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+ 33 |         tempDir = realpath(raw.path, &buf) != nil
+ 34 |             ? URL(fileURLWithPath: String(cString: buf), isDirectory: true)
+    |                                    `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 35 |             : raw
+ 36 |         sourceDir = tempDir.appendingPathComponent("src")
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/ThreeStagePipelineTests.swift:36:36: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 34 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+ 35 |         tempDir = realpath(raw.path, &buf) != nil
+ 36 |             ? URL(fileURLWithPath: String(cString: buf), isDirectory: true)
+    |                                    `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 37 |             : raw
+ 38 |         sourceDir = tempDir.appendingPathComponent("source")
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/VTTRetrievalExperimentTests.swift:718:70: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 716 |     private func resolvedURL(_ path: String) -> URL {
+ 717 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+ 718 |         if realpath(path, &buf) != nil { return URL(fileURLWithPath: String(cString: buf)) }
+     |                                                                      `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 719 |         return URL(fileURLWithPath: path)
+ 720 |     }
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/VecKitTests.swift:467:36: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 465 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+ 466 |         tempDir = realpath(raw.path, &buf) != nil
+ 467 |             ? URL(fileURLWithPath: String(cString: buf), isDirectory: true)
+     |                                    `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 468 |             : raw
+ 469 |     }
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/VectorDatabaseTests.swift:20:36: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 18 |         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
+ 19 |         tempDir = realpath(raw.path, &buf) != nil
+ 20 |             ? URL(fileURLWithPath: String(cString: buf), isDirectory: true)
+    |                                    `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 21 |             : raw
+ 22 |         dbDir = tempDir.appendingPathComponent("db")
+
+/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/Tests/VecKitTests/VectorDatabaseTests.swift:42:98: warning: parameter 'file' with default argument '#file' passed to parameter 'file', whose default argument is '#filePath'
+ 38 |     /// prefix, since these helpers build index entries). Fails the
+ 39 |     /// test if the embedding comes back empty.
+ 40 |     private func embed(_ text: String, file: StaticString = #file, line: UInt = #line) async throws -> [Float] {
+    |                                                             `- note: did you mean for parameter 'file' to default to '#filePath'?
+ 41 |         let vector = try await embeddingService.embedDocument(text)
+ 42 |         XCTAssertFalse(vector.isEmpty, "NomicEmbedder returned empty vector for: \(text)", file: file, line: line)
+    |                                                                                                  |- warning: parameter 'file' with default argument '#file' passed to parameter 'file', whose default argument is '#filePath'
+    |                                                                                                  `- note: add parentheses to silence this warning
+ 43 |         return vector
+ 44 |     }
+
+XCTest.XCTAssertFalse.file:1:1: note: 'file' declared here
+1 | file: StaticString
+  | `- note: 'file' declared here
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[32/33] Compiling vecPackageTests runner.swift
+Build complete! (92.09s)
+Test Suite 'Selected tests' started at 2026-09-07 04:00:44.215.
+Test Suite 'vecPackageTests.xctest' started at 2026-09-07 04:00:44.216.
+Test Suite 'ImageOCRRetrievalExperimentTests' started at 2026-09-07 04:00:44.216.
+Test Case '-[VecKitTests.ImageOCRRetrievalExperimentTests testImageOCRRetrievalBenchmark]' started.
+[e12] output/archive directory: /Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/experiments/E12-image-ocr/runs/20260907-retrieval
+[e12] preflight OK: 2 arms, 15 queries
+[e12] froze 18 image file(s)
+[e12] sample manifest verified against snapshot (18 files) and archived
+[e12] freeze complete — run_identity=f8029b668a6e25945efe8eb2b3833130777946e8fa2e32dba2fa96022c18af02. Ranking begins now.
+[e12] === arm 'raw' (textExtraction=raw) ===
+[e12] arm raw: scanned=0 indexed=0 blank=0 chunks=0 index=0.00s extract=0.00s embedSpan=0.00s db=0.00s rss=485 MB ocrCache(afterIndex)=h0/m0/o0
+[e12] === arm 'image-ocr-v1' (textExtraction=image-ocr-v1) ===
+[e12] arm image-ocr-v1: scanned=18 indexed=17 blank=1 chunks=19 index=10.99s extract=16.93s embedSpan=90.32s db=0.02s rss=3975 MB ocrCache(afterIndex)=h0/m18/o18
+[e12] retrieval done. Archive at /Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/experiments/E12-image-ocr/runs/20260907-retrieval
+Test Case '-[VecKitTests.ImageOCRRetrievalExperimentTests testImageOCRRetrievalBenchmark]' passed (14.595 seconds).
+Test Suite 'ImageOCRRetrievalExperimentTests' passed at 2026-09-07 04:00:58.812.
+	 Executed 1 test, with 0 failures (0 unexpected) in 14.595 (14.596) seconds
+Test Suite 'vecPackageTests.xctest' passed at 2026-09-07 04:00:58.812.
+	 Executed 1 test, with 0 failures (0 unexpected) in 14.595 (14.596) seconds
+Test Suite 'Selected tests' passed at 2026-09-07 04:00:58.812.
+	 Executed 1 test, with 0 failures (0 unexpected) in 14.595 (14.597) seconds
+[run-benchmark] child exited with status 0
+
+[exited with code 0]

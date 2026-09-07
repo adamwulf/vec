@@ -3,7 +3,7 @@
   "cache_misses" : 2,
   "failures" : [
     {
-      "error" : "undecodable(file:///private/var/folders/n3/nm2j2qb55ss7ystx9_vps3lw0000gn/T/vec-e12-scratch-FB6FEDF9-9689-4582-87D1-A3238FF57EF6/ocr-snapshot/corrupt.png)",
+      "error" : "undecodable(file:///private/var/folders/n3/nm2j2qb55ss7ystx9_vps3lw0000gn/T/vec-e12-scratch-8F00BE7A-EDC7-4AEA-AFEF-E0FF306A85B1/ocr-snapshot/corrupt.png)",
       "file" : "corrupt.png"
     }
   ],
@@ -13,8 +13,8 @@
   "jobs" : 1,
   "ocr_calls" : 1,
   "pass" : "cold",
-  "rss_after_bytes" : 113311744,
-  "rss_before_bytes" : 57868288,
-  "rss_peak_bytes" : 117391360,
-  "wall_seconds" : 1.6853675
+  "rss_after_bytes" : 115998720,
+  "rss_before_bytes" : 57786368,
+  "rss_peak_bytes" : 120160256,
+  "wall_seconds" : 0.933095709
 }
