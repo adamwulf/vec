@@ -83,6 +83,12 @@ public struct HTMLOCRAssetOptions: Sendable, Equatable {
                 value: maximumLocalImageBytes
             )
         }
+        guard allowedAssetRoot.isFileURL else {
+            throw HTMLExtractionError.nonFileAssetDirectory(allowedAssetRoot)
+        }
+        guard temporaryAssetDirectory.isFileURL else {
+            throw HTMLExtractionError.nonFileAssetDirectory(temporaryAssetDirectory)
+        }
         self.policyVersion = policyVersion
         self.allowedAssetRoot = allowedAssetRoot.standardizedFileURL
         self.temporaryAssetDirectory = temporaryAssetDirectory.standardizedFileURL
@@ -400,6 +406,7 @@ public enum HTMLExtractionError: Error, LocalizedError, Equatable {
     case invalidLimit(name: String, value: Int64)
     case unsupportedAssetPolicyVersion(Int)
     case nonFileSourceURL(URL)
+    case nonFileAssetDirectory(URL)
     case inputTooLarge(actualBytes: Int, maximumBytes: Int)
     case elementLimitExceeded(actual: Int, maximum: Int)
     case localAssetTooLarge(path: String, actualBytes: Int64, maximumBytes: Int64)
@@ -412,6 +419,8 @@ public enum HTMLExtractionError: Error, LocalizedError, Equatable {
             return "HTML OCR asset policy version \(version) is unsupported."
         case .nonFileSourceURL(let url):
             return "HTML extraction accepts local file URLs only (got \(url.absoluteString))."
+        case .nonFileAssetDirectory(let url):
+            return "HTML OCR asset directories must be local file URLs (got \(url.absoluteString))."
         case .inputTooLarge(let actual, let maximum):
             return "HTML input is \(actual) bytes, exceeding the \(maximum)-byte extraction limit."
         case .elementLimitExceeded(let actual, let maximum):

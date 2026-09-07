@@ -180,5 +180,14 @@ final class HTMLExtractionTypesTests: XCTestCase {
                 .unsupportedAssetPolicyVersion(HTMLOCRAssetOptions.currentPolicyVersion + 1)
             )
         }
+        XCTAssertThrowsError(try HTMLOCRAssetOptions(
+            policyVersion: HTMLOCRAssetOptions.currentPolicyVersion,
+            allowedAssetRoot: URL(string: "https://example.invalid/assets")!,
+            temporaryAssetDirectory: root,
+            maximumImages: 1,
+            maximumLocalImageBytes: 1,
+            maximumInlineImageBytes: 1,
+            maximumTotalInlineImageBytes: 1
+        ))
     }
 }
