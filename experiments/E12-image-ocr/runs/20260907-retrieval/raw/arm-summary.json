@@ -1,0 +1,42 @@
+{
+  "arm" : "raw",
+  "blank_count" : 0,
+  "db_seconds" : 0,
+  "embed_span_seconds" : 0,
+  "extract_seconds" : 0,
+  "file_count" : 0,
+  "index_seconds" : 3.3e-05,
+  "indexed_count" : 0,
+  "metrics" : {
+    "answered_queries" : 15,
+    "mean_reciprocal_rank" : 0,
+    "passage_all_met_rate" : 0,
+    "rank1_rate" : 0,
+    "real_answered" : 4,
+    "real_mrr" : 0,
+    "real_rank1_rate" : 0,
+    "synthetic_answered" : 11,
+    "synthetic_mrr" : 0,
+    "synthetic_rank1_rate" : 0,
+    "top3_rate" : 0,
+    "top5_rate" : 0
+  },
+  "ocr_cache_after_audit" : {
+    "hits" : 0,
+    "misses" : 0,
+    "ocr_calls" : 0
+  },
+  "ocr_cache_after_index" : {
+    "hits" : 0,
+    "misses" : 0,
+    "ocr_calls" : 0
+  },
+  "per_file_chunks" : [
+
+  ],
+  "rss_after_index_bytes" : 508919808,
+  "rss_before_index_bytes" : 508919808,
+  "search_seconds" : 1.38863175,
+  "text_extraction" : "raw",
+  "total_chunks" : 0
+}

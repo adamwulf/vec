@@ -1,0 +1,198 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "named"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8972072601318359,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.10279273986816406,
+          "score" : 0.8972072601318359
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7409929633140564,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2590070366859436,
+          "score" : 0.7409929633140564
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7244471907615662,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.27555280923843384,
+          "score" : 0.7244471907615662
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.2893897294998169,
+          "score" : 0.7106102705001831
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2993544340133667,
+          "score" : 0.7006455659866333
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7145274877548218,
+      "file" : "synthetic/roman-aqueduct.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2854725122451782,
+          "score" : 0.7145274877548218
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7131072878837585,
+      "file" : "synthetic/titan-methane-lakes.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.28689271211624146,
+          "score" : 0.7131072878837585
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.711055338382721,
+      "file" : "synthetic/lithium-battery-runaway.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.28894466161727905,
+          "score" : 0.711055338382721
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7018239498138428,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2981760501861572,
+          "score" : 0.7018239498138428
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.6996282339096069,
+      "file" : "synthetic/tea-ceremony.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.30037176609039307,
+          "score" : 0.6996282339096069
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.698185920715332,
+      "file" : "synthetic/fermat-last-theorem.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.30181407928466797,
+          "score" : 0.698185920715332
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.6969485282897949,
+      "file" : "real/fractional-index-steps.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.3030514717102051,
+          "score" : 0.6969485282897949
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q15",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8972072601318359,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "Antikythera"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "Metonic cycle"
+      }
+    ],
+    "distance" : 0.10279273986816406,
+    "file_rank" : 1,
+    "input_chars" : 165
+  },
+  "primary_file" : "synthetic/antikythera-mechanism.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "synthetic/antikythera-mechanism.png"
+  ],
+  "search_seconds" : 0.083031917,
+  "text" : "What ancient Greek device used bronze gears to predict eclipses?"
+}

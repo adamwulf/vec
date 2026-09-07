@@ -1,0 +1,25 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "named"
+  ],
+  "groups" : [
+
+  ],
+  "hit_at_1" : false,
+  "hit_at_3" : false,
+  "hit_at_5" : false,
+  "id" : "q07",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 0,
+  "primary_file" : "synthetic/espresso-extraction.png",
+  "reciprocal_rank" : 0,
+  "relevant_files" : [
+    "synthetic/espresso-extraction.png"
+  ],
+  "search_seconds" : 0.10617625,
+  "text" : "At what pressure do you pull an espresso shot, and what is uneven flow called?"
+}

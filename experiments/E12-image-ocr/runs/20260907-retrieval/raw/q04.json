@@ -1,0 +1,25 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "real",
+    "thumbnail",
+    "named"
+  ],
+  "groups" : [
+
+  ],
+  "hit_at_1" : false,
+  "hit_at_3" : false,
+  "hit_at_5" : false,
+  "id" : "q04",
+  "is_no_answer" : false,
+  "origin" : "real",
+  "overfetch_distinct_files" : 0,
+  "primary_file" : "real/minecraft-atmosphere-thumbnail.jpg",
+  "reciprocal_rank" : 0,
+  "relevant_files" : [
+    "real/minecraft-atmosphere-thumbnail.jpg"
+  ],
+  "search_seconds" : 0.060402084,
+  "text" : "Which image is the Minecraft video thumbnail titled ATMOSPHERE?"
+}

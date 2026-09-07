@@ -1,0 +1,198 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.895127534866333,
+      "file" : "synthetic/roman-aqueduct.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.10487246513366699,
+          "score" : 0.895127534866333
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7239930033683777,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.2760069966316223,
+          "score" : 0.7239930033683777
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.3148723840713501,
+          "score" : 0.6851276159286499
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.33532458543777466,
+          "score" : 0.6646754145622253
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7172309756278992,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.28276902437210083,
+          "score" : 0.7172309756278992
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.704811692237854,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.295188307762146,
+          "score" : 0.704811692237854
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7041013240814209,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2958986759185791,
+          "score" : 0.7041013240814209
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7026242017745972,
+      "file" : "synthetic/tea-ceremony.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.29737579822540283,
+          "score" : 0.7026242017745972
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.6997634768486023,
+      "file" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.3002365231513977,
+          "score" : 0.6997634768486023
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.6912239193916321,
+      "file" : "synthetic/lithium-battery-runaway.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.3087760806083679,
+          "score" : 0.6912239193916321
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.6908678412437439,
+      "file" : "real/fractional-index-steps.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.3091321587562561,
+          "score" : 0.6908678412437439
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.6897954344749451,
+      "file" : "synthetic/titan-methane-lakes.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.31020456552505493,
+          "score" : 0.6897954344749451
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q08",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.895127534866333,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "Pont du Gard"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "34 centimeters"
+      }
+    ],
+    "distance" : 0.10487246513366699,
+    "file_rank" : 1,
+    "input_chars" : 181
+  },
+  "primary_file" : "synthetic/roman-aqueduct.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "synthetic/roman-aqueduct.png"
+  ],
+  "search_seconds" : 0.089535333,
+  "text" : "What was the gradient of the Roman aqueduct that carried water to Nimes?"
+}

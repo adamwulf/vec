@@ -1,0 +1,35 @@
+run_identity: f8029b668a6e25945efe8eb2b3833130777946e8fa2e32dba2fa96022c18af02
+settings:     e5-base@1200/0 chunk 1200/0 concurrency 8 ocrConcurrency 4
+
+== raw  (raw; chunks=0, indexed=0, blank=0) ==
+  ALL       rank1 0/15  top3 0/15  top5 0/15  MRR 0.000
+  REAL      rank1 0/4  top3 0/4  top5 0/4  MRR 0.000
+  SYNTHETIC rank1 0/11  top3 0/11  top5 0/11  MRR 0.000
+  TOTAL raw: rank1 0/15  MRR 0.000  (advisory passage passes 0)
+
+== image-ocr-v1  (image-ocr-v1; chunks=19, indexed=17, blank=1) ==
+  ALL       rank1 14/15  top3 15/15  top5 15/15  MRR 0.967
+  REAL      rank1 3/4  top3 4/4  top5 4/4  MRR 0.875
+  SYNTHETIC rank1 11/11  top3 11/11  top5 11/11  MRR 1.000
+  TOTAL image-ocr-v1: rank1 14/15  MRR 0.967  (advisory passage passes 13)
+
+== Per-query file rank (answered) ==
+query   origin                  raw    image-ocr-v1
+---------------------------------------------------
+q01     real                      —               1
+q02     real                      —               1
+q03     real                      —               1
+q04     real                      —               2
+q05     synthetic                 —               1
+q06     synthetic                 —               1
+q07     synthetic                 —               1
+q08     synthetic                 —               1
+q09     synthetic                 —               1
+q10     synthetic                 —               1
+q11     synthetic                 —               1
+q12     synthetic                 —               1
+q13     synthetic                 —               1
+q14     synthetic                 —               1
+q15     synthetic                 —               1
+
+File rank is derived from archived best_score (descending, stable). The raw arm is an empty index by design. Passage passes are advisory pre-tokenizer checks and do not gate rank.

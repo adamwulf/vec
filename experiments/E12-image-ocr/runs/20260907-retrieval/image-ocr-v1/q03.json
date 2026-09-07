@@ -1,0 +1,198 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "real",
+    "diagram",
+    "explanation"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8276209831237793,
+      "file" : "real/fractional-index-steps.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.1723790168762207,
+          "score" : 0.8276209831237793
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7856117486953735,
+      "file" : "real/ot-sequence-diagram.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.21438825130462646,
+          "score" : 0.7856117486953735
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7556737661361694,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.24432623386383057,
+          "score" : 0.7556737661361694
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.25874024629592896,
+          "score" : 0.741259753704071
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.2711491584777832,
+          "score" : 0.7288508415222168
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7544516324996948,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.24554836750030518,
+          "score" : 0.7544516324996948
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7482874989509583,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.25171250104904175,
+          "score" : 0.7482874989509583
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7430461049079895,
+      "file" : "synthetic/roman-aqueduct.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2569538950920105,
+          "score" : 0.7430461049079895
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7422977089881897,
+      "file" : "synthetic/knitting-gauge.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2577022910118103,
+          "score" : 0.7422977089881897
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7381141781806946,
+      "file" : "synthetic/fermat-last-theorem.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2618858218193054,
+          "score" : 0.7381141781806946
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7323421835899353,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2676578164100647,
+          "score" : 0.7323421835899353
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.7317449450492859,
+      "file" : "synthetic/lithium-battery-runaway.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2682550549507141,
+          "score" : 0.7317449450492859
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q03",
+  "is_no_answer" : false,
+  "origin" : "real",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8276209831237793,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : false,
+        "type" : "contains",
+        "value" : "Insert Obj2"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "0.35"
+      }
+    ],
+    "distance" : 0.1723790168762207,
+    "file_rank" : 1,
+    "input_chars" : 277
+  },
+  "primary_file" : "real/fractional-index-steps.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "real/fractional-index-steps.png"
+  ],
+  "search_seconds" : 0.073716625,
+  "text" : "How do fractional index values let you insert an object between two ordered items?"
+}

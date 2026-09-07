@@ -1,0 +1,293 @@
+{
+  "aggregate" : {
+    "image-ocr-v1" : {
+      "answered_queries" : 15,
+      "mean_reciprocal_rank" : 0.9666666666666667,
+      "passage_all_met_rate" : 0.8666666666666667,
+      "rank1_rate" : 0.9333333333333333,
+      "real_answered" : 4,
+      "real_mrr" : 0.875,
+      "real_rank1_rate" : 0.75,
+      "synthetic_answered" : 11,
+      "synthetic_mrr" : 1,
+      "synthetic_rank1_rate" : 1,
+      "top3_rate" : 1,
+      "top5_rate" : 1
+    },
+    "raw" : {
+      "answered_queries" : 15,
+      "mean_reciprocal_rank" : 0,
+      "passage_all_met_rate" : 0,
+      "rank1_rate" : 0,
+      "real_answered" : 4,
+      "real_mrr" : 0,
+      "real_rank1_rate" : 0,
+      "synthetic_answered" : 11,
+      "synthetic_mrr" : 0,
+      "synthetic_rank1_rate" : 0,
+      "top3_rate" : 0,
+      "top5_rate" : 0
+    }
+  },
+  "arms" : [
+    "raw",
+    "image-ocr-v1"
+  ],
+  "per_query" : [
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "real/fbi-jan6-charges-chart.png",
+          "top_score" : 0.8367003798484802
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q01",
+      "is_no_answer" : false,
+      "origin" : "real"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "real/ot-sequence-diagram.png",
+          "top_score" : 0.8501302003860474
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q02",
+      "is_no_answer" : false,
+      "origin" : "real"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : false,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "real/fractional-index-steps.png",
+          "top_score" : 0.8276209831237793
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q03",
+      "is_no_answer" : false,
+      "origin" : "real"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : false,
+          "file_rank" : 2,
+          "reciprocal_rank" : 0.5,
+          "top_file" : "synthetic/titan-methane-lakes.png",
+          "top_score" : 0.7592995762825012
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q04",
+      "is_no_answer" : false,
+      "origin" : "real"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "synthetic/sourdough-hydration.png",
+          "top_score" : 0.9050477147102356
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q05",
+      "is_no_answer" : false,
+      "origin" : "synthetic"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "synthetic/titan-methane-lakes.png",
+          "top_score" : 0.8598487973213196
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q06",
+      "is_no_answer" : false,
+      "origin" : "synthetic"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "synthetic/espresso-extraction.png",
+          "top_score" : 0.8869077563285828
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q07",
+      "is_no_answer" : false,
+      "origin" : "synthetic"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "synthetic/roman-aqueduct.png",
+          "top_score" : 0.895127534866333
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q08",
+      "is_no_answer" : false,
+      "origin" : "synthetic"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "synthetic/waggle-dance.png",
+          "top_score" : 0.8489192128181458
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q09",
+      "is_no_answer" : false,
+      "origin" : "synthetic"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "synthetic/lithium-battery-runaway.png",
+          "top_score" : 0.894172728061676
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q10",
+      "is_no_answer" : false,
+      "origin" : "synthetic"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "synthetic/coral-bleaching.png",
+          "top_score" : 0.88127601146698
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q11",
+      "is_no_answer" : false,
+      "origin" : "synthetic"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "synthetic/tea-ceremony.png",
+          "top_score" : 0.8806959390640259
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q12",
+      "is_no_answer" : false,
+      "origin" : "synthetic"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "synthetic/everest-death-zone.png",
+          "top_score" : 0.8842777609825134
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q13",
+      "is_no_answer" : false,
+      "origin" : "synthetic"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "synthetic/fermat-last-theorem.png",
+          "top_score" : 0.8493768572807312
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q14",
+      "is_no_answer" : false,
+      "origin" : "synthetic"
+    },
+    {
+      "arms" : {
+        "image-ocr-v1" : {
+          "all_criteria_met" : true,
+          "file_rank" : 1,
+          "reciprocal_rank" : 1,
+          "top_file" : "synthetic/antikythera-mechanism.png",
+          "top_score" : 0.8972072601318359
+        },
+        "raw" : {
+          "reciprocal_rank" : 0
+        }
+      },
+      "id" : "q15",
+      "is_no_answer" : false,
+      "origin" : "synthetic"
+    }
+  ]
+}

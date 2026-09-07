@@ -1,0 +1,198 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "named"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.88127601146698,
+      "file" : "synthetic/coral-bleaching.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.11872398853302002,
+          "score" : 0.88127601146698
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.765784502029419,
+      "file" : "synthetic/lithium-battery-runaway.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.23421549797058105,
+          "score" : 0.765784502029419
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7467267513275146,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.25327324867248535,
+          "score" : 0.7467267513275146
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7385551333427429,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2614448666572571,
+          "score" : 0.7385551333427429
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7368377447128296,
+      "file" : "synthetic/tea-ceremony.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2631622552871704,
+          "score" : 0.7368377447128296
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7367169260978699,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.2632830739021301,
+          "score" : 0.7367169260978699
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.2762734889984131,
+          "score" : 0.7237265110015869
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2808704376220703,
+          "score" : 0.7191295623779297
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.720365583896637,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.27963441610336304,
+          "score" : 0.720365583896637
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7166719436645508,
+      "file" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2833280563354492,
+          "score" : 0.7166719436645508
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7123921513557434,
+      "file" : "synthetic/sourdough-hydration.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2876078486442566,
+          "score" : 0.7123921513557434
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.7110509276390076,
+      "file" : "real/ot-sequence-diagram.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.28894907236099243,
+          "score" : 0.7110509276390076
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q11",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.88127601146698,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "zooxanthellae"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "Acropora"
+      }
+    ],
+    "distance" : 0.11872398853302002,
+    "file_rank" : 1,
+    "input_chars" : 169
+  },
+  "primary_file" : "synthetic/coral-bleaching.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "synthetic/coral-bleaching.png"
+  ],
+  "search_seconds" : 0.088285458,
+  "text" : "Why do heat-stressed corals expel their algae and turn white?"
+}

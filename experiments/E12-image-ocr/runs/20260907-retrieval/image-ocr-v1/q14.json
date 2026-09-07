@@ -1,0 +1,198 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "named"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8493768572807312,
+      "file" : "synthetic/fermat-last-theorem.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.1506231427192688,
+          "score" : 0.8493768572807312
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7403771877288818,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.25962281227111816,
+          "score" : 0.7403771877288818
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7315672636032104,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.26843273639678955,
+          "score" : 0.7315672636032104
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.2872004508972168,
+          "score" : 0.7127995491027832
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.30589818954467773,
+          "score" : 0.6941018104553223
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7253010869026184,
+      "file" : "synthetic/roman-aqueduct.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2746989130973816,
+          "score" : 0.7253010869026184
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7197111248970032,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2802888751029968,
+          "score" : 0.7197111248970032
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7130599021911621,
+      "file" : "real/fractional-index-steps.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2869400978088379,
+          "score" : 0.7130599021911621
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.6972621083259583,
+      "file" : "real/ot-sequence-diagram.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.30273789167404175,
+          "score" : 0.6972621083259583
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.6954275369644165,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.3045724630355835,
+          "score" : 0.6954275369644165
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.6951291561126709,
+      "file" : "synthetic/sourdough-hydration.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.3048708438873291,
+          "score" : 0.6951291561126709
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.69169020652771,
+      "file" : "synthetic/lithium-battery-runaway.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.30830979347229004,
+          "score" : 0.69169020652771
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q14",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8493768572807312,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "Andrew Wiles"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "modular forms"
+      }
+    ],
+    "distance" : 0.1506231427192688,
+    "file_rank" : 1,
+    "input_chars" : 183
+  },
+  "primary_file" : "synthetic/fermat-last-theorem.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "synthetic/fermat-last-theorem.png"
+  ],
+  "search_seconds" : 0.091948459,
+  "text" : "Who proved Fermat's Last Theorem, and using what mathematical tools?"
+}

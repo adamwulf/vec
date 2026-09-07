@@ -1,0 +1,21 @@
+# E12 execution command + resolved provenance
+command (representative):
+  VEC_E12_BENCHMARK=1 \
+  VEC_E12_MODEL_DIRECTORY=/private/tmp/vec-e10-model/f52bf8ec8c7124536f0efb74aca902b2995e5bcd \
+  VEC_E12_MODEL_REVISION=f52bf8ec8c7124536f0efb74aca902b2995e5bcd \
+  VEC_E12_CORPUS_DIRECTORY=/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/experiments/E12-image-ocr/sample \
+  VEC_E12_CONCURRENCY=8 VEC_E12_OCR_CONCURRENCY=4 \
+  VEC_E12_OUTPUT_DIRECTORY=/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/experiments/E12-image-ocr/runs/20260907-retrieval \
+  swift test --disable-sandbox --disable-swift-testing -c release -j 4 \
+    --filter VecKitTests.ImageOCRRetrievalExperimentTests/testImageOCRRetrievalBenchmark
+
+run_identity: f8029b668a6e25945efe8eb2b3833130777946e8fa2e32dba2fa96022c18af02
+git_head: 49b2ae803558859e24753346da166dcfda1c0b32  git_dirty: Optional(false)
+package_resolved_sha256: d3dad0550daef3df320799330ec5b6b8ee49e8772ce2fde1a1a0e3aa796bb10c
+os_version: Version 26.6.2 (Build 25G83)  cores: 10  host: adams-macbook-pro-9.local
+swift: Apple Swift version 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2)
+Target: arm64-apple-macosx26.0
+model_directory: /private/tmp/vec-e10-model/f52bf8ec8c7124536f0efb74aca902b2995e5bcd  revision: f52bf8ec8c7124536f0efb74aca902b2995e5bcd  model_files_hashed: 7
+settings: e5-base@1200/0, chunk 1200/0, concurrency 8, ocrConcurrency 4, batch 32, bucket 500
+ocr: ImageOCR v1, requestRevision 3, maxPixelDimension 4096
+memory scope: process-wide RSS via task_info, before/after indexing only (NOT OCR-isolated).

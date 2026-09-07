@@ -1,0 +1,198 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "named"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8806959390640259,
+      "file" : "synthetic/tea-ceremony.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.11930406093597412,
+          "score" : 0.8806959390640259
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.728054404258728,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.271945595741272,
+          "score" : 0.728054404258728
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7070844769477844,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.2929155230522156,
+          "score" : 0.7070844769477844
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.3387579917907715,
+          "score" : 0.6612420082092285
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.339658260345459,
+          "score" : 0.660341739654541
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.706348717212677,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.293651282787323,
+          "score" : 0.706348717212677
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.688869297504425,
+      "file" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.31113070249557495,
+          "score" : 0.688869297504425
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.6881121397018433,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.31188786029815674,
+          "score" : 0.6881121397018433
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.669028639793396,
+      "file" : "synthetic/coral-bleaching.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.330971360206604,
+          "score" : 0.669028639793396
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.6670635938644409,
+      "file" : "synthetic/sourdough-hydration.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.3329364061355591,
+          "score" : 0.6670635938644409
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.6670255064964294,
+      "file" : "synthetic/roman-aqueduct.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.33297449350357056,
+          "score" : 0.6670255064964294
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.6589806079864502,
+      "file" : "synthetic/everest-death-zone.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.3410193920135498,
+          "score" : 0.6589806079864502
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q12",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8806959390640259,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "Sen no Rikyu"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "chawan"
+      }
+    ],
+    "distance" : 0.11930406093597412,
+    "file_rank" : 1,
+    "input_chars" : 176
+  },
+  "primary_file" : "synthetic/tea-ceremony.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "synthetic/tea-ceremony.png"
+  ],
+  "search_seconds" : 0.090825125,
+  "text" : "Who shaped the wabi-sabi aesthetic of the Japanese tea ceremony?"
+}
