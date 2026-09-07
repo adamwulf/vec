@@ -1,0 +1,192 @@
+{
+  "corpus": {
+    "scope": "Image-only sample (*.png, *.jpg), discovered recursively. The raw arm's production scanner indexes ZERO of these; the image-ocr-v1 arm OCRs and indexes them all.",
+    "expected_image_files": 18
+  },
+  "arms": [
+    { "key": "raw", "text_extraction": "raw", "label": "raw — production FileScanner(.raw) excludes every image (empty index)" },
+    { "key": "image-ocr-v1", "text_extraction": "image-ocr-v1", "label": "image-ocr-v1 — Vision OCR text indexed" }
+  ],
+  "queries": [
+    {
+      "id": "q01",
+      "text": "How many total charges does the chart report against January 6 defendants?",
+      "categories": ["real", "chart", "claim"],
+      "primary_file": "real/fbi-jan6-charges-chart.png",
+      "relevant_files": ["real/fbi-jan6-charges-chart.png"],
+      "passage_criteria": [
+        { "type": "regex", "value": "1[.,]?575", "note": "the '1,575 total charges' callout; OCR may drop or change the thousands separator" },
+        { "type": "contains", "value": "charges" }
+      ],
+      "rationale": "The chart's red callout reads '1,575 total charges through Jan. 2025'; a note says the FBI estimated ~2,000 people took part in criminal acts on Jan. 6. Query targets what the chart states, not external truth."
+    },
+    {
+      "id": "q02",
+      "text": "How are insert and delete edits from two clients transformed against the server document?",
+      "categories": ["real", "diagram", "explanation"],
+      "primary_file": "real/ot-sequence-diagram.png",
+      "relevant_files": ["real/ot-sequence-diagram.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "Client A" },
+        { "type": "contains", "value": "Insert" },
+        { "type": "contains", "value": "Delete" }
+      ],
+      "rationale": "Columns Time / Client A / Server / Client B show Insert(at: 0, text: x) and Delete(at: 1, n: 2) converging on document 'xad' — an operational-transformation sequence."
+    },
+    {
+      "id": "q03",
+      "text": "How do fractional index values let you insert an object between two ordered items?",
+      "categories": ["real", "diagram", "explanation"],
+      "primary_file": "real/fractional-index-steps.png",
+      "relevant_files": ["real/fractional-index-steps.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "Insert Obj2" },
+        { "type": "contains", "value": "0.35" }
+      ],
+      "rationale": "Steps read 'Insert Obj2 between Obj3 & Obj4' (value 0.35), 'Insert Obj0 before Obj1' (0.05), and 'Insert Obj5 after Obj4' (0.5) — fractional ordering keys."
+    },
+    {
+      "id": "q04",
+      "text": "Which image is the Minecraft video thumbnail titled ATMOSPHERE?",
+      "categories": ["real", "thumbnail", "named"],
+      "primary_file": "real/minecraft-atmosphere-thumbnail.jpg",
+      "relevant_files": ["real/minecraft-atmosphere-thumbnail.jpg"],
+      "passage_criteria": [
+        { "type": "contains", "value": "ATMOSPHERE" }
+      ],
+      "rationale": "The thumbnail shows large white text 'ATMOSPHERE' over a Minecraft interior, with the stylized creator tag 'BDOUBLEO' beneath (the stylized slashed-O may not OCR cleanly, so only ATMOSPHERE is checked)."
+    },
+    {
+      "id": "q05",
+      "text": "What hydration percentage does a country sourdough loaf use?",
+      "categories": ["synthetic", "factual", "claim"],
+      "primary_file": "synthetic/sourdough-hydration.png",
+      "relevant_files": ["synthetic/sourdough-hydration.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "75 percent" },
+        { "type": "contains", "value": "Tartine" }
+      ],
+      "rationale": "Rendered text states '75 percent hydration' and names 'the Tartine method'."
+    },
+    {
+      "id": "q06",
+      "text": "Which moon of Saturn has liquid methane lakes like Kraken Mare?",
+      "categories": ["synthetic", "factual", "named"],
+      "primary_file": "synthetic/titan-methane-lakes.png",
+      "relevant_files": ["synthetic/titan-methane-lakes.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "Kraken Mare" },
+        { "type": "contains", "value": "methane" }
+      ],
+      "rationale": "Rendered text: 'Liquid methane fills Kraken Mare near the north pole.'"
+    },
+    {
+      "id": "q07",
+      "text": "At what pressure do you pull an espresso shot, and what is uneven flow called?",
+      "categories": ["synthetic", "factual", "named"],
+      "primary_file": "synthetic/espresso-extraction.png",
+      "relevant_files": ["synthetic/espresso-extraction.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "nine bars" },
+        { "type": "contains", "value": "channeling" }
+      ],
+      "rationale": "Rendered text: 'Pull the shot at nine bars of pressure' and 'Uneven flow through the puck is called channeling.'"
+    },
+    {
+      "id": "q08",
+      "text": "What was the gradient of the Roman aqueduct that carried water to Nimes?",
+      "categories": ["synthetic", "factual", "claim"],
+      "primary_file": "synthetic/roman-aqueduct.png",
+      "relevant_files": ["synthetic/roman-aqueduct.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "Pont du Gard" },
+        { "type": "contains", "value": "34 centimeters" }
+      ],
+      "rationale": "Rendered text: 'The Pont du Gard carried water to Nimes' with 'gradient is 34 centimeters per kilometer.'"
+    },
+    {
+      "id": "q09",
+      "text": "How does a honeybee communicate the direction of a food source?",
+      "categories": ["synthetic", "factual", "named"],
+      "primary_file": "synthetic/waggle-dance.png",
+      "relevant_files": ["synthetic/waggle-dance.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "waggle" },
+        { "type": "contains", "value": "Karl von Frisch" }
+      ],
+      "rationale": "Rendered text: 'The angle to vertical maps to the angle to the sun' and 'Karl von Frisch first decoded this dance.'"
+    },
+    {
+      "id": "q10",
+      "text": "Above what temperature can an NMC lithium-ion cell enter thermal runaway?",
+      "categories": ["synthetic", "factual", "claim"],
+      "primary_file": "synthetic/lithium-battery-runaway.png",
+      "relevant_files": ["synthetic/lithium-battery-runaway.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "NMC cathode" },
+        { "type": "contains", "value": "150 degrees" }
+      ],
+      "rationale": "Rendered text: 'An NMC cathode can vent above 150 degrees Celsius.'"
+    },
+    {
+      "id": "q11",
+      "text": "Why do heat-stressed corals expel their algae and turn white?",
+      "categories": ["synthetic", "factual", "named"],
+      "primary_file": "synthetic/coral-bleaching.png",
+      "relevant_files": ["synthetic/coral-bleaching.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "zooxanthellae" },
+        { "type": "contains", "value": "Acropora" }
+      ],
+      "rationale": "Rendered text: 'The polyps expel their zooxanthellae algae' and 'Acropora colonies turn white and may starve.'"
+    },
+    {
+      "id": "q12",
+      "text": "Who shaped the wabi-sabi aesthetic of the Japanese tea ceremony?",
+      "categories": ["synthetic", "factual", "named"],
+      "primary_file": "synthetic/tea-ceremony.png",
+      "relevant_files": ["synthetic/tea-ceremony.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "Sen no Rikyu" },
+        { "type": "contains", "value": "chawan" }
+      ],
+      "rationale": "Rendered text: 'Sen no Rikyu shaped the wabi-sabi aesthetic' and 'Matcha is whisked in a chawan bowl.'"
+    },
+    {
+      "id": "q13",
+      "text": "Above what altitude does the death zone on Mount Everest begin?",
+      "categories": ["synthetic", "factual", "claim"],
+      "primary_file": "synthetic/everest-death-zone.png",
+      "relevant_files": ["synthetic/everest-death-zone.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "death zone" },
+        { "type": "contains", "value": "8000 meters" }
+      ],
+      "rationale": "Rendered text: 'The death zone begins above 8000 meters' with the Hillary Step and Tenzing Norgay."
+    },
+    {
+      "id": "q14",
+      "text": "Who proved Fermat's Last Theorem, and using what mathematical tools?",
+      "categories": ["synthetic", "factual", "named"],
+      "primary_file": "synthetic/fermat-last-theorem.png",
+      "relevant_files": ["synthetic/fermat-last-theorem.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "Andrew Wiles" },
+        { "type": "contains", "value": "modular forms" }
+      ],
+      "rationale": "Rendered text: 'Andrew Wiles proved it in 1994 using modular forms.'"
+    },
+    {
+      "id": "q15",
+      "text": "What ancient Greek device used bronze gears to predict eclipses?",
+      "categories": ["synthetic", "factual", "named"],
+      "primary_file": "synthetic/antikythera-mechanism.png",
+      "relevant_files": ["synthetic/antikythera-mechanism.png"],
+      "passage_criteria": [
+        { "type": "contains", "value": "Antikythera" },
+        { "type": "contains", "value": "Metonic cycle" }
+      ],
+      "rationale": "Rendered text: 'A bronze gear train models the heavens' and 'It predicts eclipses and the Metonic cycle.'"
+    }
+  ]
+}
