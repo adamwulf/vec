@@ -111,6 +111,24 @@ final class HTMLAssetResolverTests: XCTestCase {
         )
         XCTAssertNotEqual(first.manifest?.digest, changed.manifest?.digest)
         XCTAssertNotEqual(first.manifest?.entries[0].sha256, changed.manifest?.entries[0].sha256)
+
+        try Data([9]).write(to: assets.appendingPathComponent("missing.jpg"))
+        let created = try HTMLAssetResolver.resolve(
+            segments,
+            htmlFileURL: root.appendingPathComponent("page.html"),
+            options: policy
+        )
+        XCTAssertEqual(created.manifest?.entries[1].state, .present)
+        XCTAssertNotEqual(changed.manifest?.digest, created.manifest?.digest)
+
+        try FileManager.default.removeItem(at: chart)
+        let deleted = try HTMLAssetResolver.resolve(
+            segments,
+            htmlFileURL: root.appendingPathComponent("page.html"),
+            options: policy
+        )
+        XCTAssertEqual(deleted.manifest?.entries[0].state, .missing)
+        XCTAssertNotEqual(created.manifest?.digest, deleted.manifest?.digest)
     }
 
     func testRemoteAndEscapingReferencesNeverBecomeOCRSources() throws {
@@ -234,5 +252,21 @@ final class HTMLAssetResolverTests: XCTestCase {
         )
         XCTAssertEqual(imageReferences(in: result).map(\.source), [nil, nil])
         XCTAssertEqual(result.diagnostics.map(\.kind), [.inlineImageMalformed, .unsupportedImageIgnored])
+    }
+
+    func testOversizedLocalAssetIsManifestedWithoutReadingForOCR() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try Data([1, 2, 3, 4]).write(to: root.appendingPathComponent("large.png"))
+        let result = try HTMLAssetResolver.resolve(
+            [image(0, alt: "Large chart", attributes: ["src": "large.png"])],
+            htmlFileURL: root.appendingPathComponent("page.html"),
+            options: try options(root: root, maximumLocalBytes: 3)
+        )
+
+        XCTAssertNil(imageReferences(in: result)[0].source)
+        XCTAssertEqual(result.manifest?.entries.first?.state, .tooLarge)
+        XCTAssertEqual(result.manifest?.entries.first?.byteCount, 4)
+        XCTAssertTrue(result.diagnostics.contains { $0.kind == .localImageTooLarge })
     }
 }

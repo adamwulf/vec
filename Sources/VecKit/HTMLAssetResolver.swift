@@ -15,6 +15,12 @@ struct HTMLAssetResolution: Sendable, Equatable {
 enum HTMLAssetResolver {
     private static let readBufferBytes = 64 * 1_024
 
+    private enum LocalAssetState {
+        case present(url: URL, digest: String, byteCount: Int64)
+        case missing
+        case tooLarge(byteCount: Int64)
+    }
+
     static func resolve(
         _ structuralSegments: [HTMLStructuralSegment],
         htmlFileURL: URL,
@@ -40,7 +46,6 @@ enum HTMLAssetResolver {
             )
         }
 
-        let fileManager = FileManager.default
         let allowedRoot = options.allowedAssetRoot.resolvingSymlinksInPath().standardizedFileURL
         var output: [HTMLContentSegment] = []
         var manifestEntries: [HTMLAssetManifest.Entry] = []
@@ -48,6 +53,7 @@ enum HTMLAssetResolver {
         var eligibleImageCount = 0
         var retainedInlineBytes = 0
         var inlineByDigest: [String: (format: HTMLInlineRasterFormat, data: Data)] = [:]
+        var localByCanonicalPath: [String: LocalAssetState] = [:]
 
         output.reserveCapacity(structuralSegments.count)
         for segment in structuralSegments {
@@ -149,21 +155,19 @@ enum HTMLAssetResolver {
                     continue
                 }
 
-                var isDirectory: ObjCBool = false
-                guard fileManager.fileExists(atPath: resolvedURL.path, isDirectory: &isDirectory),
-                      !isDirectory.boolValue else {
-                    manifestEntries.append(.init(
-                        ordinal: image.ordinal,
-                        relativePath: relativePath,
-                        state: .missing
-                    ))
-                    diagnostics.append(.init(kind: .localImageMissing, detail: relativePath))
-                    output.append(.image(unresolvedImage(image)))
-                    continue
+                let state: LocalAssetState
+                if let cached = localByCanonicalPath[relativePath] {
+                    state = cached
+                } else {
+                    state = try inspectLocalAsset(
+                        at: resolvedURL,
+                        maximumBytes: options.maximumLocalImageBytes
+                    )
+                    localByCanonicalPath[relativePath] = state
                 }
 
-                let values = try resolvedURL.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
-                guard values.isRegularFile == true else {
+                switch state {
+                case .missing:
                     manifestEntries.append(.init(
                         ordinal: image.ordinal,
                         relativePath: relativePath,
@@ -171,10 +175,8 @@ enum HTMLAssetResolver {
                     ))
                     diagnostics.append(.init(kind: .localImageMissing, detail: relativePath))
                     output.append(.image(unresolvedImage(image)))
-                    continue
-                }
-                let byteCount = Int64(values.fileSize ?? 0)
-                guard byteCount <= options.maximumLocalImageBytes else {
+
+                case .tooLarge(let byteCount):
                     manifestEntries.append(.init(
                         ordinal: image.ordinal,
                         relativePath: relativePath,
@@ -183,26 +185,22 @@ enum HTMLAssetResolver {
                     ))
                     diagnostics.append(.init(kind: .localImageTooLarge, detail: relativePath))
                     output.append(.image(unresolvedImage(image)))
-                    continue
-                }
 
-                let hashed = try sha256(
-                    fileAt: resolvedURL,
-                    maximumBytes: options.maximumLocalImageBytes
-                )
-                manifestEntries.append(.init(
-                    ordinal: image.ordinal,
-                    relativePath: relativePath,
-                    state: .present,
-                    byteCount: hashed.byteCount,
-                    sha256: hashed.digest
-                ))
-                output.append(.image(HTMLImageReference(
-                    ordinal: image.ordinal,
-                    altText: image.altText,
-                    source: .localFile(resolvedURL),
-                    contentDigest: hashed.digest
-                )))
+                case .present(let url, let digest, let byteCount):
+                    manifestEntries.append(.init(
+                        ordinal: image.ordinal,
+                        relativePath: relativePath,
+                        state: .present,
+                        byteCount: byteCount,
+                        sha256: digest
+                    ))
+                    output.append(.image(HTMLImageReference(
+                        ordinal: image.ordinal,
+                        altText: image.altText,
+                        source: .localFile(url),
+                        contentDigest: digest
+                    )))
+                }
             }
         }
 
@@ -284,6 +282,26 @@ enum HTMLAssetResolver {
 
     private static func sha256(_ data: Data) -> String {
         SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func inspectLocalAsset(
+        at url: URL,
+        maximumBytes: Int64
+    ) throws -> LocalAssetState {
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory),
+              !isDirectory.boolValue else {
+            return .missing
+        }
+
+        let values = try url.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
+        guard values.isRegularFile == true else { return .missing }
+        let advertisedByteCount = Int64(values.fileSize ?? 0)
+        guard advertisedByteCount <= maximumBytes else {
+            return .tooLarge(byteCount: advertisedByteCount)
+        }
+        let hashed = try sha256(fileAt: url, maximumBytes: maximumBytes)
+        return .present(url: url, digest: hashed.digest, byteCount: hashed.byteCount)
     }
 
     private static func sha256(
