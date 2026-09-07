@@ -14,11 +14,11 @@ Native full suite: 456 tests, zero failures, six opt-in benchmark skips. The two
 
 ## Final review and cleanup
 
-Two reviewers, `agent-7f25b85a` (correctness) and `agent-b48d8418` (memory/concurrency/test meaningfulness), approved the substance and all measured artifacts. Final spot-check of `bcaf3e0` is pending: report wording fixes, compile fix and green focused log. No production source changed since the full-suite run. Sources and Tests match the final native runner tree byte-for-byte.
+Two reviewers, `agent-7f25b85a` (correctness) and `agent-b48d8418` (memory/concurrency/test meaningfulness), gave unconditional final approval of `bcaf3e0`, including report wording fixes, the compile fix and the green focused log. No findings remain. No production source changed since the full-suite run. Sources and Tests match the final native runner tree byte-for-byte. Their sign-offs and resolved findings are recorded in [review.md](review.md).
 
 Final review fixes landed: LRU eviction proof, deterministic single-flight waiter coverage, bounded latch timeout, memory guidance, correct accumulator comment, TH1 failure diagnostics retained before throwing, accurate MiB labels, launcher termination escalation, and carefully scoped throughput claims. Report removes unprofiled ANE causation, full-corpus bounding claims and noisy warm projections. Raw measured provenance remains unchanged; report maps rebased source commits and verifies subtree identity.
 
-Remaining: obtain both final unconditional approvals; record them; retire runner `agent-f8aa66db` and both reviewers after confirming all results preserved; verify no managed agents remain; check main advancement and rebase if needed; send final milestone to `@system`. Finish with concise numbers and report link, ending `I HAVE COMPLETED THE GOAL`.
+Implementation, experiments, documentation and review are complete. Runner `agent-f8aa66db` and both reviewers were retired after all results were preserved; `ib list --manager image-ocr` confirmed no managed agents remain. Main was checked again and is already an ancestor. No further implementation or validation work remains.
 
 ## Recovery provenance
 
