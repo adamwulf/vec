@@ -1,0 +1,95 @@
+{
+  "arm" : "raw",
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.86357688903808594,
+      "file" : "native-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.13642311096191406,
+          "page_number" : null,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.86357688903808594
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.13642311096191406,
+          "page_number" : 1,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.86357688903808594
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.75885385274887085,
+      "file" : "multipage.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.24114614725112915,
+          "page_number" : 1,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.75885385274887085
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.24114620685577393,
+          "page_number" : null,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.75885379314422607
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.75403064489364624,
+      "file" : "duplicate-overlap.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.24596935510635376,
+          "page_number" : null,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.75403064489364624
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.24596941471099854,
+          "page_number" : 1,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.75403058528900146
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.73621129989624023,
+      "file" : "mixed.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.26378870010375977,
+          "page_number" : null,
+          "preview" : "NATIVE CEDAR HEADER",
+          "score" : 0.73621129989624023
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.26378875970840454,
+          "page_number" : 1,
+          "preview" : "NATIVE CEDAR HEADER",
+          "score" : 0.73621124029159546
+        }
+      ],
+      "rank" : 4
+    }
+  ],
+  "id" : "q01-native-only",
+  "passage_criteria_met" : true,
+  "primary_file" : "native-only.pdf",
+  "primary_page" : 1,
+  "text" : "orchard signal embedded document"
+}

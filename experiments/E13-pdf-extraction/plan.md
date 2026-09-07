@@ -1,9 +1,9 @@
 # E13 — Opt-in mixed-content PDF extraction
 
-Status: READER IMPLEMENTED AND NATIVELY VALIDATED; SAMPLE AND RUBRIC FROZEN
-BEFORE RANKING. Shared `pdf-ocr-v1` mode/scanner/pipeline integration is still
-pending. No retrieval ranks have been observed or recorded. Reader-only native
-test and cost results are recorded in [`report.md`](report.md).
+Status: IMPLEMENTED AND NATIVELY VALIDATED. The sample and rubric were frozen
+before ranking, and the integrated production-path before/after run is archived
+and independently scored. Results and limitations are recorded in
+[`report.md`](report.md).
 
 ## Question
 
@@ -65,8 +65,9 @@ generalized to a real corpus.
 - Seven answered queries cover native-only, image-only, both halves of a mixed
   page, multipage provenance, rotated/cropped raster text, and duplicate
   overlap. Blank behavior is a non-query completeness assertion.
-- Primary metric: target file rank (rank-1, top-3, MRR). Page provenance and
-  passage criteria are mandatory integrity gates, not a substitute for rank.
+- Primary metric: target file rank (rank-1, top-3, MRR). Page provenance is
+  mandatory for every returned PDF-page match. Retrieving the right file from
+  the wrong page is a correct-page miss; passage criteria are scored separately.
 - [`scripts/score-pdf-rubric.py`](scripts/score-pdf-rubric.py) independently
   derives ranks from archived scores and rejects partial, drifted, non-finite,
   incorrectly ordered, or page-provenance-free archives.
@@ -95,9 +96,11 @@ Each final run directory must contain:
   duplicate fixtures and assert words without availability skips.
 - [x] Sample semantics, query labels, and independent scorer frozen before any
   ranking.
-- [ ] Shared mode/scanner/extractor/pipeline/CLI wiring merged by the manager.
+- [x] Shared mode/scanner/extractor/pipeline/CLI wiring implemented while
+  preserving `raw` as the default.
 - [x] Native runtime: real Vision tests pass; bounded cold/warm throughput,
   RSS, and cache counters archived in
   [`runs/20260907-native-reader/`](runs/20260907-native-reader/).
-- [ ] After integration only: run both retrieval arms, independently score,
-  document results/caveats, and complete external review.
+- [x] After integration: both retrieval arms run through the production path,
+  independently scored, and documented with synthetic/performance caveats.
+- [ ] Complete the manager-arranged external review cycle.

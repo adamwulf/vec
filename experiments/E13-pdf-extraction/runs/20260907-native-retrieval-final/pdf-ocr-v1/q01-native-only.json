@@ -1,0 +1,144 @@
+{
+  "arm" : "pdf-ocr-v1",
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.86357688903808594,
+      "file" : "native-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.13642311096191406,
+          "page_number" : null,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.86357688903808594
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.13642311096191406,
+          "page_number" : 1,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.86357688903808594
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.78184378147125244,
+      "file" : "multipage.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.21815621852874756,
+          "page_number" : null,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR\nINDIGO PROVENANCE MARKER",
+          "score" : 0.78184378147125244
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.23312520980834961,
+          "page_number" : 2,
+          "preview" : "INDIGO PROVENANCE MARKER",
+          "score" : 0.76687479019165039
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.24114614725112915,
+          "page_number" : 1,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.75885385274887085
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.76007288694381714,
+      "file" : "mixed.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.23992711305618286,
+          "page_number" : null,
+          "preview" : "NATIVE CEDAR HEADER\nRASTER QUARTZ DETAIL",
+          "score" : 0.76007288694381714
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.23992717266082764,
+          "page_number" : 1,
+          "preview" : "NATIVE CEDAR HEADER\nRASTER QUARTZ DETAIL",
+          "score" : 0.76007282733917236
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7598956823348999,
+      "file" : "image-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.2401043176651001,
+          "page_number" : null,
+          "preview" : "RASTER NEBULA TOKEN",
+          "score" : 0.7598956823348999
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.2401043176651001,
+          "page_number" : 1,
+          "preview" : "RASTER NEBULA TOKEN",
+          "score" : 0.7598956823348999
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.75933873653411865,
+      "file" : "rotation-crop.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.24066126346588135,
+          "page_number" : null,
+          "preview" : "ROTATED CROP MARKER",
+          "score" : 0.75933873653411865
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.24066126346588135,
+          "page_number" : 1,
+          "preview" : "ROTATED CROP MARKER",
+          "score" : 0.75933873653411865
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.75403064489364624,
+      "file" : "duplicate-overlap.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.24596935510635376,
+          "page_number" : 1,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.75403064489364624
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.24596941471099854,
+          "page_number" : null,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.75403058528900146
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "id" : "q01-native-only",
+  "passage_criteria_met" : true,
+  "primary_file" : "native-only.pdf",
+  "primary_page" : 1,
+  "text" : "orchard signal embedded document"
+}

@@ -1,0 +1,48 @@
+{
+  "arm" : "pdf-ocr-v1",
+  "blank_count" : 1,
+  "failed_count" : 0,
+  "index_wall_seconds" : 1.9320296669999999,
+  "indexed_count" : 6,
+  "pdf_ocr_cache" : {
+    "coalesced_requests" : 0,
+    "hits" : 8,
+    "misses" : 8,
+    "ocr_calls" : 8
+  },
+  "per_file_chunks" : [
+    {
+      "chunks" : 0,
+      "path" : "blank.pdf"
+    },
+    {
+      "chunks" : 2,
+      "path" : "duplicate-overlap.pdf"
+    },
+    {
+      "chunks" : 2,
+      "path" : "image-only.pdf"
+    },
+    {
+      "chunks" : 2,
+      "path" : "mixed.pdf"
+    },
+    {
+      "chunks" : 3,
+      "path" : "multipage.pdf"
+    },
+    {
+      "chunks" : 2,
+      "path" : "native-only.pdf"
+    },
+    {
+      "chunks" : 2,
+      "path" : "rotation-crop.pdf"
+    }
+  ],
+  "processed_count" : 7,
+  "rss_after_bytes" : 1578844160,
+  "rss_before_bytes" : 711753728,
+  "text_extraction" : "pdf-ocr-v1",
+  "total_chunks" : 13
+}

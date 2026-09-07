@@ -1,0 +1,95 @@
+{
+  "arm" : "raw",
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.93323922157287598,
+      "file" : "duplicate-overlap.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.066760778427124023,
+          "page_number" : null,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.93323922157287598
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.066760778427124023,
+          "page_number" : 1,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.93323922157287598
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.73817974328994751,
+      "file" : "native-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.26182025671005249,
+          "page_number" : 1,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.73817974328994751
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.26182031631469727,
+          "page_number" : null,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.73817968368530273
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.73022180795669556,
+      "file" : "multipage.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.26977819204330444,
+          "page_number" : 1,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.73022180795669556
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.26977825164794922,
+          "page_number" : null,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.73022174835205078
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.72540348768234253,
+      "file" : "mixed.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.27459651231765747,
+          "page_number" : null,
+          "preview" : "NATIVE CEDAR HEADER",
+          "score" : 0.72540348768234253
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.27459651231765747,
+          "page_number" : 1,
+          "preview" : "NATIVE CEDAR HEADER",
+          "score" : 0.72540348768234253
+        }
+      ],
+      "rank" : 4
+    }
+  ],
+  "id" : "q07-duplicate-overlap",
+  "passage_criteria_met" : true,
+  "primary_file" : "duplicate-overlap.pdf",
+  "primary_page" : 1,
+  "text" : "copper lantern archive"
+}

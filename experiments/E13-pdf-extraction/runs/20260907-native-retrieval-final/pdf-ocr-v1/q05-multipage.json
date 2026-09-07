@@ -1,0 +1,144 @@
+{
+  "arm" : "pdf-ocr-v1",
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.9254642128944397,
+      "file" : "multipage.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.074535787105560303,
+          "page_number" : 2,
+          "preview" : "INDIGO PROVENANCE MARKER",
+          "score" : 0.9254642128944397
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.12841695547103882,
+          "page_number" : null,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR\nINDIGO PROVENANCE MARKER",
+          "score" : 0.87158304452896118
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.26451849937438965,
+          "page_number" : 1,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.73548150062561035
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.75186628103256226,
+      "file" : "mixed.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.24813371896743774,
+          "page_number" : null,
+          "preview" : "NATIVE CEDAR HEADER\nRASTER QUARTZ DETAIL",
+          "score" : 0.75186628103256226
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.24813371896743774,
+          "page_number" : 1,
+          "preview" : "NATIVE CEDAR HEADER\nRASTER QUARTZ DETAIL",
+          "score" : 0.75186628103256226
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.75039392709732056,
+      "file" : "rotation-crop.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.24960607290267944,
+          "page_number" : 1,
+          "preview" : "ROTATED CROP MARKER",
+          "score" : 0.75039392709732056
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.24960613250732422,
+          "page_number" : null,
+          "preview" : "ROTATED CROP MARKER",
+          "score" : 0.75039386749267578
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.74771732091903687,
+      "file" : "image-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.25228267908096313,
+          "page_number" : null,
+          "preview" : "RASTER NEBULA TOKEN",
+          "score" : 0.74771732091903687
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.25228267908096313,
+          "page_number" : 1,
+          "preview" : "RASTER NEBULA TOKEN",
+          "score" : 0.74771732091903687
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.74143087863922119,
+      "file" : "duplicate-overlap.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.25856912136077881,
+          "page_number" : null,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.74143087863922119
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.25856912136077881,
+          "page_number" : 1,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.74143087863922119
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7335813045501709,
+      "file" : "native-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.2664186954498291,
+          "page_number" : null,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.7335813045501709
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.2664186954498291,
+          "page_number" : 1,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.7335813045501709
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "id" : "q05-multipage",
+  "passage_criteria_met" : true,
+  "primary_file" : "multipage.pdf",
+  "primary_page" : 2,
+  "text" : "indigo page provenance marker"
+}

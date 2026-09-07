@@ -1,0 +1,28 @@
+{
+  "arms": {
+    "pdf-ocr-v1": {
+      "cache": {"coalesced_requests": 0, "hits": 8, "misses": 8, "ocr_calls": 8},
+      "correct_page_hits": 7,
+      "metrics": {"mrr": 1.0, "n": 7, "rank1": 7, "top3": 7},
+      "passage_passes": 7,
+      "total_chunks": 13
+    },
+    "raw": {
+      "cache": {"coalesced_requests": 0, "hits": 0, "misses": 0, "ocr_calls": 0},
+      "correct_page_hits": 4,
+      "metrics": {"mrr": 0.5714285714285714, "n": 7, "rank1": 3, "top3": 5},
+      "passage_passes": 3,
+      "total_chunks": 8
+    }
+  },
+  "per_query": [
+    {"id": "q01-native-only", "page_hits": {"pdf-ocr-v1": true, "raw": true}, "primary_file": "native-only.pdf", "primary_page": 1, "ranks": {"pdf-ocr-v1": 1, "raw": 1}},
+    {"id": "q02-image-only", "page_hits": {"pdf-ocr-v1": true, "raw": false}, "primary_file": "image-only.pdf", "primary_page": 1, "ranks": {"pdf-ocr-v1": 1, "raw": null}},
+    {"id": "q03-mixed-native", "page_hits": {"pdf-ocr-v1": true, "raw": true}, "primary_file": "mixed.pdf", "primary_page": 1, "ranks": {"pdf-ocr-v1": 1, "raw": 1}},
+    {"id": "q04-mixed-raster", "page_hits": {"pdf-ocr-v1": true, "raw": true}, "primary_file": "mixed.pdf", "primary_page": 1, "ranks": {"pdf-ocr-v1": 1, "raw": 2}},
+    {"id": "q05-multipage", "page_hits": {"pdf-ocr-v1": true, "raw": false}, "primary_file": "multipage.pdf", "primary_page": 2, "ranks": {"pdf-ocr-v1": 1, "raw": 2}},
+    {"id": "q06-rotation-crop", "page_hits": {"pdf-ocr-v1": true, "raw": false}, "primary_file": "rotation-crop.pdf", "primary_page": 1, "ranks": {"pdf-ocr-v1": 1, "raw": null}},
+    {"id": "q07-duplicate-overlap", "page_hits": {"pdf-ocr-v1": true, "raw": true}, "primary_file": "duplicate-overlap.pdf", "primary_page": 1, "ranks": {"pdf-ocr-v1": 1, "raw": 1}}
+  ],
+  "run_identity": "87570a49d8b1e3adb6b4f4b12335bea3471bbc1371c65474cd4bd10a381a71e8"
+}

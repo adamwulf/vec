@@ -1,9 +1,47 @@
-# E13 reader validation — pre-integration report
+# E13 PDF extraction validation
 
-The standalone PDF reader is implemented and passes its native macOS test
-suite. Retrieval comparison is intentionally absent: `pdf-ocr-v1` has not yet
-been wired through the shared extraction mode, scanner, pipeline, and CLI, so
-ranking either arm now would not test the production path.
+The opt-in `pdf-ocr-v1` path is implemented through the production scanner,
+extractor, indexing pipeline, and CLI. On the frozen seven-PDF synthetic
+sample, it recovered all raster-only evidence while retaining the native-only
+results. The default `raw` arm remained embedded-text-only.
+
+## Production pipeline before/after
+
+The native release run used the real pipeline
+(`FileScanner` → `TextExtractor` → `IndexingPipeline` → `VectorDatabase`) and
+the same pinned local E5 model in both arms. The independent scorer read the
+frozen rubric and archived query result groups after both arms completed.
+
+| Metric | `raw` before | `pdf-ocr-v1` after |
+|---|---:|---:|
+| Target file rank 1 | 3/7 (42.9%) | 7/7 (100%) |
+| Target file top 3 | 5/7 (71.4%) | 7/7 (100%) |
+| Mean reciprocal rank | 0.571 | 1.000 |
+| Correct target page present | 4/7 (57.1%) | 7/7 (100%) |
+| Required passage present | 3/7 (42.9%) | 7/7 (100%) |
+| PDFs indexed / blank / failed | 4 / 3 / 0 | 6 / 1 / 0 |
+| Chunks | 8 | 13 |
+| Index wall time | 0.542 s | 1.932 s |
+
+The OCR arm was 3.57× the indexing wall time on this tiny sample (+1.390 s).
+It made eight Vision calls—one per PDF page, including the blank page—and
+recorded eight misses during indexing. A subsequent audit extraction produced
+eight cache hits and zero additional OCR calls. The image-only and rotated/
+cropped PDFs changed from blank to indexed; the intentionally blank PDF stayed
+blank. The mixed page's native and raster queries both ranked first, the raster
+evidence on page 2 of the multipage fixture carried page 2 provenance, and the
+duplicate-overlap fixture retained one authoritative passage rather than an
+OCR duplicate.
+
+The tracked-clean native run at `6b30005` is archived under
+[`runs/20260907-native-retrieval-final/`](runs/20260907-native-retrieval-final/),
+including generated PDFs and hashes, environment/model provenance, the exact
+command and complete test/scorer logs, per-arm summaries, and every query
+result. The scorer initially treated retrieval of the correct file from a
+wrong page as an invalid archive; that was corrected to report a correct-page
+miss while still rejecting every PDF-page match without integer provenance.
+The manifest's `git_dirty: true` reflects only the harness-created, untracked
+`.agents/` directory; the runner verified zero modified or staged tracked files.
 
 ## Native tests
 
@@ -59,6 +97,9 @@ All PDF fixtures are synthetic, clean, high-contrast, horizontal English.
 They do not represent photographed documents, handwriting, damaged scans,
 compression artifacts, complex tables/forms, multicolumn papers, or non-Latin
 scripts. The six-page benchmark is deliberately bounded and is useful for
-regression/caching evidence only. No retrieval-quality claim will be made until
-the frozen rubric is run through the integrated production path and scored by
-the independent scorer.
+regression/caching evidence only. The seven-query retrieval result is a
+correctness check, not an accuracy estimate for a real corpus. Its wall times
+are same-process, single-run measurements and include different work by design;
+they are not statistically stable performance estimates. The arm-summary RSS
+snapshots include XCTest, model/framework state, and prior work, so the bounded
+reader benchmark above is the defensible memory measurement.

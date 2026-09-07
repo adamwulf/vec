@@ -1,0 +1,2 @@
+VEC_E13_RETRIEVAL=1 VEC_E13_MODEL_DIRECTORY=/private/tmp/vec-e10-model/f52bf8ec8c7124536f0efb74aca902b2995e5bcd VEC_E13_OUTPUT_DIRECTORY=/private/tmp/vec-e13-retrieval-final swift test --disable-sandbox --disable-swift-testing -c release --filter PDFOCRReaderTests/testPDFOCRRetrievalBenchmark
+python3 experiments/E13-pdf-extraction/scripts/score-pdf-rubric.py /private/tmp/vec-e13-retrieval-final
