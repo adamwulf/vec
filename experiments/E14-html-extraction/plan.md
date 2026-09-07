@@ -58,7 +58,7 @@ public struct HTMLReadableContent: Sendable, Equatable {
     public let extractorVersion: Int
     public let title: String?
     public let segments: [HTMLContentSegment]
-    public let assetManifest: HTMLAssetManifest
+    public let assetManifest: HTMLAssetManifest?
 }
 
 public enum HTMLReadableContentExtractor {
@@ -72,21 +72,38 @@ public enum HTMLReadableContentExtractor {
         _ html: String,
         sourceURL: URL,
         options: HTMLExtractionOptions
-    ) throws -> HTMLAssetManifest
+    ) throws -> HTMLAssetManifest?
 }
 ```
 
 `HTMLContentSegment` is ordered and contains either rendered text or an inline
-image reference. `HTMLAssetManifest` carries a stable digest over the eligible
-local references and their present/missing/content state; it contains no
-unbounded resident image data. `HTMLExtractionOptions` supplies an explicit
-allowed snapshot root, a pre-parse input-byte limit, and frozen parser/image
-bounds. Both the shared file reader and the HTML entry point enforce the input
-limit before constructing a DOM; an element limit checked after parsing is not
-a memory bound. The final concrete shapes remain subject to manager review
-because shared scanner/database wiring must persist and compare the dependency
-digest. Dependency discovery may reparse bounded input rather than retaining
-DOMs across a corpus and growing resident state.
+image reference. `HTMLAssetManifest` is nil for plain `html-v1`; in that mode
+image alt text remains visible but no source is resolved, read, hashed, or
+decoded. When OCR assets are explicitly enabled, the manifest carries a stable
+digest over eligible local references and their present/missing/content state;
+it contains no image data. `HTMLExtractionOptions` always supplies a pre-parse
+input-byte limit and parser element limit, while an optional
+`HTMLOCRAssetOptions` supplies the allowed snapshot root and image bounds. Both
+the shared file reader and the HTML entry point enforce the input limit before
+constructing a DOM; an element limit checked after parsing is not a memory
+bound. The final extractor boundary remains subject to shared wiring review
+because scanner/database code must persist and compare the dependency digest.
+Dependency discovery may reparse bounded input rather than retaining DOMs
+across a corpus and growing resident state.
+
+The implemented asset-policy schema is version 1. It prefers static `src`,
+then common lazy-source attributes, then the first static `srcset` candidate.
+It accepts only raster data URIs supported by E12 or local raster paths whose
+canonical target remains below the explicit snapshot root. HTTP(S) and other
+schemes are inert. Present files are SHA-256 hashed in 64 KiB reads; missing
+and oversized paths are explicit manifest states, while genuine metadata/read
+errors throw so a transient failure cannot be recorded as a successful index.
+The manifest is linear in selected eligible references and retains only small
+metadata. Inline data is decoded only in the OCR composition, deduplicated by
+digest, and bounded both per distinct image and in aggregate; temporary OCR
+files are materialized one at a time and removed across success and throws.
+The image-work cap suppresses only OCR eligibility—surrounding prose and every
+visible alt string remain in DOM order.
 
 The shared `TextExtractor` remains responsible for mode dispatch, raw source
 line count, in-order OCR composition through its injected recognizer/cache,

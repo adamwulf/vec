@@ -40,6 +40,11 @@ public struct HTMLExtractionOptions: Sendable, Equatable {
 /// cannot fail because an image is missing or unreadable and does not pay the
 /// cost of asset hashing or data-URI decoding.
 public struct HTMLOCRAssetOptions: Sendable, Equatable {
+    /// Bump whenever source preference, path eligibility, hashing, or inline
+    /// decoding semantics change. Only the current policy is executable;
+    /// older values remain meaningful in persisted manifests for invalidation.
+    public static let currentPolicyVersion = 1
+
     public let policyVersion: Int
     public let allowedAssetRoot: URL
     public let temporaryAssetDirectory: URL
@@ -68,6 +73,9 @@ public struct HTMLOCRAssetOptions: Sendable, Equatable {
         ]
         if let invalid = integerLimits.first(where: { $0.1 <= 0 }) {
             throw HTMLExtractionError.invalidLimit(name: invalid.0, value: Int64(invalid.1))
+        }
+        guard policyVersion == Self.currentPolicyVersion else {
+            throw HTMLExtractionError.unsupportedAssetPolicyVersion(policyVersion)
         }
         guard maximumLocalImageBytes > 0 else {
             throw HTMLExtractionError.invalidLimit(
@@ -390,6 +398,7 @@ public struct HTMLExtractionDiagnostic: Codable, Sendable, Equatable {
 
 public enum HTMLExtractionError: Error, LocalizedError, Equatable {
     case invalidLimit(name: String, value: Int64)
+    case unsupportedAssetPolicyVersion(Int)
     case inputTooLarge(actualBytes: Int, maximumBytes: Int)
     case elementLimitExceeded(actual: Int, maximum: Int)
     case localAssetTooLarge(path: String, actualBytes: Int64, maximumBytes: Int64)
@@ -398,6 +407,8 @@ public enum HTMLExtractionError: Error, LocalizedError, Equatable {
         switch self {
         case .invalidLimit(let name, let value):
             return "HTML extraction limit '\(name)' must be positive (got \(value))."
+        case .unsupportedAssetPolicyVersion(let version):
+            return "HTML OCR asset policy version \(version) is unsupported."
         case .inputTooLarge(let actual, let maximum):
             return "HTML input is \(actual) bytes, exceeding the \(maximum)-byte extraction limit."
         case .elementLimitExceeded(let actual, let maximum):

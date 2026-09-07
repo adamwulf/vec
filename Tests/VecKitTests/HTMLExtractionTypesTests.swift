@@ -154,5 +154,31 @@ final class HTMLExtractionTypesTests: XCTestCase {
         XCTAssertNil(HTMLInlineRasterFormat(mimeType: "image/svg+xml"))
         XCTAssertNil(HTMLInlineRasterFormat(mimeType: "text/html"))
     }
-}
 
+    func testOCRAssetPolicyRequiresCurrentVersion() throws {
+        let root = FileManager.default.temporaryDirectory
+        XCTAssertNoThrow(try HTMLOCRAssetOptions(
+            policyVersion: HTMLOCRAssetOptions.currentPolicyVersion,
+            allowedAssetRoot: root,
+            temporaryAssetDirectory: root,
+            maximumImages: 1,
+            maximumLocalImageBytes: 1,
+            maximumInlineImageBytes: 1,
+            maximumTotalInlineImageBytes: 1
+        ))
+        XCTAssertThrowsError(try HTMLOCRAssetOptions(
+            policyVersion: HTMLOCRAssetOptions.currentPolicyVersion + 1,
+            allowedAssetRoot: root,
+            temporaryAssetDirectory: root,
+            maximumImages: 1,
+            maximumLocalImageBytes: 1,
+            maximumInlineImageBytes: 1,
+            maximumTotalInlineImageBytes: 1
+        )) { error in
+            XCTAssertEqual(
+                error as? HTMLExtractionError,
+                .unsupportedAssetPolicyVersion(HTMLOCRAssetOptions.currentPolicyVersion + 1)
+            )
+        }
+    }
+}
