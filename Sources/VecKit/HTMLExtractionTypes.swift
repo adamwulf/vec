@@ -392,6 +392,7 @@ public enum HTMLExtractionError: Error, LocalizedError, Equatable {
     case invalidLimit(name: String, value: Int64)
     case inputTooLarge(actualBytes: Int, maximumBytes: Int)
     case elementLimitExceeded(actual: Int, maximum: Int)
+    case localAssetTooLarge(path: String, actualBytes: Int64, maximumBytes: Int64)
 
     public var errorDescription: String? {
         switch self {
@@ -401,6 +402,8 @@ public enum HTMLExtractionError: Error, LocalizedError, Equatable {
             return "HTML input is \(actual) bytes, exceeding the \(maximum)-byte extraction limit."
         case .elementLimitExceeded(let actual, let maximum):
             return "HTML contains \(actual) elements, exceeding the \(maximum)-element extraction limit."
+        case .localAssetTooLarge(let path, let actual, let maximum):
+            return "HTML image asset '\(path)' grew to \(actual) bytes while reading, exceeding the \(maximum)-byte limit."
         }
     }
 }
