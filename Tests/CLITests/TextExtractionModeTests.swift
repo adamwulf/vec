@@ -93,6 +93,14 @@ final class TextExtractionModeTests: XCTestCase {
             "markdown-v1+image-ocr-v1": .markdownV1ImageOCRV1,
             "vtt-v1+image-ocr-v1": .vttV1ImageOCRV1,
             "markdown-v1+vtt-v1+image-ocr-v1": .markdownV1VttV1ImageOCRV1,
+            "pdf-ocr-v1": .pdfOCRV1,
+            "markdown-v1+pdf-ocr-v1": .markdownV1PDFOCRV1,
+            "vtt-v1+pdf-ocr-v1": .vttV1PDFOCRV1,
+            "markdown-v1+vtt-v1+pdf-ocr-v1": .markdownV1VttV1PDFOCRV1,
+            "image-ocr-v1+pdf-ocr-v1": .imageOCRV1PDFOCRV1,
+            "markdown-v1+image-ocr-v1+pdf-ocr-v1": .markdownV1ImageOCRV1PDFOCRV1,
+            "vtt-v1+image-ocr-v1+pdf-ocr-v1": .vttV1ImageOCRV1PDFOCRV1,
+            "markdown-v1+vtt-v1+image-ocr-v1+pdf-ocr-v1": .markdownV1VttV1ImageOCRV1PDFOCRV1,
         ]
         for (raw, mode) in expected {
             let command = try XCTUnwrap(
@@ -101,7 +109,7 @@ final class TextExtractionModeTests: XCTestCase {
         }
         // Unknown / mis-versioned strings are rejected at parse time, before
         // any DB work.
-        for bad in ["markdown-v2", "vtt-v2", "vtt", "markdown", "markdown-v1+vtt-v2", "image-ocr-v2", "image-ocr-v1+raw", "image-ocr-v1+image-ocr-v1", "image-ocr-v1+vtt-v1"] {
+        for bad in ["markdown-v2", "vtt-v2", "vtt", "markdown", "markdown-v1+vtt-v2", "image-ocr-v2", "pdf-ocr-v2", "pdf", "image-ocr-v1+raw", "image-ocr-v1+image-ocr-v1", "pdf-ocr-v1+pdf-ocr-v1", "image-ocr-v1+vtt-v1", "pdf-ocr-v1+markdown-v1"] {
             XCTAssertThrowsError(try UpdateIndexCommand.parseAsRoot(["--text-extraction", bad]),
                                  "\(bad) should be rejected")
         }

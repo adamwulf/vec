@@ -154,17 +154,15 @@ struct SaveWork: Sendable {
 /// it can fire an empty save. Per-file the logic is identical; the lanes
 /// differ only in concurrency:
 ///
-/// - **Text lane (serial, N = 1).** Text and PDF files extract one at a
-///   time. Extract is cheap relative to embed, and serial keeps intra-file
+/// - **Text lane (serial, N = 1).** Plain text and non-OCR PDF files extract
+///   one at a time. Extract is cheap relative to embed, and serial keeps intra-file
 ///   ordinal monotonicity trivial. This lane is unaffected by
 ///   `ocrConcurrency` and always serial.
-/// - **Image lane (bounded, N = `ocrConcurrency`).** Image files (exactly
-///   those `extractor.isImageOCRFile(_:)` reports, i.e. the files
-///   `extract` will OCR) fan out through `forEachBounded`, running up to
+/// - **OCR lane (bounded, N = `ocrConcurrency`).** Raster images and PDFs
+///   that the active mode will OCR (exactly those
+///   `extractor.isOCRFile(_:)` reports) fan out through `forEachBounded`, running up to
 ///   `ocrConcurrency` OCR extractions at once. The bound is a hard cap on
-///   live tasks and in-flight decoded images, so a 325k-image corpus never
-///   spawns 325k tasks or decodes more than `ocrConcurrency` images at
-///   once. Each image's chunks are stamped with per-file ordinals before
+///   live tasks and in-flight page/image rasters. Each file's chunks are stamped with per-file ordinals before
 ///   they leave this lane, so the accumulator's ordinal sort stays stable
 ///   despite the concurrent arrival order.
 ///
@@ -499,7 +497,7 @@ public final class IndexingPipeline: Sendable {
                 var textPartition: [(file: FileInfo, label: String)] = []
                 var imagePartition: [(file: FileInfo, label: String)] = []
                 for item in workItems {
-                    if extractor.isImageOCRFile(item.file) {
+                    if extractor.isOCRFile(item.file) {
                         imagePartition.append(item)
                     } else {
                         textPartition.append(item)

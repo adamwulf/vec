@@ -28,6 +28,9 @@ public final class TextExtractor: @unchecked Sendable {
     /// The cache instance, present only when a cache directory was supplied.
     /// Kept separately so `ocrCacheStatistics` can expose its counters.
     private let ocrCache: ImageOCRCache?
+    /// Present only for modes that explicitly opt into rendered PDF OCR.
+    /// Raw mode continues through the legacy embedded-text-only method below.
+    private let pdfOCRReader: PDFOCRReader?
 
     /// Construct with any `TextSplitter` and image-OCR recognizer. Callers
     /// pass the splitter from the active `IndexingProfile` so chunk sizing
@@ -41,7 +44,8 @@ public final class TextExtractor: @unchecked Sendable {
     public init(splitter: TextSplitter,
                 textExtraction: TextExtractionMode = .raw,
                 ocrRecognizer baseRecognizer: ImageTextRecognizer,
-                ocrCacheDirectory: URL? = nil) {
+                ocrCacheDirectory: URL? = nil,
+                pdfOCRReader: PDFOCRReader? = nil) {
         self.splitter = splitter
         self.textExtraction = textExtraction
         if let directory = ocrCacheDirectory {
@@ -51,6 +55,11 @@ public final class TextExtractor: @unchecked Sendable {
         } else {
             self.ocrCache = nil
             self.ocrRecognizer = baseRecognizer
+        }
+        if textExtraction.includesPDFOCR {
+            self.pdfOCRReader = pdfOCRReader ?? PDFOCRReader(cacheDirectory: ocrCacheDirectory)
+        } else {
+            self.pdfOCRReader = nil
         }
     }
 
@@ -75,10 +84,22 @@ public final class TextExtractor: @unchecked Sendable {
             && ImageOCR.supportedExtensions.contains(file.fileExtension.lowercased())
     }
 
+    /// Whether extraction incurs Vision OCR cost for this file. The pipeline
+    /// uses this broader predicate for its bounded OCR lane; the image-only
+    /// predicate above remains source-compatible for existing callers/tests.
+    public func isOCRFile(_ file: FileInfo) -> Bool {
+        isImageOCRFile(file)
+            || (textExtraction.includesPDFOCR && file.fileExtension.lowercased() == "pdf")
+    }
+
     /// A snapshot of the OCR cache counters, or nil when no cache directory
     /// was configured.
     public var ocrCacheStatistics: ImageOCRCacheStatistics? {
         ocrCache?.statistics
+    }
+
+    public var pdfOCRCacheStatistics: PDFOCRCacheStatistics? {
+        pdfOCRReader?.cacheStatistics
     }
 
     /// Convenience init that borrows the default built-in profile's
@@ -104,8 +125,12 @@ public final class TextExtractor: @unchecked Sendable {
     /// for the file.
     public func extract(from file: FileInfo) throws -> ExtractionResult {
         let utType = UTType(filenameExtension: file.fileExtension)
+        let ext = file.fileExtension.lowercased()
 
-        if utType?.conforms(to: .pdf) == true {
+        // Some sandboxed/native hosts return a dynamic, undeclared UTType for
+        // the standard `pdf` extension. The explicit extension is the stable
+        // cross-host contract; UTType still recognizes declared aliases.
+        if ext == "pdf" || utType?.conforms(to: .pdf) == true {
             return try extractFromPDF(file)
         }
 
@@ -118,7 +143,6 @@ public final class TextExtractor: @unchecked Sendable {
         // through would index SVG's XML or an unsupported image's bytes as
         // apparent text, contradicting the scanner's skip policy and leaking
         // through the direct-insert path.
-        let ext = file.fileExtension.lowercased()
         if utType?.conforms(to: .image) == true || ImageOCR.imageLikeExtensions.contains(ext) {
             if textExtraction.includesImageOCR && ImageOCR.supportedExtensions.contains(ext) {
                 return ExtractionResult(chunks: try extractFromImage(file), linePageCount: nil)
@@ -199,6 +223,21 @@ public final class TextExtractor: @unchecked Sendable {
     // MARK: - PDF Extraction
 
     private func extractFromPDF(_ file: FileInfo) throws -> ExtractionResult {
+        if let pdfOCRReader {
+            let document = try pdfOCRReader.read(from: file.url)
+            let pageChunks = document.pages.compactMap { page -> TextChunk? in
+                let text = page.combinedText.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !text.isEmpty else { return nil }
+                return TextChunk(text: text, type: .pdfPage, pageNumber: page.pageNumber)
+            }
+            let wholeText = pageChunks.map(\.text).joined(separator: "\n")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let chunks = wholeText.isEmpty
+                ? pageChunks
+                : [TextChunk(text: wholeText, type: .whole)] + pageChunks
+            return ExtractionResult(chunks: chunks, linePageCount: document.pageCount)
+        }
+
         // Same split as the text path: read failure throws (so the
         // pipeline retries), parse failure returns empty (file is
         // readable but PDFKit can't make sense of it).

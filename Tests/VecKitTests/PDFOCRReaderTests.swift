@@ -328,6 +328,53 @@ final class PDFOCRReaderTests: XCTestCase {
                        "Exact duplicate prefix is trimmed without losing the raster-only suffix")
     }
 
+    func testTextExtractorRawBeforeAndPDFOCROptInAfter() throws {
+        let url = tempDirectory.appendingPathComponent("extractor-mixed.pdf")
+        try writePDF([PageFixture(native: ["NATIVE BEFORE TEXT"])], to: url)
+        let file = FileInfo(relativePath: "extractor-mixed.pdf", url: url,
+                            modificationDate: Date(), fileExtension: "pdf")
+        let splitter = RecursiveCharacterSplitter(chunkSize: 1200, chunkOverlap: 0)
+        XCTAssertTrue(try FileScanner(directory: tempDirectory, respectsGitignore: false,
+                                      textExtraction: .raw).scan().contains {
+            $0.relativePath == "extractor-mixed.pdf"
+        }, "Raw scanner must continue discovering PDFs")
+        XCTAssertTrue(try FileScanner(directory: tempDirectory, respectsGitignore: false,
+                                      textExtraction: .pdfOCRV1).scan().contains {
+            $0.relativePath == "extractor-mixed.pdf"
+        }, "PDF OCR scanner must discover the identical PDF set")
+
+        let raw = TextExtractor(splitter: splitter, textExtraction: .raw,
+                                ocrRecognizer: CountingImageRecognizer())
+        let before = try raw.extract(from: file)
+        XCTAssertFalse(raw.isOCRFile(file))
+        XCTAssertTrue(before.chunks.contains { normalized($0.text).contains("native before text") })
+        XCTAssertFalse(before.chunks.contains { normalized($0.text).contains("raster after text") })
+
+        let pageRecognizer = CountingPDFRecognizer(result: recognition("RASTER AFTER TEXT"))
+        let pdfReader = PDFOCRReader(recognizer: pageRecognizer)
+        let enabled = TextExtractor(splitter: splitter, textExtraction: .pdfOCRV1,
+                                    ocrRecognizer: CountingImageRecognizer(),
+                                    pdfOCRReader: pdfReader)
+        let after = try enabled.extract(from: file)
+        XCTAssertTrue(enabled.isOCRFile(file))
+        XCTAssertEqual(after.linePageCount, 1)
+        XCTAssertEqual(after.chunks.filter { $0.type == .pdfPage }.map(\.pageNumber), [1])
+        XCTAssertTrue(after.chunks.contains { normalized($0.text).contains("native before text") })
+        XCTAssertTrue(after.chunks.contains { normalized($0.text).contains("raster after text") })
+        XCTAssertEqual(pageRecognizer.attemptCount, 1)
+    }
+
+    func testEveryPDFOCRCombinationAdvertisesItsComponent() {
+        for mode in TextExtractionMode.allCases {
+            XCTAssertEqual(mode.includesPDFOCR, mode.rawValue.split(separator: "+").contains("pdf-ocr-v1"),
+                           "PDF OCR predicate drifted for \(mode.rawValue)")
+        }
+        XCTAssertTrue(TextExtractionMode.markdownV1VttV1ImageOCRV1PDFOCRV1.includesMarkdown)
+        XCTAssertTrue(TextExtractionMode.markdownV1VttV1ImageOCRV1PDFOCRV1.includesVTT)
+        XCTAssertTrue(TextExtractionMode.markdownV1VttV1ImageOCRV1PDFOCRV1.includesImageOCR)
+        XCTAssertTrue(TextExtractionMode.markdownV1VttV1ImageOCRV1PDFOCRV1.includesPDFOCR)
+    }
+
     // MARK: - Fixture helpers
 
     private struct ImageLine {
@@ -527,6 +574,13 @@ final class PDFOCRReaderTests: XCTestCase {
             lock.unlock()
             if shouldFail { throw FixtureError.syntheticRecognitionFailure }
             return result
+        }
+    }
+
+    private struct CountingImageRecognizer: ImageTextRecognizer {
+        func recognizeText(in imageURL: URL) throws -> ImageOCRResult {
+            XCTFail("PDF extraction must not invoke the raster-file recognizer")
+            return ImageOCRResult(text: "", lines: [], paragraphs: [])
         }
     }
 
