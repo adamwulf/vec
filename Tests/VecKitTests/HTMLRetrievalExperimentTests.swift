@@ -153,17 +153,17 @@ final class HTMLRetrievalExperimentTests: XCTestCase {
             let queryEmbedding = try await embedder.embedQuery(query.text)
             let matches = try await db.search(embedding: queryEmbedding, limit: 7)
             let groups = matches.enumerated().map { index, match in
-                ArchivedGroup(
+                E14ArchivedGroup(
                     rank: index + 1,
                     file: match.filePath,
                     best_score: 1 - match.distance,
-                    matches: [ArchivedMatch(score: 1 - match.distance, distance: match.distance)]
+                    matches: [E14ArchivedMatch(score: 1 - match.distance, distance: match.distance)]
                 )
             }
             let fileRank = query.primary_file.flatMap { primary in
                 groups.firstIndex { $0.file == primary }.map { $0 + 1 }
             }
-            let result = ArchivedResult(
+            let result = E14ArchivedResult(
                 groups: groups,
                 file_rank: fileRank,
                 primary_text: query.primary_file.flatMap { extracted[$0] } ?? ""
@@ -300,20 +300,20 @@ private struct FrozenProvenance: Encodable {
     let model_files: [HashedFile]
 }
 
-private struct ArchivedMatch: Encodable {
+private struct E14ArchivedMatch: Encodable {
     let score: Double
     let distance: Double
 }
 
-private struct ArchivedGroup: Encodable {
+private struct E14ArchivedGroup: Encodable {
     let rank: Int
     let file: String
     let best_score: Double
-    let matches: [ArchivedMatch]
+    let matches: [E14ArchivedMatch]
 }
 
-private struct ArchivedResult: Encodable {
-    let groups: [ArchivedGroup]
+private struct E14ArchivedResult: Encodable {
+    let groups: [E14ArchivedGroup]
     let file_rank: Int?
     let primary_text: String
 }
