@@ -71,7 +71,7 @@ struct InsertCommand: AsyncParsableCommand {
         let pipeline = IndexingPipeline(profile: profile)
         let (results, _) = try await pipeline.run(
             workItems: [(file: fileInfo, label: "Updated")],
-            extractor: TextExtractor(splitter: profile.splitter, textExtraction: recorded.textExtraction),
+            extractor: TextExtractor(splitter: profile.splitter, textExtraction: recorded.textExtraction, ocrCacheDirectory: dbDir),
             database: database
         )
 

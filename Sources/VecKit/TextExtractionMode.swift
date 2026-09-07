@@ -1,28 +1,30 @@
 import Foundation
 
-/// Versioned document preprocessing. Raw extraction remains the default.
-/// A changed normalization algorithm must receive a new version so an
-/// incremental update cannot mix incompatible document representations.
-///
-/// Each mode names the exact normalizer(s) applied before chunking, so a
-/// mode string is a complete, reproducible description of how a database's
-/// text was preprocessed:
-/// - `raw` — each file's existing extraction (text read, PDF page text,
-///   image OCR) with no additional text normalization.
-/// - `markdown-v1` — the v1 Markdown normalizer runs on `.md` / `.markdown`
-///   files; all other file types pass through unchanged.
-/// - `vtt-v1` — the v1 WebVTT normalizer runs on `.vtt` files; all other
-///   file types (Markdown included) pass through unchanged.
-/// - `markdown-v1+vtt-v1` — the combined mode: the v1 Markdown normalizer
-///   runs on `.md` / `.markdown` files and the v1 WebVTT normalizer runs on
-///   `.vtt` files. Both are the same versioned algorithms as the
-///   single-format modes, so the combination is fully described by its two
-///   component versions.
+/// Versioned, opt-in preprocessing recorded with the indexing profile.
+/// Canonical combinations list Markdown, VTT, then image OCR. Changing any
+/// component requires reset/reindexing so representations cannot be mixed.
+/// Raw extracts text and PDF content; raster images require image-ocr-v1.
 public enum TextExtractionMode: String, Codable, CaseIterable, Sendable {
     case raw
     case markdownV1 = "markdown-v1"
     case vttV1 = "vtt-v1"
     case markdownV1VttV1 = "markdown-v1+vtt-v1"
+    case imageOCRV1 = "image-ocr-v1"
+    case markdownV1ImageOCRV1 = "markdown-v1+image-ocr-v1"
+    case vttV1ImageOCRV1 = "vtt-v1+image-ocr-v1"
+    case markdownV1VttV1ImageOCRV1 = "markdown-v1+vtt-v1+image-ocr-v1"
+
+    public var includesMarkdown: Bool {
+        rawValue.split(separator: "+").contains("markdown-v1")
+    }
+
+    public var includesVTT: Bool {
+        rawValue.split(separator: "+").contains("vtt-v1")
+    }
+
+    public var includesImageOCR: Bool {
+        rawValue.split(separator: "+").contains("image-ocr-v1")
+    }
 }
 
 public enum TextExtractionError: Error, LocalizedError {

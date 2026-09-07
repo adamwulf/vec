@@ -379,7 +379,7 @@ final class TextExtractorTests: XCTestCase {
         }
     }
 
-    func testImageExtractionDoesNotCrashAndReturnsImageChunks() throws {
+    func testRawExtractionSkipsRenderedImage() throws {
         // Create a simple PNG image programmatically with text drawn into it
         let imageURL = tempDir.appendingPathComponent("test_ocr.png")
 
@@ -445,12 +445,7 @@ final class TextExtractorTests: XCTestCase {
         let extractor = TextExtractor()
         let chunks = try extractor.extract(from: file).chunks
 
-        // Vision OCR may or may not recognize text from programmatic images,
-        // so we just verify the code path doesn't crash and returns valid results
-        for chunk in chunks {
-            XCTAssertEqual(chunk.type, .image)
-            XCTAssertFalse(chunk.text.isEmpty)
-        }
+        XCTAssertTrue(chunks.isEmpty, "Raw mode must not OCR images")
     }
 }
 
@@ -850,7 +845,7 @@ final class FileScannerTests: XCTestCase {
         ]
         createFile(at: "photo.png", content: Data(pngHeader))
 
-        let scanner = FileScanner(directory: tempDir)
+        let scanner = FileScanner(directory: tempDir, textExtraction: .imageOCRV1)
         let files = try scanner.scan()
         let relativePaths = files.map { $0.relativePath }
 
