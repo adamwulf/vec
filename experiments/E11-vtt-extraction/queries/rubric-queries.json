@@ -219,7 +219,7 @@
       "primary_file": "generated-b/textile-conservation-talk.vtt",
       "relevant_files": ["generated-b/textile-conservation-talk.vtt"],
       "passage_criteria": [
-        { "type": "contains", "value": "crepeline", "case_sensitive": false, "note": "Sheer backing fabric" },
+        { "type": "regex", "value": "cr[eê]peline", "case_sensitive": false, "note": "Sheer backing fabric; accept the source spelling and the caption's decoded circumflex" },
         { "type": "contains", "value": "couching stitches", "case_sensitive": false, "note": "How fragile threads are anchored" },
         { "type": "contains", "value": "reversible", "case_sensitive": false, "note": "Future conservators should be able to undo the work" }
       ],
