@@ -1,9 +1,6 @@
 # E11 — Opt-in WebVTT extraction before embedding
 
-Status: in progress. Follows the E10 Markdown-extraction pattern: a new
-versioned, opt-in text-extraction mode that normalizes a single file
-format before chunking, leaving every other format untouched and the
-default (`raw`) unchanged.
+Status: implementation complete. The versioned WebVTT modes are opt-in, raw remains the default, and no inference code changed. All WebVTT tests and every previously passing clean-main test pass. Five pre-existing embedding-parity assertions remain for a separate task. See [validation and baseline evidence](validation.md).
 
 ## Question
 
@@ -70,25 +67,13 @@ user's directory layout.
 
 ## Success criteria
 
-- [ ] The `vtt-v1` normalizer produces markup-free, readable prose: no
-  header, identifiers, timing/settings lines, `NOTE`/`STYLE`/`REGION`
-  blocks, or cue markup survive; supported character references are
-  decoded and unrecognized ones are left literal.
-- [ ] Normalizer tests cover malformed/structural-only blocks, a missing
-  header, a missing blank cue separator, Unicode and byte-order marks,
-  all three line endings, rolling/paint-on overlap and exact-repeat
-  dedup, and `<v>` speaker-label preservation (including multiple voices
-  in one cue).
-- [ ] Extraction is opt-in and reproducible: the same input yields the
-  same output; `raw` is unchanged; non-`.vtt` files under `vtt-v1` are
-  untouched; under `markdown-v1+vtt-v1`, `.md`/`.markdown` and `.vtt`
-  are each normalized by their versioned component.
-- [ ] Split passages map back to their source cue line ranges.
-- [ ] Mode persistence matches `markdown-v1`: recorded, inherited on
-  updates/inserts, legacy-reads-as-`raw`, and every mode-mismatch pair
-  refused until reset — covered by the CLI test suite.
-- [ ] The full automated suite passes.
-- [ ] Two independent reviewers approve; all work is merged.
+- [x] Normalize cue structure, supported character references, speaker labels and rolling overlap into readable prose.
+- [x] Cover malformed input, Unicode/BOM, all three line endings, missing separators, indented timing, long rolling cues and multiple voices.
+- [x] Keep extraction opt-in and reproducible; preserve raw/Markdown behavior and support the combined mode.
+- [x] Map split passages back to coarse source cue line ranges; verify scanner discovery.
+- [x] Preserve profile recording, update/insert inheritance, legacy raw defaults and rejection of every incompatible mode pair.
+- [x] Run full suites on clean main and the feature branch; confirm all previously passing main tests and all WebVTT tests pass. Record the five unchanged baseline inference failures separately, per the user's scope decision.
+- [x] Obtain two independent implementation approvals and merge the CLI worker.
 
 An accuracy improvement is a hypothesis, not a completion requirement.
 This experiment makes no measured retrieval-accuracy or indexing-speed

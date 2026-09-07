@@ -112,6 +112,10 @@ if the cross-corpus ranking diverges, the default may revisit. See
 
 All shipped on the current branch, in rough chronological order.
 
+### E11 — Opt-in WebVTT extraction (2026-09-06)
+
+`--text-extraction vtt-v1` removes caption structure, decodes text, preserves speakers, and joins/de-duplicates rolling cues before the existing chunker. `markdown-v1+vtt-v1` supports mixed corpora; modes are recorded and inherited, and raw remains the default. Chunks retain coarse source cue line ranges without a schema change. All 24 feature tests pass; every previously passing clean-main test still passes. Five identical baseline inference assertions remain for a separate task; inference code is unchanged. Two reviewers approved. [Plan](experiments/E11-vtt-extraction/plan.md) · [Validation and exact baseline evidence](experiments/E11-vtt-extraction/validation.md). Retrieval accuracy on the target corpus remains unmeasured.
+
 ### E10 — Opt-in Markdown extraction (2026-09-06)
 
 Parser-backed link/image destination removal now runs before chunking with `--text-extraction markdown-v1`. The database persists and inherits the mode; raw remains the default. The fixed E5 comparison indexed nine Markdown files in both arms: correct file at rank 1 for 12/12 queries in both; advisory passage checks improved 6/12 → 8/12, and transcript chunks fell 163 → 78. No measured file-accuracy or indexing-speed gain; keep opt-in and expand the evaluation before changing defaults. [Report](experiments/E10-markdown-extraction/report.md) · [Plan](experiments/E10-markdown-extraction/plan.md) · [Results](experiments/E10-markdown-extraction/runs/20260906-225138-metal/summary.md).
@@ -1008,29 +1012,6 @@ external scan. Both wasteful when the pipeline already knew.
 ---
 
 ## In progress
-
-**E11 — Opt-in WebVTT extraction (in progress).** A new versioned,
-opt-in text-extraction mode following the E10 Markdown pattern. Two
-modes are added: `vtt-v1` normalizes `.vtt` files only, and
-`markdown-v1+vtt-v1` runs the existing `markdown-v1` normalizer on
-`.md`/`.markdown` *and* the WebVTT normalizer on `.vtt`. The WebVTT
-normalizer parses cue blocks and strips the `WEBVTT` header, cue
-identifiers, timing/settings lines, `NOTE`/`STYLE`/`REGION` blocks, and
-inline cue markup; decodes the supported character references (leaving
-unknown ones literal); joins cues into paragraphs that break on a
-speaker change, ≥ 5 s silence, a backwards clock, or ≥ 30 s of running
-prose; preserves `<v>` speaker labels; and conservatively removes
-rolling-caption overlap only against the immediately preceding,
-single-speaker, time-adjacent cue. Malformed blocks are skipped and a
-missing header or blank cue separator is recovered. Source cue line
-ranges are retained; the vector schema carries no timestamp metadata,
-so cue timings are dropped rather than persisted — **no schema
-change**. Persistence and mismatch behavior are identical to
-`markdown-v1`: recorded on the profile, inherited on updates/inserts,
-legacy-reads-as-`raw`, and mode changes require reset. `raw` stays the
-default. This is a preprocessing capability only — **no measured
-retrieval-accuracy or indexing-speed claim** and no default change.
-Plan: [`experiments/E11-vtt-extraction/plan.md`](./experiments/E11-vtt-extraction/plan.md).
 
 **E5.9 phase complete.** All three refinements
 (E5.9a e5-base, E5.9b bge-base, E5.9c nomic) have shipped and
