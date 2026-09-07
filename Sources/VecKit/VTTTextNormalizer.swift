@@ -27,7 +27,13 @@ public enum VTTTextNormalizer {
         func sourceLines(start: Int?, end: Int?) -> (Int?, Int?) {
             guard let start, let end, !passages.isEmpty,
                   start >= 1, end >= start, end <= passages.count * 2 - 1 else { return (nil, nil) }
-            return (passages[(start - 1) / 2].lineStart, passages[(end - 1) / 2].lineEnd)
+            // A leading separator belongs to the following passage; a
+            // trailing separator belongs to the preceding one. This avoids
+            // pointing a trimmed line-based chunk at the previous speaker.
+            let first = start / 2
+            let last = (end - 1) / 2
+            guard first <= last else { return (nil, nil) }
+            return (passages[first].lineStart, passages[last].lineEnd)
         }
     }
 
@@ -134,6 +140,7 @@ public enum VTTTextNormalizer {
     }
 
     private static func times(_ line: String) -> (Double, Double)? {
+        let line = line.trimmingCharacters(in: .whitespaces)
         guard let match = timing.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)),
               let first = Range(match.range(at: 1), in: line), let second = Range(match.range(at: 2), in: line),
               let start = seconds(String(line[first])), let end = seconds(String(line[second])) else { return nil }

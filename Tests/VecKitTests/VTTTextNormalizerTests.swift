@@ -167,4 +167,19 @@ final class VTTTextNormalizerTests: XCTestCase {
         XCTAssertEqual(document.passages.first?.lineEnd, 6)
         XCTAssertEqual(VTTTextNormalizer.document("\u{FEFF}").lineCount, 1)
     }
+
+    func testIndentedTimingLinesRecoverAndBlankSeparatorsMapToVisiblePassage() {
+        let source = "WEBVTT\n\n  00:00.000 --> 00:01.000  \nFirst passage.\n\n\t00:10.000 --> 00:11.000\nSecond passage."
+        let document = VTTTextNormalizer.document(source)
+        XCTAssertEqual(document.text, "First passage.\n\nSecond passage.")
+        let first = document.sourceLines(start: 1, end: 2)
+        XCTAssertEqual(first.0, 3)
+        XCTAssertEqual(first.1, 4)
+        let second = document.sourceLines(start: 2, end: 3)
+        XCTAssertEqual(second.0, 6)
+        XCTAssertEqual(second.1, 7)
+        let blank = document.sourceLines(start: 2, end: 2)
+        XCTAssertNil(blank.0)
+        XCTAssertNil(blank.1)
+    }
 }
