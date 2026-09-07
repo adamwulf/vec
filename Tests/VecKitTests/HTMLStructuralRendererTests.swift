@@ -49,6 +49,11 @@ final class HTMLStructuralRendererTests: XCTestCase {
         XCTAssertFalse(output.contains("# Resume Guide"))
     }
 
+    func testMatchingFirstParagraphDoesNotSuppressTitle() throws {
+        let output = text(try render("<p>Body</p><p>Details.</p>", title: "Body"))
+        XCTAssertTrue(output.hasPrefix("# Body\n\nBody"))
+    }
+
     func testFallbackRemovesStaticChromeButKeepsReferenceContentAndFooter() throws {
         let html = """
         <nav>Home Products Pricing</nav>

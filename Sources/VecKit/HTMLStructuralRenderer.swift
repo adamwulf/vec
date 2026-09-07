@@ -364,6 +364,7 @@ enum HTMLStructuralRenderer {
             for line in text.split(separator: "\n") {
                 let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !trimmed.isEmpty else { continue }
+                guard trimmed.first == "#" else { return false }
                 let heading = trimmed.drop { $0 == "#" || $0.isWhitespace }
                 return collapseWhitespace(String(heading)).compare(
                     title,
