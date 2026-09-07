@@ -131,6 +131,16 @@ final class HTMLReadableContentExtractorTests: XCTestCase {
             )
         }
         XCTAssertThrowsError(try HTMLReadableContentExtractor.extract(
+            "éé",
+            sourceURL: URL(fileURLWithPath: "/tmp/unicode.html"),
+            options: plainOptions(maximumInputBytes: 3)
+        )) { error in
+            XCTAssertEqual(
+                error as? HTMLExtractionError,
+                .inputTooLarge(actualBytes: 4, maximumBytes: 3)
+            )
+        }
+        XCTAssertThrowsError(try HTMLReadableContentExtractor.extract(
             "<p>Local input with a remote identity.</p>",
             sourceURL: try XCTUnwrap(URL(string: "https://example.invalid/page.html")),
             options: plainOptions()
@@ -140,6 +150,46 @@ final class HTMLReadableContentExtractorTests: XCTestCase {
                 .nonFileSourceURL(URL(string: "https://example.invalid/page.html")!)
             )
         }
+    }
+
+    func testWholeDocumentElementLimitAppliesBeforeSemanticSelection() throws {
+        let root = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let options = try HTMLExtractionOptions(
+            maximumInputBytes: 64 * 1_024,
+            maximumElementCount: 3
+        )
+        XCTAssertThrowsError(try HTMLReadableContentExtractor.extract(
+            "<main><p>Selected.</p></main><aside><p>One</p><p>Two</p><p>Three</p></aside>",
+            sourceURL: root.appendingPathComponent("many.html"),
+            options: options
+        )) { error in
+            guard case HTMLExtractionError.elementLimitExceeded(let actual, let maximum) = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+            XCTAssertGreaterThan(actual, maximum)
+            XCTAssertEqual(maximum, 3)
+        }
+    }
+
+    func testMalformedDocumentIsRepairedDeterministically() throws {
+        let root = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let html = "<main><h1>Broken &amp; useful<p>First <b>paragraph<p>Second<ul><li>One<li>Two"
+        let first = try HTMLReadableContentExtractor.extract(
+            html,
+            sourceURL: root.appendingPathComponent("broken.html"),
+            options: plainOptions()
+        )
+        let second = try HTMLReadableContentExtractor.extract(
+            html,
+            sourceURL: root.appendingPathComponent("broken.html"),
+            options: plainOptions()
+        )
+        XCTAssertEqual(first, second)
+        XCTAssertTrue(first.renderedText().contains("# Broken & useful"))
+        XCTAssertTrue(first.renderedText().contains("First paragraph"))
+        XCTAssertTrue(first.renderedText().contains("- Two"))
     }
 
     func testPlainHTMLNeverResolvesRemoteImageOrLinkedResources() throws {

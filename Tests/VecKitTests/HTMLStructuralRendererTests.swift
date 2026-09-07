@@ -137,13 +137,13 @@ final class HTMLStructuralRendererTests: XCTestCase {
         }
     }
 
-    func testArticleCleanupDoesNotApplyFallbackNavigationPolicy() throws {
+    func testPreservingPageCleanupDoesNotApplyNavigationPolicy() throws {
         let output = text(try render(
-            "<nav>Kept by selected article mode</nav><p>Article body.</p>",
-            cleanup: .selectedArticle
+            "<nav>Kept by preservation fallback</nav><p>Page body.</p>",
+            cleanup: .preservingPageFallback
         ))
-        XCTAssertTrue(output.contains("Kept by selected article mode"))
-        XCTAssertTrue(output.contains("Article body."))
+        XCTAssertTrue(output.contains("Kept by preservation fallback"))
+        XCTAssertTrue(output.contains("Page body."))
     }
 
     func testPreformattedTextKeepsIndentationAndBlankLines() throws {

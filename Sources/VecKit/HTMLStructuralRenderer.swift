@@ -1,13 +1,13 @@
 import Foundation
 import SwiftSoup
 
-/// Cleanup intensity applied before structural rendering. Article HTML from a
-/// content selector should already be focused; the fallback additionally
+/// Cleanup intensity applied before structural rendering. The normal path
 /// removes static page chrome while preserving ordinary links, lists, tables,
-/// headings, and footer text.
+/// headings, and footer text. The preservation fallback removes only elements
+/// that can execute or embed content, for pages made entirely of navigation.
 enum HTMLDOMCleanupMode: Sendable, Equatable {
-    case selectedArticle
     case visiblePageFallback
+    case preservingPageFallback
 }
 
 enum HTMLStructuralSegment: Sendable, Equatable {

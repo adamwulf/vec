@@ -165,7 +165,7 @@ public enum HTMLReadableContentExtractor {
         let preservedPage = try render(
             body,
             baseURI: baseURI,
-            cleanupMode: .selectedArticle,
+            cleanupMode: .preservingPageFallback,
             maximumElementCount: maximumElementCount
         )
         return Selection(strategyIdentifier: "preserving-page-v1", result: preservedPage)
