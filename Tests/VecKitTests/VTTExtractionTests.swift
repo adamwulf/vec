@@ -2,6 +2,23 @@ import XCTest
 @testable import VecKit
 
 final class VTTExtractionTests: XCTestCase {
+    func testScannerDiscoversCaptionFilesForNormalizedExtraction() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = "WEBVTT\n\n00:00.000 --> 00:02.000\nDiscover these captions."
+        for name in ["captions.vtt", "uppercase.VTT"] {
+            try source.write(to: root.appendingPathComponent(name), atomically: true, encoding: .utf8)
+        }
+        let files = try FileScanner(directory: root, respectsGitignore: false).scan()
+        XCTAssertEqual(Set(files.map(\.relativePath)), ["captions.vtt", "uppercase.VTT"])
+        let extractor = TextExtractor(splitter: RecursiveCharacterSplitter(chunkSize: 120, chunkOverlap: 0),
+                                      textExtraction: .vttV1)
+        for file in files {
+            XCTAssertEqual(try extractor.extract(from: file).chunks.first?.text, "Discover these captions.")
+        }
+    }
+
     private func extract(_ source: String, extension ext: String = "vtt",
                          mode: TextExtractionMode = .vttV1,
                          splitter: any TextSplitter = RecursiveCharacterSplitter(chunkSize: 120, chunkOverlap: 0)) throws -> ExtractionResult {
