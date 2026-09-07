@@ -44,9 +44,10 @@ enum ComputePolicyOption: String, ExpressibleByArgument, CaseIterable {
 /// `ExpressibleByArgument` enum so the CLI surface can validate and reject
 /// unknown mode strings at parse time (an unrecognized `--text-extraction`
 /// value fails before any DB work) while the persisted `TextExtractionMode`
-/// stays a pure VecKit type. Every CLI case maps 1:1 to a
-/// `TextExtractionMode` case; the exhaustive `mode` switch forces this file
-/// to be updated whenever a new versioned mode is added to VecKit.
+/// stays a pure VecKit type. The `mode` switch below only has to stay
+/// exhaustive over this enum's own cases; `TextExtractionModeTests`'
+/// one-to-one mapping check is what catches a persisted mode that gains no
+/// CLI option (or vice versa).
 enum TextExtractionOption: String, ExpressibleByArgument, CaseIterable {
     case raw
     case markdownV1 = "markdown-v1"

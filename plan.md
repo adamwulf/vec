@@ -1011,26 +1011,26 @@ external scan. Both wasteful when the pipeline already knew.
 
 **E11 — Opt-in WebVTT extraction (in progress).** A new versioned,
 opt-in text-extraction mode following the E10 Markdown pattern. Two
-new modes are added to both mode enums (`TextExtractionMode` and the
-CLI `TextExtractionOption`): `vtt-v1` normalizes `.vtt` files only, and
+modes are added: `vtt-v1` normalizes `.vtt` files only, and
 `markdown-v1+vtt-v1` runs the existing `markdown-v1` normalizer on
 `.md`/`.markdown` *and* the WebVTT normalizer on `.vtt`. The WebVTT
-normalizer strips the `WEBVTT` header, cue identifiers, timing/settings
-lines, `NOTE`/`STYLE`/`REGION` blocks, and inline cue markup, decodes
-HTML entities, joins consecutive cues into prose, preserves `<v>`
-speaker labels, and conservatively removes rolling-caption overlap.
-Source cue line ranges are retained; the vector schema carries no
-timestamp metadata, so cue timings are dropped rather than persisted —
-**no schema change**. Persistence and mismatch behavior are identical
-to `markdown-v1`: recorded on the profile, inherited on
-updates/inserts, legacy-reads-as-`raw`, and mode changes require reset.
-`raw` stays the default. This is a preprocessing capability only — **no
-measured retrieval-accuracy or indexing-speed claim** and no default
-change. The CLI + docs slice (both enum cases, `update-index` wiring,
-CLI mode tests, README/plan docs) lands alongside the manager-owned
-normalizer, `TextExtractor` wiring, VecKit normalizer tests, and the
-final passage/dedup validation doc. Plan:
-[`experiments/E11-vtt-extraction/plan.md`](./experiments/E11-vtt-extraction/plan.md).
+normalizer parses cue blocks and strips the `WEBVTT` header, cue
+identifiers, timing/settings lines, `NOTE`/`STYLE`/`REGION` blocks, and
+inline cue markup; decodes the supported character references (leaving
+unknown ones literal); joins cues into paragraphs that break on a
+speaker change, ≥ 5 s silence, a backwards clock, or ≥ 30 s of running
+prose; preserves `<v>` speaker labels; and conservatively removes
+rolling-caption overlap only against the immediately preceding,
+single-speaker, time-adjacent cue. Malformed blocks are skipped and a
+missing header or blank cue separator is recovered. Source cue line
+ranges are retained; the vector schema carries no timestamp metadata,
+so cue timings are dropped rather than persisted — **no schema
+change**. Persistence and mismatch behavior are identical to
+`markdown-v1`: recorded on the profile, inherited on updates/inserts,
+legacy-reads-as-`raw`, and mode changes require reset. `raw` stays the
+default. This is a preprocessing capability only — **no measured
+retrieval-accuracy or indexing-speed claim** and no default change.
+Plan: [`experiments/E11-vtt-extraction/plan.md`](./experiments/E11-vtt-extraction/plan.md).
 
 **E5.9 phase complete.** All three refinements
 (E5.9a e5-base, E5.9b bge-base, E5.9c nomic) have shipped and

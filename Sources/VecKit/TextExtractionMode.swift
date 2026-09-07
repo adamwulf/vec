@@ -7,7 +7,8 @@ import Foundation
 /// Each mode names the exact normalizer(s) applied before chunking, so a
 /// mode string is a complete, reproducible description of how a database's
 /// text was preprocessed:
-/// - `raw` — no normalization; every file is embedded as read.
+/// - `raw` — each file's existing extraction (text read, PDF page text,
+///   image OCR) with no additional text normalization.
 /// - `markdown-v1` — the v1 Markdown normalizer runs on `.md` / `.markdown`
 ///   files; all other file types pass through unchanged.
 /// - `vtt-v1` — the v1 WebVTT normalizer runs on `.vtt` files; all other
