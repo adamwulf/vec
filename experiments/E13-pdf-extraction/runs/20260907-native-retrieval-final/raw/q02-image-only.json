@@ -1,0 +1,95 @@
+{
+  "arm" : "raw",
+  "file_rank" : null,
+  "groups" : [
+    {
+      "best_score" : 0.74612760543823242,
+      "file" : "multipage.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.25387239456176758,
+          "page_number" : 1,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.74612760543823242
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.25387245416641235,
+          "page_number" : null,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.74612754583358765
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.73987877368927002,
+      "file" : "native-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.26012122631072998,
+          "page_number" : null,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.73987877368927002
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.26012122631072998,
+          "page_number" : 1,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.73987877368927002
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.72620856761932373,
+      "file" : "duplicate-overlap.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.27379143238067627,
+          "page_number" : null,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.72620856761932373
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.27379155158996582,
+          "page_number" : 1,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.72620844841003418
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.72170054912567139,
+      "file" : "mixed.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.27829945087432861,
+          "page_number" : null,
+          "preview" : "NATIVE CEDAR HEADER",
+          "score" : 0.72170054912567139
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.27829945087432861,
+          "page_number" : 1,
+          "preview" : "NATIVE CEDAR HEADER",
+          "score" : 0.72170054912567139
+        }
+      ],
+      "rank" : 4
+    }
+  ],
+  "id" : "q02-image-only",
+  "passage_criteria_met" : false,
+  "primary_file" : "image-only.pdf",
+  "primary_page" : 1,
+  "text" : "nebula token raster document"
+}

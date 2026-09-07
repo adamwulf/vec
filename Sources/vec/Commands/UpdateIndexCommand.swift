@@ -58,6 +58,14 @@ enum TextExtractionOption: String, ExpressibleByArgument, CaseIterable {
     case markdownV1ImageOCRV1 = "markdown-v1+image-ocr-v1"
     case vttV1ImageOCRV1 = "vtt-v1+image-ocr-v1"
     case markdownV1VttV1ImageOCRV1 = "markdown-v1+vtt-v1+image-ocr-v1"
+    case pdfOCRV1 = "pdf-ocr-v1"
+    case markdownV1PDFOCRV1 = "markdown-v1+pdf-ocr-v1"
+    case vttV1PDFOCRV1 = "vtt-v1+pdf-ocr-v1"
+    case markdownV1VttV1PDFOCRV1 = "markdown-v1+vtt-v1+pdf-ocr-v1"
+    case imageOCRV1PDFOCRV1 = "image-ocr-v1+pdf-ocr-v1"
+    case markdownV1ImageOCRV1PDFOCRV1 = "markdown-v1+image-ocr-v1+pdf-ocr-v1"
+    case vttV1ImageOCRV1PDFOCRV1 = "vtt-v1+image-ocr-v1+pdf-ocr-v1"
+    case markdownV1VttV1ImageOCRV1PDFOCRV1 = "markdown-v1+vtt-v1+image-ocr-v1+pdf-ocr-v1"
 
     var mode: TextExtractionMode {
         switch self {
@@ -69,6 +77,14 @@ enum TextExtractionOption: String, ExpressibleByArgument, CaseIterable {
         case .markdownV1ImageOCRV1: return .markdownV1ImageOCRV1
         case .vttV1ImageOCRV1: return .vttV1ImageOCRV1
         case .markdownV1VttV1ImageOCRV1: return .markdownV1VttV1ImageOCRV1
+        case .pdfOCRV1: return .pdfOCRV1
+        case .markdownV1PDFOCRV1: return .markdownV1PDFOCRV1
+        case .vttV1PDFOCRV1: return .vttV1PDFOCRV1
+        case .markdownV1VttV1PDFOCRV1: return .markdownV1VttV1PDFOCRV1
+        case .imageOCRV1PDFOCRV1: return .imageOCRV1PDFOCRV1
+        case .markdownV1ImageOCRV1PDFOCRV1: return .markdownV1ImageOCRV1PDFOCRV1
+        case .vttV1ImageOCRV1PDFOCRV1: return .vttV1ImageOCRV1PDFOCRV1
+        case .markdownV1VttV1ImageOCRV1PDFOCRV1: return .markdownV1VttV1ImageOCRV1PDFOCRV1
         }
     }
 }

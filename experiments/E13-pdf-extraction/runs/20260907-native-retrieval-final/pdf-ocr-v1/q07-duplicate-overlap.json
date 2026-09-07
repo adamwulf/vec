@@ -1,0 +1,144 @@
+{
+  "arm" : "pdf-ocr-v1",
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.93323934078216553,
+      "file" : "duplicate-overlap.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.066760659217834473,
+          "page_number" : null,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.93323934078216553
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.066760718822479248,
+          "page_number" : 1,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.93323928117752075
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.75551074743270874,
+      "file" : "multipage.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.24448925256729126,
+          "page_number" : 2,
+          "preview" : "INDIGO PROVENANCE MARKER",
+          "score" : 0.75551074743270874
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.244681715965271,
+          "page_number" : null,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR\nINDIGO PROVENANCE MARKER",
+          "score" : 0.755318284034729
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.26977819204330444,
+          "page_number" : 1,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.73022180795669556
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.74842745065689087,
+      "file" : "mixed.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.25157254934310913,
+          "page_number" : null,
+          "preview" : "NATIVE CEDAR HEADER\nRASTER QUARTZ DETAIL",
+          "score" : 0.74842745065689087
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.25157260894775391,
+          "page_number" : 1,
+          "preview" : "NATIVE CEDAR HEADER\nRASTER QUARTZ DETAIL",
+          "score" : 0.74842739105224609
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.73945224285125732,
+      "file" : "image-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.26054775714874268,
+          "page_number" : null,
+          "preview" : "RASTER NEBULA TOKEN",
+          "score" : 0.73945224285125732
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.26054775714874268,
+          "page_number" : 1,
+          "preview" : "RASTER NEBULA TOKEN",
+          "score" : 0.73945224285125732
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.73817968368530273,
+      "file" : "native-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.26182031631469727,
+          "page_number" : null,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.73817968368530273
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.26182031631469727,
+          "page_number" : 1,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.73817968368530273
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.72070556879043579,
+      "file" : "rotation-crop.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.27929443120956421,
+          "page_number" : null,
+          "preview" : "ROTATED CROP MARKER",
+          "score" : 0.72070556879043579
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.27929443120956421,
+          "page_number" : 1,
+          "preview" : "ROTATED CROP MARKER",
+          "score" : 0.72070556879043579
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "id" : "q07-duplicate-overlap",
+  "passage_criteria_met" : true,
+  "primary_file" : "duplicate-overlap.pdf",
+  "primary_page" : 1,
+  "text" : "copper lantern archive"
+}

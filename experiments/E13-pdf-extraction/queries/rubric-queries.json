@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "experiment": "E13-pdf-extraction",
+  "frozen_before_ranking": true,
+  "corpus": {
+    "expected_pdf_files": 7,
+    "origin": "synthetic-only",
+    "generator": "PDFOCRReaderTests test-time CoreText/CoreGraphics fixtures"
+  },
+  "arms": [
+    {"key": "raw", "text_extraction": "raw", "label": "embedded PDF text only"},
+    {"key": "pdf-ocr-v1", "text_extraction": "pdf-ocr-v1", "label": "embedded text plus page OCR"}
+  ],
+  "queries": [
+    {
+      "id": "q01-native-only",
+      "text": "orchard signal embedded document",
+      "primary_file": "native-only.pdf",
+      "primary_page": 1,
+      "passage_terms": ["native", "orchard", "signal"]
+    },
+    {
+      "id": "q02-image-only",
+      "text": "nebula token raster document",
+      "primary_file": "image-only.pdf",
+      "primary_page": 1,
+      "passage_terms": ["raster", "nebula", "token"]
+    },
+    {
+      "id": "q03-mixed-native",
+      "text": "cedar header mixed document",
+      "primary_file": "mixed.pdf",
+      "primary_page": 1,
+      "passage_terms": ["native", "cedar", "header"]
+    },
+    {
+      "id": "q04-mixed-raster",
+      "text": "quartz detail mixed document",
+      "primary_file": "mixed.pdf",
+      "primary_page": 1,
+      "passage_terms": ["raster", "quartz", "detail"]
+    },
+    {
+      "id": "q05-multipage",
+      "text": "indigo page provenance marker",
+      "primary_file": "multipage.pdf",
+      "primary_page": 2,
+      "passage_terms": ["indigo", "provenance", "marker"]
+    },
+    {
+      "id": "q06-rotation-crop",
+      "text": "rotated crop marker",
+      "primary_file": "rotation-crop.pdf",
+      "primary_page": 1,
+      "passage_terms": ["rotated", "crop", "marker"]
+    },
+    {
+      "id": "q07-duplicate-overlap",
+      "text": "copper lantern archive",
+      "primary_file": "duplicate-overlap.pdf",
+      "primary_page": 1,
+      "passage_terms": ["copper", "lantern", "archive"],
+      "maximum_normalized_passage_occurrences": 1
+    }
+  ]
+}

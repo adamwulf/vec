@@ -1,0 +1,48 @@
+{
+  "arm" : "raw",
+  "blank_count" : 3,
+  "failed_count" : 0,
+  "index_wall_seconds" : 0.54156637500000004,
+  "indexed_count" : 4,
+  "pdf_ocr_cache" : {
+    "coalesced_requests" : 0,
+    "hits" : 0,
+    "misses" : 0,
+    "ocr_calls" : 0
+  },
+  "per_file_chunks" : [
+    {
+      "chunks" : 0,
+      "path" : "blank.pdf"
+    },
+    {
+      "chunks" : 2,
+      "path" : "duplicate-overlap.pdf"
+    },
+    {
+      "chunks" : 0,
+      "path" : "image-only.pdf"
+    },
+    {
+      "chunks" : 2,
+      "path" : "mixed.pdf"
+    },
+    {
+      "chunks" : 2,
+      "path" : "multipage.pdf"
+    },
+    {
+      "chunks" : 2,
+      "path" : "native-only.pdf"
+    },
+    {
+      "chunks" : 0,
+      "path" : "rotation-crop.pdf"
+    }
+  ],
+  "processed_count" : 7,
+  "rss_after_bytes" : 1439203328,
+  "rss_before_bytes" : 513966080,
+  "text_extraction" : "raw",
+  "total_chunks" : 8
+}

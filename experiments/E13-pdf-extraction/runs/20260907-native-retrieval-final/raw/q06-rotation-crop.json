@@ -1,0 +1,95 @@
+{
+  "arm" : "raw",
+  "file_rank" : null,
+  "groups" : [
+    {
+      "best_score" : 0.78679466247558594,
+      "file" : "native-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.21320533752441406,
+          "page_number" : 1,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.78679466247558594
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.21320539712905884,
+          "page_number" : null,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.78679460287094116
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.75440996885299683,
+      "file" : "mixed.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.24559003114700317,
+          "page_number" : null,
+          "preview" : "NATIVE CEDAR HEADER",
+          "score" : 0.75440996885299683
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.24559003114700317,
+          "page_number" : 1,
+          "preview" : "NATIVE CEDAR HEADER",
+          "score" : 0.75440996885299683
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.74478113651275635,
+      "file" : "multipage.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.25521886348724365,
+          "page_number" : 1,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.74478113651275635
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.25521892309188843,
+          "page_number" : null,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.74478107690811157
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.71331065893173218,
+      "file" : "duplicate-overlap.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.28668934106826782,
+          "page_number" : null,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.71331065893173218
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.28668934106826782,
+          "page_number" : 1,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.71331065893173218
+        }
+      ],
+      "rank" : 4
+    }
+  ],
+  "id" : "q06-rotation-crop",
+  "passage_criteria_met" : false,
+  "primary_file" : "rotation-crop.pdf",
+  "primary_page" : 1,
+  "text" : "rotated crop marker"
+}

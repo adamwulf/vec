@@ -145,6 +145,37 @@ See the [E12 plan](experiments/E12-image-ocr/plan.md) and
 [measurement report](experiments/E12-image-ocr/report.md) for the frozen sample,
 retrieval scores, throughput, memory observations, and synthetic-sample limits.
 
+#### PDF OCR (`pdf-ocr-v1`)
+
+The default `raw` mode indexes only a PDF's embedded text. Opt into rendered
+page OCR when PDFs may contain scans, diagrams, screenshots, or mixed native
+and raster text:
+
+```bash
+vec update-index --db my-project --text-extraction pdf-ocr-v1 --ocr-concurrency 2
+```
+
+Every page is OCR'd even when it also has embedded text. Native PDF text is
+preserved as authoritative; OCR copies are conservatively deduplicated while
+distinct raster-only lines remain. Page chunks retain 1-based page numbers.
+Reading order uses crop- and rotation-aware geometry, with a lossless
+native-first fallback for unusual PDFs whose character bounds cannot fully
+reconstruct their text layer. Blank pages produce no chunks.
+
+Combine components in canonical Markdown, VTT, image, PDF order, for example
+`markdown-v1+pdf-ocr-v1`, `image-ocr-v1+pdf-ocr-v1`, or
+`markdown-v1+vtt-v1+image-ocr-v1+pdf-ocr-v1`. Changing the recorded extraction
+mode requires reset/reindexing. PDF page OCR shares `--ocr-concurrency` with
+raster-image OCR, renders one page at a time per document, caps the longest
+edge at 4,096 pixels at a requested 144 dpi, and releases each page bitmap in
+an autorelease pool. Sidecars are keyed by PDF content hash, extraction/Vision
+version, page number, and render settings; successful blank results are cached,
+while failures are retried.
+
+See the [E13 plan](experiments/E13-pdf-extraction/plan.md) and
+[reader validation](experiments/E13-pdf-extraction/report.md) for test coverage,
+bounded cold/warm measurements, and synthetic limitations.
+
 ### Search
 
 ```bash

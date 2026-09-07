@@ -1,0 +1,144 @@
+{
+  "arm" : "pdf-ocr-v1",
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.83872002363204956,
+      "file" : "mixed.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.16127997636795044,
+          "page_number" : null,
+          "preview" : "NATIVE CEDAR HEADER\nRASTER QUARTZ DETAIL",
+          "score" : 0.83872002363204956
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.16127997636795044,
+          "page_number" : 1,
+          "preview" : "NATIVE CEDAR HEADER\nRASTER QUARTZ DETAIL",
+          "score" : 0.83872002363204956
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.77589672803878784,
+      "file" : "multipage.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.22410327196121216,
+          "page_number" : null,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR\nINDIGO PROVENANCE MARKER",
+          "score" : 0.77589672803878784
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.24383115768432617,
+          "page_number" : 2,
+          "preview" : "INDIGO PROVENANCE MARKER",
+          "score" : 0.75616884231567383
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.25032579898834229,
+          "page_number" : 1,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.74967420101165771
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.74746304750442505,
+      "file" : "image-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.25253695249557495,
+          "page_number" : null,
+          "preview" : "RASTER NEBULA TOKEN",
+          "score" : 0.74746304750442505
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.2525370717048645,
+          "page_number" : 1,
+          "preview" : "RASTER NEBULA TOKEN",
+          "score" : 0.7474629282951355
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.74246948957443237,
+      "file" : "rotation-crop.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.25753051042556763,
+          "page_number" : 1,
+          "preview" : "ROTATED CROP MARKER",
+          "score" : 0.74246948957443237
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.25753062963485718,
+          "page_number" : null,
+          "preview" : "ROTATED CROP MARKER",
+          "score" : 0.74246937036514282
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.73914742469787598,
+      "file" : "duplicate-overlap.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.26085257530212402,
+          "page_number" : 1,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.73914742469787598
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.2608526349067688,
+          "page_number" : null,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.7391473650932312
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.71449828147888184,
+      "file" : "native-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.28550171852111816,
+          "page_number" : null,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.71449828147888184
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.28550177812576294,
+          "page_number" : 1,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.71449822187423706
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "id" : "q04-mixed-raster",
+  "passage_criteria_met" : true,
+  "primary_file" : "mixed.pdf",
+  "primary_page" : 1,
+  "text" : "quartz detail mixed document"
+}

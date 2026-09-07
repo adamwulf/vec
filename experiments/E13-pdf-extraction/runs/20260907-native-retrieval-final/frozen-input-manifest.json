@@ -1,0 +1,106 @@
+{
+  "build" : {
+    "active_processor_count" : 10,
+    "git_dirty" : true,
+    "git_head" : "6b3000528b04d1a84c14486d7bc640741b3ce95a",
+    "host_name" : "adams-macbook-pro-9.local",
+    "os_version" : "Version 26.6.2 (Build 25G83)",
+    "package_resolved_sha256" : "34d04a53816e79c50735f157915a697cdc67c458cbdb1055c2447c5c6dab4364",
+    "swift_version" : "Apple Swift version 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2)\nTarget: arm64-apple-macosx26.0"
+  },
+  "experiment" : "E13-pdf-extraction",
+  "file_count" : 7,
+  "files" : [
+    {
+      "bytes" : 2162,
+      "path" : "blank.pdf",
+      "sha256" : "14f0e703e700184a0db149847756f66f74df0e0d2193486e41c335d466268a52"
+    },
+    {
+      "bytes" : 21714,
+      "path" : "duplicate-overlap.pdf",
+      "sha256" : "77a422ea3b344f5ef46fc8471dc2efce8bdff42e110302ae0be4ef1e3e86c0e6"
+    },
+    {
+      "bytes" : 18755,
+      "path" : "image-only.pdf",
+      "sha256" : "06914fb39b04cb56f2cbbf91010f6c9422b6d1b524b0a9227baa854d79d0a6a3"
+    },
+    {
+      "bytes" : 21123,
+      "path" : "mixed.pdf",
+      "sha256" : "287f92bfa538b0ea2667f3913d402dcb90a39d977443a84e8e0719adcf883e23"
+    },
+    {
+      "bytes" : 26354,
+      "path" : "multipage.pdf",
+      "sha256" : "c764c04075fd8233830d2d60f45aca7cbcf08a78361a2e70a18bc5410918b6ee"
+    },
+    {
+      "bytes" : 5928,
+      "path" : "native-only.pdf",
+      "sha256" : "ad85545271ce95e613bfdea4162b600b5ee9c01445299db5106a2bfe1d2c224f"
+    },
+    {
+      "bytes" : 19287,
+      "path" : "rotation-crop.pdf",
+      "sha256" : "a43110c567165ac36cc2fb704b7d097f7480fd21e6effabb3dc6a9d94e2876e1"
+    }
+  ],
+  "frozen_at" : "2026-09-07T21:35:28Z",
+  "model_directory" : "\/private\/tmp\/vec-e10-model\/f52bf8ec8c7124536f0efb74aca902b2995e5bcd",
+  "model_files" : [
+    {
+      "bytes" : 650,
+      "path" : "config.json",
+      "sha256" : "01cc39aa39538a8179aa131c8a16adc03b506c92009f091502e4eb0c702f5f78"
+    },
+    {
+      "bytes" : 437955512,
+      "path" : "model.safetensors",
+      "sha256" : "d0d559c47d5f71b1d280b13b62a2657f3e3bc70c0786f9ab91a36545e6a8f693"
+    },
+    {
+      "bytes" : 1023,
+      "path" : "snapshot-manifest.json",
+      "sha256" : "36ca1463784a5df35c5cd5baf1dbf5c5267e6a453705a99fed81e5ab3ea07030"
+    },
+    {
+      "bytes" : 125,
+      "path" : "special_tokens_map.json",
+      "sha256" : "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+    },
+    {
+      "bytes" : 711396,
+      "path" : "tokenizer.json",
+      "sha256" : "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66"
+    },
+    {
+      "bytes" : 314,
+      "path" : "tokenizer_config.json",
+      "sha256" : "ae83fa6ca0333117ff12606020af925d648667ef70d92ff7f27d781ba0ca4544"
+    },
+    {
+      "bytes" : 231508,
+      "path" : "vocab.txt",
+      "sha256" : "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+    }
+  ],
+  "query_count" : 7,
+  "query_manifest_path" : "experiments\/E13-pdf-extraction\/queries\/rubric-queries.json",
+  "query_manifest_sha256" : "6b8b9cefb57e2a8dab10af078432eebd71369cf6694631f399e1e4cca8ff7ae0",
+  "run_identity" : "87570a49d8b1e3adb6b4f4b12335bea3471bbc1371c65474cd4bd10a381a71e8",
+  "settings" : {
+    "chunk_chars" : 1200,
+    "chunk_overlap" : 0,
+    "concurrency" : 2,
+    "embedder" : "e5-base-v2",
+    "ocr_concurrency" : 1,
+    "pdf_dpi" : 144,
+    "pdf_max_pixel_dimension" : 4096,
+    "pdf_ocr_version" : 1,
+    "profile_identity" : "e5-base@1200\/0",
+    "vision_request_revision" : 3
+  },
+  "synthetic_limitations" : "Clean high-contrast CoreText English fixtures; not representative of real scans or complex layouts."
+}

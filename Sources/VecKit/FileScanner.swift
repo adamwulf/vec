@@ -87,7 +87,9 @@ public class FileScanner {
             // Check if it's a supported file type using UTType
             let utType = UTType(filenameExtension: ext)
             let isText = utType?.conforms(to: .text) ?? false
-            let isPDF = utType?.conforms(to: .pdf) ?? false
+            // `pdf` can resolve to an undeclared dynamic UTType in restricted
+            // runtimes, so keep the well-known extension as a stable fallback.
+            let isPDF = ext == "pdf" || (utType?.conforms(to: .pdf) ?? false)
             let isImage = utType?.conforms(to: .image) ?? false
 
             // Handle raster/vector image names before text sniffing: SVG is

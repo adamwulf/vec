@@ -1,0 +1,144 @@
+{
+  "arm" : "pdf-ocr-v1",
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.95868861675262451,
+      "file" : "rotation-crop.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.041311383247375488,
+          "page_number" : 1,
+          "preview" : "ROTATED CROP MARKER",
+          "score" : 0.95868861675262451
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.041311442852020264,
+          "page_number" : null,
+          "preview" : "ROTATED CROP MARKER",
+          "score" : 0.95868855714797974
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.78679472208023071,
+      "file" : "native-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.21320527791976929,
+          "page_number" : null,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.78679472208023071
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.21320539712905884,
+          "page_number" : 1,
+          "preview" : "NATIVE ORCHARD SIGNAL",
+          "score" : 0.78679460287094116
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.78167068958282471,
+      "file" : "multipage.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.21832931041717529,
+          "page_number" : null,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR\nINDIGO PROVENANCE MARKER",
+          "score" : 0.78167068958282471
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.22165960073471069,
+          "page_number" : 2,
+          "preview" : "INDIGO PROVENANCE MARKER",
+          "score" : 0.77834039926528931
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.2552189826965332,
+          "page_number" : 1,
+          "preview" : "MULTIPAGE ALABASTER DISTRACTOR",
+          "score" : 0.7447810173034668
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.77380949258804321,
+      "file" : "mixed.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.22619050741195679,
+          "page_number" : null,
+          "preview" : "NATIVE CEDAR HEADER\nRASTER QUARTZ DETAIL",
+          "score" : 0.77380949258804321
+        },
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.22619056701660156,
+          "page_number" : 1,
+          "preview" : "NATIVE CEDAR HEADER\nRASTER QUARTZ DETAIL",
+          "score" : 0.77380943298339844
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.74964696168899536,
+      "file" : "image-only.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.25035303831100464,
+          "page_number" : 1,
+          "preview" : "RASTER NEBULA TOKEN",
+          "score" : 0.74964696168899536
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.25035309791564941,
+          "page_number" : null,
+          "preview" : "RASTER NEBULA TOKEN",
+          "score" : 0.74964690208435059
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.71331071853637695,
+      "file" : "duplicate-overlap.pdf",
+      "matches" : [
+        {
+          "chunk_type" : "pdf_page",
+          "distance" : 0.28668928146362305,
+          "page_number" : 1,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.71331071853637695
+        },
+        {
+          "chunk_type" : "whole",
+          "distance" : 0.28668934106826782,
+          "page_number" : null,
+          "preview" : "COPPER LANTERN ARCHIVE",
+          "score" : 0.71331065893173218
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "id" : "q06-rotation-crop",
+  "passage_criteria_met" : true,
+  "primary_file" : "rotation-crop.pdf",
+  "primary_page" : 1,
+  "text" : "rotated crop marker"
+}
