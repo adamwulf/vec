@@ -28,17 +28,27 @@ behavior and **no** inference change. The fixed profile is `e5-base@1200/0`
 (real `intfloat/e5-base-v2`, 1200-char chunks, 0 overlap), the same pinned
 local E5 bundle E10 used.
 
-Both arms document AND query through exactly the same code paths as E10:
-documents via the batch embedding pipeline (`IndexingPipeline` →
-`E5BaseEmbedder.embed`), queries via the single-query path
-(`E5BaseEmbedder.embedQuery`). Using one path for both arms keeps the two
-arms comparable, but it does **not** eliminate the known single-vs-batch
-embedding-parity dependence recorded in the E11 `validation.md` (the five
-pre-existing parity assertions). That is an inference-side effect; this
-harness deliberately does not touch inference, so an absolute score should
-be read as "under the current batch-composition behavior," and the arms
-are compared to each other, not to a batch-composition-independent ground
-truth.
+Both arms document AND query through exactly the same code paths: documents
+via the batch embedding pipeline (`IndexingPipeline` →
+`Embedder.embedDocuments`), queries via the single-query path
+(`E5BaseEmbedder.embedQuery`). Only the `TextExtractor` mode differs.
+
+**Baseline: current-main inference (post parity fix).** This branch is
+merged onto current main, which includes the single/batch embedding-parity
+fix. For E5 the batch document path now prepends `passage: ` within the
+2,000-character cap on the SAME shared helper the single/query paths use
+(`E5BaseEmbedder.normalizeInputs`, prefix-then-cap), so a batch document
+vector matches its single-document vector, and E5 query/single vectors are
+unchanged. The five pre-existing single-vs-batch parity assertions recorded
+in the E10-era `validation.md` therefore no longer apply to this run.
+
+Because of that fix, **this improved current-main baseline differs from the
+E10 inference revision**: E11 absolute scores are NOT comparable to E10's,
+and E11 must be read as raw-vs-vtt-v1 on the current inference. The harness
+itself changes no inference code; it merely runs on the merged baseline.
+Running documents through the batch path and queries through the single path
+still reflects the real CLI, and under the parity fix that is no longer a
+source of single-vs-batch divergence for E5.
 
 ## The corpus and its scope
 
@@ -109,14 +119,19 @@ case-insensitive checks per criterion, kept distinct:
 * `matched_in_pre_tokenizer_input` — the criterion against the
   **pre-tokenizer model input** for the retrieved chunk. The chunk is
   reconstructed **by its ordinal** from the arm's own extractor and passed
-  through the same `normalizeBertInputs` the embedder uses (content capped
-  at the E5 char limit, then the `passage: ` prefix). This is the one
-  `all_criteria_met` uses. **For vtt-v1 this matters:** the normalizer
-  reflows cue lines, so the raw source line range is *not* the embedded
-  text — re-extracting the chunk by ordinal recovers the actual reflowed
-  prose that was embedded. **Caveat:** the BERT tokenizer then truncates to
-  512 tokens (fewer characters than the char cap), so a match here is
-  *necessary but not sufficient* evidence the model encoded the term.
+  through the same **`E5BaseEmbedder.normalizeInputs`** the embedder uses:
+  the `passage: ` prefix is prepended, then the combined string is capped
+  at the E5 char limit (2,000) — **prefix-then-cap**, the shared helper for
+  E5's single and batch document paths under the current-main parity fix.
+  (This is E5's own helper, *not* the generic `normalizeBertInputs`, which
+  caps content *before* prefixing — the Nomic convention — and no longer
+  describes E5.) This is the one `all_criteria_met` uses. **For vtt-v1 this
+  matters:** the normalizer reflows cue lines, so the raw source line range
+  is *not* the embedded text — re-extracting the chunk by ordinal recovers
+  the actual reflowed prose that was embedded. **Caveat:** the BERT
+  tokenizer then truncates to 512 tokens (fewer characters than the char
+  cap), so a match here is *necessary but not sufficient* evidence the model
+  encoded the term.
 * `matched_in_source_range` — the criterion against the chunk's **raw**
   source line range in the `.vtt` file (a **superset** that, for both arms,
   still contains timing lines and inline cue tags; the whole file for a

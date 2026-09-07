@@ -354,32 +354,38 @@ final class VTTRetrievalExperimentTests: XCTestCase {
                 let ordinal = ords[best.chunkId]
 
                 // Pre-tokenizer model input for the retrieved chunk: EXACTLY
-                // the string the indexing path fed the tokenizer — content
-                // capped at the E5 char limit, then the "passage: " document
-                // prefix — produced by the SAME normalizeBertInputs the
-                // embedder uses. RECONSTRUCTED BY ORDINAL from the arm's own
+                // the string the E5 document path feeds the tokenizer — the
+                // "passage: " prefix prepended, then the combined string
+                // capped at the E5 char limit (prefix-THEN-cap, so the
+                // prefix's tokens eat into the budget) — produced by the SAME
+                // `E5BaseEmbedder.normalizeInputs` the embedder uses. Under the
+                // current-main single/batch parity fix, the batch document
+                // path now shares this exact helper with the single path, so
+                // this reconstruction matches whichever path embedded the
+                // chunk. It is RECONSTRUCTED BY ORDINAL from the arm's own
                 // extractor, which is essential for vtt-v1: the normalizer
                 // reflows cue lines, so the raw source line range is NOT the
-                // embedded text. Re-extracting and indexing the chunk by its
-                // ordinal recovers the actual reflowed prose that was embedded.
+                // embedded text. Re-extracting the chunk by its ordinal
+                // recovers the actual reflowed prose that was embedded.
                 //
                 // This is still a PRE-TOKENIZER check: the BERT tokenizer then
                 // truncates to 512 tokens (fewer chars than the char cap), so a
                 // match here is NECESSARY but NOT SUFFICIENT evidence the model
                 // encoded the term. It is advisory (does not gate file rank).
                 //
-                // NOTE: "passage: " duplicates E5BaseEmbedder.documentPrefix,
-                // which is private, so it cannot be referenced here. It matches
-                // the current frozen E5 source; if E5's document prefix or char
-                // cap ever changes, this audit literal must be updated in step.
-                // Production inference is left untouched.
+                // NOTE: `normalizeInputs` is E5's own helper (internal, reached
+                // via @testable) — NOT the generic `normalizeBertInputs`, which
+                // caps content BEFORE prefixing (the Nomic convention) and no
+                // longer describes E5. "passage: " duplicates the private
+                // `E5BaseEmbedder.documentPrefix`, so if E5's document prefix
+                // ever changes this literal must be updated in step. Production
+                // inference is left untouched.
                 var preTokenizerInput = ""
                 if let ordinal, ordinal >= 1 {
                     let chunks = try extractedChunks(primary)
                     if ordinal <= chunks.count {
-                        preTokenizerInput = normalizeBertInputs(
-                            [chunks[ordinal - 1].text], prefix: "passage: ",
-                            maxChars: E5BaseEmbedder.maxInputCharacters).liveInputs.first ?? ""
+                        preTokenizerInput = E5BaseEmbedder.normalizeInputs(
+                            [chunks[ordinal - 1].text], prefix: "passage: ").liveInputs.first ?? ""
                     }
                 }
                 // Advisory raw source-range text: the originating cue span in
@@ -617,7 +623,7 @@ final class VTTRetrievalExperimentTests: XCTestCase {
             s += "\(fmt3(a.metrics.mean_reciprocal_rank)) | \(pct(a.metrics.passage_all_met_rate)) | \(a.total_chunks) | "
             s += "\(fmt2(a.index_seconds)) | \(fmt2(a.search_seconds)) | \(fmtMB(a.rss_after_index_bytes)) |\n"
         }
-        s += "\n> File rank is authoritative. `passage-all-met` is an advisory, case-insensitive check of the criteria against the PRE-TOKENIZER model input, reconstructed BY ORDINAL from the arm's extractor (content capped at the E5 char limit, then the `passage: ` prefix). For vtt-v1 the normalizer reflows cue lines, so this by-ordinal reconstruction — not the raw source range — is the text actually embedded. The BERT tokenizer truncates further to 512 tokens, so a match here is necessary but NOT sufficient evidence the model encoded the term; it does not gate file rank.\n\n"
+        s += "\n> File rank is authoritative. `passage-all-met` is an advisory, case-insensitive check of the criteria against the PRE-TOKENIZER model input, reconstructed BY ORDINAL from the arm's extractor via `E5BaseEmbedder.normalizeInputs` (the `passage: ` prefix prepended, then the combined string capped at the E5 char limit — prefix-then-cap, shared by E5's single and batch document paths under the current-main parity fix). For vtt-v1 the normalizer reflows cue lines, so this by-ordinal reconstruction — not the raw source range — is the text actually embedded. The BERT tokenizer truncates further to 512 tokens, so a match here is necessary but NOT sufficient evidence the model encoded the term; it does not gate file rank.\n\n"
 
         s += "## Scaffolding noise (share of embedded chunks carrying ≥1 WebVTT timing line or inline tag)\n\n"
         s += "| arm | all: noisy/total | all share | passages: noisy/total | passages share |\n"
@@ -1196,10 +1202,13 @@ struct VTTArchivedGroup: Codable {
 struct VTTCriterionResult: Codable {
     let type: String; let value: String
     /// Matched in the PRE-TOKENIZER model input reconstructed BY ORDINAL from
-    /// the arm's extractor (content capped at the E5 char limit + "passage: "
-    /// prefix). For vtt-v1 this is the reflowed normalized text that was
-    /// actually embedded. The tokenizer truncates further to 512 tokens, so
-    /// this is necessary-but-not-sufficient evidence.
+    /// the arm's extractor via `E5BaseEmbedder.normalizeInputs` (the
+    /// "passage: " prefix prepended, then the combined string capped at the E5
+    /// char limit — prefix-then-cap, shared by E5's single and batch document
+    /// paths under the current-main parity fix). For vtt-v1 this is the
+    /// reflowed normalized text that was actually embedded. The tokenizer
+    /// truncates further to 512 tokens, so this is necessary-but-not-sufficient
+    /// evidence.
     let matched_in_pre_tokenizer_input: Bool
     /// Matched in the chunk's RAW source line range (a superset that still
     /// carries cue scaffolding). Advisory.
