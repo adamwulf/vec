@@ -120,7 +120,7 @@ The regenerated, committed archive passed independent scoring by both reviewers:
 
 Cold OCR on a deterministic 153-image real sample reached 6.85/10.34/11.27 images/s at 1/4/8 jobs (240–275 MiB peak process RSS), implying 13.2/8.7/8.0 hours for 325k similar images. The dense frozen sample instead implies 112–133 hours (273–356 MiB peak process RSS). These conditional OCR estimates exclude embedding and database writes. Every warm pass hit all cached images with zero OCR calls; its millisecond timings are too short for a reliable throughput forecast.
 
-Native full-suite validation: 456 tests, 0 failures, 6 opt-in benchmarks skipped; the two E12 heavy benchmarks ran separately and passed. Both reviewers independently verified the measured archives. [Experiment plan](experiments/E12-image-ocr/plan.md) · [Report](experiments/E12-image-ocr/report.md) · [Full-suite log](experiments/E12-image-ocr/runs/20260907-fullsuite/execution-log.txt).
+Native full-suite validation: 456 tests, 0 failures, 6 opt-in benchmarks skipped; the two E12 heavy benchmarks ran separately and passed. The later addition of real rendered blank PNG/JPEG coverage passed a fresh 36-test native OCR suite with zero failures. Both reviewers independently verified the measured archives. [Experiment plan](experiments/E12-image-ocr/plan.md) · [Report](experiments/E12-image-ocr/report.md) · [Full-suite log](experiments/E12-image-ocr/runs/20260907-fullsuite/execution-log.txt) · [Final OCR-suite log](experiments/E12-image-ocr/runs/20260907-imageocrtests/execution-log.txt).
 
 ### E11 — Opt-in WebVTT extraction (2026-09-06)
 

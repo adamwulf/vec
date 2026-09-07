@@ -221,6 +221,8 @@ always-on guards (`ImageOCRBenchmarkManifestTests`, 12 tests) ran and
 passed inside the suite. Nothing in the E12 scope failed. Verbatim
 output: [`runs/20260907-fullsuite/`](runs/20260907-fullsuite/).
 
+After that full-suite run, a final audit added an explicit rendered blank PNG/JPEG regression test. Its first version had a compile error in the assertion (`ExtractionResult.isEmpty`); the correction checks `ExtractionResult.chunks.isEmpty`. The final native release build and focused OCR suite passed all 36 tests, including the new real-Vision blank fixtures and both text-bearing PNG/JPEG positive controls. The earlier 456-test log predates this addition; the later focused run is the validation for it. [Focused OCR log](runs/20260907-imageocrtests/execution-log.txt).
+
 ## Rebase / measured-provenance mapping
 
 Each archive records the `git_head` that was current when its benchmark
