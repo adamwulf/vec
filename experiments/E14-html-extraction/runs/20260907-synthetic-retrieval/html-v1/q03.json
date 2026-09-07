@@ -1,0 +1,72 @@
+{
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.9057844281196594,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.09421557188034058,
+          "score" : 0.9057844281196594
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7685955762863159,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.23140442371368408,
+          "score" : 0.7685955762863159
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7442911863327026,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.25570881366729736,
+          "score" : 0.7442911863327026
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7303301095962524,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.26966989040374756,
+          "score" : 0.7303301095962524
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7202528119087219,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.2797471880912781,
+          "score" : 0.7202528119087219
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.6910209059715271,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.3089790940284729,
+          "score" : 0.6910209059715271
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "primary_text" : "# Lighthouse Documentation\n\n- Beacon rotation guide — rotate the amber beacon every 240 operating hours.\n- Fog signal timing — sound pattern: two short, one long.\n- Backup power — inspect the nickel-iron battery bank monthly."
+}

@@ -1,6 +1,7 @@
 # E14 — Opt-in readable HTML extraction
 
-Status: implementation in progress. The Readability/fallback examples from the
+Status: HTML-owned implementation and synthetic retrieval run complete; shared
+wiring and independent review pending. The Readability/fallback examples from the
 user's `freezedry-helper` agent have been received and acknowledged. The user
 explicitly decided on 2026-09-07 that vec must not raise its Swift tools floor
 to 6.2, closing the native SwiftReadability dependency path. The local sample,
@@ -181,7 +182,15 @@ They were constructed from the supplied behavioral examples before any
 retrieval ranking was observed. They are deliberately labeled synthetic and
 are not evidence of representative-web accuracy.
 
-## Controlled comparison (inputs frozen; run pending shared wiring)
+## Controlled comparison
+
+The direct whole-document parity harness ran on 2026-09-07 without waiting for
+shared mode dispatch. Raw and html-v1 both achieved rank-1/top-3/top-5 6/6 and
+MRR 1.000: the small synthetic retrieval set was already saturated. Both arms
+preserved all six required-content audits. Boilerplate absence improved from
+2/6 raw to 6/6 html-v1. This is evidence for lossless cleanup on the frozen
+cases, not a general retrieval gain or broad-web accuracy result. Full archive:
+`runs/20260907-synthetic-retrieval/`.
 
 Follow E10–E12 methodology once representative examples are available:
 
@@ -220,7 +229,7 @@ Follow E10–E12 methodology once representative examples are available:
   final sequential OCR-loop assertion belongs to shared wiring.
 - [ ] Keep mode behavior opt-in and composable; coordinate persistence, reset,
   scanner/CLI, and pipeline wiring with the manager.
-- [ ] Freeze and run the E14 sample/rubric with independent scoring and full
+- [x] Freeze and run the E14 sample/rubric with independent scoring and full
   provenance, reporting neutral or negative results honestly.
 - [ ] Pass focused and full relevant tests, self-review, and independent review.
 

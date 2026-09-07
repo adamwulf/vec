@@ -1,0 +1,71 @@
+{
+  "groups" : [
+    {
+      "best_score" : 0.7087060809135437,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.2912939190864563,
+          "score" : 0.7087060809135437
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7036201357841492,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.29637986421585083,
+          "score" : 0.7036201357841492
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7001991868019104,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.2998008131980896,
+          "score" : 0.7001991868019104
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.6994063854217529,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.30059361457824707,
+          "score" : 0.6994063854217529
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.6888590455055237,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.3111409544944763,
+          "score" : 0.6888590455055237
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.6592128872871399,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.3407871127128601,
+          "score" : 0.6592128872871399
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "primary_text" : ""
+}

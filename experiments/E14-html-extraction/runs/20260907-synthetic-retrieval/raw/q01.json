@@ -1,0 +1,83 @@
+{
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8658333420753479,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.1341666579246521,
+          "score" : 0.8658333420753479
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7533929347991943,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.24660706520080566,
+          "score" : 0.7533929347991943
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7483236193656921,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.25167638063430786,
+          "score" : 0.7483236193656921
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.738711416721344,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.261288583278656,
+          "score" : 0.738711416721344
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.736346423625946,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.26365357637405396,
+          "score" : 0.736346423625946
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7275775671005249,
+      "file" : "executable-only.html",
+      "matches" : [
+        {
+          "distance" : 0.2724224328994751,
+          "score" : 0.7275775671005249
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7091555595397949,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.2908444404602051,
+          "score" : 0.7091555595397949
+        }
+      ],
+      "rank" : 7
+    }
+  ],
+  "primary_text" : "<!doctype html>\n<html lang=\"en\">\n<head><title>Orbital Seed Vault Operations</title><style>.ad{display:block}</style></head>\n<body>\n  <nav>Home Markets Sports Weather Account Subscribe</nav>\n  <article>\n    <h1>Orbital Seed Vault Operations</h1>\n    <p>The Aster Station seed vault keeps dormant crop embryos inside a helium jacket at 18 kelvin.</p>\n    <h2>Emergency access</h2>\n    <p>The dual-key thaw protocol requires the agronomist and flight director to turn their keys within twelve seconds. A blue pressure lamp must remain steady before either cassette leaves the chamber.</p>\n    <ol><li>Confirm the blue pressure lamp.</li><li>Turn both keys.</li><li>Move one cassette to the isolation cradle.</li></ol>\n    <script>fetch(\"https://example.invalid/tracker\")</script>\n  </article>\n  <aside class=\"ad\">Celebrity greenhouse tours and subscription offers</aside>\n  <footer>Trending recipes, stock quotes, and privacy choices</footer>\n</body>\n</html>\n"
+}

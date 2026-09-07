@@ -1,0 +1,72 @@
+{
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8672724962234497,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.1327275037765503,
+          "score" : 0.8672724962234497
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.756402850151062,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.243597149848938,
+          "score" : 0.756402850151062
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7499763369560242,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.25002366304397583,
+          "score" : 0.7499763369560242
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7322371602058411,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.26776283979415894,
+          "score" : 0.7322371602058411
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7312337756156921,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.26876622438430786,
+          "score" : 0.7312337756156921
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7259315848350525,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.2740684151649475,
+          "score" : 0.7259315848350525
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "primary_text" : "# Orbital Seed Vault Operations\n\nThe Aster Station seed vault keeps dormant crop embryos inside a helium jacket at 18 kelvin.\n\n## Emergency access\n\nThe dual-key thaw protocol requires the agronomist and flight director to turn their keys within twelve seconds. A blue pressure lamp must remain steady before either cassette leaves the chamber.\n\n1. Confirm the blue pressure lamp.\n2. Turn both keys.\n3. Move one cassette to the isolation cradle."
+}

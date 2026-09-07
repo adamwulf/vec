@@ -1,0 +1,14 @@
+Commit: 4225dd1b51f13bad19368019b63fd0f58ffc1ad7
+
+swift experiments/E14-html-extraction/scripts/run-benchmark.swift /private/tmp/vec-e14-synthetic-20260907-1645
+python3 experiments/E14-html-extraction/scripts/score-html-rubric.py /private/tmp/vec-e14-synthetic-20260907-1645
+
+Native execution reported by vec-builder:
+- release build: 90.94 seconds
+- benchmark test: 4.815 seconds
+- total wall time: approximately 96 seconds
+- test result: passed, zero failures
+
+The frozen manifest records git_dirty=true because the builder worktree had
+the harness-managed untracked .agents/ path. The agent reported zero modified
+or staged tracked files and did not modify repository files during the run.

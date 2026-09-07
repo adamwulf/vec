@@ -1,0 +1,82 @@
+{
+  "groups" : [
+    {
+      "best_score" : 0.7194477319717407,
+      "file" : "executable-only.html",
+      "matches" : [
+        {
+          "distance" : 0.2805522680282593,
+          "score" : 0.7194477319717407
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7176294922828674,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.28237050771713257,
+          "score" : 0.7176294922828674
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7126046419143677,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.2873953580856323,
+          "score" : 0.7126046419143677
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.709528386592865,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.290471613407135,
+          "score" : 0.709528386592865
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7080602645874023,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.29193973541259766,
+          "score" : 0.7080602645874023
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.6848870515823364,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.3151129484176636,
+          "score" : 0.6848870515823364
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.6772713661193848,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.32272863388061523,
+          "score" : 0.6772713661193848
+        }
+      ],
+      "rank" : 7
+    }
+  ],
+  "primary_text" : ""
+}

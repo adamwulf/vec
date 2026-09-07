@@ -1,0 +1,54 @@
+{
+  "frozen_at" : "2026-09-07T22:56:01Z",
+  "git_dirty" : true,
+  "git_head" : "4225dd1b51f13bad19368019b63fd0f58ffc1ad7",
+  "model_files" : [
+    {
+      "bytes" : 650,
+      "path" : "config.json",
+      "sha256" : "01cc39aa39538a8179aa131c8a16adc03b506c92009f091502e4eb0c702f5f78"
+    },
+    {
+      "bytes" : 437955512,
+      "path" : "model.safetensors",
+      "sha256" : "d0d559c47d5f71b1d280b13b62a2657f3e3bc70c0786f9ab91a36545e6a8f693"
+    },
+    {
+      "bytes" : 1023,
+      "path" : "snapshot-manifest.json",
+      "sha256" : "36ca1463784a5df35c5cd5baf1dbf5c5267e6a453705a99fed81e5ab3ea07030"
+    },
+    {
+      "bytes" : 125,
+      "path" : "special_tokens_map.json",
+      "sha256" : "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+    },
+    {
+      "bytes" : 711396,
+      "path" : "tokenizer.json",
+      "sha256" : "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66"
+    },
+    {
+      "bytes" : 314,
+      "path" : "tokenizer_config.json",
+      "sha256" : "ae83fa6ca0333117ff12606020af925d648667ef70d92ff7f27d781ba0ca4544"
+    },
+    {
+      "bytes" : 231508,
+      "path" : "vocab.txt",
+      "sha256" : "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+    }
+  ],
+  "package_resolved_sha256" : "34d04a53816e79c50735f157915a697cdc67c458cbdb1055c2447c5c6dab4364",
+  "query_manifest_sha256" : "1d03871fb501f1746fac7abfd64dfc70f2e24b3d9f6582448a99a7e948da78ae",
+  "run_identity" : "044e61f25d831e53a91e013fe56deb68d9b029f4acf6e969266766f3d42f6860",
+  "sample_manifest_sha256" : "495452ceb894dd970e70b29d6abe95c8bdf575844aa2241f47cf7272c3d6a08d",
+  "settings" : {
+    "chunk_chars" : "1200",
+    "chunk_overlap" : "0",
+    "embedder" : "e5-base-v2",
+    "harness" : "direct whole-document parity path",
+    "profile_identity" : "e5-base@1200/0",
+    "search_limit" : "7"
+  }
+}

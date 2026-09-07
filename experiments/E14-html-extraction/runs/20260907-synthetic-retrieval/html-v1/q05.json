@@ -1,0 +1,72 @@
+{
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8146670460700989,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.18533295392990112,
+          "score" : 0.8146670460700989
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7380813956260681,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.2619186043739319,
+          "score" : 0.7380813956260681
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.721845269203186,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.27815473079681396,
+          "score" : 0.721845269203186
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7145863175392151,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.2854136824607849,
+          "score" : 0.7145863175392151
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7067079544067383,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.2932920455932617,
+          "score" : 0.7067079544067383
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7023529410362244,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.29764705896377563,
+          "score" : 0.7023529410362244
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "primary_text" : "# Café Inventory Procedure\n\nRecord tea & coffee separately; damaged tins count as unavailable even when they remain on the shelf.\n\n3. Count sealed tins.\n4. Check labels\n\n- Mark allergen warnings\n- Preserve the roast date\n\n| Bin | Reorder point |\n| --- | --- |\n| Éthiopie | 12 bags |\n| Sencha | 8 tins |\n\n```\nif available < reorderPoint {\n    createPurchaseOrder()\n}\n```"
+}

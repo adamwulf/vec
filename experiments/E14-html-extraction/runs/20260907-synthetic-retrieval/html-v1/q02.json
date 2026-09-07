@@ -1,0 +1,72 @@
+{
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8321147561073303,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.16788524389266968,
+          "score" : 0.8321147561073303
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7198886871337891,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.28011131286621094,
+          "score" : 0.7198886871337891
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7094851136207581,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.29051488637924194,
+          "score" : 0.7094851136207581
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7011308073997498,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.29886919260025024,
+          "score" : 0.7011308073997498
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.6735117435455322,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.3264882564544678,
+          "score" : 0.6735117435455322
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.6668491959571838,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.33315080404281616,
+          "score" : 0.6668491959571838
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "primary_text" : "# Trellis CLI Reference\n\nTrellis manages sealed local archives without contacting a remote service.\n\n## Export options\n\n| Flag | Meaning |\n| --- | --- |\n| --airgap | Reject every network-backed resource. |\n| --ledger | Write a SHA-256 inventory beside the archive. |\n\n## Exit codes\n\n- 0 — archive completed\n- 7 — dependency changed during the run\n\nApache 2.0 license and compatibility notes"
+}
