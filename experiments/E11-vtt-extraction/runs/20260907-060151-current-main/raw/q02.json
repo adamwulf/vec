@@ -1,0 +1,305 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "rolling-captions",
+    "specific-spoken-claim",
+    "multi-cue-topic"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8348323702812195,
+      "file" : "generated-a/cooking-sourdough-flatbread.vtt",
+      "match_count" : 25,
+      "matches" : [
+        {
+          "chunk_ordinal" : 17,
+          "chunk_type" : "chunk",
+          "distance" : 0.16516762971878052,
+          "line_end" : 650,
+          "line_start" : 610,
+          "score" : 0.8348323702812195
+        },
+        {
+          "chunk_ordinal" : 18,
+          "chunk_type" : "chunk",
+          "distance" : 0.17697393894195557,
+          "line_end" : 690,
+          "line_start" : 652,
+          "score" : 0.8230260610580444
+        },
+        {
+          "chunk_ordinal" : 23,
+          "chunk_type" : "chunk",
+          "distance" : 0.17790216207504272,
+          "line_end" : 898,
+          "line_start" : 856,
+          "score" : 0.8220978379249573
+        },
+        {
+          "chunk_ordinal" : 22,
+          "chunk_type" : "chunk",
+          "distance" : 0.1867693066596985,
+          "line_end" : 854,
+          "line_start" : 812,
+          "score" : 0.8132306933403015
+        },
+        {
+          "chunk_ordinal" : 20,
+          "chunk_type" : "chunk",
+          "distance" : 0.1896529197692871,
+          "line_end" : 770,
+          "line_start" : 732,
+          "score" : 0.8103470802307129
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.19022536277770996,
+          "line_end" : 360,
+          "line_start" : 322,
+          "score" : 0.80977463722229
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.19329833984375,
+          "line_end" : 524,
+          "line_start" : 482,
+          "score" : 0.80670166015625
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.19511699676513672,
+          "line_end" : 400,
+          "line_start" : 362,
+          "score" : 0.8048830032348633
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.19640743732452393,
+          "line_end" : 34,
+          "line_start" : 1,
+          "score" : 0.8035925626754761
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.197532057762146,
+          "line_end" : 320,
+          "line_start" : 282,
+          "score" : 0.802467942237854
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.20018643140792847,
+          "line_end" : 114,
+          "line_start" : 76,
+          "score" : 0.7998135685920715
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.20121508836746216,
+          "line_end" : 608,
+          "line_start" : 570,
+          "score" : 0.7987849116325378
+        },
+        {
+          "chunk_ordinal" : 19,
+          "chunk_type" : "chunk",
+          "distance" : 0.20162785053253174,
+          "line_end" : 730,
+          "line_start" : 692,
+          "score" : 0.7983721494674683
+        },
+        {
+          "chunk_ordinal" : 27,
+          "chunk_type" : "chunk",
+          "distance" : 0.20229887962341309,
+          "line_end" : 1058,
+          "line_start" : 1020,
+          "score" : 0.7977011203765869
+        },
+        {
+          "chunk_ordinal" : 28,
+          "chunk_type" : "chunk",
+          "distance" : 0.20312923192977905,
+          "line_end" : 1098,
+          "line_start" : 1060,
+          "score" : 0.796870768070221
+        },
+        {
+          "chunk_ordinal" : 25,
+          "chunk_type" : "chunk",
+          "distance" : 0.2038097381591797,
+          "line_end" : 978,
+          "line_start" : 940,
+          "score" : 0.7961902618408203
+        },
+        {
+          "chunk_ordinal" : 26,
+          "chunk_type" : "chunk",
+          "distance" : 0.203931987285614,
+          "line_end" : 1018,
+          "line_start" : 980,
+          "score" : 0.796068012714386
+        },
+        {
+          "chunk_ordinal" : 15,
+          "chunk_type" : "chunk",
+          "distance" : 0.20508849620819092,
+          "line_end" : 568,
+          "line_start" : 526,
+          "score" : 0.7949115037918091
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.20947420597076416,
+          "line_end" : 280,
+          "line_start" : 242,
+          "score" : 0.7905257940292358
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.20955127477645874,
+          "line_end" : 240,
+          "line_start" : 198,
+          "score" : 0.7904487252235413
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.21149581670761108,
+          "line_end" : 440,
+          "line_start" : 402,
+          "score" : 0.7885041832923889
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.21451014280319214,
+          "line_end" : 74,
+          "line_start" : 36,
+          "score" : 0.7854898571968079
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2154901623725891,
+          "line_end" : 196,
+          "line_start" : 156,
+          "score" : 0.7845098376274109
+        },
+        {
+          "chunk_ordinal" : 24,
+          "chunk_type" : "chunk",
+          "distance" : 0.21582138538360596,
+          "line_end" : 938,
+          "line_start" : 900,
+          "score" : 0.784178614616394
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2190219759941101,
+          "line_end" : 154,
+          "line_start" : 116,
+          "score" : 0.7809780240058899
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7881515026092529,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 5,
+      "matches" : [
+        {
+          "chunk_ordinal" : 22,
+          "chunk_type" : "chunk",
+          "distance" : 0.21184849739074707,
+          "line_end" : 675,
+          "line_start" : 644,
+          "score" : 0.7881515026092529
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.2149704098701477,
+          "line_end" : 328,
+          "line_start" : 297,
+          "score" : 0.7850295901298523
+        },
+        {
+          "chunk_ordinal" : 21,
+          "chunk_type" : "chunk",
+          "distance" : 0.21649277210235596,
+          "line_end" : 642,
+          "line_start" : 611,
+          "score" : 0.783507227897644
+        },
+        {
+          "chunk_ordinal" : 18,
+          "chunk_type" : "chunk",
+          "distance" : 0.2194288969039917,
+          "line_end" : 544,
+          "line_start" : 513,
+          "score" : 0.7805711030960083
+        },
+        {
+          "chunk_ordinal" : 19,
+          "chunk_type" : "chunk",
+          "distance" : 0.22211289405822754,
+          "line_end" : 577,
+          "line_start" : 546,
+          "score" : 0.7778871059417725
+        }
+      ],
+      "rank" : 2
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q02",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 2,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8348323702812195,
+    "chunk_ordinal" : 17,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "rolling pin"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "bubbles"
+      }
+    ],
+    "distance" : 0.16516762971878052,
+    "file_rank" : 1,
+    "input_chars" : 1181,
+    "line_end" : 650,
+    "line_start" : 610
+  },
+  "primary_file" : "generated-a/cooking-sourdough-flatbread.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-a/cooking-sourdough-flatbread.vtt"
+  ],
+  "search_seconds" : 0.101156458,
+  "text" : "Why does the flatbread cook advise hand stretching instead of using a rolling pin?"
+}

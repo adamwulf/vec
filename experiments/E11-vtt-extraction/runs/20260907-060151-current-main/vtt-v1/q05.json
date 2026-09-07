@@ -1,0 +1,357 @@
+{
+  "arm" : "vtt-v1",
+  "categories" : [
+    "rolling-captions",
+    "specific-spoken-claim",
+    "multi-cue-topic"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8519825339317322,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 8,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.14801746606826782,
+          "line_end" : 256,
+          "line_start" : 136,
+          "score" : 0.8519825339317322
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.14871668815612793,
+          "line_end" : 618,
+          "line_start" : 498,
+          "score" : 0.8512833118438721
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.15697437524795532,
+          "line_end" : 376,
+          "line_start" : 258,
+          "score" : 0.8430256247520447
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.17046833038330078,
+          "line_end" : 738,
+          "line_start" : 620,
+          "score" : 0.8295316696166992
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.17405998706817627,
+          "line_end" : 496,
+          "line_start" : 378,
+          "score" : 0.8259400129318237
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.17995578050613403,
+          "score" : 0.820044219493866
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.1863713264465332,
+          "line_end" : 864,
+          "line_start" : 740,
+          "score" : 0.8136286735534668
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.20613616704940796,
+          "line_end" : 134,
+          "line_start" : 16,
+          "score" : 0.793863832950592
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7685280442237854,
+      "file" : "generated-b/tram-scheduling-interview.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.2314719557762146,
+          "score" : 0.7685280442237854
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.23568832874298096,
+          "line_end" : 203,
+          "line_start" : 122,
+          "score" : 0.764311671257019
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2441653609275818,
+          "line_end" : 119,
+          "line_start" : 18,
+          "score" : 0.7558346390724182
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7655379176139832,
+      "file" : "generated-a/history-lighthouse-podcast.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.23446208238601685,
+          "line_end" : 203,
+          "line_start" : 110,
+          "score" : 0.7655379176139832
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.24464714527130127,
+          "score" : 0.7553528547286987
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.24925774335861206,
+          "line_end" : 107,
+          "line_start" : 16,
+          "score" : 0.7507422566413879
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7629300951957703,
+      "file" : "generated-b/telescope-polar-alignment.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.23706990480422974,
+          "line_end" : 109,
+          "line_start" : 12,
+          "score" : 0.7629300951957703
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.24147576093673706,
+          "score" : 0.7585242390632629
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2523805499076843,
+          "line_end" : 172,
+          "line_start" : 111,
+          "score" : 0.7476194500923157
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7603439092636108,
+      "file" : "generated-b/bike-brake-clinic.vtt",
+      "match_count" : 5,
+      "matches" : [
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.23965609073638916,
+          "line_end" : 1161,
+          "line_start" : 1132,
+          "score" : 0.7603439092636108
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.23990023136138916,
+          "line_end" : 941,
+          "line_start" : 768,
+          "score" : 0.7600997686386108
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2472306489944458,
+          "line_end" : 378,
+          "line_start" : 205,
+          "score" : 0.7527693510055542
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2496618628501892,
+          "line_end" : 581,
+          "line_start" : 381,
+          "score" : 0.7503381371498108
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.250033438205719,
+          "line_end" : 765,
+          "line_start" : 584,
+          "score" : 0.749966561794281
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7592403292655945,
+      "file" : "generated-b/field-recording-basics.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.24075967073440552,
+          "line_end" : 163,
+          "line_start" : 18,
+          "score" : 0.7592403292655945
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.24134933948516846,
+          "score" : 0.7586506605148315
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7527243494987488,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.24727565050125122,
+          "score" : 0.7527243494987488
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2526780366897583,
+          "line_end" : 166,
+          "line_start" : 87,
+          "score" : 0.7473219633102417
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7511951327323914,
+      "file" : "generated-b/wetland-ecology-lecture.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.24880486726760864,
+          "line_end" : 874,
+          "line_start" : 857,
+          "score" : 0.7511951327323914
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.25039589405059814,
+          "line_end" : 220,
+          "line_start" : 119,
+          "score" : 0.7496041059494019
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7499825358390808,
+      "file" : "generated-a/woodworking-floating-shelf.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2500174641609192,
+          "line_end" : 608,
+          "line_start" : 459,
+          "score" : 0.7499825358390808
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.7495412230491638,
+      "file" : "generated-a/startup-support-interview.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2504587769508362,
+          "line_end" : 628,
+          "line_start" : 506,
+          "score" : 0.7495412230491638
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q05",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 10,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8519825339317322,
+    "chunk_ordinal" : 3,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "quadruple"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "square root"
+      }
+    ],
+    "distance" : 0.14801746606826782,
+    "file_rank" : 1,
+    "input_chars" : 840,
+    "line_end" : 256,
+    "line_start" : 136
+  },
+  "primary_file" : "generated-a/physics-pendulum-lecture.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-a/physics-pendulum-lecture.vtt"
+  ],
+  "search_seconds" : 0.096678167,
+  "text" : "How much longer must a pendulum be to change its period from two seconds to four seconds?"
+}

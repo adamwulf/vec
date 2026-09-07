@@ -1,0 +1,353 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "named-speaker",
+    "dialogue",
+    "multi-cue-topic"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8421661257743835,
+      "file" : "generated-a/startup-support-interview.vtt",
+      "match_count" : 18,
+      "matches" : [
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.15783387422561646,
+          "line_end" : 595,
+          "line_start" : 546,
+          "score" : 0.8421661257743835
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.20481359958648682,
+          "line_end" : 190,
+          "line_start" : 140,
+          "score" : 0.7951864004135132
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.2070634961128235,
+          "line_end" : 544,
+          "line_start" : 494,
+          "score" : 0.7929365038871765
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.20797228813171387,
+          "line_end" : 138,
+          "line_start" : 93,
+          "score" : 0.7920277118682861
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.21008837223052979,
+          "line_end" : 749,
+          "line_start" : 700,
+          "score" : 0.7899116277694702
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.21447855234146118,
+          "line_end" : 393,
+          "line_start" : 344,
+          "score" : 0.7855214476585388
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.22108149528503418,
+          "line_end" : 91,
+          "line_start" : 41,
+          "score" : 0.7789185047149658
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.22263824939727783,
+          "line_end" : 239,
+          "line_start" : 192,
+          "score" : 0.7773617506027222
+        },
+        {
+          "chunk_ordinal" : 15,
+          "chunk_type" : "chunk",
+          "distance" : 0.22557181119918823,
+          "line_end" : 698,
+          "line_start" : 648,
+          "score" : 0.7744281888008118
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.2290758490562439,
+          "line_end" : 646,
+          "line_start" : 597,
+          "score" : 0.7709241509437561
+        },
+        {
+          "chunk_ordinal" : 17,
+          "chunk_type" : "chunk",
+          "distance" : 0.2329542636871338,
+          "line_end" : 800,
+          "line_start" : 751,
+          "score" : 0.7670457363128662
+        },
+        {
+          "chunk_ordinal" : 19,
+          "chunk_type" : "chunk",
+          "distance" : 0.23534297943115234,
+          "line_end" : 870,
+          "line_start" : 854,
+          "score" : 0.7646570205688477
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.23537194728851318,
+          "line_end" : 441,
+          "line_start" : 395,
+          "score" : 0.7646280527114868
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.23603469133377075,
+          "line_end" : 291,
+          "line_start" : 241,
+          "score" : 0.7639653086662292
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.23801547288894653,
+          "line_end" : 39,
+          "line_start" : 1,
+          "score" : 0.7619845271110535
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.23916375637054443,
+          "line_end" : 342,
+          "line_start" : 293,
+          "score" : 0.7608362436294556
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.23978877067565918,
+          "line_end" : 492,
+          "line_start" : 443,
+          "score" : 0.7602112293243408
+        },
+        {
+          "chunk_ordinal" : 18,
+          "chunk_type" : "chunk",
+          "distance" : 0.24613237380981445,
+          "line_end" : 852,
+          "line_start" : 802,
+          "score" : 0.7538676261901855
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7458907961845398,
+      "file" : "generated-a/battery-product-review.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2541092038154602,
+          "line_end" : 168,
+          "line_start" : 150,
+          "score" : 0.7458907961845398
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.26875942945480347,
+          "line_end" : 148,
+          "line_start" : 98,
+          "score" : 0.7312405705451965
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.735889732837677,
+      "file" : "real/anna-rudolf-minecraft.vtt",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.264110267162323,
+          "line_end" : 412,
+          "line_start" : 382,
+          "score" : 0.735889732837677
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.2649129629135132,
+          "line_end" : 237,
+          "line_start" : 204,
+          "score" : 0.7350870370864868
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.27061277627944946,
+          "line_end" : 134,
+          "line_start" : 101,
+          "score" : 0.7293872237205505
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2709903120994568,
+          "line_end" : 35,
+          "line_start" : 1,
+          "score" : 0.7290096879005432
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7357767224311829,
+      "file" : "generated-a/history-lighthouse-podcast.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.26422327756881714,
+          "line_end" : 187,
+          "line_start" : 141,
+          "score" : 0.7357767224311829
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.27228766679763794,
+          "line_end" : 203,
+          "line_start" : 189,
+          "score" : 0.7277123332023621
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7338034510612488,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2661965489387512,
+          "line_end" : 73,
+          "line_start" : 36,
+          "score" : 0.7338034510612488
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.731120765209198,
+      "file" : "generated-a/photography-window-light.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.268879234790802,
+          "line_end" : 89,
+          "line_start" : 43,
+          "score" : 0.731120765209198
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7281636595726013,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 20,
+          "chunk_type" : "chunk",
+          "distance" : 0.2718363404273987,
+          "line_end" : 609,
+          "line_start" : 579,
+          "score" : 0.7281636595726013
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7269091010093689,
+      "file" : "generated-b/wetland-ecology-lecture.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2730908989906311,
+          "line_end" : 208,
+          "line_start" : 158,
+          "score" : 0.7269091010093689
+        }
+      ],
+      "rank" : 8
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q04",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 8,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8421661257743835,
+    "chunk_ordinal" : 13,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "hour off"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "daylight saving"
+      }
+    ],
+    "distance" : 0.15783387422561646,
+    "file_rank" : 1,
+    "input_chars" : 1192,
+    "line_end" : 595,
+    "line_start" : 546
+  },
+  "primary_file" : "generated-a/startup-support-interview.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-a/startup-support-interview.vtt"
+  ],
+  "search_seconds" : 0.091069625,
+  "text" : "What customer complaint led Sam's support engineer to discover a daylight saving bug?"
+}

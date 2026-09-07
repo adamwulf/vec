@@ -1,0 +1,63 @@
+E11 WebVTT retrieval benchmark — native worker-runtime execution record
+=========================================================================
+
+Run label : 20260907-060151-current-main
+Worker    : agent-98cdd5df (manager: vtt-handler)
+Arm design: raw vs vtt-v1, both arms in ONE swift test invocation,
+            documents via batch pipeline, queries via single-query path.
+
+--- Git / baseline identity ---
+git HEAD (parent, unchanged)        : 0d013d1bfa9015a498615e0d51f5e4771d80d21c
+rebased onto main (baseline)        : 5ee92ab563d348924312747e6631a639b96f1b35
+git_dirty at run time (tracked only): false  (from frozen-input-manifest build_identity)
+run_identity                        : 5b7bbf3787fd7606e6ef99701fd2d17a444408849917e9471bd3896a4b223a2c
+query_manifest_sha256               : da9aabff0b4da78ce356c5f66490ea82386dc2d25000efdeb07585b72cd3d289
+sample_manifest_sha256              : 510d57ac23e5c44b03cdc72488e57056a529653e7eb0b67222b94c022e767a4c
+Package.resolved sha256             : d3dad0550daef3df320799330ec5b6b8ee49e8772ce2fde1a1a0e3aa796bb10c
+
+--- Command (exact) ---
+swift test --disable-sandbox --disable-swift-testing -c release -j 4 --filter VecKitTests.VTTRetrievalExperimentTests
+
+The command was invoked from the worktree root via a /private/tmp wrapper
+script that only exports the environment below (the permission allowlist
+rejects env-prefixed commands; no inference/extraction/sample/rubric/harness/
+scorer code was changed). Working directory: the worktree package root.
+
+--- Environment (exact) ---
+VEC_E11_BENCHMARK=1
+VEC_VTT_MODEL_DIRECTORY=/private/tmp/vec-e10-model/f52bf8ec8c7124536f0efb74aca902b2995e5bcd
+VEC_VTT_MODEL_REVISION=f52bf8ec8c7124536f0efb74aca902b2995e5bcd
+VEC_E11_CONCURRENCY=8
+VEC_E11_OUTPUT_DIRECTORY=/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-98cdd5df/repo/experiments/E11-vtt-extraction/runs/20260907-060151-current-main
+VEC_E11_SCRATCH_DIRECTORY=/private/tmp/vec-e11-scratch-20260907-060151
+
+--- Result ---
+test exit code : 0
+XCTest         : Executed 1 test, with 0 failures (0 unexpected) in 61.659 s
+release build  : Build complete! (141.41s)
+benchmark case : testVTTExtractionRetrievalBenchmark passed (61.659 s)
+
+--- Toolchain / host (from frozen-input-manifest build_identity) ---
+configuration : release
+swift          : Apple Swift version 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2), arm64-apple-macosx26.0
+os_version     : Version 26.6.2 (Build 25G83)
+
+--- Preflight verified before running (worker) ---
+- working tree clean; HEAD == 0d013d1... (approved parent)
+- main 5ee92ab... is an ancestor of HEAD (rebase confirmed)
+- scripts/freeze-sample.py --check -> "Verified 16 caption hashes and sampling requirements."
+- pinned model bundle present at VEC_VTT_MODEL_DIRECTORY (8 files)
+
+--- Independent re-score (fail-if-mismatch) ---
+scripts/score-vtt-rubric.py <run> --json -> independent-score.json
+Cross-checked against harness comparison.json: MATCH on all per-arm metrics
+(hit@1/hit@5/MRR/answered/advisory passes), per-query file ranks, and
+per-query top files for both arms.
+
+--- Companion validation (NOT part of this benchmark) ---
+full-suite.log is a verbatim copy of the manager's separate validation run
+on exact 0d013d1:
+  swift test --disable-sandbox --disable-swift-testing -j 4   (E11 gate unset)
+Observed: Executed 392 tests, with 4 tests skipped and 0 failures (0 unexpected);
+"All tests" passed. Archived here at the manager's request; this worker did
+not run it.

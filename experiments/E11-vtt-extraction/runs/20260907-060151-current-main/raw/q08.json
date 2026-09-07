@@ -1,0 +1,367 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "short-caption",
+    "paraphrase",
+    "specific-spoken-claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8151401281356812,
+      "file" : "generated-a/photography-window-light.vtt",
+      "match_count" : 6,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.18485987186431885,
+          "line_end" : 41,
+          "line_start" : 1,
+          "score" : 0.8151401281356812
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.20335465669631958,
+          "line_end" : 177,
+          "line_start" : 135,
+          "score" : 0.7966453433036804
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.21056407690048218,
+          "line_end" : 133,
+          "line_start" : 91,
+          "score" : 0.7894359230995178
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.24029535055160522,
+          "line_end" : 89,
+          "line_start" : 43,
+          "score" : 0.7597046494483948
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.24331152439117432,
+          "line_end" : 188,
+          "line_start" : 179,
+          "score" : 0.7566884756088257
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.2719106078147888,
+          "score" : 0.7280893921852112
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7577303647994995,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2422696352005005,
+          "line_end" : 73,
+          "line_start" : 36,
+          "score" : 0.7577303647994995
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2538701891899109,
+          "line_end" : 151,
+          "line_start" : 114,
+          "score" : 0.7461298108100891
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.26200324296951294,
+          "line_end" : 112,
+          "line_start" : 75,
+          "score" : 0.7379967570304871
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.26512205600738525,
+          "line_end" : 34,
+          "line_start" : 1,
+          "score" : 0.7348779439926147
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7415125966072083,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.25848740339279175,
+          "line_end" : 35,
+          "line_start" : 1,
+          "score" : 0.7415125966072083
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.2686203718185425,
+          "line_end" : 358,
+          "line_start" : 330,
+          "score" : 0.7313796281814575
+        },
+        {
+          "chunk_ordinal" : 25,
+          "chunk_type" : "chunk",
+          "distance" : 0.2791329026222229,
+          "line_end" : 768,
+          "line_start" : 740,
+          "score" : 0.7208670973777771
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7354400157928467,
+      "file" : "generated-a/history-lighthouse-podcast.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2645599842071533,
+          "line_end" : 139,
+          "line_start" : 93,
+          "score" : 0.7354400157928467
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.26550060510635376,
+          "line_end" : 187,
+          "line_start" : 141,
+          "score" : 0.7344993948936462
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.26781755685806274,
+          "line_end" : 91,
+          "line_start" : 45,
+          "score" : 0.7321824431419373
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7351767420768738,
+      "file" : "generated-b/ceramic-glaze-studio.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2648232579231262,
+          "line_end" : 54,
+          "line_start" : 1,
+          "score" : 0.7351767420768738
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2657797932624817,
+          "line_end" : 114,
+          "line_start" : 56,
+          "score" : 0.7342202067375183
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.27928847074508667,
+          "line_end" : 174,
+          "line_start" : 116,
+          "score" : 0.7207115292549133
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.733500599861145,
+      "file" : "generated-a/woodworking-floating-shelf.vtt",
+      "match_count" : 6,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.266499400138855,
+          "line_end" : 42,
+          "line_start" : 1,
+          "score" : 0.733500599861145
+        },
+        {
+          "chunk_ordinal" : 19,
+          "chunk_type" : "chunk",
+          "distance" : 0.27094703912734985,
+          "line_end" : 844,
+          "line_start" : 798,
+          "score" : 0.7290529608726501
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2733677625656128,
+          "line_end" : 90,
+          "line_start" : 44,
+          "score" : 0.7266322374343872
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.2766607403755188,
+          "line_end" : 508,
+          "line_start" : 462,
+          "score" : 0.7233392596244812
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.27752143144607544,
+          "line_end" : 460,
+          "line_start" : 414,
+          "score" : 0.7224785685539246
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.27763277292251587,
+          "line_end" : 276,
+          "line_start" : 230,
+          "score" : 0.7223672270774841
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7330291271209717,
+      "file" : "generated-a/battery-product-review.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2669708728790283,
+          "line_end" : 148,
+          "line_start" : 98,
+          "score" : 0.7330291271209717
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2744411826133728,
+          "line_end" : 168,
+          "line_start" : 150,
+          "score" : 0.7255588173866272
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7325975894927979,
+      "file" : "generated-b/field-recording-basics.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.26740241050720215,
+          "line_end" : 43,
+          "line_start" : 1,
+          "score" : 0.7325975894927979
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7256201505661011,
+      "file" : "generated-a/startup-support-interview.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2743798494338989,
+          "line_end" : 39,
+          "line_start" : 1,
+          "score" : 0.7256201505661011
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.7239665985107422,
+      "file" : "generated-b/bike-brake-clinic.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2760334014892578,
+          "line_end" : 178,
+          "line_start" : 120,
+          "score" : 0.7239665985107422
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q08",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 10,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8151401281356812,
+    "chunk_ordinal" : 2,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "white foam board"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "fill"
+      }
+    ],
+    "distance" : 0.18485987186431885,
+    "file_rank" : 1,
+    "input_chars" : 1155,
+    "line_end" : 41,
+    "line_start" : 1
+  },
+  "primary_file" : "generated-a/photography-window-light.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-a/photography-window-light.vtt"
+  ],
+  "search_seconds" : 0.088959583,
+  "text" : "What inexpensive item brightens the shadow side of a window-lit portrait without adding a second lamp?"
+}

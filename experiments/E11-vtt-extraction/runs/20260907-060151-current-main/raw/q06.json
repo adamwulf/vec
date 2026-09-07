@@ -1,0 +1,360 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "short-caption",
+    "specific-spoken-claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8269155621528625,
+      "file" : "generated-a/history-lighthouse-podcast.vtt",
+      "match_count" : 5,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.17308443784713745,
+          "line_end" : 43,
+          "line_start" : 1,
+          "score" : 0.8269155621528625
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.183038592338562,
+          "line_end" : 139,
+          "line_start" : 93,
+          "score" : 0.816961407661438
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.19871056079864502,
+          "line_end" : 91,
+          "line_start" : 45,
+          "score" : 0.801289439201355
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2271784543991089,
+          "line_end" : 187,
+          "line_start" : 141,
+          "score" : 0.7728215456008911
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.25157076120376587,
+          "line_end" : 203,
+          "line_start" : 189,
+          "score" : 0.7484292387962341
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.736072838306427,
+      "file" : "generated-b/ceramic-glaze-studio.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.263927161693573,
+          "line_end" : 54,
+          "line_start" : 1,
+          "score" : 0.736072838306427
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7345207929611206,
+      "file" : "generated-b/wetland-ecology-lecture.vtt",
+      "match_count" : 7,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2654792070388794,
+          "line_end" : 104,
+          "line_start" : 54,
+          "score" : 0.7345207929611206
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.26897555589675903,
+          "line_end" : 774,
+          "line_start" : 724,
+          "score" : 0.731024444103241
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.27656853199005127,
+          "line_end" : 156,
+          "line_start" : 106,
+          "score" : 0.7234314680099487
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.2769553065299988,
+          "line_end" : 622,
+          "line_start" : 572,
+          "score" : 0.7230446934700012
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.27790844440460205,
+          "line_end" : 674,
+          "line_start" : 624,
+          "score" : 0.722091555595398
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.27839601039886475,
+          "line_end" : 52,
+          "line_start" : 1,
+          "score" : 0.7216039896011353
+        },
+        {
+          "chunk_ordinal" : 17,
+          "chunk_type" : "chunk",
+          "distance" : 0.2802135944366455,
+          "line_end" : 830,
+          "line_start" : 776,
+          "score" : 0.7197864055633545
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7338863015174866,
+      "file" : "generated-b/field-recording-basics.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2661136984825134,
+          "line_end" : 43,
+          "line_start" : 1,
+          "score" : 0.7338863015174866
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7336992025375366,
+      "file" : "generated-b/telescope-polar-alignment.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2663007974624634,
+          "line_end" : 31,
+          "line_start" : 1,
+          "score" : 0.7336992025375366
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.2820656895637512,
+          "line_end" : 172,
+          "line_start" : 159,
+          "score" : 0.7179343104362488
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7322081923484802,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2677918076515198,
+          "line_end" : 73,
+          "line_start" : 36,
+          "score" : 0.7322081923484802
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2724834084510803,
+          "line_end" : 34,
+          "line_start" : 1,
+          "score" : 0.7275165915489197
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7318682074546814,
+      "file" : "generated-a/photography-window-light.vtt",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2681317925453186,
+          "line_end" : 133,
+          "line_start" : 91,
+          "score" : 0.7318682074546814
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2689587473869324,
+          "line_end" : 188,
+          "line_start" : 179,
+          "score" : 0.7310412526130676
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.27690547704696655,
+          "line_end" : 41,
+          "line_start" : 1,
+          "score" : 0.7230945229530334
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2777731418609619,
+          "line_end" : 89,
+          "line_start" : 43,
+          "score" : 0.7222268581390381
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7250491976737976,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.2749508023262024,
+          "line_end" : 358,
+          "line_start" : 330,
+          "score" : 0.7250491976737976
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2828253507614136,
+          "line_end" : 35,
+          "line_start" : 1,
+          "score" : 0.7171746492385864
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7230205535888672,
+      "file" : "real/anna-rudolf-minecraft.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.2769794464111328,
+          "line_end" : 202,
+          "line_start" : 168,
+          "score" : 0.7230205535888672
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.27945029735565186,
+          "line_end" : 342,
+          "line_start" : 312,
+          "score" : 0.7205497026443481
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.2845302224159241,
+          "line_end" : 310,
+          "line_start" : 273,
+          "score" : 0.7154697775840759
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.7173340320587158,
+      "file" : "generated-a/startup-support-interview.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2826659679412842,
+          "line_end" : 138,
+          "line_start" : 93,
+          "score" : 0.7173340320587158
+        },
+        {
+          "chunk_ordinal" : 19,
+          "chunk_type" : "chunk",
+          "distance" : 0.2861698865890503,
+          "line_end" : 870,
+          "line_start" : 854,
+          "score" : 0.7138301134109497
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q06",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 11,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8269155621528625,
+    "chunk_ordinal" : 2,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "two quick flashes"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "fifteen seconds"
+      }
+    ],
+    "distance" : 0.17308443784713745,
+    "file_rank" : 1,
+    "input_chars" : 1146,
+    "line_end" : 43,
+    "line_start" : 1
+  },
+  "primary_file" : "generated-a/history-lighthouse-podcast.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-a/history-lighthouse-podcast.vtt"
+  ],
+  "search_seconds" : 0.08537525,
+  "text" : "What flash pattern let sailors recognize Gannet Rock's lighthouse in the dark?"
+}

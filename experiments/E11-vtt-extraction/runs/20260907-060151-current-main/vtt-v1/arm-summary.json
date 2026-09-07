@@ -1,0 +1,363 @@
+{
+  "arm" : "vtt-v1",
+  "db_seconds" : 0.041311543000000006,
+  "embed_span_seconds" : 175.371272416,
+  "extract_seconds" : 0.07514900199999999,
+  "file_count" : 16,
+  "index_seconds" : 13.148091708,
+  "indexed_count" : 16,
+  "metrics" : {
+    "answered_queries" : 15,
+    "mean_reciprocal_rank" : 1,
+    "passage_all_met_rate" : 0.8,
+    "rank1_rate" : 1,
+    "top3_rate" : 1,
+    "top5_rate" : 1
+  },
+  "no_answer_probes" : [
+
+  ],
+  "noise_stats" : {
+    "all_chunks" : {
+      "chunk_count" : 88,
+      "inline_tag_chunks" : 0,
+      "noisy_chunks" : 0,
+      "noisy_share" : 0,
+      "timestamp_chunks" : 0
+    },
+    "passage_chunks" : {
+      "chunk_count" : 72,
+      "inline_tag_chunks" : 0,
+      "noisy_chunks" : 0,
+      "noisy_share" : 0,
+      "timestamp_chunks" : 0
+    }
+  },
+  "per_file_chunks" : [
+    {
+      "chunks" : 3,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 3,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 2,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-a/balcony-tomato-gardening.vtt"
+    },
+    {
+      "chunks" : 3,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 3,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 2,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-a/battery-product-review.vtt"
+    },
+    {
+      "chunks" : 7,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 7,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 6,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-a/cooking-sourdough-flatbread.vtt"
+    },
+    {
+      "chunks" : 3,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 3,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 2,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-a/history-lighthouse-podcast.vtt"
+    },
+    {
+      "chunks" : 3,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 3,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 2,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-a/photography-window-light.vtt"
+    },
+    {
+      "chunks" : 8,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 8,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 7,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-a/physics-pendulum-lecture.vtt"
+    },
+    {
+      "chunks" : 8,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 8,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 7,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-a/startup-support-interview.vtt"
+    },
+    {
+      "chunks" : 8,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 8,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 7,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-a/woodworking-floating-shelf.vtt"
+    },
+    {
+      "chunks" : 8,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 8,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 7,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-b/bike-brake-clinic.vtt"
+    },
+    {
+      "chunks" : 3,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 3,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 2,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-b/ceramic-glaze-studio.vtt"
+    },
+    {
+      "chunks" : 3,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 3,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 2,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-b/field-recording-basics.vtt"
+    },
+    {
+      "chunks" : 3,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 3,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 2,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-b/telescope-polar-alignment.vtt"
+    },
+    {
+      "chunks" : 3,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 3,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 2,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-b/textile-conservation-talk.vtt"
+    },
+    {
+      "chunks" : 4,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 4,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 3,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-b/tram-scheduling-interview.vtt"
+    },
+    {
+      "chunks" : 11,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 11,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 10,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "generated-b/wetland-ecology-lecture.vtt"
+    },
+    {
+      "chunks" : 10,
+      "noise_stats" : {
+        "all_chunks" : {
+          "chunk_count" : 10,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        },
+        "passage_chunks" : {
+          "chunk_count" : 9,
+          "inline_tag_chunks" : 0,
+          "noisy_chunks" : 0,
+          "noisy_share" : 0,
+          "timestamp_chunks" : 0
+        }
+      },
+      "path" : "real/anna-rudolf-minecraft.vtt"
+    }
+  ],
+  "rss_after_index_bytes" : 5617188864,
+  "rss_before_index_bytes" : 345473024,
+  "search_seconds" : 1.71920075,
+  "text_extraction" : "vtt-v1",
+  "total_chunks" : 88
+}

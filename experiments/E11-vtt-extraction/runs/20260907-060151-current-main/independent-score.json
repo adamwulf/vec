@@ -1,0 +1,329 @@
+{
+  "arms": {
+    "raw": {
+      "advisory_passage_passes": 3,
+      "answered_queries": 15,
+      "hit_at_1": 0.9333333333333333,
+      "hit_at_1_count": 14,
+      "hit_at_5": 1.0,
+      "hit_at_5_count": 15,
+      "mrr": 0.9555555555555556,
+      "noise_stats": {
+        "all_chunks": {
+          "chunk_count": 205,
+          "inline_tag_chunks": 172,
+          "noisy_chunks": 205,
+          "noisy_share": 1,
+          "timestamp_chunks": 205
+        },
+        "passage_chunks": {
+          "chunk_count": 189,
+          "inline_tag_chunks": 157,
+          "noisy_chunks": 189,
+          "noisy_share": 1,
+          "timestamp_chunks": 189
+        }
+      },
+      "total_chunks": 205
+    },
+    "vtt-v1": {
+      "advisory_passage_passes": 12,
+      "answered_queries": 15,
+      "hit_at_1": 1.0,
+      "hit_at_1_count": 15,
+      "hit_at_5": 1.0,
+      "hit_at_5_count": 15,
+      "mrr": 1.0,
+      "noise_stats": {
+        "all_chunks": {
+          "chunk_count": 88,
+          "inline_tag_chunks": 0,
+          "noisy_chunks": 0,
+          "noisy_share": 0,
+          "timestamp_chunks": 0
+        },
+        "passage_chunks": {
+          "chunk_count": 72,
+          "inline_tag_chunks": 0,
+          "noisy_chunks": 0,
+          "noisy_share": 0,
+          "timestamp_chunks": 0
+        }
+      },
+      "total_chunks": 88
+    }
+  },
+  "per_query": [
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "real/anna-rudolf-minecraft.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "real/anna-rudolf-minecraft.vtt"
+        }
+      },
+      "id": "q01",
+      "primary_file": "real/anna-rudolf-minecraft.vtt",
+      "text": "How did the Minecraft player make a breathing space while collecting underwater diamonds?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "generated-a/cooking-sourdough-flatbread.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-a/cooking-sourdough-flatbread.vtt"
+        }
+      },
+      "id": "q02",
+      "primary_file": "generated-a/cooking-sourdough-flatbread.vtt",
+      "text": "Why does the flatbread cook advise hand stretching instead of using a rolling pin?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "generated-a/woodworking-floating-shelf.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "generated-a/woodworking-floating-shelf.vtt"
+        }
+      },
+      "id": "q03",
+      "primary_file": "generated-a/woodworking-floating-shelf.vtt",
+      "text": "Which mounting method does Devin recommend for Theo's first floating shelf, and why is it easier?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "generated-a/startup-support-interview.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-a/startup-support-interview.vtt"
+        }
+      },
+      "id": "q04",
+      "primary_file": "generated-a/startup-support-interview.vtt",
+      "text": "What customer complaint led Sam's support engineer to discover a daylight saving bug?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "generated-a/physics-pendulum-lecture.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "generated-a/physics-pendulum-lecture.vtt"
+        }
+      },
+      "id": "q05",
+      "primary_file": "generated-a/physics-pendulum-lecture.vtt",
+      "text": "How much longer must a pendulum be to change its period from two seconds to four seconds?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "generated-a/history-lighthouse-podcast.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-a/history-lighthouse-podcast.vtt"
+        }
+      },
+      "id": "q06",
+      "primary_file": "generated-a/history-lighthouse-podcast.vtt",
+      "text": "What flash pattern let sailors recognize Gannet Rock's lighthouse in the dark?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-a/battery-product-review.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-a/battery-product-review.vtt"
+        }
+      },
+      "id": "q07",
+      "primary_file": "generated-a/battery-product-review.vtt",
+      "text": "How can the X9 battery pack work as a charging hub on a hotel desk?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "generated-a/photography-window-light.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-a/photography-window-light.vtt"
+        }
+      },
+      "id": "q08",
+      "primary_file": "generated-a/photography-window-light.vtt",
+      "text": "What inexpensive item brightens the shadow side of a window-lit portrait without adding a second lamp?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "generated-b/bike-brake-clinic.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-b/bike-brake-clinic.vtt"
+        }
+      },
+      "id": "q09",
+      "primary_file": "generated-b/bike-brake-clinic.vtt",
+      "text": "What does Priya Raman do in the Larson twist to free stubborn bubbles after bleeding the bicycle brake?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-b/wetland-ecology-lecture.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-b/wetland-ecology-lecture.vtt"
+        }
+      },
+      "id": "q10",
+      "primary_file": "generated-b/wetland-ecology-lecture.vtt",
+      "text": "How do researchers measure whether the marsh surface is building upward each year?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "generated-b/telescope-polar-alignment.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-b/telescope-polar-alignment.vtt"
+        }
+      },
+      "id": "q11",
+      "primary_file": "generated-b/telescope-polar-alignment.vtt",
+      "text": "Where should Polaris sit in the polar scope reticle when aligning the equatorial telescope mount?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "generated-b/ceramic-glaze-studio.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-b/ceramic-glaze-studio.vtt"
+        }
+      },
+      "id": "q12",
+      "primary_file": "generated-b/ceramic-glaze-studio.vtt",
+      "text": "Why wax a pot's foot before dipping it in glaze, and what additional protection goes on the kiln shelf?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": false,
+          "rank": 3,
+          "top_file": "generated-b/wetland-ecology-lecture.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-b/field-recording-basics.vtt"
+        }
+      },
+      "id": "q13",
+      "primary_file": "generated-b/field-recording-basics.vtt",
+      "text": "Why record half a minute of plain background sound before leaving a nature recording location?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-b/tram-scheduling-interview.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-b/tram-scheduling-interview.vtt"
+        }
+      },
+      "id": "q14",
+      "primary_file": "generated-b/tram-scheduling-interview.vtt",
+      "text": "What does Lena Fischer say the tram transponder asks traffic lights to do, and how much time does that save?"
+    },
+    {
+      "arms": {
+        "raw": {
+          "passage_all_met": false,
+          "rank": 1,
+          "top_file": "generated-b/textile-conservation-talk.vtt"
+        },
+        "vtt-v1": {
+          "passage_all_met": true,
+          "rank": 1,
+          "top_file": "generated-b/textile-conservation-talk.vtt"
+        }
+      },
+      "id": "q15",
+      "primary_file": "generated-b/textile-conservation-talk.vtt",
+      "text": "How does Dr. Halvorsen support split silk in the old mantua, and why must the repair be reversible?"
+    }
+  ],
+  "query_manifest_sha256": "da9aabff0b4da78ce356c5f66490ea82386dc2d25000efdeb07585b72cd3d289",
+  "run_identity": "5b7bbf3787fd7606e6ef99701fd2d17a444408849917e9471bd3896a4b223a2c",
+  "settings": {
+    "batch_size": 32,
+    "bucket_width": 500,
+    "chunk_chars": 1200,
+    "chunk_overlap": 0,
+    "coalesce_limit": 10,
+    "compute_policy": "default(nil)",
+    "concurrency": 8,
+    "dimension": 768,
+    "embedder": "e5-base-v2",
+    "profile_identity": "e5-base@1200/0",
+    "raw_fetch_limit": 30,
+    "search_limit": 10
+  }
+}

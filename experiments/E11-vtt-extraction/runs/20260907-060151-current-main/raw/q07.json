@@ -1,0 +1,349 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "short-caption",
+    "specific-spoken-claim",
+    "product-review"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8576827645301819,
+      "file" : "generated-a/battery-product-review.vtt",
+      "match_count" : 5,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.14231723546981812,
+          "line_end" : 148,
+          "line_start" : 98,
+          "score" : 0.8576827645301819
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.16942131519317627,
+          "line_end" : 42,
+          "line_start" : 1,
+          "score" : 0.8305786848068237
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.17479628324508667,
+          "line_end" : 96,
+          "line_start" : 44,
+          "score" : 0.8252037167549133
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.1937791109085083,
+          "line_end" : 168,
+          "line_start" : 150,
+          "score" : 0.8062208890914917
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.24654310941696167,
+          "score" : 0.7534568905830383
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.767361581325531,
+      "file" : "real/anna-rudolf-minecraft.vtt",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.232638418674469,
+          "line_end" : 380,
+          "line_start" : 344,
+          "score" : 0.767361581325531
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.2387244701385498,
+          "line_end" : 237,
+          "line_start" : 204,
+          "score" : 0.7612755298614502
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.24069464206695557,
+          "line_end" : 412,
+          "line_start" : 382,
+          "score" : 0.7593053579330444
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.2433953881263733,
+          "line_end" : 310,
+          "line_start" : 273,
+          "score" : 0.7566046118736267
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7606197595596313,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 8,
+      "matches" : [
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.23938024044036865,
+          "line_end" : 388,
+          "line_start" : 360,
+          "score" : 0.7606197595596313
+        },
+        {
+          "chunk_ordinal" : 26,
+          "chunk_type" : "chunk",
+          "distance" : 0.24124675989151,
+          "line_end" : 798,
+          "line_start" : 770,
+          "score" : 0.75875324010849
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.2417311668395996,
+          "line_end" : 262,
+          "line_start" : 231,
+          "score" : 0.7582688331604004
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.2463611364364624,
+          "line_end" : 358,
+          "line_start" : 330,
+          "score" : 0.7536388635635376
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.24791228771209717,
+          "line_end" : 418,
+          "line_start" : 390,
+          "score" : 0.7520877122879028
+        },
+        {
+          "chunk_ordinal" : 22,
+          "chunk_type" : "chunk",
+          "distance" : 0.25112783908843994,
+          "line_end" : 675,
+          "line_start" : 644,
+          "score" : 0.7488721609115601
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2511386275291443,
+          "line_end" : 131,
+          "line_start" : 103,
+          "score" : 0.7488613724708557
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.25120609998703003,
+          "line_end" : 164,
+          "line_start" : 133,
+          "score" : 0.74879390001297
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7573633790016174,
+      "file" : "generated-a/woodworking-floating-shelf.vtt",
+      "match_count" : 6,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.24263662099838257,
+          "line_end" : 90,
+          "line_start" : 44,
+          "score" : 0.7573633790016174
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.24736201763153076,
+          "line_end" : 364,
+          "line_start" : 322,
+          "score" : 0.7526379823684692
+        },
+        {
+          "chunk_ordinal" : 15,
+          "chunk_type" : "chunk",
+          "distance" : 0.25114762783050537,
+          "line_end" : 652,
+          "line_start" : 606,
+          "score" : 0.7488523721694946
+        },
+        {
+          "chunk_ordinal" : 23,
+          "chunk_type" : "chunk",
+          "distance" : 0.25238680839538574,
+          "line_end" : 1024,
+          "line_start" : 990,
+          "score" : 0.7476131916046143
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.25281792879104614,
+          "line_end" : 276,
+          "line_start" : 230,
+          "score" : 0.7471820712089539
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.2536291480064392,
+          "line_end" : 556,
+          "line_start" : 510,
+          "score" : 0.7463708519935608
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7533312439918518,
+      "file" : "generated-a/startup-support-interview.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2466687560081482,
+          "line_end" : 91,
+          "line_start" : 41,
+          "score" : 0.7533312439918518
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.2482081651687622,
+          "line_end" : 595,
+          "line_start" : 546,
+          "score" : 0.7517918348312378
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7511889338493347,
+      "file" : "generated-b/ceramic-glaze-studio.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.24881106615066528,
+          "score" : 0.7511889338493347
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7507908344268799,
+      "file" : "generated-b/bike-brake-clinic.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.24920916557312012,
+          "line_end" : 118,
+          "line_start" : 56,
+          "score" : 0.7507908344268799
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.25110065937042236,
+          "line_end" : 549,
+          "line_start" : 488,
+          "score" : 0.7488993406295776
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.253237247467041,
+          "line_end" : 486,
+          "line_start" : 428,
+          "score" : 0.746762752532959
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7500475645065308,
+      "file" : "generated-a/photography-window-light.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.24995243549346924,
+          "line_end" : 177,
+          "line_start" : 135,
+          "score" : 0.7500475645065308
+        }
+      ],
+      "rank" : 8
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q07",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 8,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8576827645301819,
+    "chunk_ordinal" : 4,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "pass through"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "simultaneously"
+      }
+    ],
+    "distance" : 0.14231723546981812,
+    "file_rank" : 1,
+    "input_chars" : 1147,
+    "line_end" : 148,
+    "line_start" : 98
+  },
+  "primary_file" : "generated-a/battery-product-review.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-a/battery-product-review.vtt"
+  ],
+  "search_seconds" : 0.091397583,
+  "text" : "How can the X9 battery pack work as a charging hub on a hotel desk?"
+}

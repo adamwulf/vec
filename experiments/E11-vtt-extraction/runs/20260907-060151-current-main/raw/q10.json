@@ -1,0 +1,337 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "long-caption",
+    "paraphrase",
+    "multi-cue-topic"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8140211701393127,
+      "file" : "generated-b/wetland-ecology-lecture.vtt",
+      "match_count" : 17,
+      "matches" : [
+        {
+          "chunk_ordinal" : 17,
+          "chunk_type" : "chunk",
+          "distance" : 0.18597882986068726,
+          "line_end" : 830,
+          "line_start" : 776,
+          "score" : 0.8140211701393127
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.19591683149337769,
+          "line_end" : 774,
+          "line_start" : 724,
+          "score" : 0.8040831685066223
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.19932329654693604,
+          "line_end" : 260,
+          "line_start" : 210,
+          "score" : 0.800676703453064
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.20155245065689087,
+          "line_end" : 104,
+          "line_start" : 54,
+          "score" : 0.7984475493431091
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.20798438787460327,
+          "line_end" : 208,
+          "line_start" : 158,
+          "score" : 0.7920156121253967
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.20821672677993774,
+          "line_end" : 156,
+          "line_start" : 106,
+          "score" : 0.7917832732200623
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.2110040783882141,
+          "line_end" : 674,
+          "line_start" : 624,
+          "score" : 0.7889959216117859
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.21260327100753784,
+          "line_end" : 312,
+          "line_start" : 262,
+          "score" : 0.7873967289924622
+        },
+        {
+          "chunk_ordinal" : 15,
+          "chunk_type" : "chunk",
+          "distance" : 0.2177978754043579,
+          "line_end" : 722,
+          "line_start" : 676,
+          "score" : 0.7822021245956421
+        },
+        {
+          "chunk_ordinal" : 18,
+          "chunk_type" : "chunk",
+          "distance" : 0.21821272373199463,
+          "line_end" : 874,
+          "line_start" : 832,
+          "score" : 0.7817872762680054
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.21907204389572144,
+          "line_end" : 412,
+          "line_start" : 362,
+          "score" : 0.7809279561042786
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.2213735580444336,
+          "line_end" : 622,
+          "line_start" : 572,
+          "score" : 0.7786264419555664
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2217015027999878,
+          "line_end" : 52,
+          "line_start" : 1,
+          "score" : 0.7782984972000122
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.22269737720489502,
+          "line_end" : 518,
+          "line_start" : 466,
+          "score" : 0.777302622795105
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.2340487241744995,
+          "line_end" : 360,
+          "line_start" : 314,
+          "score" : 0.7659512758255005
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.23431789875030518,
+          "line_end" : 570,
+          "line_start" : 520,
+          "score" : 0.7656821012496948
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.24936014413833618,
+          "line_end" : 464,
+          "line_start" : 414,
+          "score" : 0.7506398558616638
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7594317197799683,
+      "file" : "generated-a/history-lighthouse-podcast.vtt",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.24056828022003174,
+          "line_end" : 91,
+          "line_start" : 45,
+          "score" : 0.7594317197799683
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.24621498584747314,
+          "line_end" : 139,
+          "line_start" : 93,
+          "score" : 0.7537850141525269
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.25399231910705566,
+          "line_end" : 43,
+          "line_start" : 1,
+          "score" : 0.7460076808929443
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2598932981491089,
+          "line_end" : 187,
+          "line_start" : 141,
+          "score" : 0.7401067018508911
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7475859522819519,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2524140477180481,
+          "line_end" : 151,
+          "line_start" : 114,
+          "score" : 0.7475859522819519
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.252558171749115,
+          "line_end" : 166,
+          "line_start" : 153,
+          "score" : 0.747441828250885
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2590303421020508,
+          "line_end" : 34,
+          "line_start" : 1,
+          "score" : 0.7409696578979492
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7452729940414429,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.25472700595855713,
+          "line_end" : 164,
+          "line_start" : 133,
+          "score" : 0.7452729940414429
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.2602803111076355,
+          "line_end" : 418,
+          "line_start" : 390,
+          "score" : 0.7397196888923645
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.26169782876968384,
+          "line_end" : 262,
+          "line_start" : 231,
+          "score" : 0.7383021712303162
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7452310919761658,
+      "file" : "generated-b/ceramic-glaze-studio.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.25476890802383423,
+          "line_end" : 54,
+          "line_start" : 1,
+          "score" : 0.7452310919761658
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.25679510831832886,
+          "line_end" : 194,
+          "line_start" : 176,
+          "score" : 0.7432048916816711
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7419387698173523,
+      "file" : "real/anna-rudolf-minecraft.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.2580612301826477,
+          "line_end" : 202,
+          "line_start" : 168,
+          "score" : 0.7419387698173523
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q10",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 6,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8140211701393127,
+    "chunk_ordinal" : 17,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "feldspar clay"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "core"
+      }
+    ],
+    "distance" : 0.18597882986068726,
+    "file_rank" : 1,
+    "input_chars" : 1186,
+    "line_end" : 830,
+    "line_start" : 776
+  },
+  "primary_file" : "generated-b/wetland-ecology-lecture.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-b/wetland-ecology-lecture.vtt"
+  ],
+  "search_seconds" : 0.100359167,
+  "text" : "How do researchers measure whether the marsh surface is building upward each year?"
+}

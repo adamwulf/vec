@@ -1,0 +1,345 @@
+{
+  "arm" : "vtt-v1",
+  "categories" : [
+    "short-caption",
+    "specific-spoken-claim",
+    "product-review"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8712455630302429,
+      "file" : "generated-a/battery-product-review.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.12875443696975708,
+          "score" : 0.8712455630302429
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.13509076833724976,
+          "line_end" : 112,
+          "line_start" : 9,
+          "score" : 0.8649092316627502
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.14132016897201538,
+          "line_end" : 168,
+          "line_start" : 115,
+          "score" : 0.8586798310279846
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7865424156188965,
+      "file" : "generated-a/woodworking-floating-shelf.vtt",
+      "match_count" : 6,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.21345758438110352,
+          "line_end" : 456,
+          "line_start" : 319,
+          "score" : 0.7865424156188965
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.223751962184906,
+          "score" : 0.776248037815094
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.22848618030548096,
+          "line_end" : 316,
+          "line_start" : 175,
+          "score" : 0.771513819694519
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.23202860355377197,
+          "line_end" : 172,
+          "line_start" : 17,
+          "score" : 0.767971396446228
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.23770040273666382,
+          "line_end" : 1024,
+          "line_start" : 935,
+          "score" : 0.7622995972633362
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.24126774072647095,
+          "line_end" : 748,
+          "line_start" : 611,
+          "score" : 0.758732259273529
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7800585031509399,
+      "file" : "generated-a/startup-support-interview.vtt",
+      "match_count" : 5,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.21994149684906006,
+          "line_end" : 503,
+          "line_start" : 396,
+          "score" : 0.7800585031509399
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.22789186239242554,
+          "line_end" : 393,
+          "line_start" : 268,
+          "score" : 0.7721081376075745
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2288954257965088,
+          "line_end" : 628,
+          "line_start" : 506,
+          "score" : 0.7711045742034912
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.23254305124282837,
+          "score" : 0.7674569487571716
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.24198555946350098,
+          "line_end" : 265,
+          "line_start" : 163,
+          "score" : 0.758014440536499
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7753492593765259,
+      "file" : "generated-b/field-recording-basics.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.22465074062347412,
+          "line_end" : 227,
+          "line_start" : 166,
+          "score" : 0.7753492593765259
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.23585796356201172,
+          "score" : 0.7641420364379883
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2434229850769043,
+          "line_end" : 163,
+          "line_start" : 18,
+          "score" : 0.7565770149230957
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7732323408126831,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 6,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.2267676591873169,
+          "score" : 0.7732323408126831
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.23244166374206543,
+          "line_end" : 738,
+          "line_start" : 620,
+          "score" : 0.7675583362579346
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.23381096124649048,
+          "line_end" : 496,
+          "line_start" : 378,
+          "score" : 0.7661890387535095
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.23553919792175293,
+          "line_end" : 256,
+          "line_start" : 136,
+          "score" : 0.7644608020782471
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.23616015911102295,
+          "line_end" : 376,
+          "line_start" : 258,
+          "score" : 0.763839840888977
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.24024474620819092,
+          "line_end" : 134,
+          "line_start" : 16,
+          "score" : 0.7597552537918091
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7710850238800049,
+      "file" : "generated-b/telescope-polar-alignment.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.22891497611999512,
+          "line_end" : 172,
+          "line_start" : 111,
+          "score" : 0.7710850238800049
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7659268975257874,
+      "file" : "generated-a/photography-window-light.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.23407310247421265,
+          "score" : 0.7659268975257874
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.23735982179641724,
+          "line_end" : 188,
+          "line_start" : 110,
+          "score" : 0.7626401782035828
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7608703374862671,
+      "file" : "generated-b/bike-brake-clinic.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.2391296625137329,
+          "line_end" : 1161,
+          "line_start" : 1132,
+          "score" : 0.7608703374862671
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.24143213033676147,
+          "line_end" : 765,
+          "line_start" : 584,
+          "score" : 0.7585678696632385
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2425076961517334,
+          "line_end" : 581,
+          "line_start" : 381,
+          "score" : 0.7574923038482666
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.756097137928009,
+      "file" : "generated-a/history-lighthouse-podcast.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.24390286207199097,
+          "score" : 0.756097137928009
+        }
+      ],
+      "rank" : 9
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q07",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 9,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8712455630302429,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "whole",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "pass through"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "simultaneously"
+      }
+    ],
+    "distance" : 0.12875443696975708,
+    "file_rank" : 1,
+    "input_chars" : 1818
+  },
+  "primary_file" : "generated-a/battery-product-review.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-a/battery-product-review.vtt"
+  ],
+  "search_seconds" : 0.094790083,
+  "text" : "How can the X9 battery pack work as a charging hub on a hotel desk?"
+}

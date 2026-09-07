@@ -1,0 +1,345 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "short-caption",
+    "multi-cue-topic",
+    "specific-spoken-claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.833162248134613,
+      "file" : "generated-b/ceramic-glaze-studio.vtt",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.16683775186538696,
+          "line_end" : 114,
+          "line_start" : 56,
+          "score" : 0.833162248134613
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.1713075041770935,
+          "line_end" : 194,
+          "line_start" : 176,
+          "score" : 0.8286924958229065
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.17248892784118652,
+          "line_end" : 174,
+          "line_start" : 116,
+          "score" : 0.8275110721588135
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.18447881937026978,
+          "line_end" : 54,
+          "line_start" : 1,
+          "score" : 0.8155211806297302
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.788663387298584,
+      "file" : "generated-a/woodworking-floating-shelf.vtt",
+      "match_count" : 12,
+      "matches" : [
+        {
+          "chunk_ordinal" : 22,
+          "chunk_type" : "chunk",
+          "distance" : 0.21133661270141602,
+          "line_end" : 988,
+          "line_start" : 942,
+          "score" : 0.788663387298584
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.21636545658111572,
+          "line_end" : 460,
+          "line_start" : 414,
+          "score" : 0.7836345434188843
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.21935075521469116,
+          "line_end" : 508,
+          "line_start" : 462,
+          "score" : 0.7806492447853088
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.2203831672668457,
+          "line_end" : 700,
+          "line_start" : 654,
+          "score" : 0.7796168327331543
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.22523868083953857,
+          "line_end" : 604,
+          "line_start" : 558,
+          "score" : 0.7747613191604614
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.22660374641418457,
+          "line_end" : 412,
+          "line_start" : 366,
+          "score" : 0.7733962535858154
+        },
+        {
+          "chunk_ordinal" : 21,
+          "chunk_type" : "chunk",
+          "distance" : 0.2269384264945984,
+          "line_end" : 940,
+          "line_start" : 894,
+          "score" : 0.7730615735054016
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.22698402404785156,
+          "line_end" : 556,
+          "line_start" : 510,
+          "score" : 0.7730159759521484
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2270471453666687,
+          "line_end" : 90,
+          "line_start" : 44,
+          "score" : 0.7729528546333313
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.22800159454345703,
+          "line_end" : 138,
+          "line_start" : 92,
+          "score" : 0.771998405456543
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2290135622024536,
+          "line_end" : 184,
+          "line_start" : 140,
+          "score" : 0.7709864377975464
+        },
+        {
+          "chunk_ordinal" : 19,
+          "chunk_type" : "chunk",
+          "distance" : 0.22954291105270386,
+          "line_end" : 844,
+          "line_start" : 798,
+          "score" : 0.7704570889472961
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7869731783866882,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.21302682161331177,
+          "line_end" : 151,
+          "line_start" : 114,
+          "score" : 0.7869731783866882
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.22115957736968994,
+          "line_end" : 112,
+          "line_start" : 75,
+          "score" : 0.7788404226303101
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.22895479202270508,
+          "line_end" : 73,
+          "line_start" : 36,
+          "score" : 0.7710452079772949
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7867363691329956,
+      "file" : "generated-a/cooking-sourdough-flatbread.vtt",
+      "match_count" : 8,
+      "matches" : [
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.2132636308670044,
+          "line_end" : 480,
+          "line_start" : 442,
+          "score" : 0.7867363691329956
+        },
+        {
+          "chunk_ordinal" : 20,
+          "chunk_type" : "chunk",
+          "distance" : 0.2202335000038147,
+          "line_end" : 770,
+          "line_start" : 732,
+          "score" : 0.7797664999961853
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.22230184078216553,
+          "line_end" : 320,
+          "line_start" : 282,
+          "score" : 0.7776981592178345
+        },
+        {
+          "chunk_ordinal" : 24,
+          "chunk_type" : "chunk",
+          "distance" : 0.22333979606628418,
+          "line_end" : 938,
+          "line_start" : 900,
+          "score" : 0.7766602039337158
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.22334492206573486,
+          "line_end" : 524,
+          "line_start" : 482,
+          "score" : 0.7766550779342651
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.22453153133392334,
+          "line_end" : 196,
+          "line_start" : 156,
+          "score" : 0.7754684686660767
+        },
+        {
+          "chunk_ordinal" : 19,
+          "chunk_type" : "chunk",
+          "distance" : 0.22486460208892822,
+          "line_end" : 730,
+          "line_start" : 692,
+          "score" : 0.7751353979110718
+        },
+        {
+          "chunk_ordinal" : 23,
+          "chunk_type" : "chunk",
+          "distance" : 0.22585445642471313,
+          "line_end" : 898,
+          "line_start" : 856,
+          "score" : 0.7741455435752869
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7735961079597473,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 21,
+          "chunk_type" : "chunk",
+          "distance" : 0.22640389204025269,
+          "line_end" : 642,
+          "line_start" : 611,
+          "score" : 0.7735961079597473
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7735903263092041,
+      "file" : "generated-b/bike-brake-clinic.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2264096736907959,
+          "line_end" : 178,
+          "line_start" : 120,
+          "score" : 0.7735903263092041
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7705484628677368,
+      "file" : "real/anna-rudolf-minecraft.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.22945153713226318,
+          "line_end" : 134,
+          "line_start" : 101,
+          "score" : 0.7705484628677368
+        }
+      ],
+      "rank" : 7
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q12",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 7,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.833162248134613,
+    "chunk_ordinal" : 3,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "gluing your pot"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "kiln wash"
+      }
+    ],
+    "distance" : 0.16683775186538696,
+    "file_rank" : 1,
+    "input_chars" : 1174,
+    "line_end" : 114,
+    "line_start" : 56
+  },
+  "primary_file" : "generated-b/ceramic-glaze-studio.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-b/ceramic-glaze-studio.vtt"
+  ],
+  "search_seconds" : 0.118976959,
+  "text" : "Why wax a pot's foot before dipping it in glaze, and what additional protection goes on the kiln shelf?"
+}

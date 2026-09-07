@@ -1,0 +1,351 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "named-speaker",
+    "dialogue",
+    "specific-spoken-claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8639877438545227,
+      "file" : "generated-b/tram-scheduling-interview.vtt",
+      "match_count" : 5,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.1360122561454773,
+          "line_end" : 151,
+          "line_start" : 105,
+          "score" : 0.8639877438545227
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.1383291482925415,
+          "line_end" : 103,
+          "line_start" : 57,
+          "score" : 0.8616708517074585
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.15002292394638062,
+          "line_end" : 203,
+          "line_start" : 153,
+          "score" : 0.8499770760536194
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.16464048624038696,
+          "line_end" : 55,
+          "line_start" : 1,
+          "score" : 0.835359513759613
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.18791747093200684,
+          "line_end" : 219,
+          "line_start" : 205,
+          "score" : 0.8120825290679932
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7767067551612854,
+      "file" : "generated-a/startup-support-interview.vtt",
+      "match_count" : 11,
+      "matches" : [
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.2232932448387146,
+          "line_end" : 595,
+          "line_start" : 546,
+          "score" : 0.7767067551612854
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.22979354858398438,
+          "line_end" : 393,
+          "line_start" : 344,
+          "score" : 0.7702064514160156
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.23251038789749146,
+          "line_end" : 342,
+          "line_start" : 293,
+          "score" : 0.7674896121025085
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.23560023307800293,
+          "line_end" : 749,
+          "line_start" : 700,
+          "score" : 0.7643997669219971
+        },
+        {
+          "chunk_ordinal" : 19,
+          "chunk_type" : "chunk",
+          "distance" : 0.23590844869613647,
+          "line_end" : 870,
+          "line_start" : 854,
+          "score" : 0.7640915513038635
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.23723816871643066,
+          "line_end" : 441,
+          "line_start" : 395,
+          "score" : 0.7627618312835693
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.24055421352386475,
+          "line_end" : 291,
+          "line_start" : 241,
+          "score" : 0.7594457864761353
+        },
+        {
+          "chunk_ordinal" : 17,
+          "chunk_type" : "chunk",
+          "distance" : 0.2420455813407898,
+          "line_end" : 800,
+          "line_start" : 751,
+          "score" : 0.7579544186592102
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.24325674772262573,
+          "line_end" : 492,
+          "line_start" : 443,
+          "score" : 0.7567432522773743
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.24451535940170288,
+          "line_end" : 190,
+          "line_start" : 140,
+          "score" : 0.7554846405982971
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2445346713066101,
+          "line_end" : 239,
+          "line_start" : 192,
+          "score" : 0.7554653286933899
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.773688793182373,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.22631120681762695,
+          "line_end" : 166,
+          "line_start" : 153,
+          "score" : 0.773688793182373
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7680872678756714,
+      "file" : "generated-a/history-lighthouse-podcast.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2319127321243286,
+          "line_end" : 203,
+          "line_start" : 189,
+          "score" : 0.7680872678756714
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.24250191450119019,
+          "line_end" : 139,
+          "line_start" : 93,
+          "score" : 0.7574980854988098
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.24361073970794678,
+          "line_end" : 187,
+          "line_start" : 141,
+          "score" : 0.7563892602920532
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7659200429916382,
+      "file" : "generated-a/battery-product-review.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.23407995700836182,
+          "line_end" : 168,
+          "line_start" : 150,
+          "score" : 0.7659200429916382
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7656286954879761,
+      "file" : "real/anna-rudolf-minecraft.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.23437130451202393,
+          "line_end" : 166,
+          "line_start" : 136,
+          "score" : 0.7656286954879761
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.23688989877700806,
+          "line_end" : 310,
+          "line_start" : 273,
+          "score" : 0.7631101012229919
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7653285264968872,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 7,
+      "matches" : [
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.2346714735031128,
+          "line_end" : 358,
+          "line_start" : 330,
+          "score" : 0.7653285264968872
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.23494404554367065,
+          "line_end" : 197,
+          "line_start" : 166,
+          "score" : 0.7650559544563293
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.2382066249847412,
+          "line_end" : 229,
+          "line_start" : 199,
+          "score" : 0.7617933750152588
+        },
+        {
+          "chunk_ordinal" : 25,
+          "chunk_type" : "chunk",
+          "distance" : 0.23906880617141724,
+          "line_end" : 768,
+          "line_start" : 740,
+          "score" : 0.7609311938285828
+        },
+        {
+          "chunk_ordinal" : 24,
+          "chunk_type" : "chunk",
+          "distance" : 0.24203866720199585,
+          "line_end" : 738,
+          "line_start" : 707,
+          "score" : 0.7579613327980042
+        },
+        {
+          "chunk_ordinal" : 26,
+          "chunk_type" : "chunk",
+          "distance" : 0.24393558502197266,
+          "line_end" : 798,
+          "line_start" : 770,
+          "score" : 0.7560644149780273
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.24445891380310059,
+          "line_end" : 481,
+          "line_start" : 450,
+          "score" : 0.7555410861968994
+        }
+      ],
+      "rank" : 7
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q14",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 7,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8639877438545227,
+    "chunk_ordinal" : 4,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "Lena Fischer"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "hold its green"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "90 seconds"
+      }
+    ],
+    "distance" : 0.1360122561454773,
+    "file_rank" : 1,
+    "input_chars" : 1194,
+    "line_end" : 151,
+    "line_start" : 105
+  },
+  "primary_file" : "generated-b/tram-scheduling-interview.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-b/tram-scheduling-interview.vtt"
+  ],
+  "search_seconds" : 0.116542084,
+  "text" : "What does Lena Fischer say the tram transponder asks traffic lights to do, and how much time does that save?"
+}

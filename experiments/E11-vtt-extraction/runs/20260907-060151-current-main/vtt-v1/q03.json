@@ -1,0 +1,343 @@
+{
+  "arm" : "vtt-v1",
+  "categories" : [
+    "named-speaker",
+    "dialogue",
+    "specific-spoken-claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8712778687477112,
+      "file" : "generated-a/woodworking-floating-shelf.vtt",
+      "match_count" : 8,
+      "matches" : [
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.12872213125228882,
+          "line_end" : 1024,
+          "line_start" : 935,
+          "score" : 0.8712778687477112
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.1305716633796692,
+          "line_end" : 316,
+          "line_start" : 175,
+          "score" : 0.8694283366203308
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.13541042804718018,
+          "line_end" : 748,
+          "line_start" : 611,
+          "score" : 0.8645895719528198
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.14005112648010254,
+          "line_end" : 172,
+          "line_start" : 17,
+          "score" : 0.8599488735198975
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.14034491777420044,
+          "score" : 0.8596550822257996
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.1484370231628418,
+          "line_end" : 456,
+          "line_start" : 319,
+          "score" : 0.8515629768371582
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.15660488605499268,
+          "line_end" : 932,
+          "line_start" : 751,
+          "score" : 0.8433951139450073
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.16197067499160767,
+          "line_end" : 608,
+          "line_start" : 459,
+          "score" : 0.8380293250083923
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7884435057640076,
+      "file" : "generated-b/ceramic-glaze-studio.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.21155649423599243,
+          "line_end" : 194,
+          "line_start" : 97,
+          "score" : 0.7884435057640076
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.23260962963104248,
+          "score" : 0.7673903703689575
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7784217596054077,
+      "file" : "generated-a/photography-window-light.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.22157824039459229,
+          "score" : 0.7784217596054077
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.22510868310928345,
+          "line_end" : 107,
+          "line_start" : 13,
+          "score" : 0.7748913168907166
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2258775234222412,
+          "line_end" : 188,
+          "line_start" : 110,
+          "score" : 0.7741224765777588
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7755516171455383,
+      "file" : "generated-b/bike-brake-clinic.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.22444838285446167,
+          "line_end" : 1161,
+          "line_start" : 1132,
+          "score" : 0.7755516171455383
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7734181880950928,
+      "file" : "generated-a/startup-support-interview.vtt",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.22658181190490723,
+          "line_end" : 778,
+          "line_start" : 631,
+          "score" : 0.7734181880950928
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.22953581809997559,
+          "line_end" : 503,
+          "line_start" : 396,
+          "score" : 0.7704641819000244
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.23200201988220215,
+          "score" : 0.7679979801177979
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7711062431335449,
+      "file" : "generated-a/physics-pendulum-lecture.vtt",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.22889375686645508,
+          "line_end" : 376,
+          "line_start" : 258,
+          "score" : 0.7711062431335449
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2297039031982422,
+          "line_end" : 256,
+          "line_start" : 136,
+          "score" : 0.7702960968017578
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.2321772575378418,
+          "score" : 0.7678227424621582
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.23421061038970947,
+          "line_end" : 134,
+          "line_start" : 16,
+          "score" : 0.7657893896102905
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7699126601219177,
+      "file" : "generated-b/field-recording-basics.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.23008733987808228,
+          "line_end" : 163,
+          "line_start" : 18,
+          "score" : 0.7699126601219177
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.23034906387329102,
+          "score" : 0.769650936126709
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7695199251174927,
+      "file" : "generated-b/telescope-polar-alignment.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.23048007488250732,
+          "line_end" : 172,
+          "line_start" : 111,
+          "score" : 0.7695199251174927
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.2342679500579834,
+          "score" : 0.7657320499420166
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7693052291870117,
+      "file" : "generated-b/textile-conservation-talk.vtt",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.23069477081298828,
+          "score" : 0.7693052291870117
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2307491898536682,
+          "line_end" : 166,
+          "line_start" : 87,
+          "score" : 0.7692508101463318
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.7679789066314697,
+      "file" : "generated-a/battery-product-review.vtt",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.23202109336853027,
+          "line_end" : 168,
+          "line_start" : 115,
+          "score" : 0.7679789066314697
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q03",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 11,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8712778687477112,
+    "chunk_ordinal" : 8,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "Devin"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "French cleat"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "forgiving"
+      }
+    ],
+    "distance" : 0.12872213125228882,
+    "file_rank" : 1,
+    "input_chars" : 664,
+    "line_end" : 1024,
+    "line_start" : 935
+  },
+  "primary_file" : "generated-a/woodworking-floating-shelf.vtt",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "generated-a/woodworking-floating-shelf.vtt"
+  ],
+  "search_seconds" : 0.102166541,
+  "text" : "Which mounting method does Devin recommend for Theo's first floating shelf, and why is it easier?"
+}
