@@ -1,0 +1,12 @@
+{
+  "benchmark_git_head": "fe2c348",
+  "benchmark_git_dirty": false,
+  "rebased_code_equivalent_commit": "142a73e",
+  "native_test_git_head": "773f969",
+  "host": {
+    "operating_system": "macOS 26.6.2 (Build 25G83)",
+    "active_processor_count": 10
+  },
+  "equivalence_check": "git diff --exit-code fe2c348 142a73e -- Tests/VecKitTests/PDFOCRReaderTests.swift Sources/VecKit/PDFOCRReader.swift Sources/VecKit/PDFOCRCache.swift",
+  "equivalence_check_result": "no differences"
+}

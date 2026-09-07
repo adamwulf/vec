@@ -1,8 +1,9 @@
 # E13 — Opt-in mixed-content PDF extraction
 
-Status: READER IMPLEMENTED; SAMPLE AND RUBRIC FROZEN BEFORE RANKING. Shared
-`pdf-ocr-v1` mode/scanner/pipeline integration and native-runtime measurements
-are still pending. No retrieval ranks have been observed or recorded.
+Status: READER IMPLEMENTED AND NATIVELY VALIDATED; SAMPLE AND RUBRIC FROZEN
+BEFORE RANKING. Shared `pdf-ocr-v1` mode/scanner/pipeline integration is still
+pending. No retrieval ranks have been observed or recorded. Reader-only native
+test and cost results are recorded in [`report.md`](report.md).
 
 ## Question
 
@@ -95,7 +96,8 @@ Each final run directory must contain:
 - [x] Sample semantics, query labels, and independent scorer frozen before any
   ranking.
 - [ ] Shared mode/scanner/extractor/pipeline/CLI wiring merged by the manager.
-- [ ] Native runtime: real Vision tests pass; bounded cold/warm throughput,
-  RSS, and cache counters archived.
+- [x] Native runtime: real Vision tests pass; bounded cold/warm throughput,
+  RSS, and cache counters archived in
+  [`runs/20260907-native-reader/`](runs/20260907-native-reader/).
 - [ ] After integration only: run both retrieval arms, independently score,
   document results/caveats, and complete external review.

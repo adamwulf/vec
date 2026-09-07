@@ -1,0 +1,5 @@
+Reader correctness:
+swift test --disable-sandbox --filter PDFOCRReaderTests
+
+Bounded reader cost:
+VEC_E13_BENCHMARK=1 VEC_E13_OUTPUT_DIRECTORY=/private/tmp/vec-e13-reader-throughput swift test --disable-sandbox --disable-swift-testing -c release --filter PDFOCRReaderTests/testPDFOCRThroughputBenchmark
