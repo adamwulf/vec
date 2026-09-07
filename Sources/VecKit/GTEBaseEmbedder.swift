@@ -64,7 +64,11 @@ public actor GTEBaseEmbedder: Embedder {
 
         let bundle = try await loadBundleIfNeeded()
         let tensor = try withOptionalComputePolicy(computePolicy) {
-            try bundle.encode(trimmed, maxLength: 512)
+            // Keep the Float32 attention mask even for one unpadded row.
+            // With these FP16 weights, encode() omits the mask and keeps
+            // inference in Float16; batchEncode() promotes it to Float32.
+            // Casting the final vector cannot repair that precision drift.
+            try bundle.batchEncode([trimmed], padTokenId: 0, maxLength: 512)
         }
         let scalars = await tensor.cast(to: Float.self).shapedArray(of: Float.self).scalars
         return l2Normalize(scalars)

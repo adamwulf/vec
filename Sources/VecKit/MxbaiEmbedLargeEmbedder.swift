@@ -84,7 +84,10 @@ public actor MxbaiEmbedLargeEmbedder: Embedder {
 
         let bundle = try await loadBundleIfNeeded()
         let tensor = try withOptionalComputePolicy(computePolicy) {
-            try bundle.encode(prefixed, maxLength: 512)
+            // Match the batch path's Float32 attention mask. Omitting it
+            // leaves these FP16 weights on a different inference precision
+            // path, even with identical tokens and no padding.
+            try bundle.batchEncode([prefixed], padTokenId: 0, maxLength: 512)
         }
         let scalars = await tensor.cast(to: Float.self).shapedArray(of: Float.self).scalars
         return l2Normalize(scalars)

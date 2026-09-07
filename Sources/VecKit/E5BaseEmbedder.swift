@@ -63,9 +63,9 @@ public actor E5BaseEmbedder: Embedder {
 
     public func embedDocuments(_ texts: [String]) async throws -> [[Float]] {
         // Every input in embedDocuments is by definition a document; prepend
-        // the passage prefix to each. `normalizeBertInputs` applies the char
-        // cap AFTER the prefix is prepended.
-        let inputs = normalizeBertInputs(texts, prefix: Self.documentPrefix, maxChars: Self.maxInputCharacters)
+        // the passage prefix to each, within the same character budget
+        // used by the single-document and query paths.
+        let inputs = Self.normalizeInputs(texts, prefix: Self.documentPrefix)
         guard !inputs.liveInputs.isEmpty else {
             return Array(repeating: [], count: texts.count)
         }
@@ -82,12 +82,8 @@ public actor E5BaseEmbedder: Embedder {
     }
 
     private func embedSingle(prefix: String, text: String) async throws -> [Float] {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return [] }
-        var prefixed = prefix + trimmed
-        if prefixed.count > Self.maxInputCharacters {
-            prefixed = String(prefixed.prefix(Self.maxInputCharacters))
-        }
+        let inputs = Self.normalizeInputs([text], prefix: prefix)
+        guard let prefixed = inputs.liveInputs.first else { return [] }
 
         let bundle = try await loadBundleIfNeeded()
         let pooled = try await meanPooledBatch(bundle: bundle, texts: [prefixed])
@@ -96,6 +92,18 @@ public actor E5BaseEmbedder: Embedder {
         precondition(pooled.count == dimension,
                      "E5 single-text mean pool returned \(pooled.count) scalars, expected \(dimension)")
         return l2Normalize(pooled)
+    }
+
+    /// E5's character cap includes its required prefix. Keep this shared by
+    /// single and batched calls; the generic BERT helper instead caps content
+    /// before prefixing, which is the convention used by Nomic.
+    static func normalizeInputs(_ texts: [String], prefix: String) -> BertBatchInputs {
+        let slots: [String?] = texts.map { text in
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return nil }
+            return String((prefix + trimmed).prefix(maxInputCharacters))
+        }
+        return BertBatchInputs(slots: slots, liveInputs: slots.compactMap { $0 })
     }
 
     /// Core inference path. Tokenizes `texts` with padding, runs the

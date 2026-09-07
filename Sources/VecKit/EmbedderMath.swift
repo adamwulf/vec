@@ -36,8 +36,8 @@ func l2Normalize(_ vector: [Float]) -> [Float] {
     return vector.map { $0 / norm }
 }
 
-/// Bert-family batch input normalization. Trims whitespace, caps length
-/// at `maxChars`, optionally prepends a per-call prefix, and marks empty
+/// Bert-family batch input normalization. Trims whitespace, caps content
+/// at `maxChars`, then optionally prepends a per-call prefix, and marks empty
 /// slots as `nil` so the caller can skip them in the model call and
 /// re-interleave `[]` placeholders after decode.
 ///
