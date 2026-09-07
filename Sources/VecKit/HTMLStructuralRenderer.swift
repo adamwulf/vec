@@ -47,7 +47,7 @@ enum HTMLStructuralRenderer {
             return HTMLStructuralRenderResult(segments: [], elementCount: 0)
         }
 
-        let elementCount = body.getAllElements().size()
+        let elementCount = try body.getAllElements().size()
         guard elementCount <= maximumElementCount else {
             throw HTMLExtractionError.elementLimitExceeded(
                 actual: elementCount,
@@ -93,7 +93,7 @@ enum HTMLStructuralRenderer {
             "navigation", "button", "menu", "menubar", "toolbar", "tab",
             "tablist", "dialog", "alertdialog", "search", "tooltip",
         ]
-        for element in root.getAllElements().array() {
+        for element in try root.getAllElements().array() {
             let ariaHidden = try element.attr("aria-hidden")
                 .trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             let style = try element.attr("style")
