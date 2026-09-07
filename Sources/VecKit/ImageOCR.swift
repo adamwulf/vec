@@ -177,11 +177,14 @@ public struct ImageOCR: ImageTextRecognizer {
             )
         }
 
-        // Deterministic total order: top, then left, then text as a final
-        // tie-break so identical layouts always produce identical output.
+        // Deterministic total order on EXACT keys: top, then left, then text.
+        // Exact `<`/`!=` on the coordinates is a strict weak ordering (an
+        // epsilon-tolerant comparator is not transitive and can crash or
+        // scramble `sort`). Near-equal tops are reconciled later by the
+        // line-grouping tolerance, not by fuzzing the comparator.
         let sorted = fragments.sorted { lhs, rhs in
-            if abs(lhs.top - rhs.top) > epsilon { return lhs.top < rhs.top }
-            if abs(lhs.left - rhs.left) > epsilon { return lhs.left < rhs.left }
+            if lhs.top != rhs.top { return lhs.top < rhs.top }
+            if lhs.left != rhs.left { return lhs.left < rhs.left }
             return lhs.text < rhs.text
         }
 
@@ -211,11 +214,12 @@ public struct ImageOCR: ImageTextRecognizer {
             lines.append(Line(fragments: [fragment], top: fragment.top, bottom: fragment.bottom))
         }
 
-        // Order each line left-to-right and join with single spaces.
+        // Order each line left-to-right and join with single spaces. Exact
+        // keys again (left, then text) for a strict weak ordering.
         let lineTexts = lines.map { line -> String in
             line.fragments
                 .sorted { lhs, rhs in
-                    if abs(lhs.left - rhs.left) > epsilon { return lhs.left < rhs.left }
+                    if lhs.left != rhs.left { return lhs.left < rhs.left }
                     return lhs.text < rhs.text
                 }
                 .map(\.text)

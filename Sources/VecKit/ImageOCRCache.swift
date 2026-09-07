@@ -100,13 +100,23 @@ public final class ImageOCRCache: ImageTextRecognizer, @unchecked Sendable {
         }
         condition.unlock()
 
-        // We own the computation for `key`. From here every exit path must
-        // clear `inFlight` and broadcast so waiters make progress.
+        // We now own the computation for `key`. This defer releases the claim
+        // and wakes waiters on EVERY exit path below — disk hit, recognizer
+        // throw, content-changed skip, or a cached success — so a claim is
+        // never leaked (which would hang every future request for this key).
+        defer {
+            condition.lock()
+            if inFlight.remove(key) != nil {
+                condition.broadcast()
+            }
+            condition.unlock()
+        }
+
+        // Warm disk sidecar?
         if let onDisk = readSidecar(forKey: key) {
             condition.lock()
             store(onDisk, forKey: key)
             stats.hits += 1
-            finishInFlightLocked(key)
             condition.unlock()
             return onDisk
         }
@@ -115,24 +125,33 @@ public final class ImageOCRCache: ImageTextRecognizer, @unchecked Sendable {
         stats.misses += 1
         condition.unlock()
 
-        let result: ImageOCRResult
-        do {
-            result = try recognizer.recognizeText(in: imageURL)
-        } catch {
-            // Transient failure: do not cache, release the claim so a waiter
-            // (or the next run) can retry, and propagate.
-            condition.lock()
-            finishInFlightLocked(key)
-            condition.unlock()
-            throw error
+        // Recognize. A throw propagates with nothing cached; the defer releases
+        // the claim so a waiter (or the next run) retries.
+        let result = try recognizer.recognizeText(in: imageURL)
+
+        condition.lock()
+        stats.ocrCalls += 1
+        condition.unlock()
+
+        // Guard against a mid-OCR source replacement (TOCTOU). The recognizer
+        // re-opened `imageURL` by path, so if a concurrent writer swapped the
+        // file between our hash and the recognizer's read, `result` may
+        // describe bytes other than `key`'s. Persist only when the content
+        // still hashes to `key`; otherwise serve this caller but do not poison
+        // the cache — caching under the wrong hash would return the wrong text
+        // for that content forever. A re-hash failure (file now gone) is also
+        // treated as "changed": serve, do not cache. (A pathological A→B→A
+        // swap bracketed by our two hashes is undetectable here and is treated
+        // as acceptable for the operator-triggered corpus; a true snapshot
+        // would cost a full copy per image.)
+        let verifyKey = try? Self.contentKey(for: imageURL)
+        guard verifyKey == key else {
+            return result
         }
 
         writeSidecar(result, forKey: key)
-
         condition.lock()
         store(result, forKey: key)
-        stats.ocrCalls += 1
-        finishInFlightLocked(key)
         condition.unlock()
         return result
     }
@@ -155,11 +174,6 @@ public final class ImageOCRCache: ImageTextRecognizer, @unchecked Sendable {
             lruOrder.remove(at: existing)
         }
         lruOrder.append(key)
-    }
-
-    private func finishInFlightLocked(_ key: String) {
-        inFlight.remove(key)
-        condition.broadcast()
     }
 
     // MARK: - Disk sidecar tier

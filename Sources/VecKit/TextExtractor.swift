@@ -29,6 +29,16 @@ public final class TextExtractor: @unchecked Sendable {
     /// Kept separately so `ocrCacheStatistics` can expose its counters.
     private let ocrCache: ImageOCRCache?
 
+    /// Extensions the extractor treats as image-like even when `UTType` does
+    /// not report `.image` (SVGZ has no registered type; AVIF may not on older
+    /// runtimes). Kept in sync with `FileScanner`'s image set so the direct
+    /// extractor and the scanner agree on which files are images and must
+    /// never be read as text.
+    private static let imageLikeExtensions: Set<String> = [
+        "jpg", "jpeg", "png", "webp", "gif", "heic", "heif",
+        "tif", "tiff", "bmp", "avif", "svg", "svgz"
+    ]
+
     /// Construct with any `TextSplitter` and image-OCR recognizer. Callers
     /// pass the splitter from the active `IndexingProfile` so chunk sizing
     /// honors the recorded profile rather than a hardcoded default.
@@ -109,18 +119,21 @@ public final class TextExtractor: @unchecked Sendable {
             return try extractFromPDF(file)
         }
 
-        // Route supported raster images to the OCR path. `supportedExtensions`
-        // is the authoritative set: it excludes SVG (vector XML, handled as
-        // text below) and every non-raster type, so this never captures SVG.
-        // OCR is opt-in: under a mode that does not include image OCR, a
-        // supported image yields no chunks and the recognizer is never called
-        // (the scanner already withholds such files, but a directly-built
-        // extractor — insert path, tests — must not OCR either).
-        if ImageOCR.supportedExtensions.contains(file.fileExtension.lowercased()) {
-            guard textExtraction.includesImageOCR else {
-                return ExtractionResult(chunks: [], linePageCount: nil)
+        // Image-like files (raster or vector, including SVG which also
+        // conforms to `.text`) are handled here and NEVER fall through to the
+        // text path. This mirrors the scanner exactly: OCR runs only under an
+        // image-OCR mode on a supported raster extension; every other
+        // image-like file — SVG/SVGZ, an unsupported raster type such as HEIF,
+        // or any image under a non-OCR mode — yields no chunks. Falling
+        // through would index SVG's XML or an unsupported image's bytes as
+        // apparent text, contradicting the scanner's skip policy and leaking
+        // through the direct-insert path.
+        let ext = file.fileExtension.lowercased()
+        if utType?.conforms(to: .image) == true || Self.imageLikeExtensions.contains(ext) {
+            if textExtraction.includesImageOCR && ImageOCR.supportedExtensions.contains(ext) {
+                return ExtractionResult(chunks: try extractFromImage(file), linePageCount: nil)
             }
-            return ExtractionResult(chunks: try extractFromImage(file), linePageCount: nil)
+            return ExtractionResult(chunks: [], linePageCount: nil)
         }
 
         // Open-as-Data throws on real read errors (permission denied, IO
@@ -136,8 +149,11 @@ public final class TextExtractor: @unchecked Sendable {
             return ExtractionResult(chunks: [], linePageCount: nil)
         }
 
-        if (textExtraction == .vttV1 || textExtraction == .markdownV1VttV1),
-           file.fileExtension.lowercased() == "vtt" {
+        // Use the mode predicates, not equality: every combined mode that
+        // includes VTT (e.g. vtt-v1+image-ocr-v1) must still normalize .vtt,
+        // and likewise for Markdown. Equality checks silently skipped
+        // normalization under the new combined OCR modes.
+        if textExtraction.includesVTT, ext == "vtt" {
             return extractVTT(content)
         }
 
@@ -146,8 +162,7 @@ public final class TextExtractor: @unchecked Sendable {
         // splitter therefore reports original-file line numbers even though
         // link destinations and presentation markup are omitted from embeddings.
         let text: String
-        if (textExtraction == .markdownV1 || textExtraction == .markdownV1VttV1),
-           ["md", "markdown"].contains(file.fileExtension.lowercased()) {
+        if textExtraction.includesMarkdown, ["md", "markdown"].contains(ext) {
             text = MarkdownTextNormalizer.normalize(content)
         } else {
             text = content

@@ -403,6 +403,160 @@ final class ImageOCRTests: XCTestCase {
         XCTAssertFalse(ocr.isImageOCRFile(info("svg")), "SVG is never an OCR file")
     }
 
+    // MARK: - Combined-mode normalization (mode predicates, not equality)
+
+    func testCombinedOCRModeStillNormalizesMarkdown() throws {
+        let source = "See [Anthropic](https://anthropic.example) for details."
+        let file = try textFileInfo(named: "doc.md", content: source)
+        let recognizer = CountingRecognizer(result: .words("unused"))
+
+        // Markdown + image OCR: the .md file must still be markdown-normalized,
+        // so the link URL is dropped. Equality checks against .markdownV1 would
+        // have skipped normalization under this combined mode.
+        let combined = TextExtractor(splitter: RecursiveCharacterSplitter(chunkSize: 500, chunkOverlap: 0),
+                                     textExtraction: .markdownV1ImageOCRV1, ocrRecognizer: recognizer)
+        let whole = try XCTUnwrap(try combined.extract(from: file).chunks.first)
+        XCTAssertTrue(whole.text.contains("Anthropic"), "Link text is kept")
+        XCTAssertFalse(whole.text.contains("https://anthropic.example"), "Markdown normalization drops the URL")
+
+        // A mode that includes OCR but NOT markdown leaves the .md raw.
+        let ocrOnly = TextExtractor(splitter: RecursiveCharacterSplitter(chunkSize: 500, chunkOverlap: 0),
+                                    textExtraction: .imageOCRV1, ocrRecognizer: recognizer)
+        let rawWhole = try XCTUnwrap(try ocrOnly.extract(from: file).chunks.first)
+        XCTAssertTrue(rawWhole.text.contains("https://anthropic.example"), "Without markdown mode, content is raw")
+        XCTAssertEqual(recognizer.callCount, 0, "Text files never invoke the OCR recognizer")
+    }
+
+    func testCombinedOCRModeStillNormalizesVTT() throws {
+        let source = "WEBVTT\n\n00:00:01.000 --> 00:00:03.000\nHello from the transcript.\n"
+        let file = try textFileInfo(named: "clip.vtt", content: source)
+        let recognizer = CountingRecognizer(result: .words("unused"))
+
+        // VTT + image OCR: the .vtt file must still be VTT-normalized, dropping
+        // the cue timestamps and the WEBVTT header.
+        let combined = TextExtractor(splitter: RecursiveCharacterSplitter(chunkSize: 500, chunkOverlap: 0),
+                                     textExtraction: .vttV1ImageOCRV1, ocrRecognizer: recognizer)
+        let whole = try XCTUnwrap(try combined.extract(from: file).chunks.first)
+        XCTAssertTrue(whole.text.contains("Hello from the transcript"), "Cue text is kept")
+        XCTAssertFalse(whole.text.contains("-->"), "VTT normalization drops timestamps")
+        XCTAssertFalse(whole.text.contains("WEBVTT"), "VTT normalization drops the header")
+
+        // OCR-only mode leaves the .vtt raw (timestamps present).
+        let ocrOnly = TextExtractor(splitter: RecursiveCharacterSplitter(chunkSize: 500, chunkOverlap: 0),
+                                    textExtraction: .imageOCRV1, ocrRecognizer: recognizer)
+        let rawWhole = try XCTUnwrap(try ocrOnly.extract(from: file).chunks.first)
+        XCTAssertTrue(rawWhole.text.contains("-->"), "Without VTT mode, content is raw")
+        XCTAssertEqual(recognizer.callCount, 0)
+    }
+
+    // MARK: - Direct-insert-style extraction: image-like files never leak as text
+
+    func testExtractorSkipsSVGRatherThanIndexingItsXML() throws {
+        // SVG conforms to both .image and .text; it must be skipped, not read
+        // as XML text, under every mode (matching the scanner + insert path).
+        let svg = "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>diagram label</text></svg>"
+        let file = try textFileInfo(named: "diagram.svg", content: svg)
+        let recognizer = CountingRecognizer(result: .words("unused"))
+
+        for mode: TextExtractionMode in [.raw, .imageOCRV1, .markdownV1VttV1ImageOCRV1] {
+            let extractor = TextExtractor(splitter: RecursiveCharacterSplitter(chunkSize: 100, chunkOverlap: 0),
+                                          textExtraction: mode, ocrRecognizer: recognizer)
+            let result = try extractor.extract(from: file)
+            XCTAssertTrue(result.chunks.isEmpty, "SVG yields no chunks under \(mode.rawValue)")
+        }
+        XCTAssertEqual(recognizer.callCount, 0, "SVG is never OCR'd")
+    }
+
+    func testExtractorSkipsSVGZ() throws {
+        // SVGZ has no registered UTType, so it relies on the extension mirror.
+        let file = try textFileInfo(named: "diagram.svgz", content: "not really gzipped, but text-like")
+        let extractor = TextExtractor(splitter: RecursiveCharacterSplitter(chunkSize: 100, chunkOverlap: 0),
+                                      textExtraction: .imageOCRV1, ocrRecognizer: CountingRecognizer(result: .words("x")))
+        XCTAssertTrue(try extractor.extract(from: file).chunks.isEmpty, "SVGZ is skipped, not read as text")
+    }
+
+    func testExtractorSkipsUnsupportedRasterUnderOCRMode() throws {
+        // HEIF is an image but not in the frozen supported set; under an OCR
+        // mode it must be skipped (empty) and never reach the recognizer.
+        let file = try imageFileInfo(named: "photo.heif")
+        let recognizer = CountingRecognizer(result: .words("should not run"))
+        let extractor = TextExtractor(splitter: RecursiveCharacterSplitter(chunkSize: 100, chunkOverlap: 0),
+                                      textExtraction: .imageOCRV1, ocrRecognizer: recognizer)
+        XCTAssertTrue(try extractor.extract(from: file).chunks.isEmpty)
+        XCTAssertEqual(recognizer.callCount, 0, "Unsupported raster types are not OCR'd")
+        XCTAssertFalse(extractor.isImageOCRFile(file))
+    }
+
+    // MARK: - Cache TOCTOU: source replaced during OCR must not poison the cache
+
+    func testCacheDoesNotPersistWhenSourceReplacedDuringOCR() throws {
+        let url = tempDir.appendingPathComponent("swapped.png")
+        try Data("original bytes A".utf8).write(to: url)
+
+        // The recognizer replaces the file with different bytes mid-OCR, so the
+        // result describes content that no longer matches the claimed hash.
+        let poisoning = CountingRecognizer(result: .words("text for replaced bytes"), onRecognize: { swapURL in
+            try? Data("different bytes B".utf8).write(to: swapURL)
+        })
+        let cache1 = ImageOCRCache(directory: tempDir, recognizer: poisoning)
+        _ = try cache1.recognizeText(in: url)
+        XCTAssertEqual(poisoning.callCount, 1)
+
+        // Restore the original bytes and read through a fresh cache. If the
+        // first cache had (wrongly) persisted under the original hash, this
+        // would hit the poisoned sidecar and never call the recognizer.
+        try Data("original bytes A".utf8).write(to: url)
+        let clean = CountingRecognizer(result: .words("correct text for A"))
+        let cache2 = ImageOCRCache(directory: tempDir, recognizer: clean)
+        let served = try cache2.recognizeText(in: url)
+
+        XCTAssertEqual(served.text, "correct text for A")
+        XCTAssertEqual(clean.callCount, 1, "Original content must be re-recognized, not served from a poisoned entry")
+    }
+
+    // MARK: - Reading order is permutation-invariant
+
+    func testReadingOrderIsPermutationInvariant() {
+        let fragments: [(text: String, box: CGRect)] = [
+            ("Hello", CGRect(x: 0.10, y: 0.85, width: 0.20, height: 0.05)),
+            ("World", CGRect(x: 0.45, y: 0.85, width: 0.20, height: 0.05)),
+            ("Second", CGRect(x: 0.10, y: 0.78, width: 0.30, height: 0.05)),
+            ("New", CGRect(x: 0.10, y: 0.40, width: 0.20, height: 0.05)),
+            ("Paragraph", CGRect(x: 0.35, y: 0.40, width: 0.30, height: 0.05)),
+        ]
+        let expected = ImageOCRResult(
+            text: "Hello World Second\n\nNew Paragraph",
+            lines: ["Hello World", "Second", "New Paragraph"],
+            paragraphs: ["Hello World Second", "New Paragraph"])
+
+        var permutationCount = 0
+        permutations(of: fragments) { ordering in
+            permutationCount += 1
+            XCTAssertEqual(ImageOCR.readingOrder(from: ordering), expected,
+                           "Reading order must be independent of input order")
+        }
+        XCTAssertEqual(permutationCount, 120, "All 5! orderings exercised")
+    }
+
+    /// Invokes `body` once per distinct permutation of `items` (Heap's
+    /// algorithm): `k - 1` swap-separated recursive calls, then one final call.
+    private func permutations<T>(of items: [T], _ body: ([T]) -> Void) {
+        var array = items
+        func generate(_ k: Int) {
+            if k <= 1 { body(array); return }
+            for i in 0..<(k - 1) {
+                generate(k - 1)
+                if k.isMultiple(of: 2) {
+                    array.swapAt(i, k - 1)
+                } else {
+                    array.swapAt(0, k - 1)
+                }
+            }
+            generate(k - 1)
+        }
+        generate(array.count)
+    }
+
     // MARK: - Fixtures & helpers
 
     /// Draws `lines` top-to-bottom in black Helvetica on a white background.
@@ -472,6 +626,15 @@ final class ImageOCRTests: XCTestCase {
         return FileInfo(relativePath: name, url: url, modificationDate: Date(), fileExtension: ext)
     }
 
+    /// Writes `content` to a real file and returns its `FileInfo` — used for
+    /// the direct, insert-style `extract(from:)` tests.
+    private func textFileInfo(named name: String, content: String) throws -> FileInfo {
+        let url = tempDir.appendingPathComponent(name)
+        try Data(content.utf8).write(to: url)
+        let ext = (name as NSString).pathExtension.lowercased()
+        return FileInfo(relativePath: name, url: url, modificationDate: Date(), fileExtension: ext)
+    }
+
     private func assertRecognizes(_ result: ImageOCRResult, expected: [String], context: String,
                                   file: StaticString = #filePath, line: UInt = #line) {
         let lowered = result.text.lowercased()
@@ -496,11 +659,16 @@ private final class CountingRecognizer: ImageTextRecognizer, @unchecked Sendable
     private let result: ImageOCRResult
     private let delay: TimeInterval
     private let throwFirst: Int
+    /// Side effect run inside recognition, e.g. to replace the source file
+    /// mid-OCR and exercise the cache's content-verification guard.
+    private let onRecognize: (@Sendable (URL) -> Void)?
 
-    init(result: ImageOCRResult, delay: TimeInterval = 0, throwFirst: Int = 0) {
+    init(result: ImageOCRResult, delay: TimeInterval = 0, throwFirst: Int = 0,
+         onRecognize: (@Sendable (URL) -> Void)? = nil) {
         self.result = result
         self.delay = delay
         self.throwFirst = throwFirst
+        self.onRecognize = onRecognize
     }
 
     var callCount: Int {
@@ -515,6 +683,7 @@ private final class CountingRecognizer: ImageTextRecognizer, @unchecked Sendable
         lock.unlock()
 
         if current <= throwFirst { throw FakeOCRError.transient }
+        onRecognize?(imageURL)
         if delay > 0 { Thread.sleep(forTimeInterval: delay) }
         return result
     }
