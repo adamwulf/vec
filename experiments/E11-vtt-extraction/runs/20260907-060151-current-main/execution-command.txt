@@ -9,7 +9,7 @@ Arm design: raw vs vtt-v1, both arms in ONE swift test invocation,
 --- Git / baseline identity ---
 git HEAD (parent, unchanged)        : 0d013d1bfa9015a498615e0d51f5e4771d80d21c
 rebased onto main (baseline)        : 5ee92ab563d348924312747e6631a639b96f1b35
-git_dirty at run time (tracked only): false  (from frozen-input-manifest build_identity)
+git_dirty at run time (tracked only): false  (frozen-input-manifest.json "build")
 run_identity                        : 5b7bbf3787fd7606e6ef99701fd2d17a444408849917e9471bd3896a4b223a2c
 query_manifest_sha256               : da9aabff0b4da78ce356c5f66490ea82386dc2d25000efdeb07585b72cd3d289
 sample_manifest_sha256              : 510d57ac23e5c44b03cdc72488e57056a529653e7eb0b67222b94c022e767a4c
@@ -37,7 +37,7 @@ XCTest         : Executed 1 test, with 0 failures (0 unexpected) in 61.659 s
 release build  : Build complete! (141.41s)
 benchmark case : testVTTExtractionRetrievalBenchmark passed (61.659 s)
 
---- Toolchain / host (from frozen-input-manifest build_identity) ---
+--- Toolchain / host (from frozen-input-manifest.json "build") ---
 configuration : release
 swift          : Apple Swift version 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2), arm64-apple-macosx26.0
 os_version     : Version 26.6.2 (Build 25G83)
@@ -46,7 +46,12 @@ os_version     : Version 26.6.2 (Build 25G83)
 - working tree clean; HEAD == 0d013d1... (approved parent)
 - main 5ee92ab... is an ancestor of HEAD (rebase confirmed)
 - scripts/freeze-sample.py --check -> "Verified 16 caption hashes and sampling requirements."
-- pinned model bundle present at VEC_VTT_MODEL_DIRECTORY (8 files)
+- pinned model bundle present at VEC_VTT_MODEL_DIRECTORY (7 regular files;
+  all 7 hashed into frozen-input-manifest.json "model_files": config.json,
+  model.safetensors, snapshot-manifest.json, special_tokens_map.json,
+  tokenizer.json, tokenizer_config.json, vocab.txt). The earlier "8" was a
+  hand-count slip (the `ls -la` header/`.`/`..` lines); the authoritative
+  count is the 7 hashed model_files entries.
 
 --- Independent re-score (fail-if-mismatch) ---
 scripts/score-vtt-rubric.py <run> --json -> independent-score.json
