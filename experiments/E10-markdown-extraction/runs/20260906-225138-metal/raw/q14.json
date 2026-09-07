@@ -1,0 +1,318 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "deep-transcript-detail",
+    "exact-term"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8341642022132874,
+      "file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "match_count" : 28,
+      "matches" : [
+        {
+          "chunk_ordinal" : 41,
+          "chunk_type" : "chunk",
+          "distance" : 0.16583579778671265,
+          "line_end" : 495,
+          "line_start" : 485,
+          "score" : 0.8341642022132874
+        },
+        {
+          "chunk_ordinal" : 61,
+          "chunk_type" : "chunk",
+          "distance" : 0.18659204244613647,
+          "line_end" : 724,
+          "line_start" : 714,
+          "score" : 0.8134079575538635
+        },
+        {
+          "chunk_ordinal" : 33,
+          "chunk_type" : "chunk",
+          "distance" : 0.19279050827026367,
+          "line_end" : 402,
+          "line_start" : 391,
+          "score" : 0.8072094917297363
+        },
+        {
+          "chunk_ordinal" : 63,
+          "chunk_type" : "chunk",
+          "distance" : 0.20317095518112183,
+          "line_end" : 747,
+          "line_start" : 737,
+          "score" : 0.7968290448188782
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.20356202125549316,
+          "line_end" : 163,
+          "line_start" : 152,
+          "score" : 0.7964379787445068
+        },
+        {
+          "chunk_ordinal" : 60,
+          "chunk_type" : "chunk",
+          "distance" : 0.203840970993042,
+          "line_end" : 713,
+          "line_start" : 703,
+          "score" : 0.796159029006958
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.20471632480621338,
+          "line_end" : 43,
+          "line_start" : 32,
+          "score" : 0.7952836751937866
+        },
+        {
+          "chunk_ordinal" : 57,
+          "chunk_type" : "chunk",
+          "distance" : 0.20489883422851562,
+          "line_end" : 680,
+          "line_start" : 670,
+          "score" : 0.7951011657714844
+        },
+        {
+          "chunk_ordinal" : 51,
+          "chunk_type" : "chunk",
+          "distance" : 0.2052742838859558,
+          "line_end" : 611,
+          "line_start" : 601,
+          "score" : 0.7947257161140442
+        },
+        {
+          "chunk_ordinal" : 48,
+          "chunk_type" : "chunk",
+          "distance" : 0.20650768280029297,
+          "line_end" : 578,
+          "line_start" : 568,
+          "score" : 0.793492317199707
+        },
+        {
+          "chunk_ordinal" : 46,
+          "chunk_type" : "chunk",
+          "distance" : 0.2078843116760254,
+          "line_end" : 555,
+          "line_start" : 545,
+          "score" : 0.7921156883239746
+        },
+        {
+          "chunk_ordinal" : 58,
+          "chunk_type" : "chunk",
+          "distance" : 0.20838510990142822,
+          "line_end" : 691,
+          "line_start" : 681,
+          "score" : 0.7916148900985718
+        },
+        {
+          "chunk_ordinal" : 73,
+          "chunk_type" : "chunk",
+          "distance" : 0.2092793583869934,
+          "line_end" : 853,
+          "line_start" : 843,
+          "score" : 0.7907206416130066
+        },
+        {
+          "chunk_ordinal" : 26,
+          "chunk_type" : "chunk",
+          "distance" : 0.21008920669555664,
+          "line_end" : 318,
+          "line_start" : 308,
+          "score" : 0.7899107933044434
+        },
+        {
+          "chunk_ordinal" : 50,
+          "chunk_type" : "chunk",
+          "distance" : 0.21116697788238525,
+          "line_end" : 600,
+          "line_start" : 590,
+          "score" : 0.7888330221176147
+        },
+        {
+          "chunk_ordinal" : 59,
+          "chunk_type" : "chunk",
+          "distance" : 0.21293765306472778,
+          "line_end" : 702,
+          "line_start" : 692,
+          "score" : 0.7870623469352722
+        },
+        {
+          "chunk_ordinal" : 75,
+          "chunk_type" : "chunk",
+          "distance" : 0.21313786506652832,
+          "line_end" : 875,
+          "line_start" : 865,
+          "score" : 0.7868621349334717
+        },
+        {
+          "chunk_ordinal" : 39,
+          "chunk_type" : "chunk",
+          "distance" : 0.21441441774368286,
+          "line_end" : 472,
+          "line_start" : 462,
+          "score" : 0.7855855822563171
+        },
+        {
+          "chunk_ordinal" : 71,
+          "chunk_type" : "chunk",
+          "distance" : 0.21642863750457764,
+          "line_end" : 831,
+          "line_start" : 820,
+          "score" : 0.7835713624954224
+        },
+        {
+          "chunk_ordinal" : 70,
+          "chunk_type" : "chunk",
+          "distance" : 0.2168387770652771,
+          "line_end" : 819,
+          "line_start" : 809,
+          "score" : 0.7831612229347229
+        },
+        {
+          "chunk_ordinal" : 55,
+          "chunk_type" : "chunk",
+          "distance" : 0.2182697057723999,
+          "line_end" : 658,
+          "line_start" : 648,
+          "score" : 0.7817302942276001
+        },
+        {
+          "chunk_ordinal" : 15,
+          "chunk_type" : "chunk",
+          "distance" : 0.21934884786605835,
+          "line_end" : 187,
+          "line_start" : 176,
+          "score" : 0.7806511521339417
+        },
+        {
+          "chunk_ordinal" : 38,
+          "chunk_type" : "chunk",
+          "distance" : 0.22180283069610596,
+          "line_end" : 461,
+          "line_start" : 451,
+          "score" : 0.778197169303894
+        },
+        {
+          "chunk_ordinal" : 49,
+          "chunk_type" : "chunk",
+          "distance" : 0.22211062908172607,
+          "line_end" : 589,
+          "line_start" : 579,
+          "score" : 0.7778893709182739
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.2237154245376587,
+          "line_end" : 139,
+          "line_start" : 128,
+          "score" : 0.7762845754623413
+        },
+        {
+          "chunk_ordinal" : 65,
+          "chunk_type" : "chunk",
+          "distance" : 0.224126935005188,
+          "line_end" : 770,
+          "line_start" : 760,
+          "score" : 0.775873064994812
+        },
+        {
+          "chunk_ordinal" : 66,
+          "chunk_type" : "chunk",
+          "distance" : 0.2249772548675537,
+          "line_end" : 782,
+          "line_start" : 771,
+          "score" : 0.7750227451324463
+        },
+        {
+          "chunk_ordinal" : 77,
+          "chunk_type" : "chunk",
+          "distance" : 0.22552138566970825,
+          "line_end" : 899,
+          "line_start" : 888,
+          "score" : 0.7744786143302917
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7942174673080444,
+      "file" : "YouTube/__h_aNi5UeY.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 57,
+          "chunk_type" : "chunk",
+          "distance" : 0.20578253269195557,
+          "line_end" : 694,
+          "line_start" : 683,
+          "score" : 0.7942174673080444
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.776070237159729,
+      "file" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.223929762840271,
+          "line_end" : 80,
+          "line_start" : 78,
+          "score" : 0.776070237159729
+        }
+      ],
+      "rank" : 3
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q14",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 3,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8341642022132874,
+    "chunk_ordinal" : 41,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "positive"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "weaker"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "less power"
+      }
+    ],
+    "distance" : 0.16583579778671265,
+    "file_rank" : 1,
+    "input_chars" : 1120,
+    "line_end" : 495,
+    "line_start" : 485
+  },
+  "primary_file" : "YouTube/__A2xtLF0AU.localized/content.md",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "YouTube/__A2xtLF0AU.localized/content.md"
+  ],
+  "search_seconds" : 0.096946708,
+  "text" : "Why does a more positive rake need less power but leave a weaker cutting edge?"
+}

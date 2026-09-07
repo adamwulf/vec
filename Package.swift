@@ -12,7 +12,13 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
-        .package(url: "https://github.com/jkrukowski/swift-embeddings", from: "0.0.26")
+        .package(url: "https://github.com/jkrukowski/swift-embeddings", from: "0.0.26"),
+        // swift-markdown 0.6.0 declares swift-tools-version 5.7, so it keeps
+        // this package's declared 6.0 minimum honest — 0.7.x / 0.8.x require
+        // 6.2 and would silently raise it. Stay on the 0.6 minor line; its
+        // source-location API (1-based UTF-8 byte columns) is identical to the
+        // newer releases. Package.resolved pins the exact resolved revision.
+        .package(url: "https://github.com/swiftlang/swift-markdown", .upToNextMinor(from: "0.6.0"))
     ],
     targets: [
         .systemLibrary(
@@ -26,7 +32,8 @@ let package = Package(
             name: "VecKit",
             dependencies: [
                 "CSQLiteVec",
-                .product(name: "Embeddings", package: "swift-embeddings")
+                .product(name: "Embeddings", package: "swift-embeddings"),
+                .product(name: "Markdown", package: "swift-markdown")
             ]
         ),
         .executableTarget(

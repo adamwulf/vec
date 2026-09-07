@@ -23,10 +23,28 @@ public struct DatabaseConfig: Codable {
         /// Embedder dimension, e.g. 768.
         public let dimension: Int
 
-        public init(identity: String, embedderName: String, dimension: Int) {
+        /// Stored independently of the embedder/chunk identity. Records from
+        /// before E10 have no key and retain their original raw extraction.
+        public let textExtraction: TextExtractionMode
+
+        public init(identity: String, embedderName: String, dimension: Int,
+                    textExtraction: TextExtractionMode = .raw) {
             self.identity = identity
             self.embedderName = embedderName
             self.dimension = dimension
+            self.textExtraction = textExtraction
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case identity, embedderName, dimension, textExtraction
+        }
+
+        public init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            identity = try values.decode(String.self, forKey: .identity)
+            embedderName = try values.decode(String.self, forKey: .embedderName)
+            dimension = try values.decode(Int.self, forKey: .dimension)
+            textExtraction = try values.decodeIfPresent(TextExtractionMode.self, forKey: .textExtraction) ?? .raw
         }
     }
 

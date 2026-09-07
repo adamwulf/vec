@@ -1,0 +1,77 @@
+{
+  "arm" : "markdown-v1",
+  "db_seconds" : 0.10248316800000001,
+  "embed_span_seconds" : 1655.3034458329998,
+  "extract_seconds" : 63.546991333,
+  "file_count" : 9,
+  "index_seconds" : 667.020997708,
+  "indexed_count" : 9,
+  "metrics" : {
+    "answered_queries" : 12,
+    "mean_reciprocal_rank" : 1,
+    "passage_all_met_rate" : 0.6666666666666666,
+    "rank1_rate" : 1,
+    "top3_rate" : 1,
+    "top5_rate" : 1
+  },
+  "no_answer_probes" : [
+    {
+      "id" : "q11",
+      "top_file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "top_score" : 0.7696394920349121
+    },
+    {
+      "id" : "q12",
+      "top_file" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+      "top_score" : 0.7683749198913574
+    },
+    {
+      "id" : "q13",
+      "top_file" : "YouTube/__4ZMGgQqKE.localized/content.md",
+      "top_score" : 0.7543915510177612
+    }
+  ],
+  "per_file_chunks" : [
+    {
+      "chunks" : 2872,
+      "path" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md"
+    },
+    {
+      "chunks" : 6,
+      "path" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/content.md"
+    },
+    {
+      "chunks" : 3,
+      "path" : "Notion/000fceb0-cc8c-4e17-b0eb-18df5026ff25.localized/content.md"
+    },
+    {
+      "chunks" : 5,
+      "path" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md"
+    },
+    {
+      "chunks" : 8,
+      "path" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md"
+    },
+    {
+      "chunks" : 1,
+      "path" : "Quotes/1dbf32f4-36c1-8005-84b9-e77330335df2.localized/content.md"
+    },
+    {
+      "chunks" : 11,
+      "path" : "YouTube/__4ZMGgQqKE.localized/content.md"
+    },
+    {
+      "chunks" : 36,
+      "path" : "YouTube/__A2xtLF0AU.localized/content.md"
+    },
+    {
+      "chunks" : 31,
+      "path" : "YouTube/__h_aNi5UeY.localized/content.md"
+    }
+  ],
+  "rss_after_index_bytes" : 5051219968,
+  "rss_before_index_bytes" : 378486784,
+  "search_seconds" : 47.085359417,
+  "text_extraction" : "markdown-v1",
+  "total_chunks" : 2973
+}

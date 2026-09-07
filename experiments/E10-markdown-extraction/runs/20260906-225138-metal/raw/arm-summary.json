@@ -1,0 +1,77 @@
+{
+  "arm" : "raw",
+  "db_seconds" : 0.087216377,
+  "embed_span_seconds" : 1787.198734709,
+  "extract_seconds" : 108.10659854200001,
+  "file_count" : 9,
+  "index_seconds" : 665.947470709,
+  "indexed_count" : 9,
+  "metrics" : {
+    "answered_queries" : 12,
+    "mean_reciprocal_rank" : 1,
+    "passage_all_met_rate" : 0.5,
+    "rank1_rate" : 1,
+    "top3_rate" : 1,
+    "top5_rate" : 1
+  },
+  "no_answer_probes" : [
+    {
+      "id" : "q11",
+      "top_file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "top_score" : 0.7890151143074036
+    },
+    {
+      "id" : "q12",
+      "top_file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "top_score" : 0.7655200362205505
+    },
+    {
+      "id" : "q13",
+      "top_file" : "YouTube/__4ZMGgQqKE.localized/content.md",
+      "top_score" : 0.7541754245758057
+    }
+  ],
+  "per_file_chunks" : [
+    {
+      "chunks" : 2904,
+      "path" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md"
+    },
+    {
+      "chunks" : 6,
+      "path" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/content.md"
+    },
+    {
+      "chunks" : 3,
+      "path" : "Notion/000fceb0-cc8c-4e17-b0eb-18df5026ff25.localized/content.md"
+    },
+    {
+      "chunks" : 7,
+      "path" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md"
+    },
+    {
+      "chunks" : 9,
+      "path" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md"
+    },
+    {
+      "chunks" : 1,
+      "path" : "Quotes/1dbf32f4-36c1-8005-84b9-e77330335df2.localized/content.md"
+    },
+    {
+      "chunks" : 17,
+      "path" : "YouTube/__4ZMGgQqKE.localized/content.md"
+    },
+    {
+      "chunks" : 78,
+      "path" : "YouTube/__A2xtLF0AU.localized/content.md"
+    },
+    {
+      "chunks" : 68,
+      "path" : "YouTube/__h_aNi5UeY.localized/content.md"
+    }
+  ],
+  "rss_after_index_bytes" : 6228082688,
+  "rss_before_index_bytes" : 569311232,
+  "search_seconds" : 82.044756166,
+  "text_extraction" : "raw",
+  "total_chunks" : 3093
+}

@@ -1,0 +1,38 @@
+run_identity: 86bd27eb0be805d0bf81929c056aa76bbc92a3477d6b287cba9491b0bc160d6f
+settings:     e5-base@1200/0 chunk 1200/0 concurrency 8 fetch 30/coalesce 10
+build:        release git 94f44fb0a6ab dirty=False model_files=7
+
+== Aggregate (answered queries only; rank derived from best_score desc) ==
+arm             rank1   top3   top5     MRR   pass  n
+-----------------------------------------------------
+raw                12     12     12   1.000      6  12
+markdown-v1        12     12     12   1.000      8  12
+
+== Per-query file rank (answered) ==
+query                raw     markdown-v1
+----------------------------------------
+q01                    1               1
+q02                    1               1
+q03                    1               1
+q04                    1               1
+q05                    1               1
+q06                    1               1
+q07                    1               1
+q08                    1               1
+q09                    1               1
+q10                    1               1
+q14                    1               1
+q15                    1               1
+
+== No-answer probes (top file / score; no cutoff) ==
+q11:
+    raw            content.md  (0.789)
+    markdown-v1    content.md  (0.770)
+q12:
+    raw            content.md  (0.766)
+    markdown-v1    content.md  (0.768)
+q13:
+    raw            content.md  (0.754)
+    markdown-v1    content.md  (0.754)
+
+File rank is derived from archived best_score (descending, stable). 'pass' is an advisory pre-tokenizer passage check and does not gate rank.

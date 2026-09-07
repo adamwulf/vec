@@ -1,0 +1,335 @@
+{
+  "arm" : "markdown-v1",
+  "categories" : [
+    "vague-recollection"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8218896389007568,
+      "file" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+      "match_count" : 8,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.17811036109924316,
+          "line_end" : 25,
+          "line_start" : 1,
+          "score" : 0.8218896389007568
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.1791570782661438,
+          "line_end" : 36,
+          "line_start" : 27,
+          "score" : 0.8208429217338562
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.17993927001953125,
+          "line_end" : 80,
+          "line_start" : 78,
+          "score" : 0.8200607299804688
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.181388258934021,
+          "line_end" : 58,
+          "line_start" : 49,
+          "score" : 0.818611741065979
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.19091808795928955,
+          "line_end" : 76,
+          "line_start" : 61,
+          "score" : 0.8090819120407104
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2107551097869873,
+          "line_end" : 47,
+          "line_start" : 38,
+          "score" : 0.7892448902130127
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.21983462572097778,
+          "line_end" : 86,
+          "line_start" : 82,
+          "score" : 0.7801653742790222
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.24572646617889404,
+          "score" : 0.754273533821106
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7756823897361755,
+      "file" : "YouTube/__4ZMGgQqKE.localized/content.md",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.22431761026382446,
+          "line_end" : 96,
+          "line_start" : 84,
+          "score" : 0.7756823897361755
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.23794585466384888,
+          "line_end" : 143,
+          "line_start" : 137,
+          "score" : 0.7620541453361511
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.24339306354522705,
+          "line_end" : 136,
+          "line_start" : 123,
+          "score" : 0.756606936454773
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7740694284439087,
+      "file" : "YouTube/__h_aNi5UeY.localized/content.md",
+      "match_count" : 6,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2259305715560913,
+          "line_end" : 144,
+          "line_start" : 117,
+          "score" : 0.7740694284439087
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2280048131942749,
+          "line_end" : 87,
+          "line_start" : 59,
+          "score" : 0.7719951868057251
+        },
+        {
+          "chunk_ordinal" : 30,
+          "chunk_type" : "chunk",
+          "distance" : 0.2422698736190796,
+          "line_end" : 797,
+          "line_start" : 770,
+          "score" : 0.7577301263809204
+        },
+        {
+          "chunk_ordinal" : 28,
+          "chunk_type" : "chunk",
+          "distance" : 0.243943989276886,
+          "line_end" : 740,
+          "line_start" : 708,
+          "score" : 0.756056010723114
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.2456684708595276,
+          "line_end" : 253,
+          "line_start" : 228,
+          "score" : 0.7543315291404724
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.24595004320144653,
+          "line_end" : 413,
+          "line_start" : 387,
+          "score" : 0.7540499567985535
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7674579620361328,
+      "file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "match_count" : 7,
+      "matches" : [
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.2325420379638672,
+          "line_end" : 324,
+          "line_start" : 299,
+          "score" : 0.7674579620361328
+        },
+        {
+          "chunk_ordinal" : 18,
+          "chunk_type" : "chunk",
+          "distance" : 0.2395060658454895,
+          "line_end" : 455,
+          "line_start" : 430,
+          "score" : 0.7604939341545105
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.2405114769935608,
+          "line_end" : 218,
+          "line_start" : 193,
+          "score" : 0.7594885230064392
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.24133539199829102,
+          "line_end" : 244,
+          "line_start" : 219,
+          "score" : 0.758664608001709
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.24288654327392578,
+          "line_end" : 298,
+          "line_start" : 273,
+          "score" : 0.7571134567260742
+        },
+        {
+          "chunk_ordinal" : 24,
+          "chunk_type" : "chunk",
+          "distance" : 0.24810796976089478,
+          "line_end" : 612,
+          "line_start" : 588,
+          "score" : 0.7518920302391052
+        },
+        {
+          "chunk_ordinal" : 25,
+          "chunk_type" : "chunk",
+          "distance" : 0.2486708164215088,
+          "line_end" : 638,
+          "line_start" : 613,
+          "score" : 0.7513291835784912
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7633350491523743,
+      "file" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.23666495084762573,
+          "line_end" : 94,
+          "line_start" : 90,
+          "score" : 0.7633350491523743
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2427198886871338,
+          "line_end" : 65,
+          "line_start" : 35,
+          "score" : 0.7572801113128662
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7558070421218872,
+      "file" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1342,
+          "chunk_type" : "chunk",
+          "distance" : 0.2441929578781128,
+          "line_end" : 17587,
+          "line_start" : 17587,
+          "score" : 0.7558070421218872
+        },
+        {
+          "chunk_ordinal" : 985,
+          "chunk_type" : "chunk",
+          "distance" : 0.2474382519721985,
+          "line_end" : 13770,
+          "line_start" : 13770,
+          "score" : 0.7525617480278015
+        },
+        {
+          "chunk_ordinal" : 570,
+          "chunk_type" : "chunk",
+          "distance" : 0.24837028980255127,
+          "line_end" : 8833,
+          "line_start" : 8833,
+          "score" : 0.7516297101974487
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7557661533355713,
+      "file" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.2442338466644287,
+          "line_end" : 76,
+          "line_start" : 58,
+          "score" : 0.7557661533355713
+        }
+      ],
+      "rank" : 7
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q10",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 7,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8218896389007568,
+    "chunk_ordinal" : 2,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "regex",
+        "value" : "ordered sequence|reorder|fractional|operational transformation|eventual"
+      }
+    ],
+    "distance" : 0.17811036109924316,
+    "file_rank" : 1,
+    "input_chars" : 1027,
+    "line_end" : 25,
+    "line_start" : 1
+  },
+  "primary_file" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md"
+  ],
+  "search_seconds" : 0.113679667,
+  "text" : "how do you keep a shared list in the same order when several people rearrange it at the same time"
+}

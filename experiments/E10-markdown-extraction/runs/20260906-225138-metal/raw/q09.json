@@ -1,0 +1,341 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "item-coverage",
+    "exact-name",
+    "code-term"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.9139037132263184,
+      "file" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+      "match_count" : 7,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.08609628677368164,
+          "line_end" : 51,
+          "line_start" : 28,
+          "score" : 0.9139037132263184
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.11142086982727051,
+          "line_end" : 25,
+          "line_start" : 1,
+          "score" : 0.8885791301727295
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.12088501453399658,
+          "line_end" : 94,
+          "line_start" : 90,
+          "score" : 0.8791149854660034
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.13126438856124878,
+          "line_end" : 82,
+          "line_start" : 70,
+          "score" : 0.8687356114387512
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.13628071546554565,
+          "line_end" : 68,
+          "line_start" : 54,
+          "score" : 0.8637192845344543
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.21303445100784302,
+          "score" : 0.786965548992157
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.23472553491592407,
+          "line_end" : 87,
+          "line_start" : 85,
+          "score" : 0.7652744650840759
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7973902821540833,
+      "file" : "Notion/000fceb0-cc8c-4e17-b0eb-18df5026ff25.localized/content.md",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.20260971784591675,
+          "line_end" : 41,
+          "line_start" : 26,
+          "score" : 0.7973902821540833
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.21755683422088623,
+          "line_end" : 24,
+          "line_start" : 1,
+          "score" : 0.7824431657791138
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "whole",
+          "distance" : 0.24524444341659546,
+          "score" : 0.7547555565834045
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7866573929786682,
+      "file" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+      "match_count" : 8,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.2133426070213318,
+          "line_end" : 50,
+          "line_start" : 40,
+          "score" : 0.7866573929786682
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2153804898262024,
+          "line_end" : 23,
+          "line_start" : 1,
+          "score" : 0.7846195101737976
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.21654516458511353,
+          "line_end" : 31,
+          "line_start" : 25,
+          "score" : 0.7834548354148865
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.21814042329788208,
+          "line_end" : 38,
+          "line_start" : 33,
+          "score" : 0.7818595767021179
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.22110891342163086,
+          "line_end" : 58,
+          "line_start" : 52,
+          "score" : 0.7788910865783691
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.22324901819229126,
+          "line_end" : 86,
+          "line_start" : 82,
+          "score" : 0.7767509818077087
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.2242659330368042,
+          "line_end" : 76,
+          "line_start" : 61,
+          "score" : 0.7757340669631958
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.2323697805404663,
+          "line_end" : 80,
+          "line_start" : 78,
+          "score" : 0.7676302194595337
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7670331597328186,
+      "file" : "YouTube/__4ZMGgQqKE.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2329668402671814,
+          "line_end" : 35,
+          "line_start" : 33,
+          "score" : 0.7670331597328186
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7661226987838745,
+      "file" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1890,
+          "chunk_type" : "chunk",
+          "distance" : 0.2338773012161255,
+          "line_end" : 23309,
+          "line_start" : 23305,
+          "score" : 0.7661226987838745
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.761479377746582,
+      "file" : "YouTube/__h_aNi5UeY.localized/content.md",
+      "match_count" : 5,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.23852062225341797,
+          "line_end" : 57,
+          "line_start" : 53,
+          "score" : 0.761479377746582
+        },
+        {
+          "chunk_ordinal" : 50,
+          "chunk_type" : "chunk",
+          "distance" : 0.23941034078598022,
+          "line_end" : 612,
+          "line_start" : 602,
+          "score" : 0.7605896592140198
+        },
+        {
+          "chunk_ordinal" : 48,
+          "chunk_type" : "chunk",
+          "distance" : 0.23999017477035522,
+          "line_end" : 589,
+          "line_start" : 579,
+          "score" : 0.7600098252296448
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2448369860649109,
+          "line_end" : 51,
+          "line_start" : 32,
+          "score" : 0.7551630139350891
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.24716782569885254,
+          "line_end" : 30,
+          "line_start" : 1,
+          "score" : 0.7528321743011475
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7604197263717651,
+      "file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "match_count" : 5,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.23958027362823486,
+          "line_end" : 30,
+          "line_start" : 1,
+          "score" : 0.7604197263717651
+        },
+        {
+          "chunk_ordinal" : 41,
+          "chunk_type" : "chunk",
+          "distance" : 0.2405126690864563,
+          "line_end" : 495,
+          "line_start" : 485,
+          "score" : 0.7594873309135437
+        },
+        {
+          "chunk_ordinal" : 33,
+          "chunk_type" : "chunk",
+          "distance" : 0.24294990301132202,
+          "line_end" : 402,
+          "line_start" : 391,
+          "score" : 0.757050096988678
+        },
+        {
+          "chunk_ordinal" : 77,
+          "chunk_type" : "chunk",
+          "distance" : 0.2449653148651123,
+          "line_end" : 899,
+          "line_start" : 888,
+          "score" : 0.7550346851348877
+        },
+        {
+          "chunk_ordinal" : 46,
+          "chunk_type" : "chunk",
+          "distance" : 0.24568325281143188,
+          "line_end" : 555,
+          "line_start" : 545,
+          "score" : 0.7543167471885681
+        }
+      ],
+      "rank" : 7
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q09",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 7,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.9139037132263184,
+    "chunk_ordinal" : 3,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "Runestone"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "Tree-sitter"
+      }
+    ],
+    "distance" : 0.08609628677368164,
+    "file_rank" : 1,
+    "input_chars" : 1123,
+    "line_end" : 51,
+    "line_start" : 28
+  },
+  "primary_file" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md"
+  ],
+  "search_seconds" : 0.119768875,
+  "text" : "Runestone iOS text editor using Tree-sitter for syntax highlighting"
+}

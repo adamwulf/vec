@@ -1,0 +1,300 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "no-answer"
+  ],
+  "groups" : [
+    {
+      "best_score" : 0.7890151143074036,
+      "file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "match_count" : 21,
+      "matches" : [
+        {
+          "chunk_ordinal" : 68,
+          "chunk_type" : "chunk",
+          "distance" : 0.21098488569259644,
+          "line_end" : 795,
+          "line_start" : 795,
+          "score" : 0.7890151143074036
+        },
+        {
+          "chunk_ordinal" : 38,
+          "chunk_type" : "chunk",
+          "distance" : 0.230133056640625,
+          "line_end" : 461,
+          "line_start" : 451,
+          "score" : 0.769866943359375
+        },
+        {
+          "chunk_ordinal" : 48,
+          "chunk_type" : "chunk",
+          "distance" : 0.23095929622650146,
+          "line_end" : 578,
+          "line_start" : 568,
+          "score" : 0.7690407037734985
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.23311835527420044,
+          "line_end" : 163,
+          "line_start" : 152,
+          "score" : 0.7668816447257996
+        },
+        {
+          "chunk_ordinal" : 49,
+          "chunk_type" : "chunk",
+          "distance" : 0.23834192752838135,
+          "line_end" : 589,
+          "line_start" : 579,
+          "score" : 0.7616580724716187
+        },
+        {
+          "chunk_ordinal" : 71,
+          "chunk_type" : "chunk",
+          "distance" : 0.2385241985321045,
+          "line_end" : 831,
+          "line_start" : 820,
+          "score" : 0.7614758014678955
+        },
+        {
+          "chunk_ordinal" : 26,
+          "chunk_type" : "chunk",
+          "distance" : 0.23879235982894897,
+          "line_end" : 318,
+          "line_start" : 308,
+          "score" : 0.761207640171051
+        },
+        {
+          "chunk_ordinal" : 72,
+          "chunk_type" : "chunk",
+          "distance" : 0.238935649394989,
+          "line_end" : 842,
+          "line_start" : 832,
+          "score" : 0.761064350605011
+        },
+        {
+          "chunk_ordinal" : 74,
+          "chunk_type" : "chunk",
+          "distance" : 0.2402113676071167,
+          "line_end" : 864,
+          "line_start" : 854,
+          "score" : 0.7597886323928833
+        },
+        {
+          "chunk_ordinal" : 70,
+          "chunk_type" : "chunk",
+          "distance" : 0.24165791273117065,
+          "line_end" : 819,
+          "line_start" : 809,
+          "score" : 0.7583420872688293
+        },
+        {
+          "chunk_ordinal" : 77,
+          "chunk_type" : "chunk",
+          "distance" : 0.24331992864608765,
+          "line_end" : 899,
+          "line_start" : 888,
+          "score" : 0.7566800713539124
+        },
+        {
+          "chunk_ordinal" : 39,
+          "chunk_type" : "chunk",
+          "distance" : 0.24374210834503174,
+          "line_end" : 472,
+          "line_start" : 462,
+          "score" : 0.7562578916549683
+        },
+        {
+          "chunk_ordinal" : 73,
+          "chunk_type" : "chunk",
+          "distance" : 0.24416190385818481,
+          "line_end" : 853,
+          "line_start" : 843,
+          "score" : 0.7558380961418152
+        },
+        {
+          "chunk_ordinal" : 56,
+          "chunk_type" : "chunk",
+          "distance" : 0.24690169095993042,
+          "line_end" : 669,
+          "line_start" : 659,
+          "score" : 0.7530983090400696
+        },
+        {
+          "chunk_ordinal" : 50,
+          "chunk_type" : "chunk",
+          "distance" : 0.2472769021987915,
+          "line_end" : 600,
+          "line_start" : 590,
+          "score" : 0.7527230978012085
+        },
+        {
+          "chunk_ordinal" : 57,
+          "chunk_type" : "chunk",
+          "distance" : 0.2473149299621582,
+          "line_end" : 680,
+          "line_start" : 670,
+          "score" : 0.7526850700378418
+        },
+        {
+          "chunk_ordinal" : 58,
+          "chunk_type" : "chunk",
+          "distance" : 0.24746990203857422,
+          "line_end" : 691,
+          "line_start" : 681,
+          "score" : 0.7525300979614258
+        },
+        {
+          "chunk_ordinal" : 63,
+          "chunk_type" : "chunk",
+          "distance" : 0.24789267778396606,
+          "line_end" : 747,
+          "line_start" : 737,
+          "score" : 0.7521073222160339
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.24840492010116577,
+          "line_end" : 43,
+          "line_start" : 32,
+          "score" : 0.7515950798988342
+        },
+        {
+          "chunk_ordinal" : 15,
+          "chunk_type" : "chunk",
+          "distance" : 0.2500120997428894,
+          "line_end" : 187,
+          "line_start" : 176,
+          "score" : 0.7499879002571106
+        },
+        {
+          "chunk_ordinal" : 33,
+          "chunk_type" : "chunk",
+          "distance" : 0.251714289188385,
+          "line_end" : 402,
+          "line_start" : 391,
+          "score" : 0.748285710811615
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7756574749946594,
+      "file" : "YouTube/__h_aNi5UeY.localized/content.md",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.22434252500534058,
+          "line_end" : 57,
+          "line_start" : 53,
+          "score" : 0.7756574749946594
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.238347589969635,
+          "line_end" : 30,
+          "line_start" : 1,
+          "score" : 0.761652410030365
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.761786937713623,
+      "file" : "YouTube/__4ZMGgQqKE.localized/content.md",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.23821306228637695,
+          "line_end" : 114,
+          "line_start" : 106,
+          "score" : 0.761786937713623
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.24127548933029175,
+          "line_end" : 137,
+          "line_start" : 130,
+          "score" : 0.7587245106697083
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.24886220693588257,
+          "line_end" : 81,
+          "line_start" : 74,
+          "score" : 0.7511377930641174
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.755456805229187,
+      "file" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.244543194770813,
+          "line_end" : 68,
+          "line_start" : 54,
+          "score" : 0.755456805229187
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.754044771194458,
+      "file" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1571,
+          "chunk_type" : "chunk",
+          "distance" : 0.245955228805542,
+          "line_end" : 19607,
+          "line_start" : 19586,
+          "score" : 0.754044771194458
+        },
+        {
+          "chunk_ordinal" : 599,
+          "chunk_type" : "chunk",
+          "distance" : 0.24680185317993164,
+          "line_end" : 9120,
+          "line_start" : 9116,
+          "score" : 0.7531981468200684
+        },
+        {
+          "chunk_ordinal" : 1356,
+          "chunk_type" : "chunk",
+          "distance" : 0.25227218866348267,
+          "line_end" : 17587,
+          "line_start" : 17587,
+          "score" : 0.7477278113365173
+        }
+      ],
+      "rank" : 5
+    }
+  ],
+  "hit_at_1" : false,
+  "hit_at_3" : false,
+  "hit_at_5" : false,
+  "id" : "q11",
+  "is_no_answer" : true,
+  "overfetch_distinct_files" : 5,
+  "reciprocal_rank" : 0,
+  "relevant_files" : [
+
+  ],
+  "search_seconds" : 0.098512084,
+  "text" : "sourdough bread starter hydration ratio"
+}

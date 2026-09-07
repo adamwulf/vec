@@ -1,0 +1,11 @@
+# E10 harness: never commit corpus snapshots or throwaway databases.
+# The archive JSON (frozen-input-manifest.json, comparison.json,
+# summary.md, arm-summary.json, q*.json) IS committable — corpus bodies
+# are not. These patterns guard against an operator accidentally pointing
+# scratch output inside the experiment directory.
+snapshot/
+**/snapshot/
+db-*/
+**/db-*/
+__pycache__/
+.DS_Store

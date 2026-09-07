@@ -1,0 +1,301 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "no-answer",
+    "adjacent-tech"
+  ],
+  "groups" : [
+    {
+      "best_score" : 0.7655200362205505,
+      "file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "match_count" : 21,
+      "matches" : [
+        {
+          "chunk_ordinal" : 33,
+          "chunk_type" : "chunk",
+          "distance" : 0.23447996377944946,
+          "line_end" : 402,
+          "line_start" : 391,
+          "score" : 0.7655200362205505
+        },
+        {
+          "chunk_ordinal" : 49,
+          "chunk_type" : "chunk",
+          "distance" : 0.2357616424560547,
+          "line_end" : 589,
+          "line_start" : 579,
+          "score" : 0.7642383575439453
+        },
+        {
+          "chunk_ordinal" : 46,
+          "chunk_type" : "chunk",
+          "distance" : 0.2373301386833191,
+          "line_end" : 555,
+          "line_start" : 545,
+          "score" : 0.7626698613166809
+        },
+        {
+          "chunk_ordinal" : 63,
+          "chunk_type" : "chunk",
+          "distance" : 0.23933148384094238,
+          "line_end" : 747,
+          "line_start" : 737,
+          "score" : 0.7606685161590576
+        },
+        {
+          "chunk_ordinal" : 58,
+          "chunk_type" : "chunk",
+          "distance" : 0.23972666263580322,
+          "line_end" : 691,
+          "line_start" : 681,
+          "score" : 0.7602733373641968
+        },
+        {
+          "chunk_ordinal" : 67,
+          "chunk_type" : "chunk",
+          "distance" : 0.23997455835342407,
+          "line_end" : 794,
+          "line_start" : 783,
+          "score" : 0.7600254416465759
+        },
+        {
+          "chunk_ordinal" : 55,
+          "chunk_type" : "chunk",
+          "distance" : 0.24074435234069824,
+          "line_end" : 658,
+          "line_start" : 648,
+          "score" : 0.7592556476593018
+        },
+        {
+          "chunk_ordinal" : 48,
+          "chunk_type" : "chunk",
+          "distance" : 0.24124586582183838,
+          "line_end" : 578,
+          "line_start" : 568,
+          "score" : 0.7587541341781616
+        },
+        {
+          "chunk_ordinal" : 56,
+          "chunk_type" : "chunk",
+          "distance" : 0.24244576692581177,
+          "line_end" : 669,
+          "line_start" : 659,
+          "score" : 0.7575542330741882
+        },
+        {
+          "chunk_ordinal" : 59,
+          "chunk_type" : "chunk",
+          "distance" : 0.24297863245010376,
+          "line_end" : 702,
+          "line_start" : 692,
+          "score" : 0.7570213675498962
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.24306243658065796,
+          "line_end" : 30,
+          "line_start" : 1,
+          "score" : 0.756937563419342
+        },
+        {
+          "chunk_ordinal" : 50,
+          "chunk_type" : "chunk",
+          "distance" : 0.24395328760147095,
+          "line_end" : 600,
+          "line_start" : 590,
+          "score" : 0.756046712398529
+        },
+        {
+          "chunk_ordinal" : 39,
+          "chunk_type" : "chunk",
+          "distance" : 0.2439555525779724,
+          "line_end" : 472,
+          "line_start" : 462,
+          "score" : 0.7560444474220276
+        },
+        {
+          "chunk_ordinal" : 71,
+          "chunk_type" : "chunk",
+          "distance" : 0.24396681785583496,
+          "line_end" : 831,
+          "line_start" : 820,
+          "score" : 0.756033182144165
+        },
+        {
+          "chunk_ordinal" : 77,
+          "chunk_type" : "chunk",
+          "distance" : 0.244440495967865,
+          "line_end" : 899,
+          "line_start" : 888,
+          "score" : 0.755559504032135
+        },
+        {
+          "chunk_ordinal" : 41,
+          "chunk_type" : "chunk",
+          "distance" : 0.24652624130249023,
+          "line_end" : 495,
+          "line_start" : 485,
+          "score" : 0.7534737586975098
+        },
+        {
+          "chunk_ordinal" : 65,
+          "chunk_type" : "chunk",
+          "distance" : 0.2480793595314026,
+          "line_end" : 770,
+          "line_start" : 760,
+          "score" : 0.7519206404685974
+        },
+        {
+          "chunk_ordinal" : 61,
+          "chunk_type" : "chunk",
+          "distance" : 0.2481745481491089,
+          "line_end" : 724,
+          "line_start" : 714,
+          "score" : 0.7518254518508911
+        },
+        {
+          "chunk_ordinal" : 70,
+          "chunk_type" : "chunk",
+          "distance" : 0.2489740252494812,
+          "line_end" : 819,
+          "line_start" : 809,
+          "score" : 0.7510259747505188
+        },
+        {
+          "chunk_ordinal" : 26,
+          "chunk_type" : "chunk",
+          "distance" : 0.24979305267333984,
+          "line_end" : 318,
+          "line_start" : 308,
+          "score" : 0.7502069473266602
+        },
+        {
+          "chunk_ordinal" : 60,
+          "chunk_type" : "chunk",
+          "distance" : 0.2511768937110901,
+          "line_end" : 713,
+          "line_start" : 703,
+          "score" : 0.7488231062889099
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7585543394088745,
+      "file" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2414456605911255,
+          "line_end" : 68,
+          "line_start" : 54,
+          "score" : 0.7585543394088745
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2483847737312317,
+          "line_end" : 51,
+          "line_start" : 28,
+          "score" : 0.7516152262687683
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.25109344720840454,
+          "line_end" : 87,
+          "line_start" : 85,
+          "score" : 0.7489065527915955
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7563183307647705,
+      "file" : "Notion/000fceb0-cc8c-4e17-b0eb-18df5026ff25.localized/content.md",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.2436816692352295,
+          "line_end" : 41,
+          "line_start" : 26,
+          "score" : 0.7563183307647705
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.25387316942214966,
+          "line_end" : 24,
+          "line_start" : 1,
+          "score" : 0.7461268305778503
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7549387812614441,
+      "file" : "Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/content.md",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.2450612187385559,
+          "line_end" : 38,
+          "line_start" : 33,
+          "score" : 0.7549387812614441
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.25274068117141724,
+          "line_end" : 50,
+          "line_start" : 40,
+          "score" : 0.7472593188285828
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7489405274391174,
+      "file" : "YouTube/__h_aNi5UeY.localized/content.md",
+      "match_count" : 2,
+      "matches" : [
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.25105947256088257,
+          "line_end" : 57,
+          "line_start" : 53,
+          "score" : 0.7489405274391174
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.2541002631187439,
+          "line_end" : 30,
+          "line_start" : 1,
+          "score" : 0.7458997368812561
+        }
+      ],
+      "rank" : 5
+    }
+  ],
+  "hit_at_1" : false,
+  "hit_at_3" : false,
+  "hit_at_5" : false,
+  "id" : "q12",
+  "is_no_answer" : true,
+  "overfetch_distinct_files" : 5,
+  "reciprocal_rank" : 0,
+  "relevant_files" : [
+
+  ],
+  "search_seconds" : 0.111099875,
+  "text" : "set up a Kubernetes ingress controller with TLS termination"
+}

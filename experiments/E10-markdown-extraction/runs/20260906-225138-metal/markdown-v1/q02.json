@@ -1,0 +1,300 @@
+{
+  "arm" : "markdown-v1",
+  "categories" : [
+    "item-coverage",
+    "deep-detail",
+    "exact-term",
+    "large-file-passage"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8462663888931274,
+      "file" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md",
+      "match_count" : 29,
+      "matches" : [
+        {
+          "chunk_ordinal" : 52,
+          "chunk_type" : "chunk",
+          "distance" : 0.15373361110687256,
+          "line_end" : 805,
+          "line_start" : 801,
+          "score" : 0.8462663888931274
+        },
+        {
+          "chunk_ordinal" : 996,
+          "chunk_type" : "chunk",
+          "distance" : 0.15632063150405884,
+          "line_end" : 13879,
+          "line_start" : 13879,
+          "score" : 0.8436793684959412
+        },
+        {
+          "chunk_ordinal" : 993,
+          "chunk_type" : "chunk",
+          "distance" : 0.16206061840057373,
+          "line_end" : 13853,
+          "line_start" : 13852,
+          "score" : 0.8379393815994263
+        },
+        {
+          "chunk_ordinal" : 991,
+          "chunk_type" : "chunk",
+          "distance" : 0.162395179271698,
+          "line_end" : 13825,
+          "line_start" : 13824,
+          "score" : 0.837604820728302
+        },
+        {
+          "chunk_ordinal" : 1923,
+          "chunk_type" : "chunk",
+          "distance" : 0.16321611404418945,
+          "line_end" : 23867,
+          "line_start" : 23867,
+          "score" : 0.8367838859558105
+        },
+        {
+          "chunk_ordinal" : 1931,
+          "chunk_type" : "chunk",
+          "distance" : 0.16398370265960693,
+          "line_end" : 23919,
+          "line_start" : 23919,
+          "score" : 0.8360162973403931
+        },
+        {
+          "chunk_ordinal" : 125,
+          "chunk_type" : "chunk",
+          "distance" : 0.16486626863479614,
+          "line_end" : 1969,
+          "line_start" : 1966,
+          "score" : 0.8351337313652039
+        },
+        {
+          "chunk_ordinal" : 1000,
+          "chunk_type" : "chunk",
+          "distance" : 0.16600161790847778,
+          "line_end" : 13905,
+          "line_start" : 13905,
+          "score" : 0.8339983820915222
+        },
+        {
+          "chunk_ordinal" : 1919,
+          "chunk_type" : "chunk",
+          "distance" : 0.16818922758102417,
+          "line_end" : 23841,
+          "line_start" : 23841,
+          "score" : 0.8318107724189758
+        },
+        {
+          "chunk_ordinal" : 1927,
+          "chunk_type" : "chunk",
+          "distance" : 0.1684783697128296,
+          "line_end" : 23893,
+          "line_start" : 23893,
+          "score" : 0.8315216302871704
+        },
+        {
+          "chunk_ordinal" : 1164,
+          "chunk_type" : "chunk",
+          "distance" : 0.1711338758468628,
+          "line_end" : 15638,
+          "line_start" : 15634,
+          "score" : 0.8288661241531372
+        },
+        {
+          "chunk_ordinal" : 1106,
+          "chunk_type" : "chunk",
+          "distance" : 0.17139476537704468,
+          "line_end" : 15017,
+          "line_start" : 15017,
+          "score" : 0.8286052346229553
+        },
+        {
+          "chunk_ordinal" : 266,
+          "chunk_type" : "chunk",
+          "distance" : 0.1724163293838501,
+          "line_end" : 4287,
+          "line_start" : 4282,
+          "score" : 0.8275836706161499
+        },
+        {
+          "chunk_ordinal" : 2409,
+          "chunk_type" : "chunk",
+          "distance" : 0.17604494094848633,
+          "line_end" : 30760,
+          "line_start" : 30756,
+          "score" : 0.8239550590515137
+        },
+        {
+          "chunk_ordinal" : 938,
+          "chunk_type" : "chunk",
+          "distance" : 0.17681783437728882,
+          "line_end" : 13319,
+          "line_start" : 13318,
+          "score" : 0.8231821656227112
+        },
+        {
+          "chunk_ordinal" : 452,
+          "chunk_type" : "chunk",
+          "distance" : 0.17775744199752808,
+          "line_end" : 7199,
+          "line_start" : 7196,
+          "score" : 0.8222425580024719
+        },
+        {
+          "chunk_ordinal" : 1935,
+          "chunk_type" : "chunk",
+          "distance" : 0.1779921054840088,
+          "line_end" : 23946,
+          "line_start" : 23946,
+          "score" : 0.8220078945159912
+        },
+        {
+          "chunk_ordinal" : 1206,
+          "chunk_type" : "chunk",
+          "distance" : 0.17811822891235352,
+          "line_end" : 16162,
+          "line_start" : 16162,
+          "score" : 0.8218817710876465
+        },
+        {
+          "chunk_ordinal" : 1567,
+          "chunk_type" : "chunk",
+          "distance" : 0.17817485332489014,
+          "line_end" : 19713,
+          "line_start" : 19712,
+          "score" : 0.8218251466751099
+        },
+        {
+          "chunk_ordinal" : 1597,
+          "chunk_type" : "chunk",
+          "distance" : 0.1791139841079712,
+          "line_end" : 20116,
+          "line_start" : 20116,
+          "score" : 0.8208860158920288
+        },
+        {
+          "chunk_ordinal" : 1611,
+          "chunk_type" : "chunk",
+          "distance" : 0.17912709712982178,
+          "line_end" : 20249,
+          "line_start" : 20248,
+          "score" : 0.8208729028701782
+        },
+        {
+          "chunk_ordinal" : 1160,
+          "chunk_type" : "chunk",
+          "distance" : 0.18044787645339966,
+          "line_end" : 15563,
+          "line_start" : 15556,
+          "score" : 0.8195521235466003
+        },
+        {
+          "chunk_ordinal" : 55,
+          "chunk_type" : "chunk",
+          "distance" : 0.1818690299987793,
+          "line_end" : 845,
+          "line_start" : 825,
+          "score" : 0.8181309700012207
+        },
+        {
+          "chunk_ordinal" : 1298,
+          "chunk_type" : "chunk",
+          "distance" : 0.18249255418777466,
+          "line_end" : 17100,
+          "line_start" : 17100,
+          "score" : 0.8175074458122253
+        },
+        {
+          "chunk_ordinal" : 953,
+          "chunk_type" : "chunk",
+          "distance" : 0.18365639448165894,
+          "line_end" : 13450,
+          "line_start" : 13450,
+          "score" : 0.8163436055183411
+        },
+        {
+          "chunk_ordinal" : 442,
+          "chunk_type" : "chunk",
+          "distance" : 0.18403369188308716,
+          "line_end" : 7078,
+          "line_start" : 7073,
+          "score" : 0.8159663081169128
+        },
+        {
+          "chunk_ordinal" : 1743,
+          "chunk_type" : "chunk",
+          "distance" : 0.18415993452072144,
+          "line_end" : 21761,
+          "line_start" : 21757,
+          "score" : 0.8158400654792786
+        },
+        {
+          "chunk_ordinal" : 1944,
+          "chunk_type" : "chunk",
+          "distance" : 0.1847667694091797,
+          "line_end" : 24024,
+          "line_start" : 24023,
+          "score" : 0.8152332305908203
+        },
+        {
+          "chunk_ordinal" : 2298,
+          "chunk_type" : "chunk",
+          "distance" : 0.18502521514892578,
+          "line_end" : 28860,
+          "line_start" : 28853,
+          "score" : 0.8149747848510742
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.819882333278656,
+      "file" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.180117666721344,
+          "line_end" : 56,
+          "line_start" : 39,
+          "score" : 0.819882333278656
+        }
+      ],
+      "rank" : 2
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q02",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 2,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8462663888931274,
+    "chunk_ordinal" : 52,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "American Patriot 3%"
+      }
+    ],
+    "distance" : 0.15373361110687256,
+    "file_rank" : 1,
+    "input_chars" : 1085,
+    "line_end" : 805,
+    "line_start" : 801
+  },
+  "primary_file" : "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/riot-data.md"
+  ],
+  "search_seconds" : 0.129638459,
+  "text" : "January 6 defendants affiliated with the American Patriot 3% anti-government militia"
+}

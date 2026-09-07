@@ -206,6 +206,6 @@ private struct LineIndex {
 
     private func lineNumber(at index: String.Index) -> Int {
         let prefix = text[text.startIndex..<index]
-        return prefix.reduce(1) { count, ch in ch == "\n" ? count + 1 : count }
+        return prefix.unicodeScalars.reduce(1) { count, ch in ch == "\n" ? count + 1 : count }
     }
 }

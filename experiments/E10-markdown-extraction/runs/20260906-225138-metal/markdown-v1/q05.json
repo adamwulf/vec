@@ -1,0 +1,297 @@
+{
+  "arm" : "markdown-v1",
+  "categories" : [
+    "item-coverage",
+    "deep-transcript-detail",
+    "exact-term"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8542682528495789,
+      "file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "match_count" : 30,
+      "matches" : [
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.14573174715042114,
+          "line_end" : 244,
+          "line_start" : 219,
+          "score" : 0.8542682528495789
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.14877212047576904,
+          "line_end" : 30,
+          "line_start" : 1,
+          "score" : 0.851227879524231
+        },
+        {
+          "chunk_ordinal" : 34,
+          "chunk_type" : "chunk",
+          "distance" : 0.1495659351348877,
+          "line_end" : 848,
+          "line_start" : 823,
+          "score" : 0.8504340648651123
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.1503726840019226,
+          "line_end" : 137,
+          "line_start" : 111,
+          "score" : 0.8496273159980774
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.15430331230163574,
+          "line_end" : 58,
+          "line_start" : 32,
+          "score" : 0.8456966876983643
+        },
+        {
+          "chunk_ordinal" : 5,
+          "chunk_type" : "chunk",
+          "distance" : 0.16000604629516602,
+          "line_end" : 110,
+          "line_start" : 85,
+          "score" : 0.839993953704834
+        },
+        {
+          "chunk_ordinal" : 22,
+          "chunk_type" : "chunk",
+          "distance" : 0.16316944360733032,
+          "line_end" : 562,
+          "line_start" : 537,
+          "score" : 0.8368305563926697
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.16472864151000977,
+          "line_end" : 351,
+          "line_start" : 325,
+          "score" : 0.8352713584899902
+        },
+        {
+          "chunk_ordinal" : 29,
+          "chunk_type" : "chunk",
+          "distance" : 0.16721010208129883,
+          "line_end" : 740,
+          "line_start" : 715,
+          "score" : 0.8327898979187012
+        },
+        {
+          "chunk_ordinal" : 36,
+          "chunk_type" : "chunk",
+          "distance" : 0.16820019483566284,
+          "line_end" : 900,
+          "line_start" : 874,
+          "score" : 0.8317998051643372
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.1686028242111206,
+          "line_end" : 164,
+          "line_start" : 138,
+          "score" : 0.8313971757888794
+        },
+        {
+          "chunk_ordinal" : 25,
+          "chunk_type" : "chunk",
+          "distance" : 0.17148011922836304,
+          "line_end" : 638,
+          "line_start" : 613,
+          "score" : 0.828519880771637
+        },
+        {
+          "chunk_ordinal" : 13,
+          "chunk_type" : "chunk",
+          "distance" : 0.1730644702911377,
+          "line_end" : 324,
+          "line_start" : 299,
+          "score" : 0.8269355297088623
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.17520684003829956,
+          "line_end" : 298,
+          "line_start" : 273,
+          "score" : 0.8247931599617004
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.17635369300842285,
+          "line_end" : 403,
+          "line_start" : 378,
+          "score" : 0.8236463069915771
+        },
+        {
+          "chunk_ordinal" : 17,
+          "chunk_type" : "chunk",
+          "distance" : 0.17795753479003906,
+          "line_end" : 429,
+          "line_start" : 404,
+          "score" : 0.8220424652099609
+        },
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.1786687970161438,
+          "line_end" : 192,
+          "line_start" : 165,
+          "score" : 0.8213312029838562
+        },
+        {
+          "chunk_ordinal" : 21,
+          "chunk_type" : "chunk",
+          "distance" : 0.17899078130722046,
+          "line_end" : 536,
+          "line_start" : 508,
+          "score" : 0.8210092186927795
+        },
+        {
+          "chunk_ordinal" : 11,
+          "chunk_type" : "chunk",
+          "distance" : 0.1803596019744873,
+          "line_end" : 272,
+          "line_start" : 245,
+          "score" : 0.8196403980255127
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.18088704347610474,
+          "line_end" : 84,
+          "line_start" : 59,
+          "score" : 0.8191129565238953
+        },
+        {
+          "chunk_ordinal" : 26,
+          "chunk_type" : "chunk",
+          "distance" : 0.18298089504241943,
+          "line_end" : 664,
+          "line_start" : 639,
+          "score" : 0.8170191049575806
+        },
+        {
+          "chunk_ordinal" : 18,
+          "chunk_type" : "chunk",
+          "distance" : 0.18365442752838135,
+          "line_end" : 455,
+          "line_start" : 430,
+          "score" : 0.8163455724716187
+        },
+        {
+          "chunk_ordinal" : 19,
+          "chunk_type" : "chunk",
+          "distance" : 0.18467837572097778,
+          "line_end" : 481,
+          "line_start" : 456,
+          "score" : 0.8153216242790222
+        },
+        {
+          "chunk_ordinal" : 15,
+          "chunk_type" : "chunk",
+          "distance" : 0.18979507684707642,
+          "line_end" : 377,
+          "line_start" : 352,
+          "score" : 0.8102049231529236
+        },
+        {
+          "chunk_ordinal" : 35,
+          "chunk_type" : "chunk",
+          "distance" : 0.19016891717910767,
+          "line_end" : 873,
+          "line_start" : 849,
+          "score" : 0.8098310828208923
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.1930476427078247,
+          "line_end" : 218,
+          "line_start" : 193,
+          "score" : 0.8069523572921753
+        },
+        {
+          "chunk_ordinal" : 28,
+          "chunk_type" : "chunk",
+          "distance" : 0.19511353969573975,
+          "line_end" : 714,
+          "line_start" : 690,
+          "score" : 0.8048864603042603
+        },
+        {
+          "chunk_ordinal" : 23,
+          "chunk_type" : "chunk",
+          "distance" : 0.19666635990142822,
+          "line_end" : 587,
+          "line_start" : 563,
+          "score" : 0.8033336400985718
+        },
+        {
+          "chunk_ordinal" : 20,
+          "chunk_type" : "chunk",
+          "distance" : 0.19709831476211548,
+          "line_end" : 507,
+          "line_start" : 482,
+          "score" : 0.8029016852378845
+        },
+        {
+          "chunk_ordinal" : 27,
+          "chunk_type" : "chunk",
+          "distance" : 0.19945305585861206,
+          "line_end" : 689,
+          "line_start" : 665,
+          "score" : 0.8005469441413879
+        }
+      ],
+      "rank" : 1
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q05",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 1,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8542682528495789,
+    "chunk_ordinal" : 10,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "high-speed steel"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "bench grinder"
+      }
+    ],
+    "distance" : 0.14573174715042114,
+    "file_rank" : 1,
+    "input_chars" : 1186,
+    "line_end" : 244,
+    "line_start" : 219
+  },
+  "primary_file" : "YouTube/__A2xtLF0AU.localized/content.md",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "YouTube/__A2xtLF0AU.localized/content.md"
+  ],
+  "search_seconds" : 0.109723583,
+  "text" : "grinding your own high-speed steel lathe tool bits on a bench grinder"
+}

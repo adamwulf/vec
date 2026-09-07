@@ -1,0 +1,22 @@
+XCTest execution excerpt; compiler warnings omitted.
+
+Test Suite 'Selected tests' started at 2026-09-06 17:51:38.153.
+Test Suite 'vecPackageTests.xctest' started at 2026-09-06 17:51:38.155.
+Test Suite 'MarkdownRetrievalExperimentTests' started at 2026-09-06 17:51:38.155.
+Test Case '-[VecKitTests.MarkdownRetrievalExperimentTests testMarkdownExtractionRetrievalBenchmark]' started.
+[e10] output/archive directory: /private/tmp/vec-e10-run-20260906-metal
+[e10] preflight OK: 2 arms, 15 queries
+[e10] froze 9 Markdown file(s)
+[e10] freeze complete — run_identity=86bd27eb0be805d0bf81929c056aa76bbc92a3477d6b287cba9491b0bc160d6f. Ranking begins now.
+[e10] === arm 'raw' (textExtraction=raw) ===
+[e10] arm raw: indexed=9/9 chunks=3093 index=665.95s extract=108.11s embedSpan=1787.20s db=0.09s rss=5940 MB
+[e10] === arm 'markdown-v1' (textExtraction=markdown-v1) ===
+[e10] arm markdown-v1: indexed=9/9 chunks=2973 index=667.02s extract=63.55s embedSpan=1655.30s db=0.10s rss=4817 MB
+[e10] done. Archive at /private/tmp/vec-e10-run-20260906-metal
+Test Case '-[VecKitTests.MarkdownRetrievalExperimentTests testMarkdownExtractionRetrievalBenchmark]' passed (1463.385 seconds).
+Test Suite 'MarkdownRetrievalExperimentTests' passed at 2026-09-06 18:16:01.541.
+	 Executed 1 test, with 0 failures (0 unexpected) in 1463.385 (1463.386) seconds
+Test Suite 'vecPackageTests.xctest' passed at 2026-09-06 18:16:01.541.
+	 Executed 1 test, with 0 failures (0 unexpected) in 1463.385 (1463.386) seconds
+Test Suite 'Selected tests' passed at 2026-09-06 18:16:01.541.
+	 Executed 1 test, with 0 failures (0 unexpected) in 1463.385 (1463.388) seconds

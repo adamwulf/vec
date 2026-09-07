@@ -112,6 +112,10 @@ if the cross-corpus ranking diverges, the default may revisit. See
 
 All shipped on the current branch, in rough chronological order.
 
+### E10 — Opt-in Markdown extraction (2026-09-06)
+
+Parser-backed link/image destination removal now runs before chunking with `--text-extraction markdown-v1`. The database persists and inherits the mode; raw remains the default. The fixed E5 comparison indexed nine Markdown files in both arms: correct file at rank 1 for 12/12 queries in both; advisory passage checks improved 6/12 → 8/12, and transcript chunks fell 163 → 78. No measured file-accuracy or indexing-speed gain; keep opt-in and expand the evaluation before changing defaults. [Report](experiments/E10-markdown-extraction/report.md) · [Plan](experiments/E10-markdown-extraction/plan.md) · [Results](experiments/E10-markdown-extraction/runs/20260906-225138-metal/summary.md).
+
 ### E9 — mtime round-trip + zero-chunk re-extract (2026-05-05)
 
 Fixed a no-op-`update-index` bug: every back-to-back run on

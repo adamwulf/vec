@@ -39,9 +39,18 @@ public actor E5BaseEmbedder: Embedder {
 
     private var bundle: Bert.ModelBundle?
     private let computePolicy: MLComputePolicy?
+    private let modelDirectory: URL?
 
     public init(computePolicy: MLComputePolicy? = nil) {
         self.computePolicy = computePolicy
+        self.modelDirectory = nil
+    }
+
+    /// Test/experiment seam for a pinned local E5 snapshot. Uses the same
+    /// loader and inference path without downloading to the user's cache.
+    init(modelDirectory: URL, computePolicy: MLComputePolicy? = nil) {
+        self.computePolicy = computePolicy
+        self.modelDirectory = modelDirectory
     }
 
     public func embedDocument(_ text: String) async throws -> [Float] {
@@ -147,9 +156,12 @@ public actor E5BaseEmbedder: Embedder {
 
     private func loadBundleIfNeeded() async throws -> Bert.ModelBundle {
         if let bundle { return bundle }
-        let loaded = try await Bert.loadModelBundle(
-            from: "intfloat/e5-base-v2"
-        )
+        let loaded: Bert.ModelBundle
+        if let modelDirectory {
+            loaded = try await Bert.loadModelBundle(from: modelDirectory)
+        } else {
+            loaded = try await Bert.loadModelBundle(from: "intfloat/e5-base-v2")
+        }
         self.bundle = loaded
         return loaded
     }

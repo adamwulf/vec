@@ -1,0 +1,320 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "item-coverage",
+    "deep-transcript-detail"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8531200885772705,
+      "file" : "YouTube/__h_aNi5UeY.localized/content.md",
+      "match_count" : 14,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "chunk",
+          "distance" : 0.1468799114227295,
+          "line_end" : 30,
+          "line_start" : 1,
+          "score" : 0.8531200885772705
+        },
+        {
+          "chunk_ordinal" : 68,
+          "chunk_type" : "chunk",
+          "distance" : 0.1675524115562439,
+          "line_end" : 820,
+          "line_start" : 817,
+          "score" : 0.8324475884437561
+        },
+        {
+          "chunk_ordinal" : 67,
+          "chunk_type" : "chunk",
+          "distance" : 0.1823863983154297,
+          "line_end" : 816,
+          "line_start" : 806,
+          "score" : 0.8176136016845703
+        },
+        {
+          "chunk_ordinal" : 61,
+          "chunk_type" : "chunk",
+          "distance" : 0.19366449117660522,
+          "line_end" : 745,
+          "line_start" : 734,
+          "score" : 0.8063355088233948
+        },
+        {
+          "chunk_ordinal" : 55,
+          "chunk_type" : "chunk",
+          "distance" : 0.19403159618377686,
+          "line_end" : 670,
+          "line_start" : 660,
+          "score" : 0.8059684038162231
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.20156973600387573,
+          "line_end" : 51,
+          "line_start" : 32,
+          "score" : 0.7984302639961243
+        },
+        {
+          "chunk_ordinal" : 52,
+          "chunk_type" : "chunk",
+          "distance" : 0.207166850566864,
+          "line_end" : 635,
+          "line_start" : 625,
+          "score" : 0.792833149433136
+        },
+        {
+          "chunk_ordinal" : 50,
+          "chunk_type" : "chunk",
+          "distance" : 0.20882022380828857,
+          "line_end" : 612,
+          "line_start" : 602,
+          "score" : 0.7911797761917114
+        },
+        {
+          "chunk_ordinal" : 48,
+          "chunk_type" : "chunk",
+          "distance" : 0.20927411317825317,
+          "line_end" : 589,
+          "line_start" : 579,
+          "score" : 0.7907258868217468
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.21006852388381958,
+          "line_end" : 203,
+          "line_start" : 192,
+          "score" : 0.7899314761161804
+        },
+        {
+          "chunk_ordinal" : 57,
+          "chunk_type" : "chunk",
+          "distance" : 0.21205252408981323,
+          "line_end" : 694,
+          "line_start" : 683,
+          "score" : 0.7879474759101868
+        },
+        {
+          "chunk_ordinal" : 28,
+          "chunk_type" : "chunk",
+          "distance" : 0.21783608198165894,
+          "line_end" : 347,
+          "line_start" : 336,
+          "score" : 0.7821639180183411
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.21944767236709595,
+          "line_end" : 155,
+          "line_start" : 144,
+          "score" : 0.780552327632904
+        },
+        {
+          "chunk_ordinal" : 46,
+          "chunk_type" : "chunk",
+          "distance" : 0.21981769800186157,
+          "line_end" : 566,
+          "line_start" : 555,
+          "score" : 0.7801823019981384
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.8139740824699402,
+      "file" : "YouTube/__4ZMGgQqKE.localized/content.md",
+      "match_count" : 11,
+      "matches" : [
+        {
+          "chunk_ordinal" : 8,
+          "chunk_type" : "chunk",
+          "distance" : 0.18602591753005981,
+          "line_end" : 73,
+          "line_start" : 66,
+          "score" : 0.8139740824699402
+        },
+        {
+          "chunk_ordinal" : 7,
+          "chunk_type" : "chunk",
+          "distance" : 0.18605363368988037,
+          "line_end" : 65,
+          "line_start" : 59,
+          "score" : 0.8139463663101196
+        },
+        {
+          "chunk_ordinal" : 12,
+          "chunk_type" : "chunk",
+          "distance" : 0.18742096424102783,
+          "line_end" : 105,
+          "line_start" : 98,
+          "score" : 0.8125790357589722
+        },
+        {
+          "chunk_ordinal" : 4,
+          "chunk_type" : "chunk",
+          "distance" : 0.1976562738418579,
+          "line_end" : 44,
+          "line_start" : 37,
+          "score" : 0.8023437261581421
+        },
+        {
+          "chunk_ordinal" : 14,
+          "chunk_type" : "chunk",
+          "distance" : 0.20153367519378662,
+          "line_end" : 121,
+          "line_start" : 115,
+          "score" : 0.7984663248062134
+        },
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.20606940984725952,
+          "line_end" : 58,
+          "line_start" : 52,
+          "score" : 0.7939305901527405
+        },
+        {
+          "chunk_ordinal" : 10,
+          "chunk_type" : "chunk",
+          "distance" : 0.2061774730682373,
+          "line_end" : 89,
+          "line_start" : 82,
+          "score" : 0.7938225269317627
+        },
+        {
+          "chunk_ordinal" : 16,
+          "chunk_type" : "chunk",
+          "distance" : 0.20851045846939087,
+          "line_end" : 137,
+          "line_start" : 130,
+          "score" : 0.7914895415306091
+        },
+        {
+          "chunk_ordinal" : 9,
+          "chunk_type" : "chunk",
+          "distance" : 0.20868879556655884,
+          "line_end" : 81,
+          "line_start" : 74,
+          "score" : 0.7913112044334412
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "chunk",
+          "distance" : 0.20903116464614868,
+          "line_end" : 35,
+          "line_start" : 33,
+          "score" : 0.7909688353538513
+        },
+        {
+          "chunk_ordinal" : 15,
+          "chunk_type" : "chunk",
+          "distance" : 0.21226835250854492,
+          "line_end" : 129,
+          "line_start" : 122,
+          "score" : 0.7877316474914551
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7867733836174011,
+      "file" : "YouTube/__A2xtLF0AU.localized/content.md",
+      "match_count" : 4,
+      "matches" : [
+        {
+          "chunk_ordinal" : 78,
+          "chunk_type" : "chunk",
+          "distance" : 0.21322661638259888,
+          "line_end" : 900,
+          "line_start" : 900,
+          "score" : 0.7867733836174011
+        },
+        {
+          "chunk_ordinal" : 15,
+          "chunk_type" : "chunk",
+          "distance" : 0.21562319993972778,
+          "line_end" : 187,
+          "line_start" : 176,
+          "score" : 0.7843768000602722
+        },
+        {
+          "chunk_ordinal" : 66,
+          "chunk_type" : "chunk",
+          "distance" : 0.21567177772521973,
+          "line_end" : 782,
+          "line_start" : 771,
+          "score" : 0.7843282222747803
+        },
+        {
+          "chunk_ordinal" : 72,
+          "chunk_type" : "chunk",
+          "distance" : 0.21960729360580444,
+          "line_end" : 842,
+          "line_start" : 832,
+          "score" : 0.7803927063941956
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7800882458686829,
+      "file" : "Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/content.md",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 6,
+          "chunk_type" : "chunk",
+          "distance" : 0.21991175413131714,
+          "line_end" : 87,
+          "line_start" : 85,
+          "score" : 0.7800882458686829
+        }
+      ],
+      "rank" : 4
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q04",
+  "is_no_answer" : false,
+  "overfetch_distinct_files" : 4,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.8531200885772705,
+    "chunk_ordinal" : 2,
+    "chunk_type" : "chunk",
+    "criteria" : [
+      {
+        "matched_in_pre_tokenizer_input" : true,
+        "matched_in_source_range" : true,
+        "type" : "contains",
+        "value" : "atmosphere"
+      },
+      {
+        "matched_in_pre_tokenizer_input" : false,
+        "matched_in_source_range" : false,
+        "type" : "contains",
+        "value" : "Thanksgiving"
+      }
+    ],
+    "distance" : 0.1468799114227295,
+    "file_rank" : 1,
+    "input_chars" : 1006,
+    "line_end" : 30,
+    "line_start" : 1
+  },
+  "primary_file" : "YouTube/__h_aNi5UeY.localized/content.md",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "YouTube/__h_aNi5UeY.localized/content.md"
+  ],
+  "search_seconds" : 0.120231166,
+  "text" : "Minecraft building episode about creating atmosphere after a Thanksgiving break"
+}
