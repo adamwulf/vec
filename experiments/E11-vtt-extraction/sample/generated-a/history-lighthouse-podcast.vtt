@@ -1,0 +1,203 @@
+WEBVTT - History — Gannet Rock lighthouse podcast (SYNTHETIC)
+
+NOTE
+SYNTHETIC caption fixture for the E11 WebVTT extraction experiment.
+Generated deterministically from sources/05-history-lighthouse-podcast.txt by generate.py.
+Topic: History — Gannet Rock lighthouse podcast. Not a real transcript; every name and claim is fictional.
+
+REGION
+id:beam
+width:50%
+lines:2
+regionanchor:100%,100%
+viewportanchor:85%,90%
+
+gr-001
+00:00.000 --> 00:04.050 align:center
+Welcome to Salt and Stone, the podcast about the
+
+gr-002
+00:04.300 --> 00:08.350 region:beam align:start
+lonely towers that kept sailors alive. Tonight's tower is
+
+gr-003
+00:08.600 --> 00:12.650
+Gannet&nbsp;Rock Light, a slim granite column that has
+
+gr-004
+00:12.900 --> 00:16.950 line:88% align:center
+stood on a bare tidal reef off a fictional
+
+gr-005
+00:17.200 --> 00:21.250 align:center
+stretch of the northern coast since the year eighteen
+
+gr-006
+00:21.500 --> 00:25.550 region:beam align:start
+fifty eight. If you have ever wondered what it
+
+NOTE a low musical sting plays under the narration
+
+gr-007
+00:25.800 --> 00:29.850
+took to keep a single flame burning through a
+
+gr-008
+00:30.100 --> 00:32.350 line:88% align:center
+winter gale, stay with me.
+
+gr-009
+00:37.850 --> 00:41.900 align:center
+Gannet&nbsp;Rock rises one hundred and twenty feet from
+
+gr-010
+00:42.150 --> 00:46.200 region:beam align:start
+a rock that vanishes completely at high tide. That
+
+gr-011
+00:46.450 --> 00:50.500
+height was not vanity. From the gallery at the
+
+gr-012
+00:50.750 --> 00:54.800 line:88% align:center
+top, the light throws its beam nearly twenty nautical
+
+gr-013
+00:55.050 --> 00:59.100 align:center
+miles out to sea, far enough to warn a
+
+gr-014
+00:59.350 --> 01:03.400 region:beam align:start
+ship long before the reef could tear open its
+
+gr-015
+01:03.650 --> 01:05.050
+hull.
+
+gr-016
+01:10.550 --> 01:14.600 line:88% align:center
+The real jewel of the tower was the lens.
+
+gr-017
+01:14.850 --> 01:18.900 align:center
+Gannet&nbsp;Rock was fitted with a first order <i>Fresnel</i>
+
+gr-018
+01:19.150 --> 01:23.200 region:beam align:start
+lens, a colossal beehive of glass standing taller than
+
+gr-019
+01:23.450 --> 01:27.500
+a person, assembled from over a thousand individually hand
+
+gr-020
+01:27.750 --> 01:31.800 line:88% align:center
+ground prisms. Each prism bends a stray sliver of
+
+gr-021
+01:32.050 --> 01:36.100 align:center
+lamplight and folds it into one concentrated, sweeping blade
+
+gr-022
+01:36.350 --> 01:40.400 region:beam align:start
+of light. A single oil flame, magnified this way,
+
+gr-023
+01:40.650 --> 01:43.800
+could be seen from the far horizon.
+
+gr-024
+01:49.300 --> 01:53.350 line:88% align:center
+Every lighthouse spoke in its own rhythm, so a
+
+gr-025
+01:53.600 --> 01:57.650 align:center
+captain could tell them apart in the dark. Gannet
+
+gr-026
+01:57.900 --> 02:01.950 region:beam align:start
+Rock's signature was two quick flashes every fifteen seconds,
+
+gr-027
+02:02.200 --> 02:06.250
+a pattern printed on every chart of that coast.
+
+gr-028
+02:06.500 --> 02:10.550 line:88% align:center
+Sailors did not just see a light, they read
+
+gr-029
+02:10.800 --> 02:14.850 align:center
+it, the way you would recognize a friend's knock
+
+gr-030
+02:15.100 --> 02:16.500 region:beam align:start
+at the door.
+
+gr-031
+02:22.000 --> 02:26.050
+For its first decades the light burned whale oil,
+
+gr-032
+02:26.300 --> 02:30.350 line:88% align:center
+and later kerosene, tended by a <i>keeper</i> who trimmed
+
+gr-033
+02:30.600 --> 02:34.650 align:center
+the wick through the night. Our records name a
+
+gr-034
+02:34.900 --> 02:38.950 region:beam align:start
+<i>keeper</i> called Ephraim Coyle, who supposedly kept the log
+
+gr-035
+02:39.200 --> 02:43.250
+for nineteen unbroken winters, hauling fuel up a spiral
+
+gr-036
+02:43.500 --> 02:45.300 line:88% align:center
+stair in the dark.
+
+gr-037
+02:50.800 --> 02:54.850 align:center
+When fog swallowed the beam, light was useless, so
+
+gr-038
+02:55.100 --> 02:59.150 region:beam align:start
+the station answered with sound. A great fog <i>horn</i>
+
+gr-039
+02:59.400 --> 03:03.450
+moaned across the water every ninety seconds, a mournful
+
+gr-040
+03:03.700 --> 03:07.750 line:88% align:center
+note that sailors said they felt in their chests
+
+gr-041
+03:08.000 --> 03:10.250 align:center
+before they ever heard it.
+
+gr-042
+03:15.750 --> 03:19.800 region:beam align:start
+Electricity finally reached the rock in nineteen thirty four,
+
+gr-043
+03:20.050 --> 03:24.100
+and the faithful oil lamp was retired. <i>Automation</i> came
+
+gr-044
+03:24.350 --> 03:28.400 line:88% align:center
+last, in nineteen eighty nine, when the final <i>keeper</i>
+
+gr-045
+03:28.650 --> 03:32.700 align:center
+rowed ashore for good and a machine took over
+
+gr-046
+03:32.950 --> 03:37.000 region:beam align:start
+the watch. The tower still flashes tonight, twice every
+
+gr-047
+03:37.250 --> 03:40.400
+fifteen seconds, talking to an empty sea.

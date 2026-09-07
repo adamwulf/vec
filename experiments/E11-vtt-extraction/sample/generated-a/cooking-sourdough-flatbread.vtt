@@ -1,0 +1,1110 @@
+WEBVTT - Cooking — sourdough flatbread demo (SYNTHETIC)
+
+NOTE
+SYNTHETIC caption fixture for the E11 WebVTT extraction experiment.
+Generated deterministically from sources/01-cooking-sourdough-flatbread.txt by generate.py.
+Topic: Cooking — sourdough flatbread demo. Not a real transcript; every name and claim is fictional.
+
+STYLE
+::cue { background: rgba(0,0,0,0.7); }
+::cue(.term) { color: #ffcf6b; font-style: italic; }
+
+1
+00:00:00.000 --> 00:00:02.600 align:start position:12%
+Welcome back to the <00:00:01.300> counter, everyone. Today I
+
+2
+00:00:01.400 --> 00:00:04.000 align:center
+counter, everyone. Today I <00:00:02.700> want to walk you
+
+3
+00:00:02.800 --> 00:00:05.400 align:end position:88% size:40%
+want to walk you <00:00:04.100> through the sourdough flatbread
+
+4
+00:00:04.200 --> 00:00:06.800
+through the sourdough flatbread <00:00:05.500> I make almost every
+
+5
+00:00:05.600 --> 00:00:08.200 line:90% align:center
+I make almost every <00:00:06.900> week, because it is
+
+6
+00:00:07.000 --> 00:00:09.600 align:start position:12%
+week, because it is <00:00:08.300> forgiving, it is fast
+
+7
+00:00:08.400 --> 00:00:11.000 align:center
+forgiving, it is fast <00:00:09.700> for a sourdough recipe,
+
+8
+00:00:09.800 --> 00:00:12.400 align:end position:88% size:40%
+for a sourdough recipe, <00:00:11.100> and it turns one
+
+9
+00:00:11.200 --> 00:00:13.800
+and it turns one <00:00:12.500> jar of neglected <c.term>starter</c>
+
+10
+00:00:12.600 --> 00:00:15.200 line:90% align:center
+jar of neglected <c.term>starter</c> <00:00:13.900> into dinner. My <c.term>starter</c>
+
+11
+00:00:14.000 --> 00:00:16.600 align:start position:12%
+into dinner. My <c.term>starter</c> <00:00:15.300> is named Gus, he
+
+12
+00:00:15.400 --> 00:00:18.000 align:center
+is named Gus, he <00:00:16.700> lives in a squat
+
+13
+00:00:16.800 --> 00:00:19.400 align:end position:88% size:40%
+lives in a squat <00:00:18.100> mason jar on the
+
+14
+00:00:18.200 --> 00:00:20.800
+mason jar on the <00:00:19.500> second shelf of the
+
+15
+00:00:19.600 --> 00:00:22.200 line:90% align:center
+second shelf of the <00:00:20.900> fridge, and he only
+
+16
+00:00:21.000 --> 00:00:23.600 align:start position:12%
+fridge, and he only <00:00:22.300> gets fed when I
+
+17
+00:00:22.400 --> 00:00:25.000 align:center
+gets fed when I <00:00:23.700> remember, which is honestly
+
+18
+00:00:23.800 --> 00:00:26.400 align:end position:88% size:40%
+remember, which is honestly <00:00:25.100> part of why this
+
+19
+00:00:25.200 --> 00:00:27.800
+part of why this <00:00:26.500> recipe exists. Let me
+
+20
+00:00:26.600 --> 00:00:29.200 line:90% align:center
+recipe exists. Let me <00:00:27.900> give you the numbers
+
+21
+00:00:28.000 --> 00:00:30.600 align:start position:12%
+give you the numbers <00:00:29.300> first, because the ratios
+
+22
+00:00:29.400 --> 00:00:32.000 align:center
+first, because the ratios <00:00:30.700> are the whole game
+
+23
+00:00:30.800 --> 00:00:33.400 align:end position:88% size:40%
+are the whole game <00:00:32.100> here. I use three
+
+24
+00:00:32.200 --> 00:00:34.800
+here. I use three <00:00:33.500> hundred grams of bread
+
+25
+00:00:33.600 --> 00:00:36.200 line:90% align:center
+hundred grams of bread <00:00:34.900> flour, two hundred and
+
+26
+00:00:35.000 --> 00:00:37.600 align:start position:12%
+flour, two hundred and <00:00:36.300> thirty five grams of
+
+27
+00:00:36.400 --> 00:00:39.000 align:center
+thirty five grams of <00:00:37.700> water, which lands us
+
+28
+00:00:37.800 --> 00:00:40.400 align:end position:88% size:40%
+water, which lands us <00:00:39.100> right around seventy eight
+
+29
+00:00:39.200 --> 00:00:41.800
+right around seventy eight <00:00:40.500> percent <c.term>hydration,</c> ninety grams
+
+30
+00:00:40.600 --> 00:00:43.200 line:90% align:center
+percent <c.term>hydration,</c> ninety grams <00:00:41.900> of ripe <c.term>starter,</c> and
+
+31
+00:00:42.000 --> 00:00:44.600 align:start position:12%
+of ripe <c.term>starter,</c> and <00:00:43.300> eight grams of fine
+
+32
+00:00:43.400 --> 00:00:46.000 align:center
+eight grams of <00:00:44.700> fine sea&nbsp;salt. That is
+
+33
+00:00:44.800 --> 00:00:47.400 align:end position:88% size:40%
+sea&nbsp;salt. That is <00:00:46.100> a wet, slack dough
+
+34
+00:00:46.200 --> 00:00:48.800
+a wet, slack dough <00:00:47.500> on purpose. A wetter
+
+35
+00:00:47.600 --> 00:00:50.200 line:90% align:center
+on purpose. A wetter <00:00:48.900> dough gives you those
+
+36
+00:00:49.000 --> 00:00:51.600 align:start position:12%
+dough gives you those <00:00:50.300> big irregular holes and
+
+37
+00:00:50.400 --> 00:00:53.000 align:center
+big irregular holes and <00:00:51.700> the <c.term>blistered</c> char we
+
+38
+00:00:51.800 --> 00:00:54.400 align:end position:88% size:40%
+the <c.term>blistered</c> char we <00:00:53.100> are chasing, so do
+
+39
+00:00:53.200 --> 00:00:55.800
+are chasing, so do <00:00:54.500> not panic when it
+
+40
+00:00:54.600 --> 00:00:57.200 line:90% align:center
+not panic when it <00:00:55.900> feels sticky and alive
+
+NOTE chapter marker: the autolyse rest
+
+41
+00:00:56.000 --> 00:00:58.600 align:start position:12%
+feels sticky and alive <00:00:57.300> under your hands. I
+
+42
+00:00:57.400 --> 00:01:00.000 align:center
+under your hands. I <00:00:58.700> start by dissolving the
+
+43
+00:00:58.800 --> 00:01:01.400 align:end position:88% size:40%
+start by dissolving the <00:01:00.100> <c.term>starter</c> into the water
+
+44
+00:01:00.200 --> 00:01:02.800
+<c.term>starter</c> into the water <00:01:01.500> before the flour ever
+
+45
+00:01:01.600 --> 00:01:04.200 line:90% align:center
+before the flour ever <00:01:02.900> shows up. Swirl it
+
+46
+00:01:03.000 --> 00:01:05.600 align:start position:12%
+shows up. Swirl it <00:01:04.300> until the water goes
+
+47
+00:01:04.400 --> 00:01:07.000 align:center
+until the water goes <00:01:05.700> cloudy and a few
+
+48
+00:01:05.800 --> 00:01:08.400 align:end position:88% size:40%
+cloudy and a few <00:01:07.100> bubbles rise, because that
+
+49
+00:01:07.200 --> 00:01:09.800
+bubbles rise, because that <00:01:08.500> tells you Gus is
+
+50
+00:01:08.600 --> 00:01:11.200 line:90% align:center
+tells you Gus is <00:01:09.900> awake and the wild
+
+51
+00:01:10.000 --> 00:01:12.600 align:start position:12%
+awake and the wild <00:01:11.300> yeast is actually going
+
+52
+00:01:11.400 --> 00:01:14.000 align:center
+yeast is actually going <00:01:12.700> to lift this dough.
+
+53
+00:01:12.800 --> 00:01:15.400 align:end position:88% size:40%
+to lift this dough. <00:01:14.100> Then I add the
+
+54
+00:01:14.200 --> 00:01:16.800
+Then I add the <00:01:15.500> flour and mix with
+
+55
+00:01:15.600 --> 00:01:18.200 line:90% align:center
+flour and mix with <00:01:16.900> a stiff spatula until
+
+56
+00:01:17.000 --> 00:01:19.600 align:start position:12%
+a stiff spatula until <00:01:18.300> there is no dry
+
+57
+00:01:18.400 --> 00:01:21.000 align:center
+there is no dry <00:01:19.700> flour left, just a
+
+58
+00:01:19.800 --> 00:01:22.400 align:end position:88% size:40%
+flour left, just a <00:01:21.100> shaggy, craggy mess. Cover
+
+59
+00:01:21.200 --> 00:01:23.800
+shaggy, craggy mess. Cover <00:01:22.500> it and walk away
+
+60
+00:01:22.600 --> 00:01:25.200 line:90% align:center
+it and walk away <00:01:23.900> for thirty minutes. This
+
+61
+00:01:24.000 --> 00:01:26.600 align:start position:12%
+for thirty minutes. This <00:01:25.300> rest is called the
+
+62
+00:01:25.400 --> 00:01:28.000 align:center
+rest is called the <00:01:26.700> <c.term>autolyse,</c> and it lets
+
+63
+00:01:26.800 --> 00:01:29.400 align:end position:88% size:40%
+<c.term>autolyse,</c> and it lets <00:01:28.100> the flour drink the
+
+64
+00:01:28.200 --> 00:01:30.800
+the flour drink the <00:01:29.500> water and start building
+
+65
+00:01:29.600 --> 00:01:32.200 line:90% align:center
+water and start building <00:01:30.900> gluten on its own,
+
+66
+00:01:31.000 --> 00:01:33.600 align:start position:12%
+gluten on its own, <00:01:32.300> with zero effort from
+
+67
+00:01:32.400 --> 00:01:35.000 align:center
+with zero effort from <00:01:33.700> you. After the <c.term>autolyse</c>
+
+68
+00:01:33.800 --> 00:01:36.400 align:end position:88% size:40%
+you. After the <c.term>autolyse</c> <00:01:35.100> I sprinkle the salt
+
+69
+00:01:35.200 --> 00:01:37.800
+I sprinkle the salt <00:01:36.500> over the top with
+
+70
+00:01:36.600 --> 00:01:39.200 line:90% align:center
+over the top with <00:01:37.900> a splash of water
+
+71
+00:01:38.000 --> 00:01:40.600 align:start position:12%
+a splash of water <00:01:39.300> and squish it in
+
+72
+00:01:39.400 --> 00:01:42.000 align:center
+and squish it in <00:01:40.700> with wet fingers. Now
+
+73
+00:01:40.800 --> 00:01:43.400 align:end position:88% size:40%
+with wet fingers. Now <00:01:42.100> we do the part
+
+74
+00:01:42.200 --> 00:01:44.800
+we do the part <00:01:43.500> people overthink: the stretch
+
+75
+00:01:43.600 --> 00:01:46.200 line:90% align:center
+people overthink: the stretch <00:01:44.900> and fold. Reach under
+
+76
+00:01:45.000 --> 00:01:47.600 align:start position:12%
+and fold. Reach under <00:01:46.300> one side of the
+
+77
+00:01:46.400 --> 00:01:49.000 align:center
+one side of the <00:01:47.700> dough, pull it up
+
+78
+00:01:47.800 --> 00:01:50.400 align:end position:88% size:40%
+dough, pull it up <00:01:49.100> until it almost tears,
+
+79
+00:01:49.200 --> 00:01:51.800
+until it almost tears, <00:01:50.500> and fold it over
+
+80
+00:01:50.600 --> 00:01:53.200 line:90% align:center
+and fold it over <00:01:51.900> the middle. Rotate the
+
+81
+00:01:52.000 --> 00:01:54.600 align:start position:12%
+the middle. Rotate the <00:01:53.300> bowl a quarter turn
+
+82
+00:01:53.400 --> 00:01:56.000 align:center
+bowl a quarter turn <00:01:54.700> and do it again,
+
+83
+00:01:54.800 --> 00:01:57.400 align:end position:88% size:40%
+and do it again, <00:01:56.100> four folds total, maybe
+
+84
+00:01:56.200 --> 00:01:58.800
+four folds total, maybe <00:01:57.500> fifteen seconds of work.
+
+85
+00:01:57.600 --> 00:02:00.200 line:90% align:center
+fifteen seconds of work. <00:01:58.900> I repeat that set
+
+86
+00:01:59.000 --> 00:02:01.600 align:start position:12%
+I repeat that set <00:02:00.300> three times, spaced about
+
+87
+00:02:00.400 --> 00:02:03.000 align:center
+three times, spaced about <00:02:01.700> forty five minutes apart,
+
+88
+00:02:01.800 --> 00:02:04.400 align:end position:88% size:40%
+forty five minutes apart, <00:02:03.100> so the whole thing
+
+89
+00:02:03.200 --> 00:02:05.800
+so the whole thing <00:02:04.500> spans a lazy afternoon
+
+90
+00:02:04.600 --> 00:02:07.200 line:90% align:center
+spans a lazy afternoon <00:02:05.900> while you do other
+
+91
+00:02:06.000 --> 00:02:08.600 align:start position:12%
+while you do other <00:02:07.300> things. Between folds the
+
+92
+00:02:07.400 --> 00:02:10.000 align:center
+things. Between folds the <00:02:08.700> dough transforms. It goes
+
+93
+00:02:08.800 --> 00:02:11.400 align:end position:88% size:40%
+dough transforms. It goes <00:02:10.100> from a torn, lumpy
+
+94
+00:02:10.200 --> 00:02:12.800
+from a torn, lumpy <00:02:11.500> blob to something smooth
+
+95
+00:02:11.600 --> 00:02:14.200 line:90% align:center
+blob to something smooth <00:02:12.900> and elastic that pulls
+
+96
+00:02:13.000 --> 00:02:15.600 align:start position:12%
+and elastic that pulls <00:02:14.300> back at you and
+
+97
+00:02:14.400 --> 00:02:17.000 align:center
+back at you and <00:02:15.700> holds a dome. That
+
+98
+00:02:15.800 --> 00:02:18.400 align:end position:88% size:40%
+holds a dome. That <00:02:17.100> is the gluten organizing
+
+99
+00:02:17.200 --> 00:02:19.800
+is the gluten organizing <00:02:18.500> itself into a net
+
+100
+00:02:18.600 --> 00:02:21.200 line:90% align:center
+itself into a net <00:02:19.900> strong enough to trap
+
+101
+00:02:20.000 --> 00:02:22.600 align:start position:12%
+strong enough to trap <00:02:21.300> gas. By the third
+
+102
+00:02:21.400 --> 00:02:24.000 align:center
+gas. By the third <00:02:22.700> fold the dough should
+
+103
+00:02:22.800 --> 00:02:25.400 align:end position:88% size:40%
+fold the dough should <00:02:24.100> feel puffy, jiggly, and
+
+104
+00:02:24.200 --> 00:02:26.800
+feel puffy, jiggly, and <00:02:25.500> noticeably lighter, and you
+
+105
+00:02:25.600 --> 00:02:28.200 line:90% align:center
+noticeably lighter, and you <00:02:26.900> will see a scatter
+
+106
+00:02:27.000 --> 00:02:29.600 align:start position:12%
+will see a scatter <00:02:28.300> of bubbles rising to
+
+107
+00:02:28.400 --> 00:02:31.000 align:center
+of bubbles rising to <00:02:29.700> the surface right under
+
+108
+00:02:29.800 --> 00:02:32.400 align:end position:88% size:40%
+the surface right under <00:02:31.100> the skin. Then comes
+
+109
+00:02:31.200 --> 00:02:33.800
+the skin. Then comes <00:02:32.500> the bulk <c.term>fermentation,</c> which
+
+110
+00:02:32.600 --> 00:02:35.200 line:90% align:center
+the bulk <c.term>fermentation,</c> which <00:02:33.900> is just a fancy
+
+111
+00:02:34.000 --> 00:02:36.600 align:start position:12%
+is just a fancy <00:02:35.300> way of saying the
+
+112
+00:02:35.400 --> 00:02:38.000 align:center
+way of saying the <00:02:36.700> long rise. I leave
+
+113
+00:02:36.800 --> 00:02:39.400 align:end position:88% size:40%
+long rise. I leave <00:02:38.100> it covered on the
+
+114
+00:02:38.200 --> 00:02:40.800
+it covered on the <00:02:39.500> counter for roughly four
+
+115
+00:02:39.600 --> 00:02:42.200 line:90% align:center
+counter for roughly four <00:02:40.900> to six hours at
+
+116
+00:02:41.000 --> 00:02:43.600 align:start position:12%
+to six hours at <00:02:42.300> normal room temperature, until
+
+117
+00:02:42.400 --> 00:02:45.000 align:center
+normal room temperature, until <00:02:43.700> it has grown by
+
+118
+00:02:43.800 --> 00:02:46.400 align:end position:88% size:40%
+it has grown by <00:02:45.100> about half again its
+
+119
+00:02:45.200 --> 00:02:47.800
+about half again its <00:02:46.500> size and looks domed
+
+120
+00:02:46.600 --> 00:02:49.200 line:90% align:center
+size and looks domed <00:02:47.900> and full of life.
+
+121
+00:02:48.000 --> 00:02:50.600 align:start position:12%
+and full of life. <00:02:49.300> If your kitchen is
+
+122
+00:02:49.400 --> 00:02:52.000 align:center
+If your kitchen is <00:02:50.700> cold, this takes longer,
+
+123
+00:02:50.800 --> 00:02:53.400 align:end position:88% size:40%
+cold, this takes longer, <00:02:52.100> and if it is
+
+124
+00:02:52.200 --> 00:02:54.800
+and if it is <00:02:53.500> a heat wave, keep
+
+125
+00:02:53.600 --> 00:02:56.200 line:90% align:center
+a heat wave, keep <00:02:54.900> a close eye, because
+
+126
+00:02:55.000 --> 00:02:57.600 align:start position:12%
+a close eye, because <00:02:56.300> a wet dough can
+
+127
+00:02:56.400 --> 00:02:59.000 align:center
+a wet dough can <00:02:57.700> go from perfect to
+
+128
+00:02:57.800 --> 00:03:00.400 align:end position:88% size:40%
+go from perfect to <00:02:59.100> overproofed and soupy faster
+
+129
+00:02:59.200 --> 00:03:01.800
+overproofed and soupy faster <00:03:00.500> than you expect. When
+
+130
+00:03:00.600 --> 00:03:03.200 line:90% align:center
+than you expect. When <00:03:01.900> in doubt, watch the
+
+131
+00:03:02.000 --> 00:03:04.600 align:start position:12%
+in doubt, watch the <00:03:03.300> dough, not the clock.
+
+132
+00:03:03.400 --> 00:03:06.000 align:center
+dough, not the clock. <00:03:04.700> Once the bulk rise
+
+133
+00:03:04.800 --> 00:03:07.400 align:end position:88% size:40%
+Once the bulk rise <00:03:06.100> is done, I turn
+
+134
+00:03:06.200 --> 00:03:08.800
+is done, I turn <00:03:07.500> the dough out onto
+
+135
+00:03:07.600 --> 00:03:10.200 line:90% align:center
+the dough out onto <00:03:08.900> a well floured counter
+
+136
+00:03:09.000 --> 00:03:11.600 align:start position:12%
+a well floured counter <00:03:10.300> and divide it into
+
+137
+00:03:10.400 --> 00:03:13.000 align:center
+and divide it into <00:03:11.700> six even pieces with
+
+138
+00:03:11.800 --> 00:03:14.400 align:end position:88% size:40%
+six even pieces with <00:03:13.100> a bench scraper. I
+
+139
+00:03:13.200 --> 00:03:15.800
+a bench scraper. I <00:03:14.500> gently cup each piece
+
+140
+00:03:14.600 --> 00:03:17.200 line:90% align:center
+gently cup each piece <00:03:15.900> and drag it toward
+
+141
+00:03:16.000 --> 00:03:18.600 align:start position:12%
+and drag it toward <00:03:17.300> me on the unfloured
+
+142
+00:03:17.400 --> 00:03:20.000 align:center
+me on the unfloured <00:03:18.700> part of the counter
+
+143
+00:03:18.800 --> 00:03:21.400 align:end position:88% size:40%
+part of the counter <00:03:20.100> to build a little
+
+144
+00:03:20.200 --> 00:03:22.800
+to build a little <00:03:21.500> surface tension, until each
+
+145
+00:03:21.600 --> 00:03:24.200 line:90% align:center
+surface tension, until each <00:03:22.900> one is a taut
+
+146
+00:03:23.000 --> 00:03:25.600 align:start position:12%
+one is a taut <00:03:24.300> round ball. Cover them
+
+147
+00:03:24.400 --> 00:03:27.000 align:center
+round ball. Cover them <00:03:25.700> with a towel and
+
+148
+00:03:25.800 --> 00:03:28.400 align:end position:88% size:40%
+with a towel and <00:03:27.100> let them rest for
+
+149
+00:03:27.200 --> 00:03:29.800
+let them rest for <00:03:28.500> twenty minutes so the
+
+150
+00:03:28.600 --> 00:03:31.200 line:90% align:center
+twenty minutes so the <00:03:29.900> gluten relaxes and stops
+
+NOTE host holds the dough up to the camera
+
+151
+00:03:30.000 --> 00:03:32.600 align:start position:12%
+gluten relaxes and stops <00:03:31.300> fighting you when you
+
+152
+00:03:31.400 --> 00:03:34.000 align:center
+fighting you when you <00:03:32.700> shape. Here is where
+
+153
+00:03:32.800 --> 00:03:35.400 align:end position:88% size:40%
+shape. Here is where <00:03:34.100> the flatbread part actually
+
+154
+00:03:34.200 --> 00:03:36.800
+the flatbread part actually <00:03:35.500> happens. I take one
+
+155
+00:03:35.600 --> 00:03:38.200 line:90% align:center
+happens. I take one <00:03:36.900> relaxed ball, dust it
+
+156
+00:03:37.000 --> 00:03:39.600 align:start position:12%
+relaxed ball, dust it <00:03:38.300> with flour, and press
+
+157
+00:03:38.400 --> 00:03:41.000 align:center
+with flour, and press <00:03:39.700> it out with my
+
+158
+00:03:39.800 --> 00:03:42.400 align:end position:88% size:40%
+it out with my <00:03:41.100> fingertips, then stretch it
+
+159
+00:03:41.200 --> 00:03:43.800
+fingertips, then stretch it <00:03:42.500> into a rough oval
+
+160
+00:03:42.600 --> 00:03:45.200 line:90% align:center
+into a rough oval <00:03:43.900> about a quarter inch
+
+161
+00:03:44.000 --> 00:03:46.600 align:start position:12%
+about a quarter inch <00:03:45.300> thick. Do not use
+
+162
+00:03:45.400 --> 00:03:48.000 align:center
+thick. Do not use <00:03:46.700> a rolling pin if
+
+163
+00:03:46.800 --> 00:03:49.400 align:end position:88% size:40%
+a rolling pin if <00:03:48.100> you can help it,
+
+164
+00:03:48.200 --> 00:03:50.800
+you can help it, <00:03:49.500> because a rolling pin
+
+165
+00:03:49.600 --> 00:03:52.200 line:90% align:center
+because a rolling pin <00:03:50.900> crushes all those precious
+
+166
+00:03:51.000 --> 00:03:53.600 align:start position:12%
+crushes all those precious <00:03:52.300> bubbles you worked so
+
+167
+00:03:52.400 --> 00:03:55.000 align:center
+bubbles you worked so <00:03:53.700> hard to build. You
+
+168
+00:03:53.800 --> 00:03:56.400 align:end position:88% size:40%
+hard to build. You <00:03:55.100> want an uneven, hand
+
+169
+00:03:55.200 --> 00:03:57.800
+want an uneven, hand <00:03:56.500> stretched shape with thick
+
+170
+00:03:56.600 --> 00:03:59.200 line:90% align:center
+stretched shape with thick <00:03:57.900> edges and a thinner
+
+171
+00:03:58.000 --> 00:04:00.600 align:start position:12%
+edges and a thinner <00:03:59.300> middle, like a rustic
+
+172
+00:03:59.400 --> 00:04:02.000 align:center
+middle, like a rustic <00:04:00.700> naan. The heat is
+
+173
+00:04:00.800 --> 00:04:03.400 align:end position:88% size:40%
+naan. The heat is <00:04:02.100> everything from here. I
+
+174
+00:04:02.200 --> 00:04:04.800
+everything from here. <00:04:03.500> I get a cast&nbsp;iron
+
+175
+00:04:03.600 --> 00:04:06.200 line:90% align:center
+get a cast&nbsp;iron <00:04:04.900> skillet screaming hot, as
+
+176
+00:04:05.000 --> 00:04:07.600 align:start position:12%
+skillet screaming hot, as <00:04:06.300> hot as my stove
+
+177
+00:04:06.400 --> 00:04:09.000 align:center
+hot as my stove <00:04:07.700> will go, which is
+
+178
+00:04:07.800 --> 00:04:10.400 align:end position:88% size:40%
+will go, which is <00:04:09.100> close to five hundred
+
+179
+00:04:09.200 --> 00:04:11.800
+close to five hundred <00:04:10.500> degrees at the surface,
+
+180
+00:04:10.600 --> 00:04:13.200 line:90% align:center
+degrees at the surface, <00:04:11.900> and I do not
+
+181
+00:04:12.000 --> 00:04:14.600 align:start position:12%
+and I do not <00:04:13.300> add any oil at
+
+182
+00:04:13.400 --> 00:04:16.000 align:center
+add any oil at <00:04:14.700> first. I lay the
+
+183
+00:04:14.800 --> 00:04:17.400 align:end position:88% size:40%
+first. I lay the <00:04:16.100> stretched dough into the
+
+184
+00:04:16.200 --> 00:04:18.800
+stretched dough into the <00:04:17.500> dry pan and let
+
+185
+00:04:17.600 --> 00:04:20.200 line:90% align:center
+dry pan and let <00:04:18.900> it sit undisturbed for
+
+186
+00:04:19.000 --> 00:04:21.600 align:start position:12%
+it sit undisturbed for <00:04:20.300> about ninety seconds. Almost
+
+187
+00:04:20.400 --> 00:04:23.000 align:center
+about ninety seconds. Almost <00:04:21.700> immediately you will see
+
+188
+00:04:21.800 --> 00:04:24.400 align:end position:88% size:40%
+immediately you will see <00:04:23.100> it start to dome
+
+189
+00:04:23.200 --> 00:04:25.800
+it start to dome <00:04:24.500> and blister, with big
+
+190
+00:04:24.600 --> 00:04:27.200 line:90% align:center
+and blister, with big <00:04:25.900> bubbles pushing up across
+
+191
+00:04:26.000 --> 00:04:28.600 align:start position:12%
+bubbles pushing up across <00:04:27.300> the top, and the
+
+192
+00:04:27.400 --> 00:04:30.000 align:center
+the top, and the <00:04:28.700> underside going from pale
+
+193
+00:04:28.800 --> 00:04:31.400 align:end position:88% size:40%
+underside going from pale <00:04:30.100> to freckled to a
+
+194
+00:04:30.200 --> 00:04:32.800
+to freckled to a <00:04:31.500> deep leopard spotted brown.
+
+195
+00:04:31.600 --> 00:04:34.200 line:90% align:center
+deep leopard spotted brown. <00:04:32.900> When the top looks
+
+196
+00:04:33.000 --> 00:04:35.600 align:start position:12%
+When the top looks <00:04:34.300> dry at the edges
+
+197
+00:04:34.400 --> 00:04:37.000 align:center
+dry at the edges <00:04:35.700> and the bottom is
+
+198
+00:04:35.800 --> 00:04:38.400 align:end position:88% size:40%
+and the bottom is <00:04:37.100> charred in spots, I
+
+199
+00:04:37.200 --> 00:04:39.800
+charred in spots, I <00:04:38.500> flip it. The second
+
+200
+00:04:38.600 --> 00:04:41.200 line:90% align:center
+flip it. The second <00:04:39.900> side cooks faster, maybe
+
+201
+00:04:40.000 --> 00:04:42.600 align:start position:12%
+side cooks faster, maybe <00:04:41.300> forty five seconds to
+
+202
+00:04:41.400 --> 00:04:44.000 align:center
+forty five seconds to <00:04:42.700> a minute, and if
+
+203
+00:04:42.800 --> 00:04:45.400 align:end position:88% size:40%
+a minute, and if <00:04:44.100> there is a stubborn
+
+204
+00:04:44.200 --> 00:04:46.800
+there is a stubborn <00:04:45.500> flat spot I press
+
+205
+00:04:45.600 --> 00:04:48.200 line:90% align:center
+flat spot I press <00:04:46.900> it gently with a
+
+206
+00:04:47.000 --> 00:04:49.600 align:start position:12%
+it gently with a <00:04:48.300> folded towel to encourage
+
+207
+00:04:48.400 --> 00:04:51.000 align:center
+folded towel to encourage <00:04:49.700> one last balloon of
+
+208
+00:04:49.800 --> 00:04:52.400 align:end position:88% size:40%
+one last balloon of <00:04:51.100> steam. That puff you
+
+209
+00:04:51.200 --> 00:04:53.800
+steam. That puff you <00:04:52.500> get in the pan
+
+210
+00:04:52.600 --> 00:04:55.200 line:90% align:center
+get in the pan <00:04:53.900> is the same steam
+
+211
+00:04:54.000 --> 00:04:56.600 align:start position:12%
+is the same steam <00:04:55.300> that makes a pita
+
+212
+00:04:55.400 --> 00:04:58.000 align:center
+that makes a pita <00:04:56.700> pocket, so if you
+
+213
+00:04:56.800 --> 00:04:59.400 align:end position:88% size:40%
+pocket, so if you <00:04:58.100> nail the heat, some
+
+214
+00:04:58.200 --> 00:05:00.800
+nail the heat, some <00:04:59.500> of these will inflate
+
+215
+00:04:59.600 --> 00:05:02.200 line:90% align:center
+of these will inflate <00:05:00.900> like a hot air
+
+216
+00:05:01.000 --> 00:05:03.600 align:start position:12%
+like a hot air <00:05:02.300> balloon and then settle
+
+217
+00:05:02.400 --> 00:05:05.000 align:center
+balloon and then settle <00:05:03.700> back down soft. The
+
+218
+00:05:03.800 --> 00:05:06.400 align:end position:88% size:40%
+back down soft. The <00:05:05.100> moment each flatbread comes
+
+219
+00:05:05.200 --> 00:05:07.800
+moment each flatbread comes <00:05:06.500> off the heat, I
+
+220
+00:05:06.600 --> 00:05:09.200 line:90% align:center
+off the heat, I <00:05:07.900> brush it with a
+
+221
+00:05:08.000 --> 00:05:10.600 align:start position:12%
+brush it with a <00:05:09.300> little olive oil, a
+
+222
+00:05:09.400 --> 00:05:12.000 align:center
+little olive oil, a <00:05:10.700> scatter of flaky salt,
+
+223
+00:05:10.800 --> 00:05:13.400 align:end position:88% size:40%
+scatter of flaky salt, <00:05:12.100> and a heavy pinch
+
+224
+00:05:12.200 --> 00:05:14.800
+and a heavy pinch <00:05:13.500> of za&#39;atar while it
+
+225
+00:05:13.600 --> 00:05:16.200 line:90% align:center
+of za&#39;atar while it <00:05:14.900> is still hot enough
+
+226
+00:05:15.000 --> 00:05:17.600 align:start position:12%
+is still hot enough <00:05:16.300> to bloom the spices.
+
+227
+00:05:16.400 --> 00:05:19.000 align:center
+to bloom the spices. <00:05:17.700> The oil carries the
+
+228
+00:05:17.800 --> 00:05:20.400 align:end position:88% size:40%
+The oil carries the <00:05:19.100> flavor into all those
+
+229
+00:05:19.200 --> 00:05:21.800
+flavor into all those <00:05:20.500> little craters and the
+
+230
+00:05:20.600 --> 00:05:23.200 line:90% align:center
+little craters and the <00:05:21.900> residual heat toasts the
+
+231
+00:05:22.000 --> 00:05:24.600 align:start position:12%
+residual heat toasts the <00:05:23.300> sesame and thyme in
+
+232
+00:05:23.400 --> 00:05:26.000 align:center
+sesame and thyme in <00:05:24.700> the za&#39;atar so the
+
+233
+00:05:24.800 --> 00:05:27.400 align:end position:88% size:40%
+the za&#39;atar so the <00:05:26.100> whole kitchen smells like
+
+234
+00:05:26.200 --> 00:05:28.800
+whole kitchen smells like <00:05:27.500> a spice market. Stack
+
+235
+00:05:27.600 --> 00:05:30.200 line:90% align:center
+a spice market. Stack <00:05:28.900> them under a towel
+
+236
+00:05:29.000 --> 00:05:31.600 align:start position:12%
+them under a towel <00:05:30.300> to keep them soft
+
+237
+00:05:30.400 --> 00:05:33.000 align:center
+to keep them soft <00:05:31.700> and steamy while you
+
+238
+00:05:31.800 --> 00:05:34.400 align:end position:88% size:40%
+and steamy while you <00:05:33.100> cook the rest. A
+
+239
+00:05:33.200 --> 00:05:35.800
+cook the rest. A <00:05:34.500> few troubleshooting notes before
+
+240
+00:05:34.600 --> 00:05:37.200 line:90% align:center
+few troubleshooting notes before <00:05:35.900> you go. If your
+
+241
+00:05:36.000 --> 00:05:38.600 align:start position:12%
+you go. If your <00:05:37.300> flatbread is dense and
+
+242
+00:05:37.400 --> 00:05:40.000 align:center
+flatbread is dense and <00:05:38.700> gummy, your <c.term>starter</c> was
+
+243
+00:05:38.800 --> 00:05:41.400 align:end position:88% size:40%
+gummy, your <c.term>starter</c> was <00:05:40.100> probably sluggish, so feed
+
+244
+00:05:40.200 --> 00:05:42.800
+probably sluggish, so feed <00:05:41.500> Gus and wait until
+
+245
+00:05:41.600 --> 00:05:44.200 line:90% align:center
+Gus and wait until <00:05:42.900> he doubles reliably before
+
+246
+00:05:43.000 --> 00:05:45.600 align:start position:12%
+he doubles reliably before <00:05:44.300> baking. If it tastes
+
+247
+00:05:44.400 --> 00:05:47.000 align:center
+baking. If it tastes <00:05:45.700> flat and boring, you
+
+248
+00:05:45.800 --> 00:05:48.400 align:end position:88% size:40%
+flat and boring, you <00:05:47.100> likely under salted or
+
+249
+00:05:47.200 --> 00:05:49.800
+likely under salted or <00:05:48.500> rushed the bulk <c.term>fermentation.</c>
+
+250
+00:05:48.600 --> 00:05:51.200 line:90% align:center
+rushed the bulk <c.term>fermentation.</c> <00:05:49.900> And if it sticks
+
+251
+00:05:50.000 --> 00:05:52.600 align:start position:12%
+And if it sticks <00:05:51.300> and tears in the
+
+252
+00:05:51.400 --> 00:05:54.000 align:center
+and tears in the <00:05:52.700> pan, your dough was
+
+253
+00:05:52.800 --> 00:05:55.400 align:end position:88% size:40%
+pan, your dough was <00:05:54.100> too wet for your
+
+254
+00:05:54.200 --> 00:05:56.800
+too wet for your <00:05:55.500> flour, so dial the
+
+255
+00:05:55.600 --> 00:05:58.200 line:90% align:center
+flour, so dial the <00:05:56.900> water back to seventy
+
+256
+00:05:57.000 --> 00:05:59.600 align:start position:12%
+water back to seventy <00:05:58.300> percent next time and
+
+257
+00:05:58.400 --> 00:06:01.000 align:center
+percent next time and <00:05:59.700> work your way up
+
+258
+00:05:59.800 --> 00:06:02.400 align:end position:88% size:40%
+work your way up <00:06:01.100> as your confidence grows.
+
+259
+00:06:01.200 --> 00:06:03.800
+as your confidence grows. <00:06:02.500> That is the whole
+
+260
+00:06:02.600 --> 00:06:05.200 line:90% align:center
+That is the whole <00:06:03.900> thing: one sleepy jar
+
+261
+00:06:04.000 --> 00:06:06.600 align:start position:12%
+thing: one sleepy jar <00:06:05.300> of <c.term>starter,</c> five ingredients,
+
+262
+00:06:05.400 --> 00:06:08.000 align:center
+of <c.term>starter,</c> five ingredients, <00:06:06.700> an afternoon of gentle
+
+263
+00:06:06.800 --> 00:06:09.400 align:end position:88% size:40%
+an afternoon of gentle <00:06:08.100> folds, and a ripping
+
+264
+00:06:08.200 --> 00:06:10.800
+folds, and a ripping <00:06:09.500> hot pan. Serve these
+
+265
+00:06:09.600 --> 00:06:12.200 line:90% align:center
+hot pan. Serve these <00:06:10.900> warm with hummus, tear
+
+266
+00:06:11.000 --> 00:06:13.600 align:start position:12%
+warm with hummus, tear <00:06:12.300> them over a stew,
+
+267
+00:06:12.400 --> 00:06:15.000 align:center
+them over a stew, <00:06:13.700> or fold one around
+
+268
+00:06:13.800 --> 00:06:16.400 align:end position:88% size:40%
+or fold one around <00:06:15.100> whatever is in the
+
+269
+00:06:15.200 --> 00:06:17.800
+whatever is in the <00:06:16.500> fridge. Thanks for hanging
+
+270
+00:06:16.600 --> 00:06:19.200 line:90% align:center
+fridge. Thanks for hanging <00:06:17.900> out at the counter
+
+271
+00:06:18.000 --> 00:06:20.600 align:start position:12%
+out at the counter <00:06:19.300> with me, and I
+
+272
+00:06:19.400 --> 00:06:22.000 align:center
+with me, and I <00:06:20.700> will see you next
+
+273
+00:06:20.800 --> 00:06:23.400 align:end position:88% size:40%
+will see <00:06:22.100> you next week.
+
+274
+00:06:22.200 --> 00:06:24.800
+<00:06:23.500> week.
