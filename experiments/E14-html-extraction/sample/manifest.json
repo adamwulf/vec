@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "experiment": "E14-html-extraction",
+  "frozen_at": "2026-09-07T21:33:57.530264+00:00",
+  "scope": "Seven deliberately synthetic local HTML files derived from the supplied freezedry-helper behavioral examples. They exercise selection and preservation failure modes; they are not a representative web sample and cannot establish general Readability parity or real-corpus accuracy.",
+  "files": [
+    {
+      "path": "article.html",
+      "bytes": 956,
+      "sha256": "ff5f8afd5b05a8b527a14d6039b8a01bbdeda486156f8ab473e70593529df00f",
+      "origin": "synthetic",
+      "role": "target",
+      "scenario": "semantic article with page chrome"
+    },
+    {
+      "path": "executable-only.html",
+      "bytes": 219,
+      "sha256": "38d7c1bcad9a150719d00081eef881daea3afeb42161aeb7b2e4448cfd4c4e57",
+      "origin": "synthetic",
+      "role": "distractor",
+      "scenario": "script/style-only empty page"
+    },
+    {
+      "path": "malformed.html",
+      "bytes": 370,
+      "sha256": "de314554f4fc98fe2a92ecb2666d43e987557db55f6e883ac8f8655fb15862d6",
+      "origin": "synthetic",
+      "role": "target",
+      "scenario": "malformed but recoverable document"
+    },
+    {
+      "path": "navigation-directory.html",
+      "bytes": 509,
+      "sha256": "59bec31142e1f6c5babe9dc3a5e9fca5a72d77f1fe3951bad76684eb82b245f2",
+      "origin": "synthetic",
+      "role": "target",
+      "scenario": "navigation-only directory preservation fallback"
+    },
+    {
+      "path": "navigation-heavy.html",
+      "bytes": 687,
+      "sha256": "e8f4cca46b4be8a35587b854cde1564ea445fa63b8d2302b874d1cb7c3b576db",
+      "origin": "synthetic",
+      "role": "target",
+      "scenario": "unique main content surrounded by navigation"
+    },
+    {
+      "path": "reference.html",
+      "bytes": 751,
+      "sha256": "82a9e1f16f776ad7dfc0d06cddfd025c854c828793ce4e17f5128b0b7e5ea935",
+      "origin": "synthetic",
+      "role": "target",
+      "scenario": "non-article reference page with lists and table"
+    },
+    {
+      "path": "structural.html",
+      "bytes": 623,
+      "sha256": "d098a11a3b98ce567dc470fe9f51971b9ebbd009856fe7b5c7460f01822cb3bd",
+      "origin": "synthetic",
+      "role": "target",
+      "scenario": "entities, nested lists, table, and preformatted text"
+    }
+  ]
+}

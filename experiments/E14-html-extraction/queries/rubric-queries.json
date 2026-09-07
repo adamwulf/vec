@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "experiment": "E14-html-extraction",
+  "description": "Frozen before ranking. Compares raw and html-v1 extraction on the same seven-file synthetic corpus. Labels come directly from fixture contents; file rank is authoritative and passage criteria are advisory.",
+  "corpus": {
+    "manifest": "sample/manifest.json",
+    "expected_html_files": 7,
+    "origin": "synthetic",
+    "scope": "Behavioral fixtures derived from the supplied freezedry-helper examples; not representative of arbitrary saved websites and not evidence of Mozilla Readability parity. No remote resource is fetched and no script executes."
+  },
+  "arms": [
+    {"key": "raw", "text_extraction": "raw", "label": "current UTF-8 extraction"},
+    {"key": "html-v1", "text_extraction": "html-v1", "label": "SwiftSoup structural HTML extraction"}
+  ],
+  "fixed_settings": {
+    "profile_identity": "e5-base@1200/0",
+    "embedder": "e5-base-v2",
+    "dimension": 768,
+    "chunk_chars": 1200,
+    "chunk_overlap": 0,
+    "concurrency": 8,
+    "search_limit": 7,
+    "note": "Planned values only. A run's frozen-input-manifest.json must record authoritative resolved settings, exact git/package revisions, corpus and query hashes, model-file hashes, extraction strategies, diagnostics, chunk counts, and timings before search begins. Both arms differ only by text extraction."
+  },
+  "metrics": {
+    "primary": ["rank1", "top3", "top5", "mrr"],
+    "no_answer_handling": "Record top groups and scores for inspection only; do not invent a similarity cutoff or automatic absence judgment.",
+    "content_audit": "Report preservation criteria separately from boilerplate exclusions. Neither output size nor an advisory string check overrides file rank."
+  },
+  "queries": [
+    {
+      "id": "q01",
+      "text": "What must happen before a seed cassette leaves the orbital vault chamber?",
+      "primary_file": "article.html",
+      "categories": ["article", "deep-detail"],
+      "passage_criteria": [
+        {"type": "contains", "value": "blue pressure lamp", "case_sensitive": false},
+        {"type": "contains", "value": "dual-key thaw protocol", "case_sensitive": false}
+      ],
+      "excluded_boilerplate": ["Celebrity greenhouse tours", "stock quotes"],
+      "rationale": "Targets article prose while auditing that sibling promotional chrome is absent from html-v1."
+    },
+    {
+      "id": "q02",
+      "text": "Which Trellis option rejects network-backed resources?",
+      "primary_file": "reference.html",
+      "categories": ["reference", "table", "exact-flag"],
+      "passage_criteria": [
+        {"type": "contains", "value": "--airgap", "case_sensitive": false},
+        {"type": "contains", "value": "Reject every network-backed resource", "case_sensitive": false}
+      ],
+      "excluded_boilerplate": ["Search docs"],
+      "rationale": "Ensures a non-article table survives rather than being forced through article selection."
+    },
+    {
+      "id": "q03",
+      "text": "How often should the amber lighthouse beacon be rotated?",
+      "primary_file": "navigation-directory.html",
+      "categories": ["navigation-only", "preservation-fallback"],
+      "passage_criteria": [
+        {"type": "contains", "value": "240 operating hours", "case_sensitive": false},
+        {"type": "contains", "value": "Beacon rotation guide", "case_sensitive": false}
+      ],
+      "excluded_boilerplate": [],
+      "rationale": "A deliberate guard against deleting a useful directory merely because its content uses nav markup."
+    },
+    {
+      "id": "q04",
+      "text": "What conductivity reading caused well JR-17 to be marked for another sample?",
+      "primary_file": "navigation-heavy.html",
+      "categories": ["semantic-main", "navigation-heavy", "exact-measurement"],
+      "passage_criteria": [
+        {"type": "contains", "value": "860 microsiemens", "case_sensitive": false},
+        {"type": "contains", "value": "JR-17", "case_sensitive": false}
+      ],
+      "excluded_boilerplate": ["football transfers", "Cookie settings"],
+      "rationale": "Targets a unique main region surrounded by extensive unrelated page chrome."
+    },
+    {
+      "id": "q05",
+      "text": "What is the reorder point for Éthiopie coffee bags?",
+      "primary_file": "structural.html",
+      "categories": ["unicode", "table", "entities"],
+      "passage_criteria": [
+        {"type": "contains", "value": "Éthiopie", "case_sensitive": false},
+        {"type": "contains", "value": "12 bags", "case_sensitive": false}
+      ],
+      "excluded_boilerplate": [],
+      "rationale": "Exercises entity decoding, Unicode, and readable row context."
+    },
+    {
+      "id": "q06",
+      "text": "How should thermocouple K-4 be calibrated before firing the basalt kiln?",
+      "primary_file": "malformed.html",
+      "categories": ["malformed", "exact-setting"],
+      "passage_criteria": [
+        {"type": "contains", "value": "K-4", "case_sensitive": false},
+        {"type": "contains", "value": "minus 6 degrees", "case_sensitive": false}
+      ],
+      "excluded_boilerplate": ["document.body.innerHTML"],
+      "rationale": "Confirms deterministic parser repair retains useful text and excludes executable source."
+    },
+    {
+      "id": "na01",
+      "text": "How do I prune a climbing rose after winter?",
+      "primary_file": null,
+      "categories": ["no-answer"],
+      "passage_criteria": [],
+      "excluded_boilerplate": [],
+      "rationale": "Far-from-corpus no-answer probe; scores are descriptive only."
+    },
+    {
+      "id": "na02",
+      "text": "Celebrity stock market sports subscription account",
+      "primary_file": null,
+      "categories": ["no-answer", "boilerplate-trap"],
+      "passage_criteria": [],
+      "excluded_boilerplate": [],
+      "rationale": "Terms occur only in article/navigation chrome. Records whether html-v1 suppresses that trap without treating any score as a pass/fail cutoff."
+    }
+  ]
+}
