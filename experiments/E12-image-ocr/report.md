@@ -82,8 +82,10 @@ empty index, and every derived rank equals the stored `file_rank`).
   synthetic passage (a planet's methane "atmosphere") edged it out. All
   11 synthetic targets and the other 3 real targets ranked 1.
 - Process-wide RSS after indexing: raw 485 MiB, image-ocr-v1 3975 MiB.
-  This is NOT an OCR-only figure — it includes the loaded 437 MB E5
-  model and Vision's own allocations. Index wall 10.99 s, search 1.37 s.
+  This is NOT an OCR-only figure — the pipeline embeds at concurrency 8,
+  so it includes the resident E5 embedding pool (multiple e5-base-v2
+  instances, ~437 MB of weights each) plus Vision's own allocations, not
+  a single model. Index wall 10.99 s, search 1.37 s.
 
 The `advisory passage` column is a case-insensitive check of each query's
 criteria against the pre-tokenizer OCR text, reconstructed by ordinal via
