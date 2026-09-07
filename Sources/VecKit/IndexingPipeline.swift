@@ -523,7 +523,11 @@ public final class IndexingPipeline: Sendable {
                             try await extractOne(item.file, item.label)
                         }
                     }
-                    try await lanes.waitForAll()
+                    // Iterate results rather than `waitForAll()` so the first
+                    // lane to throw surfaces immediately and the other lane is
+                    // cancelled on scope exit (fail-fast) instead of the run
+                    // waiting on a possibly-stuck sibling.
+                    for try await _ in lanes {}
                 }
             }
 
@@ -829,15 +833,24 @@ public final class IndexingPipeline: Sendable {
             var next = 0
             let primed = min(limit, items.count)
             while next < primed {
+                // Stop scheduling the moment the parent is cancelled. Without
+                // this, a `body` that never observes cancellation (a
+                // non-throwing one) would let a cancelled walk keep priming
+                // its way through the whole corpus — 325k tasks for a 325k
+                // image set. The `checkCancellation` throw exits the group,
+                // cancelling any already-scheduled children.
+                try Task.checkCancellation()
                 let element = items[next]
                 group.addTask { try await body(element) }
                 next += 1
             }
             // Each completed child frees one window slot; refill it with the
-            // next item, if any. `group.next()` also rethrows the first
-            // child error here, which then cancels the remaining children on
-            // scope exit.
+            // next item, if any. `group.next()` rethrows the first child
+            // error, and the per-iteration `checkCancellation` stops refills
+            // on parent cancellation — either exit cancels the remaining
+            // children on scope exit (fail-fast).
             while try await group.next() != nil {
+                try Task.checkCancellation()
                 if next < items.count {
                     let element = items[next]
                     group.addTask { try await body(element) }
