@@ -18,19 +18,26 @@ indexes from their source documents; there is no vector migration.
   E5 single-document and query vectors are unchanged.
 - **BGE and Nomic:** their inference and input conventions are unchanged.
 
-For a complete rebuild, note the existing embedder and chunk settings
-with `vec info --db <name>`, then reset and reindex using those settings:
+For a complete rebuild, first save the `Profile:` and `Extraction:` lines
+from `vec info --db <name>`. Split the profile identity `<alias>@<N>/<M>`
+into its alias, chunk size, and overlap, then pass them as separate flags:
 
 ```sh
 vec reset --db <name> --force
-vec update-index --db <name> --embedder <existing-profile>
+vec update-index --db <name> --embedder <alias> --chunk-chars <N> --chunk-overlap <M> --text-extraction <mode>
 ```
+
+`--embedder` accepts only the alias, not the full profile identity.
+`<mode>` is the saved extraction setting. Reset clears the recorded
+profile, including extraction mode, so explicitly restore these settings;
+otherwise reindexing falls back to current defaults. For example,
+`gte-base@1200/200` with raw extraction needs `--embedder gte-base
+--chunk-chars 1200 --chunk-overlap 200 --text-extraction raw`.
 
 The reset removes indexed vectors and preserves the source path. Ensure
 the source documents remain available. A plain incremental update can
 leave unchanged source files' old vectors in place, so it is insufficient
-for rebuilding an affected index. Reuse the full profile (including any
-custom chunk size and overlap), not just its embedder alias.
+for rebuilding an affected index.
 
 See [diagnosis and validation](data/embedding-batch-parity.md) for the
 pre-fix measurements and test results. The cosine tolerance remains 0.9999.

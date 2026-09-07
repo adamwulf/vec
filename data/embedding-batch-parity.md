@@ -120,3 +120,36 @@ See [the reindexing note](../embedding-compatibility.md). GTE/MXBAI batch
 vectors are retained, but legacy single-document and cached query vectors
 change. Long E5 batch vectors can change; its single/query vectors are
 retained. No automatic migration is attempted.
+
+## Final validation
+
+The worker ran the complete suite on fix commit `ff3d9dd`, ending on
+2026-09-07, with the same command and runtime as the baseline:
+
+```sh
+swift test --disable-sandbox --disable-swift-testing -j 4
+```
+
+Log: `/tmp/embedding-batch-fix-worker-final.log`.
+Result: **359 tests, 355 passed, 3 existing skips, 1 unrelated failure**
+in 293.735 seconds. The sole remaining failure is the baseline
+`IndexingProfileTests.testFactoryDefaultAliasIsKnown` assertion
+(`e5-base` actual vs `bge-base` expected), separately fixed on the
+`vtt-handler` branch. This branch does not claim a completely green suite.
+
+- The original fixture's five parity assertions all pass at the unchanged
+  0.9999 minimum cosine.
+- All five `BertBatchParityTests` pass, including the three model parity
+  methods under both automatic and CPU-only policies.
+- All **349 baseline-passing test names still pass**; no regressions.
+- The three opt-in skips are unchanged. No new skips or expected failures
+  were introduced.
+- The two initially failing diagnosis methods were replaced by five
+  regression methods, so total test count increases from 356 to 359.
+  The third precision probe was added and run separately after the full
+  baseline; it is also preserved in commit `5210a84`, not in the final tree.
+
+The standalone character-budget test also passed locally without loading
+CoreML. Full inference verification used the authorized worker runtime;
+the Codex manager runtime could build the suite but crashed while CoreML
+loaded model tensors, before inference assertions ran.
