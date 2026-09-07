@@ -80,9 +80,13 @@ public enum HTMLReadableContentExtractor {
 image reference. `HTMLAssetManifest` carries a stable digest over the eligible
 local references and their present/missing/content state; it contains no
 unbounded resident image data. `HTMLExtractionOptions` supplies an explicit
-allowed snapshot root and frozen parser/image bounds. The final concrete
-shapes remain subject to manager review because shared scanner/database wiring
-must persist and compare the dependency digest.
+allowed snapshot root, a pre-parse input-byte limit, and frozen parser/image
+bounds. Both the shared file reader and the HTML entry point enforce the input
+limit before constructing a DOM; an element limit checked after parsing is not
+a memory bound. The final concrete shapes remain subject to manager review
+because shared scanner/database wiring must persist and compare the dependency
+digest. Dependency discovery may reparse bounded input rather than retaining
+DOMs across a corpus and growing resident state.
 
 The shared `TextExtractor` remains responsible for mode dispatch, raw source
 line count, in-order OCR composition through its injected recognizer/cache,
@@ -110,13 +114,17 @@ static Swift parser; E14 must document the narrower static-HTML semantics
 rather than implying browser-rendered visibility.
 
 The leading dependency candidate is exact `SwiftReadability` 0.3.3 plus exact
-`SwiftSoup` 2.13.6. It is native Swift, does not fetch or execute content, and
-documents semantic parity with a pinned Mozilla revision on its 136-fixture
-suite. It requires Swift 6.2, while vec currently declares Swift tools 6.0;
-that effective toolchain-floor decision must be explicitly accepted before
-`Package.swift` is changed. A WebKit wrapper is not a suitable fallback for
-this synchronous concurrent CLI path, and vendoring Mozilla JavaScript would
-also require a separately pinned DOM implementation.
+`SwiftSoup` 2.13.6. Direct checks confirmed that every native
+`SwiftReadability` release from 0.1.0 through 0.3.3 requires Swift 6.2; there is
+no older release that preserves vec's Swift 6.0 floor. Version 0.3.3 is native
+Swift, does not fetch or execute content, and documents semantic parity with a
+pinned Mozilla revision on its 136-fixture suite. Exact SwiftSoup 2.13.6 alone
+supports Swift tools 6.0 and is sufficient for fallback and rendering, but a
+local main-content heuristic would not be Mozilla Readability. The manager is
+resolving this explicit compatibility-versus-fidelity choice before
+`Package.swift` changes. A WebKit wrapper is not suitable for this synchronous
+concurrent CLI path, and vendoring Mozilla JavaScript would also require a
+separately pinned DOM implementation.
 
 ## Pre-freeze deterministic test matrix
 
@@ -134,8 +142,9 @@ also require a separately pinned DOM implementation.
   deterministically.
 - Empty content: empty documents and script/style-only documents yield no
   chunks.
-- Isolation: raw mode and non-HTML files remain unchanged; `.html` / `.htm`
-  and uppercase variants are discovered and normalized only when selected.
+- Isolation: raw mode and non-HTML files remain unchanged. `.html` / `.htm`
+  and uppercase variants are already discovered under raw extraction; only
+  their normalization is opt-in.
 - Provenance: normalized chunks carry no line/page claims.
 - No-network guard: remote page, stylesheet, script, frame, and image
   references remain inert and cannot trigger resource loading.
@@ -181,8 +190,9 @@ Follow E10–E12 methodology once representative examples are available:
   no script execution or network access.
 - [ ] Preserve useful title/heading/list/table/entity content while suppressing
   frozen boilerplate cases; cover malformed and empty HTML.
-- [ ] Bound parser/renderer and inline-image OCR memory/work; test dependency
-  invalidation and ensure HTML does not multiply the existing OCR concurrency.
+- [ ] Enforce a pre-DOM input-byte bound, bound parser/renderer and inline-image
+  OCR work, test dependency invalidation, and ensure HTML does not multiply the
+  existing OCR concurrency.
 - [ ] Keep mode behavior opt-in and composable; coordinate persistence, reset,
   scanner/CLI, and pipeline wiring with the manager.
 - [ ] Freeze and run the E14 sample/rubric with independent scoring and full
