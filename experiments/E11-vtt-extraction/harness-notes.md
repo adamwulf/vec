@@ -148,6 +148,13 @@ case-insensitive checks per criterion, kept distinct:
   here but not in the pre-tokenizer input indicates normalization
   reflowed/dropped it.
 
+Because the raw arm's passage text still carries cue tags, character
+entities, and rolling-caption fragmentation, these literal criteria can fail
+on `raw` even when the content is present — so `passage_all_met` is a
+structure-sensitive advisory, not an arm-neutral measure of semantic
+accuracy, and it must not be read as a fair raw-vs-vtt-v1 accuracy
+comparison.
+
 A human audits a passage by opening the source file at the recorded
 `line_start` / `line_end` (the coarse cue span, per the E11 source-mapping
 design).
