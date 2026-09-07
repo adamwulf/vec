@@ -1,12 +1,17 @@
 # E12 — Opt-in image OCR before embedding
 
-Status: sample, rubric, harness, and scorer FROZEN and committed
-(2026-09-07). Rankings are NOT yet run — they wait on the engine
-(`ImageOCR` + `TextExtractor(ocrCacheDirectory:)`) and pipeline
-(`IndexingPipeline(ocrConcurrency:)`) landing on `agent/image-ocr` and
-compiling, after which this worker rebases and runs the two benchmarks on
-its native runtime. This file records the pre-run design; a `report.md`
-with measured results and limitations follows the run.
+Status: MEASURED and archived (2026-09-07). The two benchmarks ran on
+the native runtime (Apple M1 Pro, macOS 26.6.2, Swift 6.2.4, RELEASE,
+local pinned e5-base-v2, no network) and every rank was regenerated from
+the frozen bytes and the unchanged 15 query labels (the prior worker's
+uncommitted archive was lost; no prior number is assumed). Measured
+results, caveats, provenance, and the rebase/measured-commit mapping are
+in [`report.md`](report.md). Headline: `image-ocr-v1` retrieval 14/15
+rank1, MRR 0.967 (`raw` is a genuinely empty index, 0/15, by design);
+cold OCR throughput 6.85–11.27 img/s on a capped real-image sample
+(325k linear estimate ~8–13 h, conditional on image mix) vs 0.68–0.80
+img/s on the synthetic-heavy frozen sample (~112–133 h). This file
+records the pre-run design; `report.md` is the measured record.
 
 ## Question
 
@@ -99,9 +104,15 @@ thumbnails, photos, and icons with little or no text. So:
 - [x] Always-on Swift guards (no model, no Vision) cover manifest
   preflight, the sample-manifest anti-drift verifier, the `ImageOCR`
   extension set, and OCR-cache hit/miss accounting via an injected fake.
-- [ ] Run both benchmarks on the native runtime after the engine + pipeline
+- [x] Run both benchmarks on the native runtime after the engine + pipeline
   merge; archive provenance and results; obtain independent review.
-- [ ] Write `report.md` with plain measured results and every caveat.
+  (Archives: [`runs/20260907-retrieval/`](runs/20260907-retrieval/),
+  [`runs/20260907-throughput-frozen18/`](runs/20260907-throughput-frozen18/),
+  [`runs/20260907-throughput-real153/`](runs/20260907-throughput-real153/);
+  full suite [`runs/20260907-fullsuite/`](runs/20260907-fullsuite/) — 456
+  tests, 0 failures; TH1 evidence-retention validated in
+  [`runs/20260907-th1-faultcheck/`](runs/20260907-th1-faultcheck/).)
+- [x] Write [`report.md`](report.md) with plain measured results and every caveat.
 
 An accuracy improvement is a hypothesis, not a completion requirement. The
 default stays `raw`.
