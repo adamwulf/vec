@@ -168,7 +168,7 @@ final class ImageOCRTests: XCTestCase {
             XCTAssertTrue(result.paragraphs.isEmpty)
             let info = FileInfo(relativePath: url.lastPathComponent, url: url,
                                 modificationDate: Date(), fileExtension: ext)
-            XCTAssertTrue(try extractor.extract(from: info).isEmpty,
+            XCTAssertTrue(try extractor.extract(from: info).chunks.isEmpty,
                           "A real blank \(ext) must not generate image chunks")
         }
     }
