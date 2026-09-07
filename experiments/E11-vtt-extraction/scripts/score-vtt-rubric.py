@@ -62,6 +62,15 @@ def score(run):
     require(len(arms) == len({a["key"] for a in arms}) == 2, "Expected two unique arms")
     files = {f["path"] for f in frozen["files"]}
     require(len(files) == len(frozen["files"]) == frozen["file_count"], "Invalid frozen file set")
+    sample_bytes = (run / "sample-manifest.json").read_bytes()
+    require(hashlib.sha256(sample_bytes).hexdigest() == frozen["sample_manifest_sha256"],
+            "Archived sample manifest hash mismatch")
+    sample = json.loads(sample_bytes)
+    def fingerprints(entries):
+        return {(f["path"], f["bytes"], f["sha256"].lower()) for f in entries}
+    require(len(sample["files"]) == len(files)
+            and fingerprints(sample["files"]) == fingerprints(frozen["files"]),
+            "Archived sample differs from frozen corpus")
     output = {"run_identity": frozen["run_identity"], "query_manifest_sha256": frozen["query_manifest_sha256"],
               "settings": frozen["settings"], "arms": {}, "per_query": []}
     by_query = {q["id"]: {"id": q["id"], "text": q["text"], "primary_file": q["primary_file"], "arms": {}}

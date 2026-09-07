@@ -23,8 +23,12 @@ class ScorerTests(unittest.TestCase):
                     "queries": [{"id": "q01", "text": "Find the spoken claim", "primary_file": "a.vtt"}]}
         self.write(self.root / "queries/rubric-queries.json", manifest)
         digest = hashlib.sha256((self.root / "queries/rubric-queries.json").read_bytes()).hexdigest()
+        files = [{"path": p, "bytes": 1, "sha256": hashlib.sha256(p.encode()).hexdigest()}
+                 for p in ["a.vtt", "b.vtt"]]
+        self.write(self.run / "sample-manifest.json", {"files": files})
+        sample_digest = hashlib.sha256((self.run / "sample-manifest.json").read_bytes()).hexdigest()
         self.write(self.run / "frozen-input-manifest.json", {"query_manifest_sha256": digest,
-            "query_count": 1, "files": [{"path": p} for p in ["a.vtt", "b.vtt"]],
+            "sample_manifest_sha256": sample_digest, "query_count": 1, "files": files,
             "file_count": 2, "run_identity": "test-run", "settings": {}})
         for arm in ["raw", "vtt-v1"]:
             noisy = int(arm == "raw")
@@ -80,6 +84,16 @@ class ScorerTests(unittest.TestCase):
 
     def testRejectsChangedFrozenQueryHash(self):
         self.mutate("frozen-input-manifest.json", lambda x: x.update(query_manifest_sha256="changed"))
+        with self.assertRaises(scorer.e10.ScoreError):
+            scorer.score(self.run)
+
+    def testRejectsChangedArchivedSample(self):
+        self.mutate("sample-manifest.json", lambda x: x["files"][0].update(bytes=9))
+        with self.assertRaises(scorer.e10.ScoreError):
+            scorer.score(self.run)
+
+    def testRejectsFrozenCorpusDisagreement(self):
+        self.mutate("frozen-input-manifest.json", lambda x: x["files"][0].update(sha256="changed"))
         with self.assertRaises(scorer.e10.ScoreError):
             scorer.score(self.run)
 
