@@ -508,7 +508,8 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
             let coldDir = scratchRoot.appendingPathComponent("ocr-cold-\(jobs)-\(UUID().uuidString)", isDirectory: true)
             try FileManager.default.createDirectory(at: coldDir, withIntermediateDirectories: true)
             let coldCache = ImageOCRCache(directory: coldDir)
-            let cold = try runOCRPass(cache: coldCache, images: images, jobs: jobs, targetCount: targetCount)
+            let cold = try runOCRPass(cache: coldCache, images: images, jobs: jobs, targetCount: targetCount,
+                                      passLabel: "cold", outputDir: outputDir)
             logLine("[e12-ocr] jobs=\(jobs) COLD wall=\(fmt2(cold.wall_seconds))s rate=\(fmt2(cold.images_per_second))/s ok=\(cold.images_succeeded)/\(cold.images_attempted) fail=\(cold.images_failed) hits=\(cold.cache_hits) misses=\(cold.cache_misses) ocrCalls=\(cold.ocr_calls) peakRSS=\(fmtMB(cold.rss_peak_bytes))")
 
             // WARM: the SAME directory read by a FRESH cache instance whose
@@ -516,7 +517,8 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
             // disk sidecar. This measures the disk-hit path only — it does NOT
             // reset process RSS or Vision's internal caches (see notes).
             let warmCache = ImageOCRCache(directory: coldDir)
-            let warm = try runOCRPass(cache: warmCache, images: images, jobs: jobs, targetCount: targetCount)
+            let warm = try runOCRPass(cache: warmCache, images: images, jobs: jobs, targetCount: targetCount,
+                                      passLabel: "warm", outputDir: outputDir)
             logLine("[e12-ocr] jobs=\(jobs) WARM wall=\(fmt2(warm.wall_seconds))s rate=\(fmt2(warm.images_per_second))/s ok=\(warm.images_succeeded)/\(warm.images_attempted) fail=\(warm.images_failed) hits=\(warm.cache_hits) misses=\(warm.cache_misses) ocrCalls=\(warm.ocr_calls) peakRSS=\(fmtMB(warm.rss_peak_bytes))")
 
             // Truth checks: for N distinct-byte images, cold does N OCR calls
@@ -579,16 +581,19 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
     /// SUCCESS, not a failure) — so a swallowed error can never inflate the
     /// rate. Returns wall-clock, throughput over succeeded images,
     /// authoritative cache statistics, RSS, and the target-count extrapolation.
-    private func runOCRPass(cache: ImageOCRCache, images: [URL], jobs: Int, targetCount: Int) throws -> E12ThroughputPass {
+    private func runOCRPass(cache: ImageOCRCache, images: [URL], jobs: Int, targetCount: Int,
+                            passLabel: String, outputDir: URL) throws -> E12ThroughputPass {
         let sampler = E12RSSSampler(intervalMillis: 20)
         let rssBefore = residentBytes()
         sampler.start()
         let queue = DispatchQueue(label: "e12.ocr.jobs", attributes: .concurrent)
         let sem = DispatchSemaphore(value: jobs)
         let group = DispatchGroup()
-        let lock = NSLock()
-        var succeeded = 0
-        var failures: [String] = []
+        // Success/failure tally held behind a lock in a Sendable counter box, so
+        // the concurrent `@Sendable` job closures capture a single `let`
+        // reference instead of mutable `var`s (which Swift 6 concurrency rejects
+        // capturing across a concurrent DispatchQueue).
+        let counters = E12OCRCounters()
         let start = DispatchTime.now()
         for url in images {
             sem.wait()
@@ -597,9 +602,9 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
                 defer { sem.signal(); group.leave() }
                 do {
                     _ = try cache.recognizeText(in: url)
-                    lock.lock(); succeeded += 1; lock.unlock()
+                    counters.recordSuccess()
                 } catch {
-                    lock.lock(); failures.append("\(url.lastPathComponent): \(error)"); lock.unlock()
+                    counters.recordFailure(file: url.lastPathComponent, error: "\(error)")
                 }
             }
         }
@@ -607,16 +612,40 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
         let wall = Self.elapsed(since: start)
         let rss = sampler.stop()
         let rssAfter = residentBytes()
-        guard failures.isEmpty else {
-            throw E12HarnessError("OCR pass (jobs=\(jobs)) had \(failures.count) recognizer failure(s) of \(images.count): \(failures.prefix(5).joined(separator: "; "))")
-        }
-        let imagesPerSec = wall > 0 ? Double(succeeded) / wall : 0
-        let estimate = imagesPerSec > 0 ? Double(targetCount) / imagesPerSec : 0
+        let succeeded = counters.successCount
+        let failures = counters.failureList
         let stats = cache.statistics
         // Peak is the max of the sampled peak and the immediate before/after
         // reads, so a spike missed between samples is still bounded below by
         // the endpoints.
         let peak = max(rssBefore, max(rss.peak, rssAfter))
+        guard failures.isEmpty else {
+            // TH1: retain the failure filenames/counts and a partial per-pass
+            // diagnostic BEFORE throwing, so the evidence survives the aborted
+            // run instead of being discarded. A pass WITH recognizer failures
+            // is INVALID for a full-corpus (325k) extrapolation — its
+            // images/second is NOT published as a corpus time; the failures
+            // must be diagnosed and a decodable subset re-run instead.
+            let diag = E12ThroughputFailureDiagnostic(
+                jobs: jobs, pass: passLabel, images_attempted: images.count,
+                images_succeeded: succeeded, images_failed: failures.count,
+                wall_seconds: wall, cache_hits: stats.hits, cache_misses: stats.misses,
+                ocr_calls: stats.ocrCalls, rss_before_bytes: rssBefore, rss_peak_bytes: peak,
+                rss_after_bytes: rssAfter,
+                failures: failures.map { E12OCRFailure(file: $0.file, error: $0.error) })
+            let diagName = "failed-pass-\(jobs)-\(passLabel).json"
+            do {
+                try writeJSON(diag, to: outputDir.appendingPathComponent(diagName))
+                logLine("[e12-ocr] jobs=\(jobs) \(passLabel) FAILED: \(failures.count)/\(images.count) recognizer failure(s); partial diagnostic saved to \(diagName). This pass is INVALID for extrapolation.")
+            } catch {
+                // Even if the file write fails, never lose the evidence: dump
+                // the full failure list to the run log before aborting.
+                logLine("[e12-ocr] jobs=\(jobs) \(passLabel) FAILED (\(failures.count)/\(images.count)) AND diagnostic write failed (\(error)); failures: " + failures.map { "\($0.file): \($0.error)" }.joined(separator: " | "))
+            }
+            throw E12HarnessError("OCR pass (jobs=\(jobs), \(passLabel)) had \(failures.count) recognizer failure(s) of \(images.count): \(failures.prefix(5).map { "\($0.file): \($0.error)" }.joined(separator: "; ")). Partial diagnostic written to \(diagName); pass INVALID for extrapolation.")
+        }
+        let imagesPerSec = wall > 0 ? Double(succeeded) / wall : 0
+        let estimate = imagesPerSec > 0 ? Double(targetCount) / imagesPerSec : 0
         return E12ThroughputPass(
             images_attempted: images.count, images_succeeded: succeeded, images_failed: failures.count,
             jobs: jobs, wall_seconds: wall, images_per_second: imagesPerSec,
@@ -900,7 +929,13 @@ final class ImageOCRRetrievalExperimentTests: XCTestCase {
 
     private func resolvedURL(_ path: String) -> URL {
         var buf = [CChar](repeating: 0, count: Int(PATH_MAX))
-        if realpath(path, &buf) != nil { return URL(fileURLWithPath: String(cString: buf)) }
+        if realpath(path, &buf) != nil {
+            // Decode the NUL-terminated C path as UTF-8 without the deprecated
+            // `String(cString:)` `[CChar]` overload. `CChar` is `Int8`; take the
+            // bytes up to the terminator and reinterpret them as `UInt8`.
+            let bytes = buf.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }
+            return URL(fileURLWithPath: String(decoding: bytes, as: UTF8.self))
+        }
         return URL(fileURLWithPath: path)
     }
 
@@ -1262,6 +1297,27 @@ final class E12CountingRecognizer: ImageTextRecognizer, @unchecked Sendable {
     }
 }
 
+// MARK: - Concurrent OCR-pass counters
+
+/// Thread-safe success/failure tally for one concurrent OCR pass. The mutable
+/// counters live behind an `NSLock` inside this reference type so the pass's
+/// `@Sendable` job closures capture a single `let` box instead of mutable
+/// `var`s — the latter is rejected when captured across a concurrent
+/// `DispatchQueue` under Swift 6 concurrency checking. Every failure keeps its
+/// filename and error string so the harness can archive per-file evidence.
+final class E12OCRCounters: @unchecked Sendable {
+    private let lock = NSLock()
+    private var succeeded = 0
+    private var failures: [(file: String, error: String)] = []
+
+    func recordSuccess() { lock.lock(); succeeded += 1; lock.unlock() }
+    func recordFailure(file: String, error: String) {
+        lock.lock(); failures.append((file: file, error: error)); lock.unlock()
+    }
+    var successCount: Int { lock.lock(); defer { lock.unlock() }; return succeeded }
+    var failureList: [(file: String, error: String)] { lock.lock(); defer { lock.unlock() }; return failures }
+}
+
 // MARK: - Resident-memory sampler
 
 /// Coarse process-wide RSS sampler. Reads `mach_task_basic_info` on a
@@ -1449,6 +1505,25 @@ struct E12ThroughputPass: Codable {
     let estimate_target_seconds: Double; let estimate_target_count: Int
 }
 struct E12ThroughputJobResult: Codable { let jobs: Int; let cold: E12ThroughputPass; let warm: E12ThroughputPass }
+
+/// One recognizer failure retained as evidence (TH1): the failing file's name
+/// and the error string, so an aborted throughput pass leaves a diagnosable
+/// record instead of discarding which images could not be decoded.
+struct E12OCRFailure: Codable { let file: String; let error: String }
+
+/// Partial per-pass diagnostic written BEFORE a failing throughput pass throws
+/// (TH1). It records the attempted/succeeded/failed counts, the wall-clock and
+/// cache/RSS readings observed up to the failure, and every failure's
+/// file+error. A pass that produced this file is INVALID for a full-corpus
+/// extrapolation and its images/second is never published as a corpus time.
+struct E12ThroughputFailureDiagnostic: Codable {
+    let jobs: Int; let pass: String
+    let images_attempted: Int; let images_succeeded: Int; let images_failed: Int
+    let wall_seconds: Double
+    let cache_hits: Int; let cache_misses: Int; let ocr_calls: Int
+    let rss_before_bytes: UInt64; let rss_peak_bytes: UInt64; let rss_after_bytes: UInt64
+    let failures: [E12OCRFailure]
+}
 struct E12ThroughputArchive: Codable {
     let experiment: String; let frozen_at: String; let corpus_source: String; let image_count: Int
     /// The frozen, sha256-pinned image snapshot both the cold and warm passes
