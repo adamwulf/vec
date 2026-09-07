@@ -174,10 +174,14 @@ DOM runtime.
   path containment/symlink escape, data-image limits when enabled, image-count
   cap, blank recognition, and the frozen per-image failure behavior.
 
-These categories are fixed before implementation, but their exact HTML bodies
-and expected-content labels are not yet frozen.
+These categories were fixed before implementation. The committed sample now
+freezes seven synthetic HTML bodies (six targets and one executable-only
+distractor) and the rubric freezes six answered and two no-answer queries.
+They were constructed from the supplied behavioral examples before any
+retrieval ranking was observed. They are deliberately labeled synthetic and
+are not evidence of representative-web accuracy.
 
-## Controlled comparison (not yet frozen)
+## Controlled comparison (inputs frozen; run pending shared wiring)
 
 Follow E10–E12 methodology once representative examples are available:
 
@@ -203,16 +207,17 @@ Follow E10–E12 methodology once representative examples are available:
 - [x] Receive and acknowledge the user's Readability/fallback examples from
   `freezedry-helper`; retain the actual local fixture labels as pre-ranking
   decisions.
-- [ ] Adopt a reproducible dependency/version policy compatible with the
+- [x] Adopt a reproducible dependency/version policy compatible with the
   package's macOS and Swift toolchain, or document and test a dependency-free
   implementation.
-- [ ] Extract readable article and non-article content deterministically with
+- [x] Extract readable article and non-article content deterministically with
   no script execution or network access.
-- [ ] Preserve useful title/heading/list/table/entity content while suppressing
+- [x] Preserve useful title/heading/list/table/entity content while suppressing
   frozen boilerplate cases; cover malformed and empty HTML.
 - [ ] Enforce a pre-DOM input-byte bound, bound parser/renderer and inline-image
   OCR work, test dependency invalidation, and ensure HTML does not multiply the
-  existing OCR concurrency.
+  existing OCR concurrency. HTML-owned bounds and invalidation tests pass; the
+  final sequential OCR-loop assertion belongs to shared wiring.
 - [ ] Keep mode behavior opt-in and composable; coordinate persistence, reset,
   scanner/CLI, and pipeline wiring with the manager.
 - [ ] Freeze and run the E14 sample/rubric with independent scoring and full
