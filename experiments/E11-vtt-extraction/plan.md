@@ -99,14 +99,7 @@ files and advisory passage criteria by reading the spoken text, including
 a specific claim, a named speaker, and explanations spanning several cues.
 Do not change captions, query wording, or labels after seeing ranks.
 
-Mirror E10: pinned `e5-base@1200/0`, local E5 revision
-`f52bf8ec8c7124536f0efb74aca902b2995e5bcd`, concurrency 8, batch 32,
-bucket width 500, default compute policy, fetch 30 chunk hits and coalesce
-to 10 files. Both arms use the same existing batch document-embedding
-pipeline and the same single-query embedding path. Freeze the existing
-inference implementation from the completed WebVTT work; do not adopt the
-separate embedding-batch-fix changes between arms. This matches E10's
-paths but does not eliminate the known parity/batch-composition caveat.
+Mirror E10: pinned `e5-base@1200/0`, local E5 revision `f52bf8ec8c7124536f0efb74aca902b2995e5bcd`, concurrency 8, batch 32, bucket width 500, default compute policy, fetch 30 chunk hits and coalesce to 10 files. Both arms use the same batch document-embedding pipeline and the same single-query embedding path. Per Adam’s updated instruction, the feature was rebased onto current main `5ee92ab563d348924312747e6631a639b96f1b35` before either arm. This includes the separately authored inference fixes, including aligned E5 prefix/truncation behavior. Neither arm may change inference code. The settings and protocol mirror E10, but its earlier inference revision differs; cross-experiment metric differences cannot be attributed solely to extraction. No rankings had been observed when this baseline update was made.
 
 Index the same frozen sample into fresh raw and vtt-v1 databases, then
 archive every query result. Report per-query file ranks, hit@1, hit@5,
