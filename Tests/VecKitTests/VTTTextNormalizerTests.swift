@@ -158,4 +158,13 @@ final class VTTTextNormalizerTests: XCTestCase {
         let source = "WEBVTT\n\n00:00.000 --> 00:02.000\n\(repeated)\n\n00:01.000 --> 00:03.000\n\(repeated) new tail"
         XCTAssertEqual(VTTTextNormalizer.normalize(source), repeated + " new tail")
     }
+
+    func testMissingBlankCueSeparatorDoesNotEmbedTimingLine() {
+        let source = "WEBVTT\n\n00:00.000 --> 00:01.000\nHello\n00:01.000 --> 00:02.000\nworld"
+        let document = VTTTextNormalizer.document(source)
+        XCTAssertEqual(document.text, "Hello world")
+        XCTAssertEqual(document.passages.first?.lineStart, 3)
+        XCTAssertEqual(document.passages.first?.lineEnd, 6)
+        XCTAssertEqual(VTTTextNormalizer.document("\u{FEFF}").lineCount, 1)
+    }
 }

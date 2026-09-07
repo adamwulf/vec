@@ -53,9 +53,9 @@ public enum VTTTextNormalizer {
     static func document(_ source: String) -> Document {
         var normalized = source.replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
+        let lineCount = normalized.isEmpty ? 0 : normalized.components(separatedBy: "\n").count - (normalized.hasSuffix("\n") ? 1 : 0)
         if normalized.first == "\u{FEFF}" { normalized.removeFirst() }
         let lines = normalized.components(separatedBy: "\n")
-        let lineCount = normalized.isEmpty ? 0 : lines.count - (normalized.hasSuffix("\n") ? 1 : 0)
         var cues: [Cue] = []
         var index = 0
         while index < lines.count {
@@ -66,13 +66,20 @@ public enum VTTTextNormalizer {
             let first = block[0].trimmingCharacters(in: .whitespaces)
             if isBlock(first, named: "WEBVTT") || isBlock(first, named: "NOTE") || first == "STYLE" || first == "REGION" { continue }
             // A cue has either a timing line or one identifier then timing.
-            let offset = times(block[0]) != nil ? 0 : 1
-            guard offset < block.count, let (begin, end) = times(block[offset]), end > begin else { continue }
-            let payload = block.dropFirst(offset + 1).joined(separator: "\n")
-            let turns = cueText(payload)
-            guard !turns.isEmpty else { continue }
-            cues.append(Cue(start: begin, end: end, lineStart: start + offset + 1,
-                            lineEnd: index, turns: turns))
+            var offset = times(block[0]) != nil ? 0 : 1
+            while offset < block.count {
+                guard let (begin, end) = times(block[offset]), end > begin else { break }
+                // Exporters sometimes omit a blank separator. A timing line
+                // must start a new cue, never leak into the preceding prose.
+                let next = ((offset + 1)..<block.count).first { times(block[$0]) != nil } ?? block.count
+                let payload = block[(offset + 1)..<next].joined(separator: "\n")
+                let turns = cueText(payload)
+                if !turns.isEmpty {
+                    cues.append(Cue(start: begin, end: end, lineStart: start + offset + 1,
+                                    lineEnd: start + next, turns: turns))
+                }
+                offset = next
+            }
         }
 
         var passages: [Passage] = []
