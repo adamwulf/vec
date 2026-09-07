@@ -1,0 +1,25 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "real",
+    "diagram",
+    "explanation"
+  ],
+  "groups" : [
+
+  ],
+  "hit_at_1" : false,
+  "hit_at_3" : false,
+  "hit_at_5" : false,
+  "id" : "q02",
+  "is_no_answer" : false,
+  "origin" : "real",
+  "overfetch_distinct_files" : 0,
+  "primary_file" : "real/ot-sequence-diagram.png",
+  "reciprocal_rank" : 0,
+  "relevant_files" : [
+    "real/ot-sequence-diagram.png"
+  ],
+  "search_seconds" : 0.060187542,
+  "text" : "How are insert and delete edits from two clients transformed against the server document?"
+}

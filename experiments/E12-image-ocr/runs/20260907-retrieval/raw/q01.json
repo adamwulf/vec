@@ -1,0 +1,25 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "real",
+    "chart",
+    "claim"
+  ],
+  "groups" : [
+
+  ],
+  "hit_at_1" : false,
+  "hit_at_3" : false,
+  "hit_at_5" : false,
+  "id" : "q01",
+  "is_no_answer" : false,
+  "origin" : "real",
+  "overfetch_distinct_files" : 0,
+  "primary_file" : "real/fbi-jan6-charges-chart.png",
+  "reciprocal_rank" : 0,
+  "relevant_files" : [
+    "real/fbi-jan6-charges-chart.png"
+  ],
+  "search_seconds" : 0.289274,
+  "text" : "How many total charges does the chart report against January 6 defendants?"
+}

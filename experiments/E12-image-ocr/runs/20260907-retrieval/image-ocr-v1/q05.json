@@ -1,0 +1,198 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.9050477147102356,
+      "file" : "synthetic/sourdough-hydration.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.0949522852897644,
+          "score" : 0.9050477147102356
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7658726572990417,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.23412734270095825,
+          "score" : 0.7658726572990417
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7469723224639893,
+      "file" : "synthetic/roman-aqueduct.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.25302767753601074,
+          "score" : 0.7469723224639893
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7451542019844055,
+      "file" : "synthetic/tea-ceremony.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2548457980155945,
+          "score" : 0.7451542019844055
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.743802011013031,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.256197988986969,
+          "score" : 0.743802011013031
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.2932090163230896,
+          "score" : 0.7067909836769104
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2942865490913391,
+          "score" : 0.7057134509086609
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7374249696731567,
+      "file" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.26257503032684326,
+          "score" : 0.7374249696731567
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.73246830701828,
+      "file" : "synthetic/coral-bleaching.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.26753169298171997,
+          "score" : 0.73246830701828
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7318545579910278,
+      "file" : "synthetic/lithium-battery-runaway.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.26814544200897217,
+          "score" : 0.7318545579910278
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7265990972518921,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2734009027481079,
+          "score" : 0.7265990972518921
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.7165360450744629,
+      "file" : "synthetic/knitting-gauge.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2834639549255371,
+          "score" : 0.7165360450744629
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q05",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.9050477147102356,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "75 percent"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "Tartine"
+      }
+    ],
+    "distance" : 0.0949522852897644,
+    "file_rank" : 1,
+    "input_chars" : 182
+  },
+  "primary_file" : "synthetic/sourdough-hydration.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "synthetic/sourdough-hydration.png"
+  ],
+  "search_seconds" : 0.05955475,
+  "text" : "What hydration percentage does a country sourdough loaf use?"
+}

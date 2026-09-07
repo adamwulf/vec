@@ -112,6 +112,18 @@ if the cross-corpus ranking diverges, the default may revisit. See
 
 All shipped on the current branch, in rough chronological order.
 
+### E12 — Opt-in image OCR extraction (2026-09-07)
+
+Added `image-ocr-v1` and all canonical Markdown/VTT combinations. Scanner discovery, updates and inserts honor the recorded mode; switching modes requires reset. Vision revision 3 and ImageIO extract reading-order paragraphs before chunking, with a content-hash/version cache, bounded resident LRU, per-image autorelease pools, a 4096-pixel cap, and configurable OCR concurrency (default 1). The existing metadata schema is unchanged.
+
+The regenerated, committed archive passed independent scoring by both reviewers: OCR hit@1 14/15, hit@5 15/15, MRR 0.967, and 19 chunks from 17 nonblank images plus one blank completion record. Real retrieval targets scored 3/4 at rank one; synthetic targets 11/11. Raw discovered no images and produced no chunks or hits. The frozen sample has 6 real and 12 synthetic images; its curated 15-query rubric and empty baseline do not estimate full-corpus retrieval accuracy.
+
+Cold OCR on a deterministic 153-image real sample reached 6.85/10.34/11.27 images/s at 1/4/8 jobs (240–275 MiB peak process RSS), implying 13.2/8.7/8.0 hours for 325k similar images. The dense frozen sample instead implies 112–133 hours (273–356 MiB peak process RSS). These conditional OCR estimates exclude embedding and database writes. Every warm pass hit all cached images with zero OCR calls; its millisecond timings are too short for a reliable throughput forecast.
+
+Native full-suite validation: 456 tests, 0 failures, 6 opt-in benchmarks skipped; the two E12 heavy benchmarks ran separately and passed. The later addition of real rendered blank PNG/JPEG coverage passed a fresh 36-test native OCR suite with zero failures. Both reviewers independently verified the measured archives. [Experiment plan](experiments/E12-image-ocr/plan.md) · [Report](experiments/E12-image-ocr/report.md) · [Full-suite log](experiments/E12-image-ocr/runs/20260907-fullsuite/execution-log.txt) · [Final OCR-suite log](experiments/E12-image-ocr/runs/20260907-imageocrtests/execution-log.txt).
+
+Two independent reviewers gave unconditional final approval after the fixes and native validation. [Review sign-offs and resolved findings](experiments/E12-image-ocr/review.md).
+
 ### E11 — Opt-in WebVTT extraction (2026-09-06)
 
 `--text-extraction vtt-v1` removes caption structure, decodes text, preserves speakers, and joins/de-duplicates rolling cues before the existing chunker. `markdown-v1+vtt-v1` supports mixed corpora; modes are recorded and inherited, and raw remains the default. Chunks retain coarse source cue line ranges without a schema change. The 2026-09-07 measurement used 16 frozen captions (1 real, 15 synthetic): rank-1 accuracy 14/15 → 15/15, MRR 0.956 → 1.000, chunks 205 → 88, timestamp/tag noise 100% → 0%. The sole rank gain was synthetic; this is not a full-corpus accuracy estimate. Both arms used the same inference on main `5ee92ab`, adopted by rebase; the full suite passes 392 tests with 4 opt-in skips and zero failures. [Plan](experiments/E11-vtt-extraction/plan.md) · [Measured report](experiments/E11-vtt-extraction/report.md) · [Historical baseline validation](experiments/E11-vtt-extraction/validation.md).

@@ -54,12 +54,21 @@ enum TextExtractionOption: String, ExpressibleByArgument, CaseIterable {
     case vttV1 = "vtt-v1"
     case markdownV1VttV1 = "markdown-v1+vtt-v1"
 
+    case imageOCRV1 = "image-ocr-v1"
+    case markdownV1ImageOCRV1 = "markdown-v1+image-ocr-v1"
+    case vttV1ImageOCRV1 = "vtt-v1+image-ocr-v1"
+    case markdownV1VttV1ImageOCRV1 = "markdown-v1+vtt-v1+image-ocr-v1"
+
     var mode: TextExtractionMode {
         switch self {
         case .raw: return .raw
         case .markdownV1: return .markdownV1
         case .vttV1: return .vttV1
         case .markdownV1VttV1: return .markdownV1VttV1
+        case .imageOCRV1: return .imageOCRV1
+        case .markdownV1ImageOCRV1: return .markdownV1ImageOCRV1
+        case .vttV1ImageOCRV1: return .vttV1ImageOCRV1
+        case .markdownV1VttV1ImageOCRV1: return .markdownV1VttV1ImageOCRV1
         }
     }
 }
@@ -400,11 +409,14 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Indexing profile alias (\(IndexingProfileFactory.knownAliases.joined(separator: ", "))). Default is \(IndexingProfileFactory.defaultAlias) on first index; must match the recorded profile on subsequent runs (or omit to reuse the recorded alias with its alias-default chunk params).")
     var embedder: String?
 
-    @Option(name: .long, help: "Document extraction: raw, markdown-v1, vtt-v1, or markdown-v1+vtt-v1. markdown-v1 normalizes .md/.markdown; vtt-v1 normalizes .vtt; the combined mode does both. Defaults to raw on first index; omit to reuse the recorded mode. Changing modes requires reset and reindexing.")
+    @Option(name: .long, help: "Document extraction: raw or a canonical + combination of markdown-v1, vtt-v1, image-ocr-v1 (in that order). Image discovery and OCR require image-ocr-v1. Defaults to raw on first index; omit to reuse the recorded mode. Changing modes requires reset and reindexing.")
     var textExtraction: TextExtractionOption?
 
     @Option(name: .long, help: "Override embedder pool size (default: \(IndexingPipeline.defaultConcurrency), measured optimum on 10-perf-core M-series in E6.3). E6.3 indexing-speed knob.")
     var concurrency: Int?
+
+    @Option(name: .long, help: "Maximum simultaneous image OCR jobs (default: 1). Each job can use about 64 MiB for decoded pixels plus Vision working memory; start with 1-4 and increase only with available memory. Independent of embedder concurrency; requires image-ocr-v1.")
+    var ocrConcurrency: Int = IndexingPipeline.defaultOCRConcurrency
 
     @Option(name: .long, help: "Override max chunks per embedDocuments batch (default: \(IndexingPipeline.defaultBatchSize), cap 32). E6.3 indexing-speed knob.")
     var batchSize: Int?
@@ -414,6 +426,12 @@ struct UpdateIndexCommand: AsyncParsableCommand {
 
     @Option(name: .long, help: "MLTensor compute-policy placement (auto/cpu/ane/gpu; default: auto = per-embedder default). E6.2 ANE-feasibility probe for e5-base.")
     var computePolicy: ComputePolicyOption = .auto
+
+    func validate() throws {
+        guard ocrConcurrency >= 1 else {
+            throw ValidationError("--ocr-concurrency must be at least 1.")
+        }
+    }
 
     func run() async throws {
         // Step 1: CLI partial-override hard-fail — before any DB work.
@@ -489,7 +507,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         )
         try await database.open()
 
-        let scanner = FileScanner(directory: sourceDir, includeHiddenFiles: allowHidden)
+        let scanner = FileScanner(directory: sourceDir, includeHiddenFiles: allowHidden, textExtraction: resolution.textExtraction)
         let files = try scanner.scan()
         let indexedFiles = try await database.allIndexedFiles()
 
@@ -508,6 +526,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         let pipeline = Self.makePipeline(
             profile: activeProfile,
             concurrency: concurrency,
+            ocrConcurrency: ocrConcurrency,
             batchSize: batchSize,
             bucketWidth: bucketWidth
         )
@@ -563,7 +582,7 @@ struct UpdateIndexCommand: AsyncParsableCommand {
         do {
             (results, stats) = try await pipeline.run(
                 workItems: workItems,
-                extractor: TextExtractor(splitter: activeProfile.splitter, textExtraction: resolution.textExtraction),
+                extractor: TextExtractor(splitter: activeProfile.splitter, textExtraction: resolution.textExtraction, ocrCacheDirectory: dbDir),
                 database: database,
                 progress: progress
             )
@@ -718,11 +737,13 @@ struct UpdateIndexCommand: AsyncParsableCommand {
     static func makePipeline(
         profile: IndexingProfile,
         concurrency: Int?,
+        ocrConcurrency: Int = IndexingPipeline.defaultOCRConcurrency,
         batchSize: Int?,
         bucketWidth: Int?
     ) -> IndexingPipeline {
         return IndexingPipeline(
             concurrency: concurrency ?? IndexingPipeline.defaultConcurrency,
+            ocrConcurrency: ocrConcurrency,
             batchSize: batchSize ?? IndexingPipeline.defaultBatchSize,
             bucketWidth: bucketWidth ?? IndexingPipeline.defaultBucketWidth,
             profile: profile

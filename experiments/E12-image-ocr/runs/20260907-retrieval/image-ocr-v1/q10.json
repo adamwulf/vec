@@ -1,0 +1,198 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.894172728061676,
+      "file" : "synthetic/lithium-battery-runaway.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.10582727193832397,
+          "score" : 0.894172728061676
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7306671142578125,
+      "file" : "synthetic/coral-bleaching.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2693328857421875,
+          "score" : 0.7306671142578125
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7170935869216919,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.2829064130783081,
+          "score" : 0.7170935869216919
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.2897210121154785,
+          "score" : 0.7102789878845215
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.30382460355758667,
+          "score" : 0.6961753964424133
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7156674861907959,
+      "file" : "real/fractional-index-steps.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2843325138092041,
+          "score" : 0.7156674861907959
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7122102975845337,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2877897024154663,
+          "score" : 0.7122102975845337
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.710277259349823,
+      "file" : "synthetic/everest-death-zone.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.289722740650177,
+          "score" : 0.710277259349823
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7094231247901917,
+      "file" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.29057687520980835,
+          "score" : 0.7094231247901917
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7051358222961426,
+      "file" : "synthetic/fermat-last-theorem.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2948641777038574,
+          "score" : 0.7051358222961426
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7045726180076599,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2954273819923401,
+          "score" : 0.7045726180076599
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.703409731388092,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.29659026861190796,
+          "score" : 0.703409731388092
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q10",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.894172728061676,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "NMC cathode"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "150 degrees"
+      }
+    ],
+    "distance" : 0.10582727193832397,
+    "file_rank" : 1,
+    "input_chars" : 185
+  },
+  "primary_file" : "synthetic/lithium-battery-runaway.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "synthetic/lithium-battery-runaway.png"
+  ],
+  "search_seconds" : 0.092504792,
+  "text" : "Above what temperature can an NMC lithium-ion cell enter thermal runaway?"
+}

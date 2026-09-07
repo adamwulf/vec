@@ -7,6 +7,7 @@ public class FileScanner {
     private let directory: URL
     private let respectsGitignore: Bool
     private let includeHiddenFiles: Bool
+    private let textExtraction: TextExtractionMode
 
     /// Text file extensions that UTType misclassifies or doesn't recognize.
     /// .ts/.mts are classified as MPEG-2 transport streams instead of TypeScript.
@@ -31,10 +32,11 @@ public class FileScanner {
         "Pods", "DerivedData"
     ]
 
-    public init(directory: URL, respectsGitignore: Bool = true, includeHiddenFiles: Bool = false) {
+    public init(directory: URL, respectsGitignore: Bool = true, includeHiddenFiles: Bool = false, textExtraction: TextExtractionMode = .raw) {
         self.directory = directory
         self.respectsGitignore = respectsGitignore
         self.includeHiddenFiles = includeHiddenFiles
+        self.textExtraction = textExtraction
     }
 
     /// Scan the directory and return all indexable files.
@@ -88,7 +90,17 @@ public class FileScanner {
             let isPDF = utType?.conforms(to: .pdf) ?? false
             let isImage = utType?.conforms(to: .image) ?? false
 
-            guard isText || isPDF || isImage
+            // Handle raster/vector image names before text sniffing: SVG is
+            // XML and some unsupported formats have no registered UTType.
+            // Neither should leak into a raw index as apparent text.
+            if isImage || ImageOCR.imageLikeExtensions.contains(ext) {
+                if textExtraction.includesImageOCR && ImageOCR.supportedExtensions.contains(ext) {
+                    results.append(fileInfo(url: url, modDate: modDate, ext: ext))
+                }
+                continue
+            }
+
+            guard isText || isPDF
                     || Self.textExtensionOverrides.contains(ext)
                     || Self.knownTextFilenames.contains(fileName) else {
                 // Try to detect text files without known extensions

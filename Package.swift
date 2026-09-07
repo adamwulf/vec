@@ -18,7 +18,10 @@ let package = Package(
         // 6.2 and would silently raise it. Stay on the 0.6 minor line; its
         // source-location API (1-based UTF-8 byte columns) is identical to the
         // newer releases. Package.resolved pins the exact resolved revision.
-        .package(url: "https://github.com/swiftlang/swift-markdown", .upToNextMinor(from: "0.6.0"))
+        .package(url: "https://github.com/swiftlang/swift-markdown", .upToNextMinor(from: "0.6.0")),
+        // Pin parser behavior for the versioned HTML reader. This release
+        // declares Swift tools 6.0 and is shared by both selection options.
+        .package(url: "https://github.com/scinfu/SwiftSoup.git", exact: "2.13.6")
     ],
     targets: [
         .systemLibrary(
@@ -33,7 +36,8 @@ let package = Package(
             dependencies: [
                 "CSQLiteVec",
                 .product(name: "Embeddings", package: "swift-embeddings"),
-                .product(name: "Markdown", package: "swift-markdown")
+                .product(name: "Markdown", package: "swift-markdown"),
+                .product(name: "SwiftSoup", package: "SwiftSoup")
             ]
         ),
         .executableTarget(

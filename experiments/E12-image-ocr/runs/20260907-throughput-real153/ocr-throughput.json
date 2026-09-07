@@ -1,0 +1,920 @@
+{
+  "build" : {
+    "active_processor_count" : 10,
+    "configuration" : "release",
+    "git_dirty" : false,
+    "git_head" : "69dec5caaa9ec10452928123533544be2edaa3c9",
+    "host_name" : "adams-macbook-pro-9.local",
+    "os_version" : "Version 26.6.2 (Build 25G83)",
+    "package_resolved_sha256" : "d3dad0550daef3df320799330ec5b6b8ee49e8772ce2fde1a1a0e3aa796bb10c",
+    "swift_version" : "Apple Swift version 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2)\nTarget: arm64-apple-macosx26.0"
+  },
+  "corpus_source" : "/private/tmp/claude-501/-Users-adamwulf-Developer-swift-packages-vec--ittybitty-agents-agent-f8aa66db-repo/91835659-86b0-4cd7-ac45-ee4ecc3c0c19/scratchpad/real-sample-150",
+  "experiment" : "E12-image-ocr",
+  "frozen_at" : "2026-09-07T09:37:34Z",
+  "frozen_images" : [
+    {
+      "bytes" : 56690,
+      "path" : "0000__CleanShot_2025-01-21_at_22.30.112x.png",
+      "sha256" : "b10bc6d437acf1274b0ae893ce6c1618123a8e4ee726fd3950da2c1ddc53999c"
+    },
+    {
+      "bytes" : 56778,
+      "path" : "0001__adams-jared-hunter.jpg",
+      "sha256" : "2b47ee3da88133ccb8d15ce9cf9983af6730d5222f91fc13f55ecf6909265b66"
+    },
+    {
+      "bytes" : 63318,
+      "path" : "0002__alfonso-christian.jpg",
+      "sha256" : "e509d5d1a0fc7e5a41385c434664ff342b2d7cb241cb90920ab3bd6ff5cecf6a"
+    },
+    {
+      "bytes" : 47477,
+      "path" : "0003__alvarado-wilmar-jeovanny-montano.jpg",
+      "sha256" : "03aadb0ae1e49d807e147cdf9c23dced725f1ec5fe3b5851219068683236b807"
+    },
+    {
+      "bytes" : 35712,
+      "path" : "0004__andrews-richard.jpg",
+      "sha256" : "12106d881ad0a773958445799f9f62466931a14927a209f4834f76f185fffe8d"
+    },
+    {
+      "bytes" : 18240,
+      "path" : "0005__arredondo-david-rene.jpg",
+      "sha256" : "580899ba9a0c6e2462b78ece36830ed93e70bd7f7f46808983f5cadf94843273"
+    },
+    {
+      "bytes" : 25649,
+      "path" : "0006__azari-farbod.jpg",
+      "sha256" : "88f4ad92ead18e587e5a2b972e9fb100e116f0ca6f43b1acb333d68f5a4b2a64"
+    },
+    {
+      "bytes" : 27400,
+      "path" : "0007__ball-daniel-charles.jpg",
+      "sha256" : "3408765c4865e140aa98a396d499049769f8a83fff49bba4c30996509911fcea"
+    },
+    {
+      "bytes" : 39434,
+      "path" : "0008__barber-eric-gene.jpg",
+      "sha256" : "7a2214decaf5bb9616d4c84f22a4c77918d67cf5c5d54dbb2f22cbfba0987866"
+    },
+    {
+      "bytes" : 7538,
+      "path" : "0009__barnhill-brandon.jpg",
+      "sha256" : "09842c48e43d3a40ea3aa16058f575f517ced0540c545a189461532b1647daba"
+    },
+    {
+      "bytes" : 24857,
+      "path" : "0010__baugham-jimmy-dale.jpg",
+      "sha256" : "3a6cf938f65b4a33df86fad2cbd544fbbfde8959a0d7a18e88f3d53fc69bcff1"
+    },
+    {
+      "bytes" : 24970,
+      "path" : "0011__bell-dana-jean.jpg",
+      "sha256" : "7bdc4cb083397b2aaf1b2bb1b021484dbbd5db3e15ce05850e626fbcd3d1d63a"
+    },
+    {
+      "bytes" : 21014,
+      "path" : "0012__bierbrodt-joseph-eric.jpg",
+      "sha256" : "1fed471bf07dd4942e6788fba03418d3710b734ff30d16d39f87e7eadba930d5"
+    },
+    {
+      "bytes" : 28767,
+      "path" : "0013__bilyard-aiden-henry.jpg",
+      "sha256" : "67cc3623d33f95bcba5c4c53f77faada0e4ee525ac8c31360395116459210d2e"
+    },
+    {
+      "bytes" : 31413,
+      "path" : "0014__bitzer-shannon-j.jpg",
+      "sha256" : "cedbea9146821ba0c1f91824e0f874add83c126889c4209510f2b7747d210d43"
+    },
+    {
+      "bytes" : 32789,
+      "path" : "0015__bokoski-matthew.jpg",
+      "sha256" : "ffd059b70a350dc58218ea78066da4fd33d616550c975996fe41a8e4bc0c11e9"
+    },
+    {
+      "bytes" : 26262,
+      "path" : "0016__bordeaux-john-paul.jpg",
+      "sha256" : "ed2e3239140a4323ca174e4257a06222fc95bd08283c3de361521c79b075b732"
+    },
+    {
+      "bytes" : 23978,
+      "path" : "0017__bournes-patrick.jpg",
+      "sha256" : "e117faa51b04d26c92f6eec2d37bdba1b8302dff9b509aec85ecede7efbf60a4"
+    },
+    {
+      "bytes" : 32421,
+      "path" : "0018__bradley-michael.jpg",
+      "sha256" : "946cae21b5ad55d5fc2c3098dcef111102eff9730c31fa08a6ef533de3a331a0"
+    },
+    {
+      "bytes" : 10978,
+      "path" : "0019__breese-nathan-erik.jpg",
+      "sha256" : "d29935f1d99f0e5d4cc672ca31b143a4d05bd7b1d4fb60ac284aad206b4dfacb"
+    },
+    {
+      "bytes" : 42003,
+      "path" : "0020__brodnax-antionne-deshaun.jpg",
+      "sha256" : "ad37552ea3097f36c9b1e4eb9dd21393736b09be42f0e1e623563266a7166cb6"
+    },
+    {
+      "bytes" : 24837,
+      "path" : "0021__bryan-ronald-alfred.jpg",
+      "sha256" : "0bfc6ea95c22703dda24157ce769cab28cd524968c6311798290caff20e39b93"
+    },
+    {
+      "bytes" : 29026,
+      "path" : "0022__bustos-alexis-ivan.jpg",
+      "sha256" : "dbc950cf9b5ad51abfaa01099df9e0e9525cea79e21ced05b94dce5510202c4a"
+    },
+    {
+      "bytes" : 32043,
+      "path" : "0023__caldwell-daniel.jpg",
+      "sha256" : "0b61a3400a09c0093ab34ed41954094fcfc2443ae9f0626dc8be97846c15dcfc"
+    },
+    {
+      "bytes" : 50491,
+      "path" : "0024__camper-boyd-allen.jpg",
+      "sha256" : "1523bc499e3c3f3745d893334921372db416fd4181d1f7dddc2729cfc7ac5333"
+    },
+    {
+      "bytes" : 53690,
+      "path" : "0025__carvajal-andrew-roman.jpg",
+      "sha256" : "3fb29f3c0d407efd23a65e0c0d82e2238cc213d22e9fb4735098802a80f9229f"
+    },
+    {
+      "bytes" : 38761,
+      "path" : "0026__cavanaugh-brandon.jpg",
+      "sha256" : "1ad24cc96ca0ea5abe6884d2a01bb85174be1b33b7bae9c74cdc480b607d5885"
+    },
+    {
+      "bytes" : 29867,
+      "path" : "0027__chilcoat-donald.jpg",
+      "sha256" : "bcc309d041f6ee71c99a6fdcd6ac84a01223d0a3cb957ebbce6676dc9e1beef9"
+    },
+    {
+      "bytes" : 26706,
+      "path" : "0028__christie-eric.jpg",
+      "sha256" : "3eb888ef1bf0c45828b39e774f7c848251b874b4cf76ee84c6c4fd61f511a5d1"
+    },
+    {
+      "bytes" : 33297,
+      "path" : "0029__clark-christy.jpg",
+      "sha256" : "4ce1083b4f8801fb4591feacf448a5bb6697941b866ed21b9e8a3bbf12ee0556"
+    },
+    {
+      "bytes" : 29874,
+      "path" : "0030__cohen-benjamin.jpg",
+      "sha256" : "95e27400c172ebd639beb941d57552b8c22f45935cc44b7b6e2f66a81956e4d4"
+    },
+    {
+      "bytes" : 65418,
+      "path" : "0031__colt-josiah.jpg",
+      "sha256" : "ce16035cd6fba635471832a9c6407afc8f673a85a9ec3fe87961f5f07db76bdb"
+    },
+    {
+      "bytes" : 33064,
+      "path" : "0032__conover-thomas-paul.jpg",
+      "sha256" : "191ecb28f6b3a9ffeefbfd531914d855ca269c0164af914e0663086867143f09"
+    },
+    {
+      "bytes" : 43186,
+      "path" : "0033__cordon-kevin-francisco.jpg",
+      "sha256" : "82344eed267cb2b93f6160fc1fab82f41bc45258473de5d85e856e785c299ff0"
+    },
+    {
+      "bytes" : 22121,
+      "path" : "0034__crawford-phillip-marion.jpg",
+      "sha256" : "6d3a9551b2c046238a2ab020838284e2a4cbae2b9a4fb3e0680064b132492dca"
+    },
+    {
+      "bytes" : 45942,
+      "path" : "0035__cudd-jenny-louise.jpg",
+      "sha256" : "5c8c5fa282a16c06881540d2fc5d111470b7f0d67283481ac8ef4c58048ffcbb"
+    },
+    {
+      "bytes" : 32328,
+      "path" : "0036__daniel-david-paul.jpg",
+      "sha256" : "53819bb5e6c2f7258c801938251985fbd14056299bc7fc545514d54541d24b0b"
+    },
+    {
+      "bytes" : 22997,
+      "path" : "0037__degregoris-robert-william.jpg",
+      "sha256" : "935a86553475080e6aee27bc2a722847769c053d14b1336f481a0135f72c8235"
+    },
+    {
+      "bytes" : 22103,
+      "path" : "0038__dickinson-michael-james.jpg",
+      "sha256" : "1222c3cf6071b544945da6af84b3b76114e843afbb33d31e1c4aa34f12516db9"
+    },
+    {
+      "bytes" : 27030,
+      "path" : "0039__donnelly-jr-daniel.jpg",
+      "sha256" : "8cc29e4f88563c0a919c88cab130ecefa5dfd30ef30a78fd6e7f69046310053e"
+    },
+    {
+      "bytes" : 45168,
+      "path" : "0040__dula-brian.jpg",
+      "sha256" : "89f9fba3cabf17b4cdc70856c819955f545c367553fbbde7a2b5f421b3462360"
+    },
+    {
+      "bytes" : 46503,
+      "path" : "0041__egtvedt-daniel-dean.jpg",
+      "sha256" : "3ac108b4401a20601ea45136b8bb61014573765080cf7982422604238272b002"
+    },
+    {
+      "bytes" : 29116,
+      "path" : "0042__etter-jeffrey-michael.jpg",
+      "sha256" : "73433e78f5d3e6a92666dba8a0cd3e750667e11a6a8b9a2b55feac6986a7cb08"
+    },
+    {
+      "bytes" : 27281,
+      "path" : "0043__fatta-renee.jpg",
+      "sha256" : "5cbb08bf6a2e5c9a5cfc195a8c59a00cb4bcc37af804a49162f06cfc82e86def"
+    },
+    {
+      "bytes" : 35570,
+      "path" : "0044__fischer-alan.jpg",
+      "sha256" : "91f1a6949b6a6274c3c3f3340504e24e9168d2e142decbc261be67368c1cebd7"
+    },
+    {
+      "bytes" : 41719,
+      "path" : "0045__fogarty-steven.jpg",
+      "sha256" : "cb7a6b737b7d4d88e835de8cd2ff35e91b2204f9b0d8fbe1511dc13715de9adf"
+    },
+    {
+      "bytes" : 44618,
+      "path" : "0046__freelove-howard-raymond.jpg",
+      "sha256" : "1d36e95c5b30815649f002a6a400e9662efd88760cba92beeeecc9e6cbd0a431"
+    },
+    {
+      "bytes" : 29559,
+      "path" : "0047__gallman-joei-leann.jpg",
+      "sha256" : "2ebfc52b105884b819b0a7aac698c8ed87e2005a91eeb33a1502881da346a956"
+    },
+    {
+      "bytes" : 16119,
+      "path" : "0048__garrett-troy-vincent.jpg",
+      "sha256" : "8b42878f3bd1db0cc489f819e28338b18de4a42d9788ebe46fd13fda598a7fb1"
+    },
+    {
+      "bytes" : 54106,
+      "path" : "0049__gieswein-robert.jpg",
+      "sha256" : "1878b84e750a383094427f052e699e3ac53ee6d5a8cf8d4e59e4a73bef7c0376"
+    },
+    {
+      "bytes" : 36643,
+      "path" : "0050__giusini-kenneth.jpg",
+      "sha256" : "db516b1ee4fcf236e8f620d9956a2da0fbc850213033181b5c0c3452166bbdda"
+    },
+    {
+      "bytes" : 47991,
+      "path" : "0051__goodwyn-daniel.jpg",
+      "sha256" : "96f919e29b49d3fe379862aaf21d38d756866355a97024914fe50b26c937fc81"
+    },
+    {
+      "bytes" : 22673,
+      "path" : "0052__grace-jonathan-david.jpg",
+      "sha256" : "06d2bd6b6ae80e20a17fbd29afe0f04a3040ec34a814b2a9319ad10299e66877"
+    },
+    {
+      "bytes" : 47005,
+      "path" : "0053__griffith-anthony-alfred.jpg",
+      "sha256" : "8de731e3ab0b538fa88818ca93b6fedeb5c5a21345de46e35c6378ca8171bebf"
+    },
+    {
+      "bytes" : 22455,
+      "path" : "0054__guardino-justino-nicole.jpg",
+      "sha256" : "f08024822175b125af940f3b9eb374088c95c325a1d1eb6db0792fef17c0d3b4"
+    },
+    {
+      "bytes" : 39905,
+      "path" : "0055__harding-peter-j-.jpg",
+      "sha256" : "71297a5cedd9889df7b60cee11d684a14287abc1b8e138ebc0821bdcd40f1192"
+    },
+    {
+      "bytes" : 21609,
+      "path" : "0056__harrower-eric-glen.jpg",
+      "sha256" : "b774e2b39e80262186006677ae6562d3fde92f5091f56fb24273366bc44c99e4"
+    },
+    {
+      "bytes" : 34579,
+      "path" : "0057__hazelton-stephanie-m.jpg",
+      "sha256" : "3139ad1bc002e2086b758f6bb3c7b1d786fb60ba70a8b31d299b9015daa667ab"
+    },
+    {
+      "bytes" : 31547,
+      "path" : "0058__hellonen-dodge-dale.jpg",
+      "sha256" : "641b71e24fad19cbfa69b04f5c22bf447620bf005a6adccf5ef571f32be2b44e"
+    },
+    {
+      "bytes" : 36142,
+      "path" : "0059__herendeen-daniel.jpg",
+      "sha256" : "154266f35ed1e5d2deee793a436b00c8106f89c19ddcd1d6e23cb5d53ba984e6"
+    },
+    {
+      "bytes" : 51364,
+      "path" : "0060__hildebrand-clayton.jpg",
+      "sha256" : "5fa90ceda591d8fb1cf6c12f6ed2dba4341aeeb705020f6095547724e6f04cd5"
+    },
+    {
+      "bytes" : 24913,
+      "path" : "0061__hoffman-luke.jpg",
+      "sha256" : "228abbb319106de40cec83fa3a86374471f428d4853ab0a4bf17796a97df1cac"
+    },
+    {
+      "bytes" : 24469,
+      "path" : "0062__hopkins-kasey-von-owens.jpg",
+      "sha256" : "0e7869bbbc747f7392891825c6e3aef0de856daab57d7c4235057321e423dfd0"
+    },
+    {
+      "bytes" : 32017,
+      "path" : "0063__huddleston-hal-ray.jpg",
+      "sha256" : "f2bdcaab5ad4c719e0b7c3231aaf6414ed0a68af39f31deb4f84414807ab6df8"
+    },
+    {
+      "bytes" : 31601,
+      "path" : "0064__huttle-matthew.jpg",
+      "sha256" : "ed25e26348ec4d4bb3715191ca8ac5ce2c64dd6fc9a20c3c5dcdb946f3de6b45"
+    },
+    {
+      "bytes" : 26051,
+      "path" : "0065__jackson-adam-lejay.jpg",
+      "sha256" : "36a24abed7515d188ac71f8cad63546f73890fd189abe5869024af5581f1eb85"
+    },
+    {
+      "bytes" : 50353,
+      "path" : "0066__jensen-douglas-austin.jpg",
+      "sha256" : "47e58f4ff417ff165e46c55f981f60a3c5e6b3be46a82d74b8b9b5637ed738ea"
+    },
+    {
+      "bytes" : 26050,
+      "path" : "0067__johnson-joshua-edward.jpg",
+      "sha256" : "79ae9bd9e679ad13693f9c5df0878b46277d43d9764b17b8c8408cb2844a23db"
+    },
+    {
+      "bytes" : 33554,
+      "path" : "0068__jordan-earl.jpg",
+      "sha256" : "393666ce8a6755fbe4b5ca31f16ae892b68a7ddff32eb91aa1dceaf018c4987f"
+    },
+    {
+      "bytes" : 14884,
+      "path" : "0069__kasper-riley-d.jpg",
+      "sha256" : "ca028b19caf4f55883047a0c2f8066e7a40cb30bf8c9a64827d76c341c9e279d"
+    },
+    {
+      "bytes" : 29481,
+      "path" : "0070__kelley-ryan-d.jpg",
+      "sha256" : "475b00645cb74b28b099a20cb593ae23a01e4bd4ddedb739630e853332aebc86"
+    },
+    {
+      "bytes" : 28181,
+      "path" : "0071__kenyon-jay.jpg",
+      "sha256" : "b3593822bc942ba7e6700baee03c681ee148e05cb1c5520c4798d3b2f64f387b"
+    },
+    {
+      "bytes" : 51533,
+      "path" : "0072__klein-federico-guillermo.jpg",
+      "sha256" : "50fa168aebf941eaeb76a5eb3503723a7f39a68f16c1c3f0a28d4a40c974d474"
+    },
+    {
+      "bytes" : 6900,
+      "path" : "0073__kohler-matthew-patrick.jpg",
+      "sha256" : "1aaba15b1ab97d0c8172eb3262c01e755e00dbacc3fc89fa3b2b99eff1915f82"
+    },
+    {
+      "bytes" : 56486,
+      "path" : "0074__krol-matthew-thomas.jpg",
+      "sha256" : "fa9681082ef35c99643b5837b11289f8da81839be4ad137ea78e2df0b4158638"
+    },
+    {
+      "bytes" : 30927,
+      "path" : "0075__lammons-john-franklin.jpg",
+      "sha256" : "644cd2dd3c18c1cfa2acd97a89a03be26379ea2c275ad4c5ee49e4dcae3a6dd9"
+    },
+    {
+      "bytes" : 13883,
+      "path" : "0076__lazo-kene-brian.jpg",
+      "sha256" : "c992cfd58c817cb4b908ff156f309c231cafb4f81054dea6118d0fc9a0f1dbcd"
+    },
+    {
+      "bytes" : 49179,
+      "path" : "0077__ligocki-lance-michael.jpg",
+      "sha256" : "971e64506ba36a7074a99e496edd060e845b4d5acbabb179dd9775c643ce7d74"
+    },
+    {
+      "bytes" : 39581,
+      "path" : "0078__loganbill-matthew-eugene.jpg",
+      "sha256" : "020b21342735c32823a9eb767d76d6d83db87594b925bdcef9181412bb69f48a"
+    },
+    {
+      "bytes" : 24060,
+      "path" : "0079__lyon-robert-anthony.jpg",
+      "sha256" : "cc4b34e3313b01bc5144ab55f06f919b567dbdd1822e95d85380f4ef123df000"
+    },
+    {
+      "bytes" : 39225,
+      "path" : "0080__macrae-douglas.jpg",
+      "sha256" : "8593405f5765504a6c9cb97a505bee83067065f26a910329bdde1a6449664c75"
+    },
+    {
+      "bytes" : 22868,
+      "path" : "0081__malone-peter.jpg",
+      "sha256" : "30a140cd881c2e20e12b6d1bd7c0d84e19269686b4b1c3b05dc192104fbeb891"
+    },
+    {
+      "bytes" : 33814,
+      "path" : "0082__markofski-abram.jpg",
+      "sha256" : "fa8ff2d2f01561a64a0be64e4502bc4d5bc2a87ecb551d378c9ed417f07e228e"
+    },
+    {
+      "bytes" : 43354,
+      "path" : "0083__martin-zachary-hayes.jpg",
+      "sha256" : "0b683a720133f0f2afbae5e7cf4d10b01c1ca3702395d62bb6dd844ec2f3f0ea"
+    },
+    {
+      "bytes" : 24850,
+      "path" : "0084__mauck-ethan.jpg",
+      "sha256" : "d428f2f9199bfcbffcfc9dde78fdea620433331806eeb6ec6dbfd17bb72dcfed"
+    },
+    {
+      "bytes" : 126505,
+      "path" : "0085__mccaughey-iii-patrick-edward.jpg",
+      "sha256" : "2694b9d6d8cb22c42606eb50a43a631a3cad5e26063b29a87caa3182fd91dc47"
+    },
+    {
+      "bytes" : 27543,
+      "path" : "0086__mcgrath-jenna.jpg",
+      "sha256" : "a86387b6e5bd4e517ad9ef2b9c5837d97e5d96393b053c0daeb964786a650428"
+    },
+    {
+      "bytes" : 21304,
+      "path" : "0087__meacham-odin.jpg",
+      "sha256" : "ba400de861130b09cc876b00aba5ec0a761afc12ad8a5254df33e6301fe2ebd5"
+    },
+    {
+      "bytes" : 44572,
+      "path" : "0088__mels-james-allen.jpg",
+      "sha256" : "8aa56f11005496ca535d86504c020a3e638db08ae724a9a4b4602ffe3723cf2f"
+    },
+    {
+      "bytes" : 35967,
+      "path" : "0089__mglej-matthew-thomas.jpg",
+      "sha256" : "9a4a90b0ecd8fa93db52de1900a72767c20c464fe4bb0e3a61f5af728dc501fa"
+    },
+    {
+      "bytes" : 36368,
+      "path" : "0090__miller-brandon-james.jpg",
+      "sha256" : "b7fbc56fbd67707904f5d69fc8dc2817b1d191b9c8d8954563e45e06ced8bc6b"
+    },
+    {
+      "bytes" : 26441,
+      "path" : "0091__milstreed-rodney-kenneth.jpg",
+      "sha256" : "a65d89cef5eac4c22b4df4ce76def5a6c15dada6ceaf7cfea9cf33d3f1ae01c2"
+    },
+    {
+      "bytes" : 31669,
+      "path" : "0092__mock-brian.jpg",
+      "sha256" : "c3c16f5eb82fb7b601edda6193c16ea93db9d21cd9087b8067e69f461f1f37c3"
+    },
+    {
+      "bytes" : 23564,
+      "path" : "0093__montgomery-patrick.jpg",
+      "sha256" : "a5b8f976e4eea9c4aa1adb0b98558709fcb6a9b5991b5b042da4634ca4c6e7d6"
+    },
+    {
+      "bytes" : 33600,
+      "path" : "0094__moynihan-christopher-patrick.jpg",
+      "sha256" : "2157b129ca4acdcfe3bd11d23c923a28f825b76e0028cfc57a0d02fae715ba06"
+    },
+    {
+      "bytes" : 31556,
+      "path" : "0095__nassif-john-maron.jpg",
+      "sha256" : "5472f22f02ae6d9afe88dbbb960a565fbe7cb4ec578a15c325990b950ede5a09"
+    },
+    {
+      "bytes" : 24603,
+      "path" : "0096__nichols-ryan-taylor.jpg",
+      "sha256" : "c9cc28b92222db15e15a73c1574f80ca1935fdbf1f57baa69b68fdb9b5cf2ced"
+    },
+    {
+      "bytes" : 8683,
+      "path" : "0097__noyce-nathaniel.jpg",
+      "sha256" : "0a619160c42be18589d0ba66cdd9f4f6d7114349a401ddeffdc4e2b04590b7c2"
+    },
+    {
+      "bytes" : 22881,
+      "path" : "0098__orlando-ryan-joseph.jpg",
+      "sha256" : "19d4300546ed0622fa8cdcc7c25e0bde610d9ea123a5def0f2339470c9e89292"
+    },
+    {
+      "bytes" : 20246,
+      "path" : "0099__packer-robert-keith.jpg",
+      "sha256" : "c3817d602f9d385ac0cf76b21c12485f77154ad347bf7da5a73c43e5cbddedf3"
+    },
+    {
+      "bytes" : 36261,
+      "path" : "0100__parsons-jason.jpg",
+      "sha256" : "a340aad6b8fe72d8e61ba25795df682a48192086c907354eadb376b6490b46bc"
+    },
+    {
+      "bytes" : 23475,
+      "path" : "0101__pepe-william-joseph.jpg",
+      "sha256" : "f57eb5d52af6601544e8f13a9079c3626fbb686714381e63355f18cdc93cc7ea"
+    },
+    {
+      "bytes" : 21270,
+      "path" : "0102__pezzola-dominic.jpg",
+      "sha256" : "22dbb9258631ae03b0c4608a09801c17bdac7a28155a7d9750660035f9d3d858"
+    },
+    {
+      "bytes" : 11091,
+      "path" : "0103__poole-jr-thomas.jpg",
+      "sha256" : "080836bd7a47c9dec32da80011f5251475a46a5fa7a6bde8eaf62d4913748f0a"
+    },
+    {
+      "bytes" : 7563,
+      "path" : "0104__powell-jeremiah.jpg",
+      "sha256" : "156928e9429db343ec0b8bdfd452ba65d48d3d4d5edd0e2db4ca18d75932558b"
+    },
+    {
+      "bytes" : 40179,
+      "path" : "0105__presley-ronnie-b.jpg",
+      "sha256" : "dd2bf2f17988ad7c0b2c065c7d049497a72aca43a2d9fc9109181c2e69c0a501"
+    },
+    {
+      "bytes" : 33344,
+      "path" : "0106__qu-biao.jpg",
+      "sha256" : "3ed9ee0d5acf77e6bab8fb00dc8a9efc5159add99b415ec3365ebc00df78c5f4"
+    },
+    {
+      "bytes" : 42916,
+      "path" : "0107__rahm-james-douglas.jpg",
+      "sha256" : "535603a2608ceb8d2cea5cc375a00e5452d1e3ac84ff7ad2ff659b9fe2f6198f"
+    },
+    {
+      "bytes" : 22568,
+      "path" : "0108__reffitt-guy--wesley.jpg",
+      "sha256" : "7d1c43fa1320452d9d7aa3f5780c516b27504e375e3ddd2b7ed29b02e4aa081f"
+    },
+    {
+      "bytes" : 17675,
+      "path" : "0109__rheiner-narayana.jpg",
+      "sha256" : "e58b6c4b45e3f6cb780c16b81db27bf43125cd8f76ba5855843c44bc5833debb"
+    },
+    {
+      "bytes" : 37055,
+      "path" : "0110__roberts-michael-tyler.jpg",
+      "sha256" : "59eb6508ec083714677d4d18356da82a2770577bbaea7b9ccbf4ecebc5882130"
+    },
+    {
+      "bytes" : 16187,
+      "path" : "0111__rodean-nicholas.jpg",
+      "sha256" : "c4f1383b3f48aa282cd93d424ac23585c7df255ee4da0d62b0e08dab28f5af62"
+    },
+    {
+      "bytes" : 12107,
+      "path" : "0112__rowbottom-timothy.jpg",
+      "sha256" : "28446275cfbad8874a485be00b2b1f5203266c88df41a682c57ef51d7a545256"
+    },
+    {
+      "bytes" : 36790,
+      "path" : "0113__ryan-jennifer-leigh.jpg",
+      "sha256" : "9b074f84e15c47bae3a1cffd082b23174d1007d2eccaeabba5e9dc454f546bfc"
+    },
+    {
+      "bytes" : 29130,
+      "path" : "0114__sargent-anthony.jpg",
+      "sha256" : "4be2703ca197bca09353f48907a1c2c87dc6f3067a7aac5da900c8ff4de79186"
+    },
+    {
+      "bytes" : 29902,
+      "path" : "0115__saturday-barry.jpg",
+      "sha256" : "1b3c45fb34e5e3f501569eb950912bd95cc70b28e0647be56f8351a4614e1141"
+    },
+    {
+      "bytes" : 31305,
+      "path" : "0116__schimmel-sr-charles-e.jpg",
+      "sha256" : "1a0c4aee468549a4d0114535371bfbd14c3999691f49f7fa25e5afa87165b85c"
+    },
+    {
+      "bytes" : 12928,
+      "path" : "0117__schultz-ronald-eric.jpg",
+      "sha256" : "b0259d5c6741ea34c6d4d427a888c4bb7e0488318c80c8c2d83e6e0b55935f6c"
+    },
+    {
+      "bytes" : 23980,
+      "path" : "0118__seefried-kevin.jpg",
+      "sha256" : "d7ae776f35f7f040ddebd123564fba737d77431dce8a58cdf356490e36e11d9c"
+    },
+    {
+      "bytes" : 21688,
+      "path" : "0119__shough-geoffrey-samuel.jpg",
+      "sha256" : "65e765dd656017e1a3e436bf51f5be9c54990269006403a1a60bae8e46db59a7"
+    },
+    {
+      "bytes" : 29430,
+      "path" : "0120__sirr-bernard-joseph.jpg",
+      "sha256" : "831e14f6e1ccf861f9fe317fe7c11aa16097881e69788f730a04554876b03fa2"
+    },
+    {
+      "bytes" : 29305,
+      "path" : "0121__smither-david-evan.jpg",
+      "sha256" : "a811642444abf1f31fb4e1a6d42faa92a038c253ef9500882670697d5db32d37"
+    },
+    {
+      "bytes" : 22754,
+      "path" : "0122__spackman-troy.jpg",
+      "sha256" : "9d2320254b27a60d5ce9d5a6ebbe2025733fe7688ec6fbd138ba92a4860247e4"
+    },
+    {
+      "bytes" : 23192,
+      "path" : "0123__st-pierre-michael-j.jpg",
+      "sha256" : "b5df693aaf76c8ee288287d8ee2b23fac8f0aefea6478d7612e76d4934def6ef"
+    },
+    {
+      "bytes" : 38372,
+      "path" : "0124__starling-andrew-kade.jpg",
+      "sha256" : "8b47df4bee11317d38dfc3b7f2b19a6109b0cb8fbbc12e36382bd2afa21f700c"
+    },
+    {
+      "bytes" : 22696,
+      "path" : "0125__stickney-matthew-lawrence.jpg",
+      "sha256" : "0ef7f85098744d957edcfd6e660e820cfca3cadd618d42295382796e55c579df"
+    },
+    {
+      "bytes" : 33389,
+      "path" : "0126__sun-eric.jpg",
+      "sha256" : "fa32b5e220c7effceef4d5e28045aaffae0dcedca641348597c9e01155f60705"
+    },
+    {
+      "bytes" : 46627,
+      "path" : "0127__tanios-george-pierre.jpg",
+      "sha256" : "8522700e0c56440fac164fb269f1095009e2f496ec486ff13acd6c15876fc9fb"
+    },
+    {
+      "bytes" : 34554,
+      "path" : "0128__tedesco-timothy.jpg",
+      "sha256" : "54adef7eaf507f50cf6009e607416a46e6ebc9806d428f4918e5e0cda550927c"
+    },
+    {
+      "bytes" : 54519,
+      "path" : "0129__thomas-kenneth-joseph-owen.jpg",
+      "sha256" : "0b3a198d19763ffc1472068438a0e9d500993fd98d8ed801a6925f55b3007e82"
+    },
+    {
+      "bytes" : 29245,
+      "path" : "0130__tippett-cody-lee.jpg",
+      "sha256" : "22ee9a02a45776fcbd064c20e43c30e9f68ff3880514f794eecfa958f4bfce59"
+    },
+    {
+      "bytes" : 38972,
+      "path" : "0131__trump-donald-j.jpg",
+      "sha256" : "b4b84158eb635f79187cdd07e669ce36d99b7341554b8d367d6e22180a3330a6"
+    },
+    {
+      "bytes" : 45696,
+      "path" : "0132__valdez-daniel-jay.jpg",
+      "sha256" : "f44e3a96a3bf59432e397bdc227aa476d866066034def2cc7fabadb1448ef575"
+    },
+    {
+      "bytes" : 10397,
+      "path" : "0133__verdun-sr-randy-paul.jpg",
+      "sha256" : "126122c271ec12bc34dc482a77df7818def4bd5f723e5f4ea93eaf8feffde877"
+    },
+    {
+      "bytes" : 32753,
+      "path" : "0134__voisine-jr-roger-alyre.jpg",
+      "sha256" : "ce93d5e441816c14e8eef6faa9eb24267199e6a1674dee5d1695f7c0390ff5b6"
+    },
+    {
+      "bytes" : 43699,
+      "path" : "0135__wagner-joshua.jpg",
+      "sha256" : "8cb5c2ff1945118f9aed20a6453745643803999892c59fa0ff54a805360b5f6f"
+    },
+    {
+      "bytes" : 23517,
+      "path" : "0136__walters-charles-r.jpg",
+      "sha256" : "fbc15cb899214582f00a09c3ad82aa976ef4dc99d1834d5b6171776222bb8ef9"
+    },
+    {
+      "bytes" : 44136,
+      "path" : "0137__watrous-richard-bryan.jpg",
+      "sha256" : "db1a4f16158034d0f133799f5ea804b280e7ceef4ce2b319f6e840fcaffe9b10"
+    },
+    {
+      "bytes" : 35156,
+      "path" : "0138__weeks-bradley.jpg",
+      "sha256" : "74549b6793a43070724fe1b087ca1942c0789f4405eae9cc8725825aac45180a"
+    },
+    {
+      "bytes" : 27683,
+      "path" : "0139__weyer-conlin.jpg",
+      "sha256" : "1b150155924b6d94e1ecdb1b8a7b8caae44c89ec8e4586a7ec5d6352b4e64df5"
+    },
+    {
+      "bytes" : 45474,
+      "path" : "0140__wilkerson-william-lance.jpg",
+      "sha256" : "30c3ff7cfe8b295e4087ba5cd8b2856f99e8a62becb51db89b8422ca57b7c73b"
+    },
+    {
+      "bytes" : 23732,
+      "path" : "0141__williams-leander-antwione.jpg",
+      "sha256" : "129d0f32d194d484b29a7d660fef8d38497a597e1b52a12885a2940ced1d4265"
+    },
+    {
+      "bytes" : 42731,
+      "path" : "0142__wilson-jodi-lynn.jpg",
+      "sha256" : "a29a131d2e2fb96a1188fb9625691fb9a2de2841fe545a38b43f21ac829f278b"
+    },
+    {
+      "bytes" : 19554,
+      "path" : "0143__woehl-patrick.jpg",
+      "sha256" : "23f45a06f0143682a1049a894cc4c09daf4d5694361e4a2745c83fc57025c593"
+    },
+    {
+      "bytes" : 45511,
+      "path" : "0144__wright-john-douglas.jpg",
+      "sha256" : "9e9f0b53eddbe48b5f16ee7695034de2592feb79fad8b9aee69a1b2f630e7b95"
+    },
+    {
+      "bytes" : 14970,
+      "path" : "0145__yazdani-isfehani-abigail.jpg",
+      "sha256" : "9c17f348f5b08f508d8376f6d7b024eed445c2004c5b4261da36b4a2b4ffd9d5"
+    },
+    {
+      "bytes" : 34958,
+      "path" : "0146__youngerman-joshua-kaleb.jpg",
+      "sha256" : "d8047032d0d63ed5683542903993dd5517d3068c665b3fa6d341f0e5f9e8ac7d"
+    },
+    {
+      "bytes" : 2167,
+      "path" : "0147__1de23ed82b901e8fd030316b82abe38bcc924ca36349bf0239844ce8bc85292e.png",
+      "sha256" : "fafcaf296120609b162ac84f63fc6ddfc49f76958cc6a8bafc77fd2264f3401a"
+    },
+    {
+      "bytes" : 2984,
+      "path" : "0148__5c6feac61cb1d1fd2b9b173a875a2b2c916f1d249a1e5e50278eb1f44ffbc8a8.png",
+      "sha256" : "0b95cb6cc1924e64c476d95800899abe3e8a2e7c73370a9374fc365810fc00c2"
+    },
+    {
+      "bytes" : 517714,
+      "path" : "0149__cfec085f88e03adbf8a734a81abaaf01198c0f770b61c5d5a1498ad2d566d607.png",
+      "sha256" : "94a2b99f017b38e0ae2d2b3c437f6bb8f10e325ffd9f3b13003c7bbae77588ef"
+    },
+    {
+      "bytes" : 138354,
+      "path" : "0150__ace42ed8dc730790fa118480aafad9bd0c69e5bd8ddcd794a00c2d0c36a0bde5.png",
+      "sha256" : "64fadbb57fef9b9da0a84bb753a45a81a6e33d38bf510ede7a5c1e8747f1092f"
+    },
+    {
+      "bytes" : 24954,
+      "path" : "0151__e3b51adf572648ba4099de4ab1b72b6370dd59d13e4c69df3b59b7f8f5ee45bc.jpeg",
+      "sha256" : "f3b5b2a13304cfffeb23653e453d3693cd51bcc390d3695eabda82bae5a8fada"
+    },
+    {
+      "bytes" : 18233,
+      "path" : "0152__44b3d4950bb354765db41bc4274585bb8656b40bdd805b958add5f9b11e891ec.jpeg",
+      "sha256" : "192eca22342c3b482d7be30c20a7f4f7b9508f3d4d36f9def2044df899d8a28e"
+    }
+  ],
+  "image_count" : 153,
+  "jobs_sweep" : [
+    1,
+    4,
+    8
+  ],
+  "max_pixel_dimension" : 4096,
+  "notes" : [
+    "Wall-clock and RSS are on the OCR recognizer only (ImageOCRCache + ImageOCR), driven by the harness at the stated job count; they do NOT include embedding or DB writes. All passes OCR a frozen, sha256-pinned snapshot (see frozen_images), so the bytes timed are provable and identical across cold, warm, and every job count.",
+    "Cold = a fresh cache directory + a fresh ImageOCRCache instance. Warm = the SAME directory read by a FRESH ImageOCRCache instance whose resident LRU starts empty, so every result is served from the on-disk sidecar. This measures ONLY the disk-cache-hit path; it is NOT a fresh OS process. Process RSS and Vision's own internal caches PERSIST across the cold pass, the warm pass, and every job count within this single test process — so warm RSS is not a cold-start figure and cross-pass RSS deltas are not independent.",
+    "Job counts run SEQUENTIALLY (1, then 4, then 8) in one process, so later iterations benefit from Vision/ANE warmup and OS file caches primed by earlier ones — a sequential-order bias that flatters higher job counts. With the tiny default corpus (18 frozen images) each pass is short and the rate is noisy; point VEC_E12_OCR_CORPUS_DIRECTORY at a larger frozen corpus for a stabler rate.",
+    "RSS is process-wide (the whole test process, including Vision's caches and any resident OCR-cache entries), sampled on a background thread every ~20 ms; the reported peak is the max of the sampled peak and the immediate before/after reads, so a spike shorter than the sample interval can still be under-reported. It is a coarse proxy, not an OCR-only allocation figure.",
+    "The target-count estimate is a LINEAR extrapolation of the measured images/second and assumes the frozen sample's image mix is representative — it is not (see the retrieval selection-bias note). Real-corpus images vary widely in size and text density, and ANE/Vision contention changes with scale, so treat the estimate as order-of-magnitude only.",
+    "ImageOCR downscales any image whose largest side exceeds maxPixelDimension (4096) before recognition; small text in a very large image can be lost. This throughput number does not measure that fidelity loss."
+  ],
+  "os_version" : "Version 26.6.2 (Build 25G83)",
+  "recognizer_version" : 1,
+  "request_revision" : 3,
+  "results" : [
+    {
+      "cold" : {
+        "cache_hits" : 0,
+        "cache_misses" : 153,
+        "estimate_target_count" : 325000,
+        "estimate_target_seconds" : 47421.116687091504,
+        "images_attempted" : 153,
+        "images_failed" : 0,
+        "images_per_second" : 6.853486857859427,
+        "images_succeeded" : 153,
+        "jobs" : 1,
+        "ocr_calls" : 153,
+        "rss_after_bytes" : 244809728,
+        "rss_before_bytes" : 64618496,
+        "rss_mean_bytes" : 190300198,
+        "rss_peak_bytes" : 251871232,
+        "rss_sample_count" : 841,
+        "wall_seconds" : 22.324402625
+      },
+      "jobs" : 1,
+      "warm" : {
+        "cache_hits" : 153,
+        "cache_misses" : 0,
+        "estimate_target_count" : 325000,
+        "estimate_target_seconds" : 83.30036764705883,
+        "images_attempted" : 153,
+        "images_failed" : 0,
+        "images_per_second" : 3901.5434046703767,
+        "images_succeeded" : 153,
+        "jobs" : 1,
+        "ocr_calls" : 0,
+        "rss_after_bytes" : 244842496,
+        "rss_before_bytes" : 244809728,
+        "rss_mean_bytes" : 244817920,
+        "rss_peak_bytes" : 244842496,
+        "rss_sample_count" : 2,
+        "wall_seconds" : 0.03921525
+      }
+    },
+    {
+      "cold" : {
+        "cache_hits" : 0,
+        "cache_misses" : 153,
+        "estimate_target_count" : 325000,
+        "estimate_target_seconds" : 31430.91515522876,
+        "images_attempted" : 153,
+        "images_failed" : 0,
+        "images_per_second" : 10.340137994548146,
+        "images_succeeded" : 153,
+        "jobs" : 4,
+        "ocr_calls" : 153,
+        "rss_after_bytes" : 269828096,
+        "rss_before_bytes" : 244858880,
+        "rss_mean_bytes" : 252467686,
+        "rss_peak_bytes" : 280248320,
+        "rss_sample_count" : 556,
+        "wall_seconds" : 14.79670775
+      },
+      "jobs" : 4,
+      "warm" : {
+        "cache_hits" : 153,
+        "cache_misses" : 0,
+        "estimate_target_count" : 325000,
+        "estimate_target_seconds" : 30.654261274509807,
+        "images_attempted" : 153,
+        "images_failed" : 0,
+        "images_per_second" : 10602.114893248136,
+        "images_succeeded" : 153,
+        "jobs" : 4,
+        "ocr_calls" : 0,
+        "rss_after_bytes" : 269860864,
+        "rss_before_bytes" : 269828096,
+        "rss_mean_bytes" : 269844480,
+        "rss_peak_bytes" : 269860864,
+        "rss_sample_count" : 1,
+        "wall_seconds" : 0.014431083
+      }
+    },
+    {
+      "cold" : {
+        "cache_hits" : 0,
+        "cache_misses" : 153,
+        "estimate_target_count" : 325000,
+        "estimate_target_seconds" : 28838.33554673202,
+        "images_attempted" : 153,
+        "images_failed" : 0,
+        "images_per_second" : 11.269721148550447,
+        "images_succeeded" : 153,
+        "jobs" : 8,
+        "ocr_calls" : 153,
+        "rss_after_bytes" : 277561344,
+        "rss_before_bytes" : 269844480,
+        "rss_mean_bytes" : 262786149,
+        "rss_peak_bytes" : 287948800,
+        "rss_sample_count" : 506,
+        "wall_seconds" : 13.576201042
+      },
+      "jobs" : 8,
+      "warm" : {
+        "cache_hits" : 153,
+        "cache_misses" : 0,
+        "estimate_target_count" : 325000,
+        "estimate_target_seconds" : 17.06373839869281,
+        "images_attempted" : 153,
+        "images_failed" : 0,
+        "images_per_second" : 19046.23666903479,
+        "images_succeeded" : 153,
+        "jobs" : 8,
+        "ocr_calls" : 0,
+        "rss_after_bytes" : 277577728,
+        "rss_before_bytes" : 277561344,
+        "rss_mean_bytes" : 277577728,
+        "rss_peak_bytes" : 277577728,
+        "rss_sample_count" : 1,
+        "wall_seconds" : 0.008033083
+      }
+    }
+  ],
+  "target_estimate_count" : 325000
+}

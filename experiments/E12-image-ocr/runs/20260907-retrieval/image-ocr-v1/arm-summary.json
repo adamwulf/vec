@@ -1,0 +1,149 @@
+{
+  "arm" : "image-ocr-v1",
+  "blank_count" : 1,
+  "db_seconds" : 0.016888334000000005,
+  "embed_span_seconds" : 90.320942001,
+  "extract_seconds" : 16.925417455999998,
+  "file_count" : 18,
+  "index_seconds" : 10.988398875,
+  "indexed_count" : 17,
+  "metrics" : {
+    "answered_queries" : 15,
+    "mean_reciprocal_rank" : 0.9666666666666667,
+    "passage_all_met_rate" : 0.8666666666666667,
+    "rank1_rate" : 0.9333333333333333,
+    "real_answered" : 4,
+    "real_mrr" : 0.875,
+    "real_rank1_rate" : 0.75,
+    "synthetic_answered" : 11,
+    "synthetic_mrr" : 1,
+    "synthetic_rank1_rate" : 1,
+    "top3_rate" : 1,
+    "top5_rate" : 1
+  },
+  "ocr_cache_after_audit" : {
+    "hits" : 18,
+    "misses" : 18,
+    "ocr_calls" : 18
+  },
+  "ocr_cache_after_index" : {
+    "hits" : 0,
+    "misses" : 18,
+    "ocr_calls" : 18
+  },
+  "per_file_chunks" : [
+    {
+      "chunks" : 0,
+      "is_blank" : true,
+      "ocr_chars" : 0,
+      "path" : "real/app-icon-crystal.png"
+    },
+    {
+      "chunks" : 3,
+      "is_blank" : false,
+      "ocr_chars" : 3138,
+      "path" : "real/code-editor-showcase.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 172,
+      "path" : "real/fbi-jan6-charges-chart.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 268,
+      "path" : "real/fractional-index-steps.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 8,
+      "path" : "real/minecraft-atmosphere-thumbnail.jpg"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 287,
+      "path" : "real/ot-sequence-diagram.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 156,
+      "path" : "synthetic/antikythera-mechanism.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 160,
+      "path" : "synthetic/coral-bleaching.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 152,
+      "path" : "synthetic/espresso-extraction.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 152,
+      "path" : "synthetic/everest-death-zone.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 174,
+      "path" : "synthetic/fermat-last-theorem.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 156,
+      "path" : "synthetic/knitting-gauge.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 176,
+      "path" : "synthetic/lithium-battery-runaway.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 172,
+      "path" : "synthetic/roman-aqueduct.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 173,
+      "path" : "synthetic/sourdough-hydration.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 167,
+      "path" : "synthetic/tea-ceremony.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 172,
+      "path" : "synthetic/titan-methane-lakes.png"
+    },
+    {
+      "chunks" : 1,
+      "is_blank" : false,
+      "ocr_chars" : 162,
+      "path" : "synthetic/waggle-dance.png"
+    }
+  ],
+  "rss_after_index_bytes" : 4167598080,
+  "rss_before_index_bytes" : 699760640,
+  "search_seconds" : 1.366743041,
+  "text_extraction" : "image-ocr-v1",
+  "total_chunks" : 19
+}

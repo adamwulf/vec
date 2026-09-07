@@ -1,0 +1,198 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "named"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8489192128181458,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.15108078718185425,
+          "score" : 0.8489192128181458
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7494652271270752,
+      "file" : "synthetic/tea-ceremony.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2505347728729248,
+          "score" : 0.7494652271270752
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7480690479278564,
+      "file" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.25193095207214355,
+          "score" : 0.7480690479278564
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7375966906547546,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.26240330934524536,
+          "score" : 0.7375966906547546
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7335256338119507,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2664743661880493,
+          "score" : 0.7335256338119507
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7313010692596436,
+      "file" : "synthetic/coral-bleaching.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.26869893074035645,
+          "score" : 0.7313010692596436
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7264114618301392,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.27358853816986084,
+          "score" : 0.7264114618301392
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.27545809745788574,
+          "score" : 0.7245419025421143
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.28991925716400146,
+          "score" : 0.7100807428359985
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7249728441238403,
+      "file" : "synthetic/roman-aqueduct.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.27502715587615967,
+          "score" : 0.7249728441238403
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7245599627494812,
+      "file" : "real/fractional-index-steps.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2754400372505188,
+          "score" : 0.7245599627494812
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.7195898294448853,
+      "file" : "synthetic/sourdough-hydration.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.28041017055511475,
+          "score" : 0.7195898294448853
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q09",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8489192128181458,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "waggle"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "Karl von Frisch"
+      }
+    ],
+    "distance" : 0.15108078718185425,
+    "file_rank" : 1,
+    "input_chars" : 171
+  },
+  "primary_file" : "synthetic/waggle-dance.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "synthetic/waggle-dance.png"
+  ],
+  "search_seconds" : 0.058460708,
+  "text" : "How does a honeybee communicate the direction of a food source?"
+}

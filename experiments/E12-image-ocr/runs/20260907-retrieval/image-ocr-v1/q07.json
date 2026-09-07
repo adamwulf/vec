@@ -1,0 +1,198 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "named"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8869077563285828,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.11309224367141724,
+          "score" : 0.8869077563285828
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7549892663955688,
+      "file" : "synthetic/roman-aqueduct.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.24501073360443115,
+          "score" : 0.7549892663955688
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7457939982414246,
+      "file" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.25420600175857544,
+          "score" : 0.7457939982414246
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7445372343063354,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.25546276569366455,
+          "score" : 0.7445372343063354
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7443974614143372,
+      "file" : "synthetic/lithium-battery-runaway.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.25560253858566284,
+          "score" : 0.7443974614143372
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7433938384056091,
+      "file" : "synthetic/sourdough-hydration.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.25660616159439087,
+          "score" : 0.7433938384056091
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7428817749023438,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.25711822509765625,
+          "score" : 0.7428817749023438
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7423607110977173,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.2576392889022827,
+          "score" : 0.7423607110977173
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.2889034152030945,
+          "score" : 0.7110965847969055
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2930583357810974,
+          "score" : 0.7069416642189026
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7397302389144897,
+      "file" : "synthetic/tea-ceremony.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.26026976108551025,
+          "score" : 0.7397302389144897
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.7367353439331055,
+      "file" : "real/fractional-index-steps.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.26326465606689453,
+          "score" : 0.7367353439331055
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q07",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8869077563285828,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "nine bars"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "channeling"
+      }
+    ],
+    "distance" : 0.11309224367141724,
+    "file_rank" : 1,
+    "input_chars" : 161
+  },
+  "primary_file" : "synthetic/espresso-extraction.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "synthetic/espresso-extraction.png"
+  ],
+  "search_seconds" : 0.098918833,
+  "text" : "At what pressure do you pull an espresso shot, and what is uneven flow called?"
+}

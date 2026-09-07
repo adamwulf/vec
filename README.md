@@ -102,6 +102,49 @@ For a mixed Markdown/caption corpus, use `--text-extraction markdown-v1+vtt-v1` 
 
 Chunks retain coarse source cue line ranges, including the first timing line, so results remain traceable to the caption file. Timestamp metadata is not added to the schema. See the [E11 plan](experiments/E11-vtt-extraction/plan.md) for the extraction rules. In a frozen 16-file sample (1 real, 15 synthetic), correct-file-at-rank-1 improved from 14/15 to 15/15, MRR from 0.956 to 1.000, and chunk count fell from 205 to 88; timestamp/tag noise in extracted chunks fell from 100% to 0%. The only rank improvement was on a synthetic file, so this does not establish an accuracy gain across the full corpus. See the [measured report and provenance](experiments/E11-vtt-extraction/report.md).
 
+#### Image OCR (`image-ocr-v1`)
+
+Index recognized image text on a fresh or reset database:
+
+```bash
+vec update-index --db my-project --text-extraction image-ocr-v1 --ocr-concurrency 4
+```
+
+Image discovery and OCR are opt-in. Combine with the existing normalizers in
+canonical order: `markdown-v1+image-ocr-v1`, `vtt-v1+image-ocr-v1`, or
+`markdown-v1+vtt-v1+image-ocr-v1`. The database records this mode; updates and
+single-file inserts inherit it. Changing modes requires reset and reindexing.
+Raw and the earlier text-only modes skip images, including SVG.
+
+Apple Vision recognizes text locally with accurate recognition, language
+correction, and automatic language detection. ImageIO decodes JPEG/JPG, PNG,
+WebP, GIF (first frame), HEIC, TIFF/TIF, and BMP. AVIF is discovered only if
+ImageIO advertises a decoder on the current Mac. SVG is skipped; rasterize it
+externally to index its visible text. Recognized lines are ordered top to
+bottom and left to right and joined into paragraphs before the active chunker
+runs. Blank images produce no chunks. Image chunks have no source line
+numbers; the existing chunk schema has no pixel-size or confidence fields.
+
+Recognized text is cached alongside the database using the image content hash
+and OCR version, including empty results. Unchanged files skip extraction via
+normal modification-date tracking; changed or reinserted identical bytes can
+reuse cached OCR. Reset removes the cache with the database. `--ocr-concurrency`
+(default 1) bounds simultaneous image jobs independently of embedding
+`--concurrency`; each image releases temporary decoding and Vision objects
+inside an autorelease pool. Frames are downscaled to a maximum edge of 4,096
+pixels; tiny text in very large images can be lost. A 4,096 × 4,096 RGBA
+frame alone uses about 64 MiB per job, in addition to Vision working memory.
+Start with 1–4 jobs and use the E12 measurements to choose a value that fits
+available memory. Undecodable or unreadable images are retried on later updates
+rather than cached as blank; permanently corrupt images can therefore incur
+repeated decode attempts.
+
+E12 measured 6.85 / 10.34 / 11.27 images per second at 1 / 4 / 8 OCR jobs on a deterministic 153-image real sample (240–275 MiB peak process RSS). That implies about 13.2 / 8.7 / 8.0 hours of OCR for 325,000 similar images, excluding embedding and database writes. A separate 18-image sample dominated by dense synthetic text took 112–133 extrapolated hours. These are sample-dependent estimates, not a full-corpus forecast. On the frozen 15-query retrieval rubric, OCR reached hit@1 14/15, hit@5 15/15, and MRR 0.967; the baseline had no image chunks, and 11 queries targeted synthetic images.
+
+See the [E12 plan](experiments/E12-image-ocr/plan.md) and
+[measurement report](experiments/E12-image-ocr/report.md) for the frozen sample,
+retrieval scores, throughput, memory observations, and synthetic-sample limits.
+
 ### Search
 
 ```bash
@@ -166,6 +209,8 @@ Deletes and recreates the database, preserving the source directory mapping. The
 | Swift (`.swift`) | Whole file |
 | Plain text (`.txt`) | Whole file |
 | PDF (`.pdf`) | Per-page text extraction |
+| Raster images | Recognized text chunks; requires `image-ocr-v1` (see format list above) |
+| SVG | Skipped |
 | Other text files | Whole file (if detected as text) |
 | Binary files | Skipped |
 

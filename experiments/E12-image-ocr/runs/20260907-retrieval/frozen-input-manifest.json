@@ -1,0 +1,172 @@
+{
+  "build" : {
+    "active_processor_count" : 10,
+    "configuration" : "release",
+    "git_dirty" : false,
+    "git_head" : "49b2ae803558859e24753346da166dcfda1c0b32",
+    "host_name" : "adams-macbook-pro-9.local",
+    "os_version" : "Version 26.6.2 (Build 25G83)",
+    "package_resolved_sha256" : "d3dad0550daef3df320799330ec5b6b8ee49e8772ce2fde1a1a0e3aa796bb10c",
+    "swift_version" : "Apple Swift version 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2)\nTarget: arm64-apple-macosx26.0"
+  },
+  "corpus_scope" : "Image-only sample (*.png, *.jpg), discovered recursively. The raw arm's production scanner indexes ZERO of these; the image-ocr-v1 arm OCRs and indexes them all.",
+  "corpus_source" : "/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/experiments/E12-image-ocr/sample",
+  "experiment" : "E12-image-ocr",
+  "file_count" : 18,
+  "files" : [
+    {
+      "bytes" : 517714,
+      "path" : "real/app-icon-crystal.png",
+      "sha256" : "94a2b99f017b38e0ae2d2b3c437f6bb8f10e325ffd9f3b13003c7bbae77588ef"
+    },
+    {
+      "bytes" : 923565,
+      "path" : "real/code-editor-showcase.png",
+      "sha256" : "094ae32d0966d9f2d2e1fc20b685c98b2a421e6bb8ff7da6aba12e2f913a343b"
+    },
+    {
+      "bytes" : 56690,
+      "path" : "real/fbi-jan6-charges-chart.png",
+      "sha256" : "b10bc6d437acf1274b0ae893ce6c1618123a8e4ee726fd3950da2c1ddc53999c"
+    },
+    {
+      "bytes" : 97675,
+      "path" : "real/fractional-index-steps.png",
+      "sha256" : "90becf1e5acf498a765d16140ae030738938a153698d14e2ae0aca6a3abf7f6a"
+    },
+    {
+      "bytes" : 68976,
+      "path" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "sha256" : "7ca53f77fad84ae80dfd2a87f94bf26ff1ab2ee3c737c07fee0837d3bce3d7f5"
+    },
+    {
+      "bytes" : 138354,
+      "path" : "real/ot-sequence-diagram.png",
+      "sha256" : "64fadbb57fef9b9da0a84bb753a45a81a6e33d38bf510ede7a5c1e8747f1092f"
+    },
+    {
+      "bytes" : 49327,
+      "path" : "synthetic/antikythera-mechanism.png",
+      "sha256" : "6e165a86e120725ca660c9e03e28b756fcbecaad543428564d0d565f1ad458b7"
+    },
+    {
+      "bytes" : 51656,
+      "path" : "synthetic/coral-bleaching.png",
+      "sha256" : "341cfe2d080890b0bf3a2c41e9d275118730c18b66c5d1d03ff1c82ceb4acdfc"
+    },
+    {
+      "bytes" : 48345,
+      "path" : "synthetic/espresso-extraction.png",
+      "sha256" : "6cc2e303c5db1855c09df274a77b6bba22e022a4958e4c7fca4b01d7af2b32db"
+    },
+    {
+      "bytes" : 50251,
+      "path" : "synthetic/everest-death-zone.png",
+      "sha256" : "fbc2e6b10ac79a39d0bc280fe93b63413df90bfeaaf251949f1f3ad61d7fb013"
+    },
+    {
+      "bytes" : 49692,
+      "path" : "synthetic/fermat-last-theorem.png",
+      "sha256" : "e202f7bf12010fab82b274e43ef76fe2d575e410002574da0d838318bd5b1b72"
+    },
+    {
+      "bytes" : 50068,
+      "path" : "synthetic/knitting-gauge.png",
+      "sha256" : "103f31fb0584eae44c68c3e47e2a5ed06929415a4a4fe540bd5b21b20a76d860"
+    },
+    {
+      "bytes" : 51238,
+      "path" : "synthetic/lithium-battery-runaway.png",
+      "sha256" : "3b50bc833dd3da25d2dc0d2c733e341089acdf1b10813cb38a9eef76a81e46c2"
+    },
+    {
+      "bytes" : 51940,
+      "path" : "synthetic/roman-aqueduct.png",
+      "sha256" : "5183cf97cd232e23acd0d5cb5a8301331bb5ca4e392091ed1b9ed60c42b4c203"
+    },
+    {
+      "bytes" : 51100,
+      "path" : "synthetic/sourdough-hydration.png",
+      "sha256" : "b8c6fb0a9c4bef7e0f91b14165bcbb96ac476c752b68e1666e8a7d444be435ae"
+    },
+    {
+      "bytes" : 49268,
+      "path" : "synthetic/tea-ceremony.png",
+      "sha256" : "0e962b28dcfbdac610423c1ab0f9e76078f150b01bad0677326447c446dbfb7d"
+    },
+    {
+      "bytes" : 48811,
+      "path" : "synthetic/titan-methane-lakes.png",
+      "sha256" : "db3437e0032a39228ed45d9a6712a79e01363b56de6ec4120731c483e7f458b5"
+    },
+    {
+      "bytes" : 49848,
+      "path" : "synthetic/waggle-dance.png",
+      "sha256" : "5c73a20625875d1fba091033e5594cc6f717995a4e766111ab5a1008f444d54a"
+    }
+  ],
+  "frozen_at" : "2026-09-07T09:00:44Z",
+  "model_directory" : "/private/tmp/vec-e10-model/f52bf8ec8c7124536f0efb74aca902b2995e5bcd",
+  "model_files" : [
+    {
+      "bytes" : 650,
+      "path" : "config.json",
+      "sha256" : "01cc39aa39538a8179aa131c8a16adc03b506c92009f091502e4eb0c702f5f78"
+    },
+    {
+      "bytes" : 437955512,
+      "path" : "model.safetensors",
+      "sha256" : "d0d559c47d5f71b1d280b13b62a2657f3e3bc70c0786f9ab91a36545e6a8f693"
+    },
+    {
+      "bytes" : 1023,
+      "path" : "snapshot-manifest.json",
+      "sha256" : "36ca1463784a5df35c5cd5baf1dbf5c5267e6a453705a99fed81e5ab3ea07030"
+    },
+    {
+      "bytes" : 125,
+      "path" : "special_tokens_map.json",
+      "sha256" : "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+    },
+    {
+      "bytes" : 711396,
+      "path" : "tokenizer.json",
+      "sha256" : "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66"
+    },
+    {
+      "bytes" : 314,
+      "path" : "tokenizer_config.json",
+      "sha256" : "ae83fa6ca0333117ff12606020af925d648667ef70d92ff7f27d781ba0ca4544"
+    },
+    {
+      "bytes" : 231508,
+      "path" : "vocab.txt",
+      "sha256" : "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+    }
+  ],
+  "model_revision" : "f52bf8ec8c7124536f0efb74aca902b2995e5bcd",
+  "query_count" : 15,
+  "query_manifest_path" : "experiments/E12-image-ocr/queries/rubric-queries.json",
+  "query_manifest_sha256" : "8f778f71545f810fa3ca8515b00a229a87c0327cb4f2bf5fb6960bd9ec343df2",
+  "run_identity" : "f8029b668a6e25945efe8eb2b3833130777946e8fa2e32dba2fa96022c18af02",
+  "sample_manifest_path" : "/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/experiments/E12-image-ocr/sample/manifest.json",
+  "sample_manifest_sha256" : "e3b665bc7cf41806dcf82dc80a5487de28eb1082c86ffabf973ebb7e57c98799",
+  "settings" : {
+    "batch_size" : 32,
+    "bucket_width" : 500,
+    "chunk_chars" : 1200,
+    "chunk_overlap" : 0,
+    "coalesce_limit" : 10,
+    "compute_policy" : "default(nil)",
+    "concurrency" : 8,
+    "dimension" : 768,
+    "embedder" : "e5-base-v2",
+    "ocr_concurrency" : 4,
+    "ocr_max_pixel_dimension" : 4096,
+    "ocr_recognizer_version" : 1,
+    "ocr_request_revision" : 3,
+    "profile_identity" : "e5-base@1200/0",
+    "raw_fetch_limit" : 30,
+    "search_limit" : 10
+  }
+}

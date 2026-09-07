@@ -1,0 +1,245 @@
+{
+  "build" : {
+    "active_processor_count" : 10,
+    "configuration" : "release",
+    "git_dirty" : false,
+    "git_head" : "9d398931d00a497f45ec34bce22c06ce71bdb2b5",
+    "host_name" : "adams-macbook-pro-9.local",
+    "os_version" : "Version 26.6.2 (Build 25G83)",
+    "package_resolved_sha256" : "d3dad0550daef3df320799330ec5b6b8ee49e8772ce2fde1a1a0e3aa796bb10c",
+    "swift_version" : "Apple Swift version 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2)\nTarget: arm64-apple-macosx26.0"
+  },
+  "corpus_source" : "/Users/adamwulf/Developer/swift-packages/vec/.ittybitty/agents/agent-f8aa66db/repo/experiments/E12-image-ocr/sample",
+  "experiment" : "E12-image-ocr",
+  "frozen_at" : "2026-09-07T09:35:32Z",
+  "frozen_images" : [
+    {
+      "bytes" : 517714,
+      "path" : "real/app-icon-crystal.png",
+      "sha256" : "94a2b99f017b38e0ae2d2b3c437f6bb8f10e325ffd9f3b13003c7bbae77588ef"
+    },
+    {
+      "bytes" : 923565,
+      "path" : "real/code-editor-showcase.png",
+      "sha256" : "094ae32d0966d9f2d2e1fc20b685c98b2a421e6bb8ff7da6aba12e2f913a343b"
+    },
+    {
+      "bytes" : 56690,
+      "path" : "real/fbi-jan6-charges-chart.png",
+      "sha256" : "b10bc6d437acf1274b0ae893ce6c1618123a8e4ee726fd3950da2c1ddc53999c"
+    },
+    {
+      "bytes" : 97675,
+      "path" : "real/fractional-index-steps.png",
+      "sha256" : "90becf1e5acf498a765d16140ae030738938a153698d14e2ae0aca6a3abf7f6a"
+    },
+    {
+      "bytes" : 68976,
+      "path" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "sha256" : "7ca53f77fad84ae80dfd2a87f94bf26ff1ab2ee3c737c07fee0837d3bce3d7f5"
+    },
+    {
+      "bytes" : 138354,
+      "path" : "real/ot-sequence-diagram.png",
+      "sha256" : "64fadbb57fef9b9da0a84bb753a45a81a6e33d38bf510ede7a5c1e8747f1092f"
+    },
+    {
+      "bytes" : 49327,
+      "path" : "synthetic/antikythera-mechanism.png",
+      "sha256" : "6e165a86e120725ca660c9e03e28b756fcbecaad543428564d0d565f1ad458b7"
+    },
+    {
+      "bytes" : 51656,
+      "path" : "synthetic/coral-bleaching.png",
+      "sha256" : "341cfe2d080890b0bf3a2c41e9d275118730c18b66c5d1d03ff1c82ceb4acdfc"
+    },
+    {
+      "bytes" : 48345,
+      "path" : "synthetic/espresso-extraction.png",
+      "sha256" : "6cc2e303c5db1855c09df274a77b6bba22e022a4958e4c7fca4b01d7af2b32db"
+    },
+    {
+      "bytes" : 50251,
+      "path" : "synthetic/everest-death-zone.png",
+      "sha256" : "fbc2e6b10ac79a39d0bc280fe93b63413df90bfeaaf251949f1f3ad61d7fb013"
+    },
+    {
+      "bytes" : 49692,
+      "path" : "synthetic/fermat-last-theorem.png",
+      "sha256" : "e202f7bf12010fab82b274e43ef76fe2d575e410002574da0d838318bd5b1b72"
+    },
+    {
+      "bytes" : 50068,
+      "path" : "synthetic/knitting-gauge.png",
+      "sha256" : "103f31fb0584eae44c68c3e47e2a5ed06929415a4a4fe540bd5b21b20a76d860"
+    },
+    {
+      "bytes" : 51238,
+      "path" : "synthetic/lithium-battery-runaway.png",
+      "sha256" : "3b50bc833dd3da25d2dc0d2c733e341089acdf1b10813cb38a9eef76a81e46c2"
+    },
+    {
+      "bytes" : 51940,
+      "path" : "synthetic/roman-aqueduct.png",
+      "sha256" : "5183cf97cd232e23acd0d5cb5a8301331bb5ca4e392091ed1b9ed60c42b4c203"
+    },
+    {
+      "bytes" : 51100,
+      "path" : "synthetic/sourdough-hydration.png",
+      "sha256" : "b8c6fb0a9c4bef7e0f91b14165bcbb96ac476c752b68e1666e8a7d444be435ae"
+    },
+    {
+      "bytes" : 49268,
+      "path" : "synthetic/tea-ceremony.png",
+      "sha256" : "0e962b28dcfbdac610423c1ab0f9e76078f150b01bad0677326447c446dbfb7d"
+    },
+    {
+      "bytes" : 48811,
+      "path" : "synthetic/titan-methane-lakes.png",
+      "sha256" : "db3437e0032a39228ed45d9a6712a79e01363b56de6ec4120731c483e7f458b5"
+    },
+    {
+      "bytes" : 49848,
+      "path" : "synthetic/waggle-dance.png",
+      "sha256" : "5c73a20625875d1fba091033e5594cc6f717995a4e766111ab5a1008f444d54a"
+    }
+  ],
+  "image_count" : 18,
+  "jobs_sweep" : [
+    1,
+    4,
+    8
+  ],
+  "max_pixel_dimension" : 4096,
+  "notes" : [
+    "Wall-clock and RSS are on the OCR recognizer only (ImageOCRCache + ImageOCR), driven by the harness at the stated job count; they do NOT include embedding or DB writes. All passes OCR a frozen, sha256-pinned snapshot (see frozen_images), so the bytes timed are provable and identical across cold, warm, and every job count.",
+    "Cold = a fresh cache directory + a fresh ImageOCRCache instance. Warm = the SAME directory read by a FRESH ImageOCRCache instance whose resident LRU starts empty, so every result is served from the on-disk sidecar. This measures ONLY the disk-cache-hit path; it is NOT a fresh OS process. Process RSS and Vision's own internal caches PERSIST across the cold pass, the warm pass, and every job count within this single test process — so warm RSS is not a cold-start figure and cross-pass RSS deltas are not independent.",
+    "Job counts run SEQUENTIALLY (1, then 4, then 8) in one process, so later iterations benefit from Vision/ANE warmup and OS file caches primed by earlier ones — a sequential-order bias that flatters higher job counts. With the tiny default corpus (18 frozen images) each pass is short and the rate is noisy; point VEC_E12_OCR_CORPUS_DIRECTORY at a larger frozen corpus for a stabler rate.",
+    "RSS is process-wide (the whole test process, including Vision's caches and any resident OCR-cache entries), sampled on a background thread every ~20 ms; the reported peak is the max of the sampled peak and the immediate before/after reads, so a spike shorter than the sample interval can still be under-reported. It is a coarse proxy, not an OCR-only allocation figure.",
+    "The target-count estimate is a LINEAR extrapolation of the measured images/second and assumes the frozen sample's image mix is representative — it is not (see the retrieval selection-bias note). Real-corpus images vary widely in size and text density, and ANE/Vision contention changes with scale, so treat the estimate as order-of-magnitude only.",
+    "ImageOCR downscales any image whose largest side exceeds maxPixelDimension (4096) before recognition; small text in a very large image can be lost. This throughput number does not measure that fidelity loss."
+  ],
+  "os_version" : "Version 26.6.2 (Build 25G83)",
+  "recognizer_version" : 1,
+  "request_revision" : 3,
+  "results" : [
+    {
+      "cold" : {
+        "cache_hits" : 0,
+        "cache_misses" : 18,
+        "estimate_target_count" : 325000,
+        "estimate_target_seconds" : 480155.78843194444,
+        "images_attempted" : 18,
+        "images_failed" : 0,
+        "images_per_second" : 0.6768636509857765,
+        "images_succeeded" : 18,
+        "jobs" : 1,
+        "ocr_calls" : 18,
+        "rss_after_bytes" : 277676032,
+        "rss_before_bytes" : 60407808,
+        "rss_mean_bytes" : 226264565,
+        "rss_peak_bytes" : 286326784,
+        "rss_sample_count" : 999,
+        "wall_seconds" : 26.593243667
+      },
+      "jobs" : 1,
+      "warm" : {
+        "cache_hits" : 18,
+        "cache_misses" : 0,
+        "estimate_target_count" : 325000,
+        "estimate_target_seconds" : 173.70722777777777,
+        "images_attempted" : 18,
+        "images_failed" : 0,
+        "images_per_second" : 1870.9641743622194,
+        "images_succeeded" : 18,
+        "jobs" : 1,
+        "ocr_calls" : 0,
+        "rss_after_bytes" : 277692416,
+        "rss_before_bytes" : 277676032,
+        "rss_mean_bytes" : 277692416,
+        "rss_peak_bytes" : 277692416,
+        "rss_sample_count" : 1,
+        "wall_seconds" : 0.009620708
+      }
+    },
+    {
+      "cold" : {
+        "cache_hits" : 0,
+        "cache_misses" : 18,
+        "estimate_target_count" : 325000,
+        "estimate_target_seconds" : 403805.57493611117,
+        "images_attempted" : 18,
+        "images_failed" : 0,
+        "images_per_second" : 0.804842776257907,
+        "images_succeeded" : 18,
+        "jobs" : 4,
+        "ocr_calls" : 18,
+        "rss_after_bytes" : 324845568,
+        "rss_before_bytes" : 277708800,
+        "rss_mean_bytes" : 328244574,
+        "rss_peak_bytes" : 346128384,
+        "rss_sample_count" : 839,
+        "wall_seconds" : 22.364616458
+      },
+      "jobs" : 4,
+      "warm" : {
+        "cache_hits" : 18,
+        "cache_misses" : 0,
+        "estimate_target_count" : 325000,
+        "estimate_target_seconds" : 51.41696805555556,
+        "images_attempted" : 18,
+        "images_failed" : 0,
+        "images_per_second" : 6320.870566479932,
+        "images_succeeded" : 18,
+        "jobs" : 4,
+        "ocr_calls" : 0,
+        "rss_after_bytes" : 324845568,
+        "rss_before_bytes" : 324845568,
+        "rss_mean_bytes" : 324861952,
+        "rss_peak_bytes" : 324861952,
+        "rss_sample_count" : 1,
+        "wall_seconds" : 0.002847709
+      }
+    },
+    {
+      "cold" : {
+        "cache_hits" : 0,
+        "cache_misses" : 18,
+        "estimate_target_count" : 325000,
+        "estimate_target_seconds" : 471384.7922513889,
+        "images_attempted" : 18,
+        "images_failed" : 0,
+        "images_per_second" : 0.6894579658536755,
+        "images_succeeded" : 18,
+        "jobs" : 8,
+        "ocr_calls" : 18,
+        "rss_after_bytes" : 213827584,
+        "rss_before_bytes" : 324861952,
+        "rss_mean_bytes" : 254003098,
+        "rss_peak_bytes" : 373604352,
+        "rss_sample_count" : 985,
+        "wall_seconds" : 26.107465417
+      },
+      "jobs" : 8,
+      "warm" : {
+        "cache_hits" : 18,
+        "cache_misses" : 0,
+        "estimate_target_count" : 325000,
+        "estimate_target_seconds" : 27.590405555555556,
+        "images_attempted" : 18,
+        "images_failed" : 0,
+        "images_per_second" : 11779.457150261373,
+        "images_succeeded" : 18,
+        "jobs" : 8,
+        "ocr_calls" : 0,
+        "rss_after_bytes" : 213843968,
+        "rss_before_bytes" : 213827584,
+        "rss_mean_bytes" : 213843968,
+        "rss_peak_bytes" : 213843968,
+        "rss_sample_count" : 1,
+        "wall_seconds" : 0.001528084
+      }
+    }
+  ],
+  "target_estimate_count" : 325000
+}

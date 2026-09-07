@@ -1,0 +1,25 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "named"
+  ],
+  "groups" : [
+
+  ],
+  "hit_at_1" : false,
+  "hit_at_3" : false,
+  "hit_at_5" : false,
+  "id" : "q09",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 0,
+  "primary_file" : "synthetic/waggle-dance.png",
+  "reciprocal_rank" : 0,
+  "relevant_files" : [
+    "synthetic/waggle-dance.png"
+  ],
+  "search_seconds" : 0.063429375,
+  "text" : "How does a honeybee communicate the direction of a food source?"
+}

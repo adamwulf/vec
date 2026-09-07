@@ -1,0 +1,193 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "real",
+    "thumbnail",
+    "named"
+  ],
+  "file_rank" : 2,
+  "groups" : [
+    {
+      "best_score" : 0.7592995762825012,
+      "file" : "synthetic/titan-methane-lakes.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.24070042371749878,
+          "score" : 0.7592995762825012
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7462430000305176,
+      "file" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2537569999694824,
+          "score" : 0.7462430000305176
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.735817551612854,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.264182448387146,
+          "score" : 0.735817551612854
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7333589196205139,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2666410803794861,
+          "score" : 0.7333589196205139
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7315513491630554,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.2684486508369446,
+          "score" : 0.7315513491630554
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.273582398891449,
+          "score" : 0.726417601108551
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.29636114835739136,
+          "score" : 0.7036388516426086
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7192066311836243,
+      "file" : "synthetic/lithium-battery-runaway.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.28079336881637573,
+          "score" : 0.7192066311836243
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7154749035835266,
+      "file" : "synthetic/coral-bleaching.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2845250964164734,
+          "score" : 0.7154749035835266
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7116515040397644,
+      "file" : "synthetic/tea-ceremony.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2883484959602356,
+          "score" : 0.7116515040397644
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7056818008422852,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.29431819915771484,
+          "score" : 0.7056818008422852
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.7031722664833069,
+      "file" : "synthetic/roman-aqueduct.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2968277335166931,
+          "score" : 0.7031722664833069
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : false,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q04",
+  "is_no_answer" : false,
+  "origin" : "real",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : false,
+    "best_score" : 0.7462430000305176,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : false,
+        "type" : "contains",
+        "value" : "ATMOSPHERE"
+      }
+    ],
+    "distance" : 0.2537569999694824,
+    "file_rank" : 2,
+    "input_chars" : 17
+  },
+  "primary_file" : "real/minecraft-atmosphere-thumbnail.jpg",
+  "reciprocal_rank" : 0.5,
+  "relevant_files" : [
+    "real/minecraft-atmosphere-thumbnail.jpg"
+  ],
+  "search_seconds" : 0.058122167,
+  "text" : "Which image is the Minecraft video thumbnail titled ATMOSPHERE?"
+}

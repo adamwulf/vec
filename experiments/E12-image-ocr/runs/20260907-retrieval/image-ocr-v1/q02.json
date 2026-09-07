@@ -1,0 +1,203 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "real",
+    "diagram",
+    "explanation"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8501302003860474,
+      "file" : "real/ot-sequence-diagram.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.14986979961395264,
+          "score" : 0.8501302003860474
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7621760368347168,
+      "file" : "real/fractional-index-steps.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2378239631652832,
+          "score" : 0.7621760368347168
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7540005445480347,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.24599945545196533,
+          "score" : 0.7540005445480347
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.260418176651001,
+          "score" : 0.739581823348999
+        },
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.2617111802101135,
+          "score" : 0.7382888197898865
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7218207716941833,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.27817922830581665,
+          "score" : 0.7218207716941833
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7128015756607056,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.28719842433929443,
+          "score" : 0.7128015756607056
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7057803273200989,
+      "file" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2942196726799011,
+          "score" : 0.7057803273200989
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7054991722106934,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.29450082778930664,
+          "score" : 0.7054991722106934
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7030879855155945,
+      "file" : "synthetic/fermat-last-theorem.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2969120144844055,
+          "score" : 0.7030879855155945
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.702529788017273,
+      "file" : "synthetic/roman-aqueduct.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.29747021198272705,
+          "score" : 0.702529788017273
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.7025024890899658,
+      "file" : "synthetic/coral-bleaching.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2974975109100342,
+          "score" : 0.7025024890899658
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q02",
+  "is_no_answer" : false,
+  "origin" : "real",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8501302003860474,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "Client A"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "Insert"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "Delete"
+      }
+    ],
+    "distance" : 0.14986979961395264,
+    "file_rank" : 1,
+    "input_chars" : 296
+  },
+  "primary_file" : "real/ot-sequence-diagram.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "real/ot-sequence-diagram.png"
+  ],
+  "search_seconds" : 0.084570875,
+  "text" : "How are insert and delete edits from two clients transformed against the server document?"
+}

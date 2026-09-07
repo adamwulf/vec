@@ -1,0 +1,25 @@
+{
+  "arm" : "raw",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "named"
+  ],
+  "groups" : [
+
+  ],
+  "hit_at_1" : false,
+  "hit_at_3" : false,
+  "hit_at_5" : false,
+  "id" : "q06",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 0,
+  "primary_file" : "synthetic/titan-methane-lakes.png",
+  "reciprocal_rank" : 0,
+  "relevant_files" : [
+    "synthetic/titan-methane-lakes.png"
+  ],
+  "search_seconds" : 0.059104458,
+  "text" : "Which moon of Saturn has liquid methane lakes like Kraken Mare?"
+}

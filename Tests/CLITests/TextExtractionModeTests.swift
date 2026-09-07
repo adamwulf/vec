@@ -6,7 +6,7 @@ import VecKit
 final class TextExtractionModeTests: XCTestCase {
     /// Every non-raw mode. `raw` is the default and is exercised separately;
     /// these are the modes a user must explicitly opt into.
-    private static let optInModes: [TextExtractionMode] = [.markdownV1, .vttV1, .markdownV1VttV1]
+    private static let optInModes: [TextExtractionMode] = TextExtractionMode.allCases.filter { $0 != .raw }
 
     private func config(mode: TextExtractionMode? = nil) -> DatabaseConfig {
         DatabaseConfig(sourceDirectory: "/tmp/source", createdAt: Date(), profile: mode.map {
@@ -89,6 +89,10 @@ final class TextExtractionModeTests: XCTestCase {
             "markdown-v1": .markdownV1,
             "vtt-v1": .vttV1,
             "markdown-v1+vtt-v1": .markdownV1VttV1,
+            "image-ocr-v1": .imageOCRV1,
+            "markdown-v1+image-ocr-v1": .markdownV1ImageOCRV1,
+            "vtt-v1+image-ocr-v1": .vttV1ImageOCRV1,
+            "markdown-v1+vtt-v1+image-ocr-v1": .markdownV1VttV1ImageOCRV1,
         ]
         for (raw, mode) in expected {
             let command = try XCTUnwrap(
@@ -97,12 +101,24 @@ final class TextExtractionModeTests: XCTestCase {
         }
         // Unknown / mis-versioned strings are rejected at parse time, before
         // any DB work.
-        for bad in ["markdown-v2", "vtt-v2", "vtt", "markdown", "markdown-v1+vtt-v2"] {
+        for bad in ["markdown-v2", "vtt-v2", "vtt", "markdown", "markdown-v1+vtt-v2", "image-ocr-v2", "image-ocr-v1+raw", "image-ocr-v1+image-ocr-v1", "image-ocr-v1+vtt-v1"] {
             XCTAssertThrowsError(try UpdateIndexCommand.parseAsRoot(["--text-extraction", bad]),
                                  "\(bad) should be rejected")
         }
         let defaultCommand = try XCTUnwrap(UpdateIndexCommand.parseAsRoot([]) as? UpdateIndexCommand)
         XCTAssertNil(defaultCommand.textExtraction)
+    }
+
+    func testOCRConcurrencyParsingAndValidation() throws {
+        let defaults = try XCTUnwrap(UpdateIndexCommand.parseAsRoot([]) as? UpdateIndexCommand)
+        XCTAssertEqual(defaults.ocrConcurrency, 1)
+        for count in [1, 4, 8] {
+            let command = try XCTUnwrap(UpdateIndexCommand.parseAsRoot(["--ocr-concurrency", String(count)]) as? UpdateIndexCommand)
+            XCTAssertEqual(command.ocrConcurrency, count)
+        }
+        for invalid in ["0", "-1", "abc"] {
+            XCTAssertThrowsError(try UpdateIndexCommand.parseAsRoot(["--ocr-concurrency", invalid]))
+        }
     }
 
     func testCLIOptionMapsOneToOneWithEveryPersistedMode() {

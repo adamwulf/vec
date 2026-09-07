@@ -44,12 +44,12 @@ final class VTTExtractionTests: XCTestCase {
 
     func testModesAndExtensionsAreIsolated() throws {
         let source = "WEBVTT\n\n00:00.000 --> 00:02.000\nHello"
-        for mode in [TextExtractionMode.vttV1, .markdownV1VttV1] {
+        for mode in TextExtractionMode.allCases.filter({ $0.includesVTT }) {
             for ext in ["vtt", "VTT"] {
                 XCTAssertEqual(try extract(source, extension: ext, mode: mode).chunks.first?.text, "Hello")
             }
         }
-        for mode in [TextExtractionMode.raw, .markdownV1] {
+        for mode in TextExtractionMode.allCases.filter({ !$0.includesVTT }) {
             XCTAssertEqual(try extract(source, mode: mode).chunks.first?.text, source)
         }
         for ext in ["txt", "md", "swift", "json", "srt"] {
@@ -57,7 +57,10 @@ final class VTTExtractionTests: XCTestCase {
         }
         let markdown = "[label](https://example.com)"
         XCTAssertEqual(try extract(markdown, extension: "md").chunks.first?.text, markdown)
-        XCTAssertEqual(try extract(markdown, extension: "md", mode: .markdownV1VttV1).chunks.first?.text, "label")
+        for mode in TextExtractionMode.allCases {
+            XCTAssertEqual(try extract(markdown, extension: "md", mode: mode).chunks.first?.text,
+                           mode.includesMarkdown ? "label" : markdown)
+        }
     }
 
     func testStructuralOnlyFilesHaveNoChunks() throws {

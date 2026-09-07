@@ -1,0 +1,198 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "real",
+    "chart",
+    "claim"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8367003798484802,
+      "file" : "real/fbi-jan6-charges-chart.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.16329962015151978,
+          "score" : 0.8367003798484802
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7165842652320862,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.2834157347679138,
+          "score" : 0.7165842652320862
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.28509044647216797,
+          "score" : 0.714909553527832
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.3092123866081238,
+          "score" : 0.6907876133918762
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7110818028450012,
+      "file" : "synthetic/knitting-gauge.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2889181971549988,
+          "score" : 0.7110818028450012
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7076311707496643,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2923688292503357,
+          "score" : 0.7076311707496643
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.706994354724884,
+      "file" : "synthetic/fermat-last-theorem.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.29300564527511597,
+          "score" : 0.706994354724884
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7063702344894409,
+      "file" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2936297655105591,
+          "score" : 0.7063702344894409
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7047528028488159,
+      "file" : "synthetic/lithium-battery-runaway.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2952471971511841,
+          "score" : 0.7047528028488159
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.7009350657463074,
+      "file" : "real/ot-sequence-diagram.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2990649342536926,
+          "score" : 0.7009350657463074
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.7001845240592957,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.29981547594070435,
+          "score" : 0.7001845240592957
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.698754072189331,
+      "file" : "synthetic/roman-aqueduct.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.30124592781066895,
+          "score" : 0.698754072189331
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q01",
+  "is_no_answer" : false,
+  "origin" : "real",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8367003798484802,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "regex",
+        "value" : "1[.,]?575"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "charges"
+      }
+    ],
+    "distance" : 0.16329962015151978,
+    "file_rank" : 1,
+    "input_chars" : 181
+  },
+  "primary_file" : "real/fbi-jan6-charges-chart.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "real/fbi-jan6-charges-chart.png"
+  ],
+  "search_seconds" : 0.244863084,
+  "text" : "How many total charges does the chart report against January 6 defendants?"
+}

@@ -1,0 +1,216 @@
+{
+  "arms": {
+    "image-ocr-v1": {
+      "advisory_passage_passes": 13,
+      "all": {
+        "mrr": 0.9666666666666667,
+        "n": 15,
+        "rank1": 14,
+        "top3": 15,
+        "top5": 15
+      },
+      "blank_count": 1,
+      "indexed_count": 17,
+      "real": {
+        "mrr": 0.875,
+        "n": 4,
+        "rank1": 3,
+        "top3": 4,
+        "top5": 4
+      },
+      "synthetic": {
+        "mrr": 1.0,
+        "n": 11,
+        "rank1": 11,
+        "top3": 11,
+        "top5": 11
+      },
+      "text_extraction": "image-ocr-v1",
+      "total_chunks": 19
+    },
+    "raw": {
+      "advisory_passage_passes": 0,
+      "all": {
+        "mrr": 0.0,
+        "n": 15,
+        "rank1": 0,
+        "top3": 0,
+        "top5": 0
+      },
+      "blank_count": 0,
+      "indexed_count": 0,
+      "real": {
+        "mrr": 0.0,
+        "n": 4,
+        "rank1": 0,
+        "top3": 0,
+        "top5": 0
+      },
+      "synthetic": {
+        "mrr": 0.0,
+        "n": 11,
+        "rank1": 0,
+        "top3": 0,
+        "top5": 0
+      },
+      "text_extraction": "raw",
+      "total_chunks": 0
+    }
+  },
+  "per_query": [
+    {
+      "id": "q01",
+      "origin": "real",
+      "primary_file": "real/fbi-jan6-charges-chart.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q02",
+      "origin": "real",
+      "primary_file": "real/ot-sequence-diagram.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q03",
+      "origin": "real",
+      "primary_file": "real/fractional-index-steps.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q04",
+      "origin": "real",
+      "primary_file": "real/minecraft-atmosphere-thumbnail.jpg",
+      "ranks": {
+        "image-ocr-v1": 2,
+        "raw": null
+      }
+    },
+    {
+      "id": "q05",
+      "origin": "synthetic",
+      "primary_file": "synthetic/sourdough-hydration.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q06",
+      "origin": "synthetic",
+      "primary_file": "synthetic/titan-methane-lakes.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q07",
+      "origin": "synthetic",
+      "primary_file": "synthetic/espresso-extraction.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q08",
+      "origin": "synthetic",
+      "primary_file": "synthetic/roman-aqueduct.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q09",
+      "origin": "synthetic",
+      "primary_file": "synthetic/waggle-dance.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q10",
+      "origin": "synthetic",
+      "primary_file": "synthetic/lithium-battery-runaway.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q11",
+      "origin": "synthetic",
+      "primary_file": "synthetic/coral-bleaching.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q12",
+      "origin": "synthetic",
+      "primary_file": "synthetic/tea-ceremony.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q13",
+      "origin": "synthetic",
+      "primary_file": "synthetic/everest-death-zone.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q14",
+      "origin": "synthetic",
+      "primary_file": "synthetic/fermat-last-theorem.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    },
+    {
+      "id": "q15",
+      "origin": "synthetic",
+      "primary_file": "synthetic/antikythera-mechanism.png",
+      "ranks": {
+        "image-ocr-v1": 1,
+        "raw": null
+      }
+    }
+  ],
+  "run_identity": "f8029b668a6e25945efe8eb2b3833130777946e8fa2e32dba2fa96022c18af02",
+  "settings": {
+    "batch_size": 32,
+    "bucket_width": 500,
+    "chunk_chars": 1200,
+    "chunk_overlap": 0,
+    "coalesce_limit": 10,
+    "compute_policy": "default(nil)",
+    "concurrency": 8,
+    "dimension": 768,
+    "embedder": "e5-base-v2",
+    "ocr_concurrency": 4,
+    "ocr_max_pixel_dimension": 4096,
+    "ocr_recognizer_version": 1,
+    "ocr_request_revision": 3,
+    "profile_identity": "e5-base@1200/0",
+    "raw_fetch_limit": 30,
+    "search_limit": 10
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "experiment": "E12-image-ocr",
+  "frozen_at": "2026-09-07T06:52:37.112596+00:00",
+  "real_source": "/tmp/LinksDatabase (user-local link-archive assets)",
+  "real_files": 6,
+  "synthetic_files": 12,
+  "target_files": 15,
+  "scope": "Four real text-bearing image targets plus eleven explicitly synthetic distinct-topic rendered images, with two real and one synthetic distractor. Selected for legible, text-dominant, mutually-distinct content; NOT representative of the real thumbnail/photo-heavy image corpus. No claim of real-corpus accuracy. Queries target what each image SAYS, not external truth.",
+  "files": [
+    {
+      "path": "real/app-icon-crystal.png",
+      "bytes": 517714,
+      "sha256": "94a2b99f017b38e0ae2d2b3c437f6bb8f10e325ffd9f3b13003c7bbae77588ef",
+      "origin": "real",
+      "role": "distractor",
+      "source_path": "/tmp/LinksDatabase/Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/assets/af178b4b045f50e57855a140324d86728a15c46d677a41ad28f46db45623711f.png"
+    },
+    {
+      "path": "real/code-editor-showcase.png",
+      "bytes": 923565,
+      "sha256": "094ae32d0966d9f2d2e1fc20b685c98b2a421e6bb8ff7da6aba12e2f913a343b",
+      "origin": "real",
+      "role": "distractor",
+      "source_path": "/tmp/LinksDatabase/Notion/004fd054-d53e-40ec-a230-fb2acf485b7e.localized/assets/3ba60fbbf7c33e62d8797549421f9b2473a472416e4f7a9d95c742d131b7fe23.png"
+    },
+    {
+      "path": "real/fbi-jan6-charges-chart.png",
+      "bytes": 56690,
+      "sha256": "b10bc6d437acf1274b0ae893ce6c1618123a8e4ee726fd3950da2c1ddc53999c",
+      "origin": "real",
+      "role": "target",
+      "source_path": "/tmp/LinksDatabase/Notion-Addendum/183f32f4-36c1-8156-a6da-cb85e8230f14.localized/assets/CleanShot_2025-01-21_at_22.30.112x.png"
+    },
+    {
+      "path": "real/fractional-index-steps.png",
+      "bytes": 97675,
+      "sha256": "90becf1e5acf498a765d16140ae030738938a153698d14e2ae0aca6a3abf7f6a",
+      "origin": "real",
+      "role": "target",
+      "source_path": "/tmp/LinksDatabase/Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/assets/85519dc93ce6290597976822eb018ff5b8850c3af073d0033093a301384973d4.png"
+    },
+    {
+      "path": "real/minecraft-atmosphere-thumbnail.jpg",
+      "bytes": 68976,
+      "sha256": "7ca53f77fad84ae80dfd2a87f94bf26ff1ab2ee3c737c07fee0837d3bce3d7f5",
+      "origin": "real",
+      "role": "target",
+      "source_path": "/tmp/LinksDatabase/YouTube/__h_aNi5UeY.localized/assets/hq720.jpg"
+    },
+    {
+      "path": "real/ot-sequence-diagram.png",
+      "bytes": 138354,
+      "sha256": "64fadbb57fef9b9da0a84bb753a45a81a6e33d38bf510ede7a5c1e8747f1092f",
+      "origin": "real",
+      "role": "target",
+      "source_path": "/tmp/LinksDatabase/Notion/00689cc5-609a-4b17-ad65-118dcef26089.localized/assets/1776b926cb9d4eb62d24e3c4330e060c4511a49fc3dc561f6433bda24106ab44.png"
+    },
+    {
+      "path": "synthetic/antikythera-mechanism.png",
+      "bytes": 49327,
+      "sha256": "6e165a86e120725ca660c9e03e28b756fcbecaad543428564d0d565f1ad458b7",
+      "origin": "synthetic",
+      "role": "target"
+    },
+    {
+      "path": "synthetic/coral-bleaching.png",
+      "bytes": 51656,
+      "sha256": "341cfe2d080890b0bf3a2c41e9d275118730c18b66c5d1d03ff1c82ceb4acdfc",
+      "origin": "synthetic",
+      "role": "target"
+    },
+    {
+      "path": "synthetic/espresso-extraction.png",
+      "bytes": 48345,
+      "sha256": "6cc2e303c5db1855c09df274a77b6bba22e022a4958e4c7fca4b01d7af2b32db",
+      "origin": "synthetic",
+      "role": "target"
+    },
+    {
+      "path": "synthetic/everest-death-zone.png",
+      "bytes": 50251,
+      "sha256": "fbc2e6b10ac79a39d0bc280fe93b63413df90bfeaaf251949f1f3ad61d7fb013",
+      "origin": "synthetic",
+      "role": "target"
+    },
+    {
+      "path": "synthetic/fermat-last-theorem.png",
+      "bytes": 49692,
+      "sha256": "e202f7bf12010fab82b274e43ef76fe2d575e410002574da0d838318bd5b1b72",
+      "origin": "synthetic",
+      "role": "target"
+    },
+    {
+      "path": "synthetic/knitting-gauge.png",
+      "bytes": 50068,
+      "sha256": "103f31fb0584eae44c68c3e47e2a5ed06929415a4a4fe540bd5b21b20a76d860",
+      "origin": "synthetic",
+      "role": "distractor"
+    },
+    {
+      "path": "synthetic/lithium-battery-runaway.png",
+      "bytes": 51238,
+      "sha256": "3b50bc833dd3da25d2dc0d2c733e341089acdf1b10813cb38a9eef76a81e46c2",
+      "origin": "synthetic",
+      "role": "target"
+    },
+    {
+      "path": "synthetic/roman-aqueduct.png",
+      "bytes": 51940,
+      "sha256": "5183cf97cd232e23acd0d5cb5a8301331bb5ca4e392091ed1b9ed60c42b4c203",
+      "origin": "synthetic",
+      "role": "target"
+    },
+    {
+      "path": "synthetic/sourdough-hydration.png",
+      "bytes": 51100,
+      "sha256": "b8c6fb0a9c4bef7e0f91b14165bcbb96ac476c752b68e1666e8a7d444be435ae",
+      "origin": "synthetic",
+      "role": "target"
+    },
+    {
+      "path": "synthetic/tea-ceremony.png",
+      "bytes": 49268,
+      "sha256": "0e962b28dcfbdac610423c1ab0f9e76078f150b01bad0677326447c446dbfb7d",
+      "origin": "synthetic",
+      "role": "target"
+    },
+    {
+      "path": "synthetic/titan-methane-lakes.png",
+      "bytes": 48811,
+      "sha256": "db3437e0032a39228ed45d9a6712a79e01363b56de6ec4120731c483e7f458b5",
+      "origin": "synthetic",
+      "role": "target"
+    },
+    {
+      "path": "synthetic/waggle-dance.png",
+      "bytes": 49848,
+      "sha256": "5c73a20625875d1fba091033e5594cc6f717995a4e766111ab5a1008f444d54a",
+      "origin": "synthetic",
+      "role": "target"
+    }
+  ]
+}

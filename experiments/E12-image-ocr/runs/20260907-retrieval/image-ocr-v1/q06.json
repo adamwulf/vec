@@ -1,0 +1,198 @@
+{
+  "arm" : "image-ocr-v1",
+  "categories" : [
+    "synthetic",
+    "factual",
+    "named"
+  ],
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8598487973213196,
+      "file" : "synthetic/titan-methane-lakes.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.14015120267868042,
+          "score" : 0.8598487973213196
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7384421229362488,
+      "file" : "synthetic/antikythera-mechanism.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2615578770637512,
+          "score" : 0.7384421229362488
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7332120537757874,
+      "file" : "real/code-editor-showcase.png",
+      "match_count" : 3,
+      "matches" : [
+        {
+          "chunk_ordinal" : 3,
+          "chunk_type" : "image",
+          "distance" : 0.26678794622421265,
+          "score" : 0.7332120537757874
+        },
+        {
+          "chunk_ordinal" : 2,
+          "chunk_type" : "image",
+          "distance" : 0.3026358485221863,
+          "score" : 0.6973641514778137
+        },
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.321037232875824,
+          "score" : 0.678962767124176
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.730304479598999,
+      "file" : "synthetic/coral-bleaching.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.269695520401001,
+          "score" : 0.730304479598999
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7195364236831665,
+      "file" : "synthetic/lithium-battery-runaway.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2804635763168335,
+          "score" : 0.7195364236831665
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7022837996482849,
+      "file" : "synthetic/roman-aqueduct.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.2977162003517151,
+          "score" : 0.7022837996482849
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.697451651096344,
+      "file" : "real/minecraft-atmosphere-thumbnail.jpg",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.302548348903656,
+          "score" : 0.697451651096344
+        }
+      ],
+      "rank" : 7
+    },
+    {
+      "best_score" : 0.6961401104927063,
+      "file" : "synthetic/waggle-dance.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.3038598895072937,
+          "score" : 0.6961401104927063
+        }
+      ],
+      "rank" : 8
+    },
+    {
+      "best_score" : 0.6926549077033997,
+      "file" : "synthetic/tea-ceremony.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.30734509229660034,
+          "score" : 0.6926549077033997
+        }
+      ],
+      "rank" : 9
+    },
+    {
+      "best_score" : 0.6767576336860657,
+      "file" : "synthetic/espresso-extraction.png",
+      "match_count" : 1,
+      "matches" : [
+        {
+          "chunk_ordinal" : 1,
+          "chunk_type" : "image",
+          "distance" : 0.3232423663139343,
+          "score" : 0.6767576336860657
+        }
+      ],
+      "rank" : 10
+    }
+  ],
+  "hit_at_1" : true,
+  "hit_at_3" : true,
+  "hit_at_5" : true,
+  "id" : "q06",
+  "is_no_answer" : false,
+  "origin" : "synthetic",
+  "overfetch_distinct_files" : 17,
+  "primary_audit" : {
+    "all_criteria_met" : true,
+    "best_score" : 0.8598487973213196,
+    "chunk_ordinal" : 1,
+    "chunk_type" : "image",
+    "criteria" : [
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "Kraken Mare"
+      },
+      {
+        "matched_in_ocr_text" : true,
+        "type" : "contains",
+        "value" : "methane"
+      }
+    ],
+    "distance" : 0.14015120267868042,
+    "file_rank" : 1,
+    "input_chars" : 181
+  },
+  "primary_file" : "synthetic/titan-methane-lakes.png",
+  "reciprocal_rank" : 1,
+  "relevant_files" : [
+    "synthetic/titan-methane-lakes.png"
+  ],
+  "search_seconds" : 0.061728042,
+  "text" : "Which moon of Saturn has liquid methane lakes like Kraken Mare?"
+}
