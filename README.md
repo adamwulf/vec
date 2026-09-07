@@ -100,7 +100,7 @@ For a fresh or reset database, run `vec update-index --db my-project --text-extr
 
 For a mixed Markdown/caption corpus, use `--text-extraction markdown-v1+vtt-v1` to apply both versioned normalizers. `vtt-v1` alone changes only `.vtt` extraction. Raw remains the default; the database records the chosen mode, updates and inserts inherit it, and changing modes requires reset/reindexing.
 
-Chunks retain coarse source cue line ranges, including the first timing line, so results remain traceable to the caption file. Timestamp metadata is not added to the schema. See the [E11 plan](experiments/E11-vtt-extraction/plan.md) for exact passage, decoding, and deduplication rules, and [validation notes](experiments/E11-vtt-extraction/validation.md) for tests and known baseline failures. Retrieval accuracy on the target corpus has not been measured.
+Chunks retain coarse source cue line ranges, including the first timing line, so results remain traceable to the caption file. Timestamp metadata is not added to the schema. See the [E11 plan](experiments/E11-vtt-extraction/plan.md) for the extraction rules. In a frozen 16-file sample (1 real, 15 synthetic), correct-file-at-rank-1 improved from 14/15 to 15/15, MRR from 0.956 to 1.000, and chunk count fell from 205 to 88; timestamp/tag noise in extracted chunks fell from 100% to 0%. The only rank improvement was on a synthetic file, so this does not establish an accuracy gain across the full corpus. See the [measured report and provenance](experiments/E11-vtt-extraction/report.md).
 
 ### Search
 

@@ -1,5 +1,7 @@
 # E11 validation and review
 
+Update, 2026-09-07: the historical baseline below predates the separately authored inference fixes merged to main `5ee92ab`. After rebasing onto that main revision, the full suite at `0d013d1` passed: 392 tests, 4 expected opt-in skips, zero failures, including the previously failing parity case. The E11 benchmark then ran separately and passed. See the [measured report](report.md) and [current full-suite log](runs/20260907-060151-current-main/full-suite.log). The original commands, hashes, and failure evidence below remain unchanged as a historical record.
+
 ## Automated validation
 
 The final feature passed all 24 focused tests: 8 CLI extraction-mode tests,

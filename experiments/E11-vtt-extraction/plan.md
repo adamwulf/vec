@@ -1,6 +1,6 @@
 # E11 — Opt-in WebVTT extraction before embedding
 
-Status: implementation complete. The versioned WebVTT modes are opt-in, raw remains the default, and no inference code changed. All WebVTT tests and every previously passing clean-main test pass. Five pre-existing embedding-parity assertions remain for a separate task. See [validation and baseline evidence](validation.md).
+Status: implementation and retrieval measurement complete (2026-09-07). On 16 frozen captions (1 real, 15 synthetic), rank-1 accuracy improved 14/15 → 15/15 and MRR 0.956 → 1.000; chunks fell 205 → 88 and extracted timestamp/tag noise 100% → 0%. The one rank gain was synthetic, so this is not a full-corpus accuracy estimate. The versioned modes remain opt-in. Both arms use the same inference from main `5ee92ab`, adopted by rebase; the separate parity fix resolves the earlier failures. Full suite: 392 tests, zero failures, 4 expected opt-in skips. See the [measured report](report.md), [run archive](runs/20260907-060151-current-main/summary.md), and [historical validation](validation.md).
 
 ## Question
 
@@ -75,15 +75,11 @@ user's directory layout.
 - [x] Run full suites on clean main and the feature branch; confirm all previously passing main tests and all WebVTT tests pass. Record the five unchanged baseline inference failures separately, per the user's scope decision.
 - [x] Obtain two independent implementation approvals and merge the CLI worker.
 
-An accuracy improvement is a hypothesis, not a completion requirement.
-This experiment makes no measured retrieval-accuracy or indexing-speed
-claim. A neutral result is useful and must be reported without tuning
-after the fact. The default stays `raw`; no default change is made on the
-basis of this work.
+An accuracy improvement was a hypothesis, not a completion requirement. The completed run found one rank-1 improvement on the synthetic-heavy sample, documented in [report.md](report.md), and makes no general indexing-speed or full-corpus accuracy claim. No captions or query labels were tuned after ranking. The default stays `raw`.
 
 ## Retrieval evaluation follow-up (2026-09-07)
 
-Status: preparing and freezing inputs; no rankings observed.
+Status: run complete at clean commit `0d013d1`, on main `5ee92ab`. Both arms indexed 16/16 files and ran all 15 queries; the independent scorer agrees with the harness. Query q13 moved from rank 3 to rank 1, while the other 14 stayed at rank 1. The protocol below records the pre-run design; see [report.md](report.md) for results and limitations.
 
 Adam authorized a mixed real/synthetic sample after the supplied corpus
 contained only one WebVTT file. Use 16 files: that real Minecraft video
