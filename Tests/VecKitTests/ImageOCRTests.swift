@@ -154,6 +154,25 @@ final class ImageOCRTests: XCTestCase {
         assertRecognizes(result, expected: ["Vector", "Search"], context: "JPEG baseline")
     }
 
+    func testRenderedBlankPNGAndJPEGProduceNoTextOrChunks() throws {
+        let blank = try renderCGImage(lines: [], width: 800, height: 200, fontSize: 64)
+        let extractor = TextExtractor(
+            splitter: RecursiveCharacterSplitter(chunkSize: 200, chunkOverlap: 0),
+            textExtraction: .imageOCRV1)
+        for (ext, format) in [("png", UTType.png), ("jpg", UTType.jpeg)] {
+            let url = tempDir.appendingPathComponent("blank.\(ext)")
+            try writeImage(blank, to: url, format: format)
+            let result = try ImageOCR().recognizeText(in: url)
+            XCTAssertTrue(result.text.isEmpty, "Blank \(ext) must have no recognized text")
+            XCTAssertTrue(result.lines.isEmpty)
+            XCTAssertTrue(result.paragraphs.isEmpty)
+            let info = FileInfo(relativePath: url.lastPathComponent, url: url,
+                                modificationDate: Date(), fileExtension: ext)
+            XCTAssertTrue(try extractor.extract(from: info).isEmpty,
+                          "A real blank \(ext) must not generate image chunks")
+        }
+    }
+
     func testOversizedImageDownsampleStillRecognizesLegibleText() throws {
         // Native width 6000 > 4096, so the frame is downsampled before OCR.
         // Text drawn at 90pt scales to ~61px after the 4096 cap — well within
