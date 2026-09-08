@@ -1,0 +1,12 @@
+<!doctype html>
+<html><head><title>Café Inventory Procedure</title></head><body>
+<main>
+  <h1>Café Inventory Procedure</h1>
+  <p>Record tea &amp; coffee separately; damaged tins count as unavailable even when they remain on the shelf.</p>
+  <ol start="3"><li>Count sealed tins.</li><li>Check labels<ul><li>Mark allergen warnings</li><li>Preserve the roast date</li></ul></li></ol>
+  <table><tr><th>Bin</th><th>Reorder point</th></tr><tr><td>Éthiopie</td><td>12 bags</td></tr><tr><td>Sencha</td><td>8 tins</td></tr></table>
+  <pre>if available &lt; reorderPoint {
+    createPurchaseOrder()
+}</pre>
+</main>
+</body></html>

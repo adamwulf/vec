@@ -1,0 +1,12 @@
+run_identity: 044e61f25d831e53a91e013fe56deb68d9b029f4acf6e969266766f3d42f6860
+arm             rank1  top3  top5     MRR  preserved  boilerplate-absent  n
+raw                 6     6     6   1.000          6                   2  6
+html-v1             6     6     6   1.000          6                   6  6
+
+No-answer probes (top file/score only; no threshold or pass claim):
+  na01 raw: article.html / 0.768073
+  na02 raw: executable-only.html / 0.719448
+  na01 html-v1: article.html / 0.765749
+  na02 html-v1: structural.html / 0.708706
+
+Ranks are independently derived from archived finite scores. Preservation and boilerplate checks are independent advisory text audits.

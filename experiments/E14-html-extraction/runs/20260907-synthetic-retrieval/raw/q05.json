@@ -1,0 +1,83 @@
+{
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8092938661575317,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.19070613384246826,
+          "score" : 0.8092938661575317
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7348949909210205,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.2651050090789795,
+          "score" : 0.7348949909210205
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7329295873641968,
+      "file" : "executable-only.html",
+      "matches" : [
+        {
+          "distance" : 0.2670704126358032,
+          "score" : 0.7329295873641968
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7254127860069275,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.2745872139930725,
+          "score" : 0.7254127860069275
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7224554419517517,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.2775445580482483,
+          "score" : 0.7224554419517517
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7136597633361816,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.28634023666381836,
+          "score" : 0.7136597633361816
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7011598348617554,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.29884016513824463,
+          "score" : 0.7011598348617554
+        }
+      ],
+      "rank" : 7
+    }
+  ],
+  "primary_text" : "<!doctype html>\n<html><head><title>Café Inventory Procedure</title></head><body>\n<main>\n  <h1>Café Inventory Procedure</h1>\n  <p>Record tea &amp; coffee separately; damaged tins count as unavailable even when they remain on the shelf.</p>\n  <ol start=\"3\"><li>Count sealed tins.</li><li>Check labels<ul><li>Mark allergen warnings</li><li>Preserve the roast date</li></ul></li></ol>\n  <table><tr><th>Bin</th><th>Reorder point</th></tr><tr><td>Éthiopie</td><td>12 bags</td></tr><tr><td>Sencha</td><td>8 tins</td></tr></table>\n  <pre>if available &lt; reorderPoint {\n    createPurchaseOrder()\n}</pre>\n</main>\n</body></html>\n"
+}

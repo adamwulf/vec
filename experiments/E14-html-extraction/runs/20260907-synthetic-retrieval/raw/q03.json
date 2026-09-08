@@ -1,0 +1,83 @@
+{
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8935872316360474,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.10641276836395264,
+          "score" : 0.8935872316360474
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7658149003982544,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.2341850996017456,
+          "score" : 0.7658149003982544
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7470476031303406,
+      "file" : "executable-only.html",
+      "matches" : [
+        {
+          "distance" : 0.2529523968696594,
+          "score" : 0.7470476031303406
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7391616106033325,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.2608383893966675,
+          "score" : 0.7391616106033325
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7385128736495972,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.26148712635040283,
+          "score" : 0.7385128736495972
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7101425528526306,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.2898574471473694,
+          "score" : 0.7101425528526306
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.6959336400032043,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.30406635999679565,
+          "score" : 0.6959336400032043
+        }
+      ],
+      "rank" : 7
+    }
+  ],
+  "primary_text" : "<!doctype html>\n<html><head><title>Lighthouse Documentation</title></head><body>\n<nav aria-label=\"Documentation directory\">\n  <h1>Lighthouse Documentation</h1>\n  <ul>\n    <li><a href=\"beacons.html\">Beacon rotation guide</a> — rotate the amber beacon every 240 operating hours.</li>\n    <li><a href=\"fog.html\">Fog signal timing</a> — sound pattern: two short, one long.</li>\n    <li><a href=\"power.html\">Backup power</a> — inspect the nickel-iron battery bank monthly.</li>\n  </ul>\n</nav>\n</body></html>\n"
+}

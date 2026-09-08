@@ -1,0 +1,83 @@
+{
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8159817457199097,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.18401825428009033,
+          "score" : 0.8159817457199097
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7389159202575684,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.26108407974243164,
+          "score" : 0.7389159202575684
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.735142171382904,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.26485782861709595,
+          "score" : 0.735142171382904
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7107523679733276,
+      "file" : "executable-only.html",
+      "matches" : [
+        {
+          "distance" : 0.28924763202667236,
+          "score" : 0.7107523679733276
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7101737856864929,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.2898262143135071,
+          "score" : 0.7101737856864929
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.6981465220451355,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.3018534779548645,
+          "score" : 0.6981465220451355
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.6902790069580078,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.3097209930419922,
+          "score" : 0.6902790069580078
+        }
+      ],
+      "rank" : 7
+    }
+  ],
+  "primary_text" : "<!doctype html>\n<html><head><title>Juniper Field Notes</title></head><body>\n<nav>World Politics Finance Culture Science Travel Podcasts Newsletters Sign in</nav>\n<div role=\"navigation\">Morning edition Evening edition Popular stories</div>\n<main>\n  <h1>Juniper Ridge Water Survey</h1>\n  <p>Hydrologists found the ridge spring flowing at 14 liters per minute after three rainless weeks.</p>\n  <p>The team marked well JR-17 for a second conductivity reading because its first sample measured 860 microsiemens per centimeter.</p>\n</main>\n<aside>Most read: elections, football transfers, and restaurant openings</aside>\n<footer>Terms Careers Advertise Cookie settings</footer>\n</body></html>\n"
+}

@@ -1,0 +1,72 @@
+{
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.9295368194580078,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.07046318054199219,
+          "score" : 0.9295368194580078
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7562018632888794,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.2437981367111206,
+          "score" : 0.7562018632888794
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7448329329490662,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.25516706705093384,
+          "score" : 0.7448329329490662
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7396461367607117,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.26035386323928833,
+          "score" : 0.7396461367607117
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.7322666645050049,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.2677333354949951,
+          "score" : 0.7322666645050049
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.6986613869667053,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.3013386130332947,
+          "score" : 0.6986613869667053
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "primary_text" : "# Basalt Kiln Calibration\n\nSet thermocouple K-4 to an offset of minus 6 degrees before the first firing.\n\nAt cone 8, hold 1,245 degrees Celsius for twenty-two minutes\n\n- Log the oxygen reading\n- Open damper B halfway"
+}

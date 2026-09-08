@@ -1,0 +1,83 @@
+{
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.8297490477561951,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.17025095224380493,
+          "score" : 0.8297490477561951
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7248862385749817,
+      "file" : "executable-only.html",
+      "matches" : [
+        {
+          "distance" : 0.2751137614250183,
+          "score" : 0.7248862385749817
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7171377539634705,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.28286224603652954,
+          "score" : 0.7171377539634705
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7155857682228088,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.28441423177719116,
+          "score" : 0.7155857682228088
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.6994596123695374,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.30054038763046265,
+          "score" : 0.6994596123695374
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.6918625235557556,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.3081374764442444,
+          "score" : 0.6918625235557556
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.6536927819252014,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.3463072180747986,
+          "score" : 0.6536927819252014
+        }
+      ],
+      "rank" : 7
+    }
+  ],
+  "primary_text" : "<!doctype html>\n<html><head><title>Trellis CLI Reference</title></head><body>\n<header><nav>Overview Download Community Sponsors</nav></header>\n<h1>Trellis CLI Reference</h1>\n<p>Trellis manages sealed local archives without contacting a remote service.</p>\n<h2>Export options</h2>\n<table>\n  <tr><th>Flag</th><th>Meaning</th></tr>\n  <tr><td>--airgap</td><td>Reject every network-backed resource.</td></tr>\n  <tr><td>--ledger</td><td>Write a SHA-256 inventory beside the archive.</td></tr>\n</table>\n<h2>Exit codes</h2>\n<ul><li>0 — archive completed</li><li>7 — dependency changed during the run</li></ul>\n<form><input placeholder=\"Search docs\"><button>Search</button></form>\n<footer>Apache 2.0 license and compatibility notes</footer>\n</body></html>\n"
+}

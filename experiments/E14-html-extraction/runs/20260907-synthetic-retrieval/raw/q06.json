@@ -1,0 +1,83 @@
+{
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.9204514622688293,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.07954853773117065,
+          "score" : 0.9204514622688293
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7644650936126709,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.2355349063873291,
+          "score" : 0.7644650936126709
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.7499101758003235,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.2500898241996765,
+          "score" : 0.7499101758003235
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7494797706604004,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.2505202293395996,
+          "score" : 0.7494797706604004
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.739267110824585,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.26073288917541504,
+          "score" : 0.739267110824585
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.7337819933891296,
+      "file" : "executable-only.html",
+      "matches" : [
+        {
+          "distance" : 0.26621800661087036,
+          "score" : 0.7337819933891296
+        }
+      ],
+      "rank" : 6
+    },
+    {
+      "best_score" : 0.7071583867073059,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.2928416132926941,
+          "score" : 0.7071583867073059
+        }
+      ],
+      "rank" : 7
+    }
+  ],
+  "primary_text" : "<!doctype html><html><head><title>Basalt Kiln Calibration</title></head><body>\n<main><h1>Basalt Kiln Calibration<p>Set thermocouple K-4 to an offset of minus 6 degrees before the first firing.\n<p>At cone 8, hold 1,245 degrees Celsius for twenty-two minutes<ul><li>Log the oxygen reading<li>Open damper B halfway\n</main><script>document.body.innerHTML = \"wrong\"</script>\n"
+}

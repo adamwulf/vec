@@ -1,0 +1,72 @@
+{
+  "file_rank" : 1,
+  "groups" : [
+    {
+      "best_score" : 0.7999571561813354,
+      "file" : "navigation-heavy.html",
+      "matches" : [
+        {
+          "distance" : 0.20004284381866455,
+          "score" : 0.7999571561813354
+        }
+      ],
+      "rank" : 1
+    },
+    {
+      "best_score" : 0.7554149031639099,
+      "file" : "malformed.html",
+      "matches" : [
+        {
+          "distance" : 0.2445850968360901,
+          "score" : 0.7554149031639099
+        }
+      ],
+      "rank" : 2
+    },
+    {
+      "best_score" : 0.740816593170166,
+      "file" : "article.html",
+      "matches" : [
+        {
+          "distance" : 0.259183406829834,
+          "score" : 0.740816593170166
+        }
+      ],
+      "rank" : 3
+    },
+    {
+      "best_score" : 0.7042609453201294,
+      "file" : "structural.html",
+      "matches" : [
+        {
+          "distance" : 0.2957390546798706,
+          "score" : 0.7042609453201294
+        }
+      ],
+      "rank" : 4
+    },
+    {
+      "best_score" : 0.690933108329773,
+      "file" : "navigation-directory.html",
+      "matches" : [
+        {
+          "distance" : 0.30906689167022705,
+          "score" : 0.690933108329773
+        }
+      ],
+      "rank" : 5
+    },
+    {
+      "best_score" : 0.689172625541687,
+      "file" : "reference.html",
+      "matches" : [
+        {
+          "distance" : 0.310827374458313,
+          "score" : 0.689172625541687
+        }
+      ],
+      "rank" : 6
+    }
+  ],
+  "primary_text" : "# Juniper Field Notes\n\n# Juniper Ridge Water Survey\n\nHydrologists found the ridge spring flowing at 14 liters per minute after three rainless weeks.\n\nThe team marked well JR-17 for a second conductivity reading because its first sample measured 860 microsiemens per centimeter."
+}
